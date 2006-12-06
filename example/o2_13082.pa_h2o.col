@@ -1,0 +1,27 @@
+ 21 11
+ GFIT      Version 2.40.2    5-Dec-2006    GCT                  
+ GSETUP Version 2.6.4       6 Dec 2006    GCT
+/home/toon/ggg/config/data_part.lst
+/home/toon/ggg/apriori/gfit_ap.gnd
+/home/toon/ggg/runlogs/gnd/pa_h2o.grl
+/home/toon/ggg/levels/integral.gnd
+/home/toon/ggg/models/gnd/
+/home/toon/ggg/vmrs/gnd/
+pa_h2o.mav                                                                      
+pa_h2o.ray                                                                      
+/home/toon/ggg/isotopologs/isotopologs.dat                                      
+/home/toon/ggg/windows/gnd/nir.gnd
+
+/home/toon/ggg/linelist/atm.101 /home/toon/ggg/linelist/gct.101 /home/toon/ggg/linelist/fcia.101 /home/toon/ggg/linelist/scia.101
+/home/toon/ggg/linelist/solar_dc.101
+/home/toon/ggg/ak/k
+/home/toon/ggg/spt/z
+o2_13082.pa_h2o.col
+13082.50 225.00  10 1 1 0  cl  ct  fs  so    : o2
+   Spectrum           Nit  CL  Tilt  Sh  S-G  Zoff  RMS/CL  Zmin   AM_o2   OVC_o2     VF_o2     VF_o2_error
+ pa20040721saaaab.049  4 0.177 -1.5  0.1 -0.7 0.000 0.6722  0.499  1.298 4.232E+24   1.0340 2.0E-02
+ pa20040721saaaab.125  4 0.161 -1.4 -0.2 -0.6 0.000 0.7640  0.500  2.251 4.232E+24   1.0392 2.3E-02
+ pa20040721saaaab.182  4 0.122 -0.3 -0.5 -0.6 0.000 1.2860  0.502  6.976 4.231E+24   1.0343 3.9E-02
+ pa20040721saaaab.185  4 0.118 -0.2  0.1 -0.7 0.000 1.3211  0.500  7.443 4.232E+24   1.0330 4.0E-02
+ pa20041222saaaab.021  4 0.296 -1.4  1.6 -0.3 0.000 1.3348  0.437  7.495 4.296E+24   1.0422 4.0E-02
+ pa20041222saaaab.022  4 0.300 -1.5  1.3 -0.3 0.000 1.2973  0.435  7.149 4.297E+24   1.0443 3.9E-02

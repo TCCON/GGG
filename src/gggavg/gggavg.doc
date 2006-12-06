@@ -1,0 +1,80 @@
+
+GGGAVG    version 2.5.0     3-Sep-2005   GCT
+  A major revision that accomodates the new runlog format in which
+  InGaAs and Si (HgCdTe and InSb) are both in the same runlog file.
+  Assumes runlog is chronological so that different runlog records
+  with the same time are treated as equivalent. For example, runlog
+  allows o2_7885 to be averaged with o2_13082 even though they
+  correspond to different (alternating) records of the runlog file.
+
+  This new scheme will automatically accomodate instruments with
+  N (>2) detectors obtaining spectra simultaneously, whereas the
+  old scheme (parallel runlog files) would have required software
+  mods to be able to do this.
+
+  Also simplified gggavg such that if a .col file is missing,
+  it crashes, whereas previously it slickly continued with the
+  next .col file in the multiggg.bat file. I prefer to know if
+  something is wrong. If the header part of the .col file exists,
+  but there are know data records (e.g. if the frequency range of
+  the window doesn't match the spectrum) then it counts those as
+  missing data.
+
+GGGAVG    version 2.4.0    11-Mar-2004   GCT
+  Added an additional auxiliary parameter: pins
+  So now naux=15.
+
+GGGAVG    version 2.3.1    23-Feb-2004   GCT
+  Now calls the new readrunlog subroutine, which necessitated
+  various variables the were previously declared as R*8 to be
+  changed to R*4.
+
+GGGAVG    version 2.3.0    23-Apr-2003   GCT
+  In response to the change in the GFIT output format (replaced
+  cl_err by Zoff), I changed the parameter list (and format) for
+  reading the .col files.
+
+GGGAVG    version 2.2.1    20-Dec-2002   GCT
+  Justus was having problems with the GGGAVG under the G77 compiler.
+  This was due to the arrays cl_av and cl_sw not being initialized.
+  They were already full of garbage as soon as GGGAVG tried to execute.
+  Fixed this problem by adding the loops:
+       do i=1,1200
+         cl_av(i:i)=' '
+       end do
+       do i=1,9600
+         cl_sw(i:i)=' '
+       end do
+
+GGGAVG    version 2.2.0     7-Dec-2001   GCT
+  Changes the meaning of the numbers which are printed in the
+  wincomp file. The 3'rd column is now the standard error on
+  the scale factor. Previously, this was multiplied by the
+  error weight (4'th column).
+  Also decreased parameter EPS in t_fit.f from 1.e-4 to 1.e-5.
+  
+GGGAVG    version 2.1.0    12-Feb-2001   GCT
+  Re-defined the cl_av and cl_sw arrays to avoid null characters
+  being written to the column labels (which causes XYPLOT not to
+  be able to read anything following them.
+
+GGGAVG    version 2.0.0     1-Nov-00     bs
+  Make changes to accomodate the new format of the .col files
+  produced by GFIT.
+
+GGGAVG    version 8.2.0    19-Jul-00     bs
+  Added if statements to read the right files in the case of ATMOS
+  and to read the TAB delimited ATMOS runlogs.
+
+gggavg    version 7.3.0    14-jan-99     bs
+  - the variable "record" is now a 163 characters string (increased
+	from a 162 character string).
+  - gsetup reads the records in a runlog file even when a retrieval
+	delimiter (' ' & '-' & '+') is placed at the beginning of the
+	line.
+  - added a new character array of size mrow and named it sign. the
+	array stores the retirieval delimiters from the runlog records
+	(when present) and outputs to the average files (.av and .sw).
+  - the auxiliary variable yaux(4,mrow) is now initialised in an
+	if..elseif..endif statement to account for the presence of
+	(lack of) the retrieval delimitar character.

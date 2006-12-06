@@ -1,0 +1,80 @@
+xyplot
+extract_pth.out
+
+
+rdx
+tmod
+rdy
+tout
+pd
+crx
+240 315
+cry
+240 315
+pd
+rda
+yy
+lba
+!17 
+pd
+hc
+vdy
+tmod
+auy
+rdx
+doy
+crx
+0 366
+pd
+hc
+rdx
+hh
+ssx
+-24 5
+sax
+24
+crx
+10 26
+lbx
+UT Hour
+pd
+hc
+rdx
+pmod
+rdy
+pout
+crx
+940 985
+cry
+940 985
+pd
+hc
+vdy
+pmod
+pd
+auy
+pd
+rdx
+doy
+aux
+pd
+crx
+0 366
+pd
+hc
+rdx
+hh
+pd
+ssx
+-24 5
+aux
+sax
+24
+pd
+crx
+10 26
+lbx
+UT Hour
+pd
+hc
+qu

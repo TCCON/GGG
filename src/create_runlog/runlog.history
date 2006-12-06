@@ -1,0 +1,257 @@
+RUNLOG     Version 6.5.0      3-Jun-2004   GCT
+
+  Derived a new simpler, more general equation for the effective
+  ZPD time of an OPUS spectrum.  It works for all possible cases:
+  single scans (forward or reverse) or multiple scans forward-only
+  or forward-reverse).  It also seems to work for different flavors
+  of OPUS (120M, 120HR, 125HR) and for different sampling rates per
+  laser fringe.
+        gmtstart = gmtoff+dble(hh+(mm+ss/60.)/60.)  ! Scan start time
+        t_s = 0.9*lasf*(1/res+1/phr)/vel/1000       ! Single scan duration
+        gmt = gmtstart + (dur/2 + t_s*(dfloat(pkl+prl)/nip-0.5d0))/3600
+  This equation assumes that:
+  1) prl=0 for forward-only scans
+  2) pkl=0 for reverse-only scans
+  3) pkl+prl=nip/2 for forward-reverse scans
+  Note that for forward-reverse scans the equation simplifies to
+       gmt = gmtstart + dur/2/3600
+  Note that this equation is independent of NSS (the number of scans)
+  The equation assumes that NSS=NGFW+NGBW, so it won't work if
+  there were bad scans that were omitted from the average. 
+
+  To do this I had to change rdopushead.f to be able to handle
+  the different ways that the VEL parameter is written into the
+  OPUS header. In the older Brukers, VEL is an integer code that
+  points to the correct element of the array
+      data velocity/0.0,0.0,4.0,5.0,7.50,10.0,20.0,40.0,60.0,80.0/
+  For example, in the Lauder 120M, VEL=7 means 20.0 kHz.
+  But in the Caltech 125HR, VEL is the actual velocity (e.g. 10.0 kHz).
+  The following if-statement looks for a '.' in the first 4 characters
+  of the velocity field. If it finds one, it assumes that the value
+  is the actual velocity. If it doesn't gfind a '.', it assumes that
+  it is an integer code value.  
+             call getopusparval(luns,ipoint(i),'VEL',iend,mrs,i2val,rs)
+             ldot=index(cval(:4),'.')
+             if(ldot.gt.0) then       !  new Brukers
+                read(cval(:4),*) vel
+             else                     ! old Brukers
+                read(cval(:4),*) ivel ! Velocity Code
+                vel=velocity(ivel)
+             endif
+  This way, the programs that call rdopushead don't have to worry
+  about the velocity.
+
+
+RUNLOG     Version 6.4.0     22-May-2004   GCT
+
+  Implemented JFB's improvements into getparval
+  1) Pass MRS as an argument
+  2) Read data type (allows byte reveral inside getparval)
+  3) Changed PARAM from C*4 to C*3 
+  4) Re-named it as getopusparval
+  5) initialized loop-variable HEAD
+
+  Also, reversed some of the changes made in version 6.1.4.
+  Namely, we now have only one option in rdsphead.f for all
+  OPUS files. The parameters that vary from instrument to
+  instrument are now all collected into an if-then-else block.
+
+  Removed the option of triggering the interferogram runlog
+  by typing the instrument type in upper case. Now you invoke
+  this option by using uppercase in the name of the sunrun
+  and the files inside.
+
+RUNLOG     Version 6.3.1     10-May-2004   GCT
+  Implemented the option of creating a runlog pointing
+  to the Bruker interferograms (rather than the spectra). 
+  To implement this option simply type "CA" rather than "ca".
+  This makes it trivial to browse the Bruker interferograms
+  using the newspect.pro IDL program.
+
+
+RUNLOG     Version 6.3.0     24-Apr-2004   GCT
+  Worked with Torstens in Bremen to define separate code
+  sections in rdsphead.f for the Bremen (bm) and the
+  Spitsbergen (sp) spectra.
+
+  Also included two additional arguments to rdopushead.f
+  NIP is the number of interferogram points
+  PKL is the interferogram peak location.
+  This allows use of the equation
+    zpd_time=start_time+dur*pkl/nip
+  for forward scans (Bremen does fast-return scans).
+
+  Note: Bruker defines two NPT parameters in the spectrum
+  headers. Depending on the data block, NPT can mean the
+  number of spectral points OR the number of interferogram points.
+
+RUNLOG     Version 6.2.0     14-Mar-2004   GCT
+   Decided that the variables LASF and WAVTKR should be part
+   of the runlog. LASF is now needed by GFIT to perform the
+   air-to-vacuum correction (it was hard-wired to 15798 cm-1).
+   WAVTKR is needed by GSETUP to do the ray-tracing properly
+   (refraction depends on the tracker wavelength) and is
+   currently hardwired to 9900 cm-1.
+
+   The addition of these two parameters to the runlog will
+   generalize the GGG code to be able instruments that don't
+   have lasers at 15798 cm-1 or Si detectors for their active
+   trackers (e.g. TES, ACE, LWBI).
+   
+   Since I was adding new variables to the runlog, I decided to
+   re-format it slightly to reduce the risk of successive numbers
+   running into each other. An additional character was allowed
+   for both latitude, longitude and frequency.
+   
+   At the same time, I decided to convert all the real variables
+   that pass through read/writrunlog to double precision.
+
+RUNLOG     Version 6.1.4     29-Jan-2004   GCT
+   Removed the ability to re-create the runlog without
+   overwriting various parameters (e.g. zero level offset).
+   This capability was rarely used, yet greatly complicated
+   the source code.
+
+   Also added the cabability of creating two runlogs in parallel
+   for the Bruker InGaAs and Si detectors (similar to how the
+   HgCdTe and InSb detectors are handled in the MkIV spectra).
+
+   Decided to have separate entries for the CIT spectra and the
+   Lauder spectra.  This avoids having to edit rdsphead.f every 
+   time that I want to switch from processing a batch of Lauder
+   spectra to a batch of Caltech, or Spitsbergen spectra. This
+   means that we no longer use the designation "op". Instead we
+   use "ca" for Caltech, and "ld" for Lauder.
+
+   To avoid unnecessary duplication of source code for the various
+   OPUS format instruments, I created an new subroutine (RDOPUSHEAD)
+   which is called from inside RDSPHEAD.
+
+   Changed RDSPHEAD to return both the month (IM) and day of month
+  (ID) instead of the doy of year (DOY). This provides more
+   flexibility to change the content of the runlog.
+   
+RUNLOG     Version 6.1.3     21-Jan-2004   GCT
+   Added the line zpoff=0.0  to runlog.f
+   after Zhonghua noticed that the undefined variable was
+   taking on non-zero values on his Linux machine.
+
+   Also, completely removed the variable zpoff from subroutine rdsphead.f,
+   where it was defined, initialized to 0.0, but never used or outputted.
+
+RUNLOG     Version 6.1.2     11-Jan-2004   GCT
+   Changed the statement
+      delwav=delwav*0.9999946
+   to
+      delwav=delwav*0.9999946d0
+
+   The former produced different answers on the Sun and Tiamaria.
+   
+RUNLOG     Version 6.1.1     30-Oct-2003   GCT
+   Changed RUNLOG to allow the names of the sunrun and runlog files
+   to be longer than 14 characters. This required changes to readmenu.f
+
+RUNLOG     Version 6.1.0     16-Sep-2003   GCT
+   Changed RUNLOG to accomodate spectrum names up to 20 characters
+   in length.  This makes the runlog records longer. This change
+   also necessitated changes to all the other programs that read
+   the runlog (GFIT, GSETUP, GGGAVG).
+
+RUNLOG     Version 5.2.1     25-May-2003   GCT
+   Made a minor change to rdsphead.f to accomodate the spectra
+   from Paul Wennberg's IFS125HR, which runs OPUS 4.2.7 (20030313).
+   There are now 19 data blocks per header, so I increased parameter
+   MC to 20.
+
+   Also changed the format on the delwav write from "1x,f13.11" to
+   "f14.11 " because Baron Vazindel had measured spectra with a
+   point spacing of -1.9 cm-1 (low resolution and in reverse
+   frequency order).
+
+RUNLOG     Version 5.2.0      7-Mar-2003   GCT
+   Edited rdsphead.f to make it work with both the old and the
+   new version of OPUS. This was necessary because Justus Notholt
+   has recently upgraded his version of OPUS.  The changes necessary
+   to accommodate this were quite significant. This is because the
+   previous version took a short-cut which relied on the parameters
+   in the header blocks being in a particular order.  To make
+   rdsphead sufficiently general, I had to make a new subroutine
+   (getparval) to extract the values of the various parameters
+   from the Bruker header.
+
+   Here are the main differences that I have noticed between
+   the new and the old OPUS spectrum header formats:
+1) There are now 16 data blocks instead of 10.
+2) The order of the data blocks is now different
+3) The parameter FOC (focal length of collimator)
+   is missing in the new OPUS header.
+4) The date is formatted differently (2002/12/11
+   instead of 17/ 7/1998)
+
+Also, I found a bug in the old version of rdsphead.f:
+The variable, DUR was defined as R*4 when it should
+have neen R*8. Also, a few of the early OPUS spectra
+produced a value:  DUR (REAL64): -1.#QNAN
+This cause the following expression to yield gmt=NaN
+for these runs.
+        gmt=hh+(mm+((ss+dur*mod(ext,2))/60.))/60.
+However, changing the expression to
+        gmt=hh+(mm+ss/60.)/60.
+        if(mod(ext,2).gt.0) gmt=gmt+dur/3600.
+circumvented this problem since the problem runs were
+all forward (ext=0,2,4,6,...) 
+
+Also, I noticed that one of the very early NIT Kitt Peak
+spectra has no value of RESN in its header. This causes
+RDSPHEAD to compute an OPD of 0.5/0.0 = Inf. This was fixed by:
+      resn=0.02  ! In case value is not found in spectrum header
+
+
+RUNLOG     Version 5.1.0      2-Dec-00     GCT
+   Edited rdsphead.f to accomodate FITS format spectra
+   from the Kitt Peak web-site.
+
+RUNLOG     Version 5.0.0      2-Nov-00     GCT
+   Made several changes to improve the portability of RUNLOG:
+   I have taken findfile out of gethead.
+   Instead, gindfile is called in RUNLOG and path is passed
+   to rdsphead (the new gethead). Hence, path is now an input
+   parameter instead of an output parameter. This way, we
+   avoid having to pass the data-partition list to rdsphead.
+   I decided that this was a sufficiently important change to
+   warrant re-naming the subroutine, and since path is now an
+   input rather than an output parameter, I moved its position
+   to the front of the parameter list.
+
+RUNLOG     Version 4.1.1     26-Jul-00     GCT
+   Introduced a new character*3 variable (ext) to account for the changes in
+   the sunrun and the runlog directories. The variable can take the following
+   values: air, bal, gnd, lab, orb, and syn. The change was made by BS on
+   26-Jul-2000.
+
+RUNLOG     Version 4.1.0     29-May-00     GCT
+   Found a bug by which spectra IPP'd on Tiamaria and transferred
+to the Sun incorrectly produced bytepw=+2 (instead of -2)
+This was because we had previously assumed that RUNLOG would only
+ever be used on the computer which wrote the spectra. This was easily
+fixed by replacing the line
+       bytepw=2-4*iend
+with
+       btyepw=2*iend
+       if(ialias.gt.256) then
+         bytepw=-bytepw
+This should now work in all possible situations, including the
+never tested sun spectra on the PC.
+
+At the same time, I also called getendian (instead of endian).
+
+RUNLOG     Version 4.0.0     08-Nov-98     GCT
+   Changed GETHEAD so that it no longer reads the MkIV spectral headers
+as an I*2 array which is equivalenced to (misaligned) I*4, R*4 and R*8
+arrays from which the individual variables are read. Instead the variables
+are read directly in a single read statement.
+
+The avoids the need to use the -misalign switch to get GETHEAD to compile
+which was causing a problem on the GNU F77 compiler under LINUX.
+
+RUNLOG     Version 3.3.1     20-May-98     GCT
