@@ -1,0 +1,27 @@
+xyplot
+~/m4rat/m420070921__fts_sunset_r1.bal.ss
+~/m4rat/m420070922__fts_sunrise_r1.bal.ss
+~/m4rat/m4rat.lav.ret
+
+
+rdx
+#hcooh
+rdy
+#altitude
+say
+-.08
+0.0
++.08
+pd
+rdd
+#year
+ccd
+      2007.50      2008.50
+      2007.50      2008.50
+      2007.50      2008.50
+pd
+cry
+ 6 30
+pd
+hc
+qu

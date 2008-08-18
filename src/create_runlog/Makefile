@@ -8,7 +8,7 @@ CSRC = $(GGGPATH)/src/comn
 
 #linux gnu g77, compiler flags, linker flags
 FC = g77
-FFLAGS = -c -O -pedantic -Wimplicit -Wunused -Wuninitialized -Wsurprising -W
+FFLAGS = -c -O -fbounds-check -Wunused -Wuninitialized -W -Wall
 LDFLAGS =
 
 #linux absoft f95, compiler flags, linker flags
@@ -17,15 +17,16 @@ LDFLAGS =
 #LDFLAGS = -g -g77 -lU77
 
 SRCS = \
-	rdopushead.f \
 	rdsphead.f \
 	create_runlog.f
 
 CSRCS = \
+	$(CSRC)/read_opus_header.f \
 	$(CSRC)/getopusparval.f \
 	$(CSRC)/read_mkiv_header.f \
 	$(CSRC)/getendian.f \
 	$(CSRC)/gindfile.f \
+	$(CSRC)/lloc.f \
 	$(CSRC)/julian.f \
 	$(CSRC)/lnbc.f \
 	$(CSRC)/fnbc.f \
@@ -34,6 +35,7 @@ CSRCS = \
 	$(CSRC)/subsolar.f \
 	$(CSRC)/read_sunrun.f \
 	$(CSRC)/write_runlog.f \
+	$(CSRC)/wlimit.f \
 	$(CSRC)/zenaz.f
 
 OBJS = $(SRCS:.f=.o)

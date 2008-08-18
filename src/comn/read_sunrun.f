@@ -2,8 +2,7 @@
      &   oblon,obalt,tins,pins,hins,tout,pout,hout,fmin,fmax,fsf,
      &   lasf,wavtkr,sia,sis,aipl,tel_mag,istat)
 c
-c  Reads a single record from a sunrun file.
-c  The file must already have been opened.
+c  Reads a single record from a sunrun file, which must already have been opened.
 c  The goal of this subroutine is to hide all the of the code
 c  that depends on the sunrun format into pair of subroutines
 c  (writsunrun & readsunrun).

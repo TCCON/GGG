@@ -1,7 +1,11 @@
-c  Program to interpolate into the NCEP model files to determine
-c  the T/P/H at the altittude of the site, and then output these
+c  Program extract_pth
+c  Interpolates into a NCEP model files to determine
+c  the T/P/H at the altitude of the site, and then output these
 c  values along with the corresponding values from the runlog.
-      integer*4 i,iwas,lunm,lunw
+c  Useful for comparing the weather station data with NCEP.
+
+      implicit none
+      integer*4 i,iwas,lunm,lunw,ncol,nlhead
       integer*4
      & lunr,             ! Logical unit number
      & istat,            ! status flag (0=success, 1=EOF)
@@ -36,13 +40,10 @@ c  values along with the corresponding values from the runlog.
      & sis,              ! Solar Intensity (SD)
      & aipl,             ! Airmass-Independent Path Length (km)
      & lasf,             ! Laser Frequency (e.g. 15798 cm-1)
-     & wavtkr,           ! suntracker frequency (active tracking)
-     & zerr,             ! Extra parameter in ATMOS tab-delimited runlogs
-     & scalf             ! Extra parameter in ATMOS tab-delimited runlogs
+     & wavtkr           ! suntracker frequency (active tracking)
 
       character
      & col1*1,           ! first column of runlog record
-     & record*235,       ! runlog record
      & runlab*21,        ! spectrum name
      & apf*2             ! apodization function (e.g. BX N2, etc)
 

@@ -1,7 +1,17 @@
 pro pfit
 
+; The following code should already be inside your ~/.idl/startup.pro
+; In case not, it is included below.
+if(!version.os_family eq 'unix') then device, true_color=24
+window, /free, /pixmap, colors=-10
+wdelete, !d.window
+device, retain=2, decomposed=0, set_character_size=[8,10]
+device, get_visual_depth=depth
+print, 'Display depth = ', depth
+print, 'Color table size = ', !d.table_size
+
 ncol=0
-mss=15   ; Maximum number of sub-strings
+mss=19   ; Maximum number of sub-strings (Freq, Tm  Tc  + 15 target gases)
 xunit=1  ; nm
 xunit=0  ; cm-1
 color=string('t')
@@ -21,7 +31,7 @@ xuplim=string("a")
 ylolim=string("a")
 yuplim=string("a")
 same_window=0
-mspec=2500
+mspec=150000
 path=strarr(mspec)
 termtp=string('xwin')
 xtxt   = fltarr(80)
@@ -71,14 +81,15 @@ case strmid(occul,idot+1,1) of
 endcase
 
 readf,unit,names   ; skip title line
+ll_year=strpos(names,'Year')
 nspec=0l
 print, 'locating SPT files.....'
 while(eof(unit) eq 0) do begin
    readf,unit,names
    prefix=strmid(names,0,1)
    if ( prefix ne ":" ) then begin
-      if ( prefix eq " " or prefix eq "+" or prefix eq "-" ) then names=strmid(names,1,21)
-      spectrum=strtrim(strmid(names,0,21),2)
+      if ( prefix eq " " or prefix eq "+" or prefix eq "-" ) then names=strmid(names,1,ll_year-2)
+      spectrum=strtrim(strmid(names,0,ll_year-2),2)
       path(nspec)=disk+'spt/z'+spectrum
       nspec=nspec+1
    endif
@@ -112,15 +123,23 @@ two:
   readf,unit,nhl,ncol
   print,nhl,ncol,path(kspec)
   ntgas=ncol-3  ; the first 3 columns are Freq, Tm & Tc
-  readf,unit,format='(2f14.6,i7,3f8.3,f7.4,f7.3,1x,i3,f4.1,1x,i3)',$
-    fmin,fmax,npoints,asza,zobs,tang,rms,colmant,colexp,errmant,errexp
+  if(ntgas gt 1) then begin
+     readf,unit,format='(2f14.6,i7,3f8.3,f7.4,f7.3,1x,i3,f4.1,1x,i3)',$
+     fmin,fmax,npoints,asza,zobs,tang,rms,colmant,colexp,errmant,errexp
+     expont=max([colexp,errexp])
+     burden=colmant*(10^(colexp-expont))
+     berr=errmant*(10^(errexp-expont))
+  endif else begin
+     readf,unit,format='(2f14.6,i7,3f8.3,f7.4)',$
+     fmin,fmax,npoints,asza,zobs,tang,rms
+     burden=0.0
+     berr=0.0
+     expont=0
+  endelse
   print,path(kspec),npoints
   if npoints le 0 then goto,two
   readf,unit,headers
 ;  headers=headers+'other'
-  expont=max([colexp,errexp])
-  burden=colmant*(10^(colexp-expont))
-  berr=errmant*(10^(errexp-expont))
   if kskip ne 0 then begin
   if same_window eq 1 then begin
     vbar=0.5*(fmin+fmax)
@@ -151,12 +170,11 @@ closeunit:
   pathlen=strlen(path(kspec))
   text(ntgas)=string(strmid(path(kspec),pathlen-21,21))+$
   string(format='("  !7w!6=",(f6.2),"!9%")',asza)+$
-  string(format='("   !6Z!dT!n=",(f6.2),"km")',tang)+$
+  string(format='("   !6Z!dT!n=",(f7.2),"km")',tang)+$
   string(format='("  !7r!6!drms!n=",(f7.4),"%")',rms)+$
-  string(format='("  !9i!6dz=",(f6.3))',colmant)+$
+  string(format='("  !9i!6dz=",(f6.3))',burden)+$
   '!9+!6'+string(format='((f5.3))',berr)+$
   string(format='("x10!u",(i2))',expont)
-;
 ;
 ;  find the highest and lowest data point for each category
   yloarr=fltarr(ntgas+3)

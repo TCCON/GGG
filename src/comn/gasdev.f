@@ -2,6 +2,7 @@ C     Re-coded per changes to Numerical Recipes
 C     Bill Irion, May 14, 2003
 
        FUNCTION gasdev(idum)
+       implicit none
        INTEGER idum
        REAL gasdev
        INTEGER iset

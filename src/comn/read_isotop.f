@@ -20,6 +20,8 @@ c  dgen(nmode)  R*4   Degeneracies
 c        nmode  I*4   Number of fundamental Vibrational modes
 c        istat  I*4   Status Flag (0=success; 1=failure)
 c
+
+      implicit none
       integer*4  j,
      &   lun,      ! Logical Unit number
      &   kgas,     !  Gas ID number

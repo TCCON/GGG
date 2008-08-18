@@ -28,9 +28,9 @@ c     dF/dX3 =  PD(i,ntg+3) = X1.d{[1+X2.R+X4.sin(CF)].SLIT(X3)*T}/di
 c
       implicit none
       integer*4 ncp,nmp,jmp,ntg,jtg,nii,ldec,nterm,k,
-     & jj,n1,n2,n3,n4,jva,jsp,nlev,jlev,luna
+     & jj,n1,n2,n3,n4,nlev,jlev,luna
       real*4 slit(nii),x(ntg+3),vac(ncp,nlev,0:*),splos(nlev),
-     & zero,unity,rk,pd(nmp+ntg+3,ntg+3),spxv(ncp,ntg+3),ckm2cm
+     & zero,unity,rk,pd(nmp+ntg+3,ntg+3),spxv(ncp,ntg+4),ckm2cm
       real*8 rdec,sh
       parameter (zero=0.0,unity=1.0,ckm2cm=1.0E+05)
 c
@@ -47,6 +47,7 @@ c  Compute primitive transmittance spectrum using spxv(1,n3) as work space.
       end do
       call vexp(spxv(1,n3),1,spxv(1,n3),1,ncp) ! T=exp[SUM{VAC(k,j).X(j)}
       call vmul(spxv(1,n2),1,spxv(1,n3),1,spxv(1,n3),1,ncp)    ! STS*T
+      write(*,*)'ak : spxv=',spxv(1,n3),spxv(2,n3)
 c
 c  Compute PD's and convolve with ILS using PD(1,NTG+3) for workspace
 c      call newdec(spxv(1,n3),rdec,slit,ldec,sh,nii,pd(1,n1),nmp) ! SLIT*T

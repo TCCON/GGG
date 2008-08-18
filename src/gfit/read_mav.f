@@ -6,9 +6,9 @@ c       LUNM           Logical unit number
 c       MLEV           Declared dimension of arrays Z, T, P, D
 c       NLEV           Number of levels of MAVFILE to be read
 c       NLOW           The lowest model level that needs to be read
+c       NSPECI         Actual number of different gases in MAVFILE
 c
 c Outputs:
-c       NSPECI         Actual number of different gases in MAVFILE
 c       Z              Array of altitudes
 c       T              Array of temperatures
 c       P              Array of pressures
@@ -17,7 +17,7 @@ c       VMR(nspeci,mlev)   Array of vmrs
 c
       implicit none
       integer*4 lunm,mlev,nlev,nlevmav,nspeci,nlhead,j,ilev,ncol
-      real*4 z(mlev),t(mlev),p(mlev),d(mlev),vmr(nspeci,mlev),dum
+      real*4 z(mlev),t(mlev),p(mlev),d(mlev),vmr(nspeci,mlev)
 c
       read(lunm,*)nlhead,ncol,nlevmav
       if (nlevmav.ne.nlev) then

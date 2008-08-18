@@ -1,5 +1,5 @@
       subroutine jetspe(specpath,opd,graw,ifirst,ilast,possp,bytepw,
-     & nus,nue,apo_m,interp,foff,res,slit,mii,nscycle,
+     & nus,nue,apo_m,interp,foff,res,
      & yobs,mmp,nmp,nustrt,delwav,status)
 c  Reads a portion of spectrum from disk, apodizes, interpolates, and resamples
 c  the spectrum as requested, then places the result at the beginning of YOBS.
@@ -52,8 +52,8 @@ C======================================================================
 
       INTEGER*4 apo_m,possp,nmp,mpts,STATUS,mii,MMP,KINTPC,
      & k1,M1,M2,I1,I2,k,bytepw,IFIRST,ilast,INTERP,iskip,iabpw,
-     & nhw,nsf,nii,nele,nscycle,j
-c      parameter (mii=50753,nscycle=18)  ! max dimension of slit function 
+     & nhw,nsf,nii,nele,nscycle
+      parameter (mii=50753,nscycle=25)  ! max dimension of slit function 
 c
       REAL*8 dzero,fr,resnog,resn,rect,opd
       REAL*8 nus,nue,graw,delwav,nustrt
@@ -81,11 +81,19 @@ c  Check that the spectral interval m1-nhw to m2+nhw is present on disk file
       if(m1-nhw .lt. ifirst) then
          status=4
          m1=nhw+ifirst
+         write(*,'(a,f8.2,a)')'JETSPE:  Measured spectrum starts at',
+     &   ifirst*graw,' cm-1'
+         write(*,'(a,f8.2,a)')'Required spectral interval starts at',
+     &   nus-graw*nhw,' cm-1'
       endif 
 c
       if(m2+nhw .gt. ilast) then
          status=5
          m2=ilast-nhw
+         write(*,'(a,f8.2,a)')'JETSPE:  Measured spectrum ends at',
+     &   ilast*graw,' cm-1'
+         write(*,'(a,f8.2,a)')'Required spectral interval ends at',
+     &   nue+graw*nhw,' cm-1'
       endif 
       mpts=M2-M1+nsf  ! number of points to be read from disk
 c-------------------------------------------------------------------------
@@ -127,7 +135,7 @@ c  to be performed "in place" without prematurely overwriting any points.
       k1=1+(interp-1)*(mpts-nsf)
       iabpw=iabs(bytepw)
       if(iabpw.eq.3) iabpw=4
-      iskip=m1-nhw-ifirst+possp/iabpw
+      iskip=iabpw*(m1-nhw-ifirst)+possp
       call fetch(specpath,bytepw,iskip,yobs(k1),mpts)
 c      write(*,*)(yobs(j),j=k1,k1+mpts-1)
 c-------------------------------------------------------------------------

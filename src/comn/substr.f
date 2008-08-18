@@ -29,6 +29,7 @@ c  4) Calls external functions FNBC.F (First Non-Blank Character),
 c     and FBC.F (First Blank Character)
 c
 c  18-May-98  GCT
+
       implicit none
       integer mss,nss,ibeg,iend,fnbc,fbc,lenout
       character inputstring*(*),outputarray(mss)*(*)

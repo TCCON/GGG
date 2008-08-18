@@ -24,14 +24,17 @@ c
       implicit none
       integer*4
      $ lf,       ! length of filnam string
+     & fq, lq,   ! Positions of first and last ? in partition
      $ lnbc,     ! external function (Last Non Blank Character)
+     $ lloc,   ! external function (Reverse-Index)
      $ lunr,     ! logical unit number of M4 partition list
      $ j,        ! dummy partition index
      $ ipart,    ! partition index
      $ npart,    ! number of partitions to be searched
      $ mpart     ! maximum supported number of partitions
       parameter (lunr=19,mpart=50)
-      character dplist*(*),filnam*(*),path*(*),partition(mpart)*80
+      character dplist*(*),filnam*(*),path*(*),partition(mpart)*80,
+     & homepath*20
       logical*4 flexst
       save ipart,npart,partition
       data ipart,npart/1,0/
@@ -42,10 +45,13 @@ c
 c
 c  If first call, read file containing list of data partitions to be searched.
          if(npart.lt.1) then
+         call getenv('HOME',homepath)
             open(lunr,file=dplist,status='old')
             do j=1,mpart
  1             read(lunr,'(a)',end=88) partition(j)
                if(partition(j)(1:1).eq.':') go to 1
+               if(partition(j)(1:1).eq.'~') partition(j)=
+     &           homepath(:lnbc(homepath))//partition(j)(2:)
             end do
             write(*,*)'FINDFILE warning: Increase MPART=',mpart
 88          npart=j-1
@@ -55,11 +61,18 @@ c            ipart=1
 c
 c  Systematically search over the NPART partitions starting at IPART
          do j=1,npart   !  loop over NPART partitions
-            path=partition(ipart)(:lnbc(partition(ipart)))//filnam(:lf)
-c            write(*,*) path(:lnbc(path))
-            inquire(file=path,exist=flexst)
-            if(flexst) return              !  success exit  !
-            ipart=mod(ipart,npart)+1       ! increment partition index
+           fq=index(partition(ipart),'?')  ! location of first ?
+           if(fq.gt.0) then
+              lq=lloc(partition(ipart),'?')  ! location of last ?
+              path=partition(ipart)(:fq-1)//filnam(1:1+lq-fq)//
+     &        partition(ipart)(lq+1:lnbc(partition(ipart)))//filnam(:lf)
+           else
+             path=partition(ipart)(:lnbc(partition(ipart)))//filnam(:lf)
+           endif
+c           write(*,*) path(:lnbc(path))
+           inquire(file=path,exist=flexst)
+           if(flexst) return              !  success exit  !
+           ipart=mod(ipart,npart)+1       ! increment partition index
          end do
       endif  !  (lf.gt.0) 
 c

@@ -112,6 +112,7 @@ c     ------------------------------------------------------------------
 c     1983 Sept 22. CLL added computation of RNORM() for the
 c     exceptional case of N = 0.
 c     -----------------------------------------------------------------
+      implicit none
       INTEGER LDA,M1,N1,LDB,KB,KRANK,IP(N1)
       INTEGER I,II,J,JB,K,KP1,L,LDIAG,LMAX,M,N,NTERMS
       REAL             R1MACH,SDOT,SNRM2

@@ -4,7 +4,7 @@ color=string('f')
 idl_device=string('x')
 occul=string(14)
 resp=string('n')
-runlogstr=strarr(4000)
+runlogstr=strarr(80000)
 spectrum=string('                     ')
 termtp=string('xwin')
 names=''
@@ -12,7 +12,7 @@ names=''
 apo=0
 ipart=0
 npart=0
-kspec=0
+kspec=0l
 ifirst=0l
 ilast=0l
 graw=0d
@@ -62,8 +62,10 @@ on_ioerror,rtn1
 print,format='($,"enter runlog")'
 read,occul
 if occul eq 'q' then goto,rtn5
-idot=strpos(occul,'.')
-case strmid(occul,idot+1,1) of
+;idot=strpos(occul,'.')
+;case strmid(occul,idot+1,1) of
+ix=strlen(occul)
+case strmid(occul,ix-3,1) of
    'g': openr,unit,string('$GGGPATH/runlogs/gnd/',occul),/get_lun
    'b': openr,unit,string('$GGGPATH/runlogs/bal/',occul),/get_lun
    'o': openr,unit,string('$GGGPATH/runlogs/orb/',occul),/get_lun
@@ -78,8 +80,13 @@ if dwas ne ' ' and dwas ne strmid(occul,strlen(occul)-2,2) then begin
 endif
 
 on_ioerror,rtn5
-j=0
+j=0l
 readf,unit,names
+print,strpos(names,'Year')
+ll_year=strpos(names,'Year')
+;rlformat='(1x,a21,42x,f8.3,f7.4,f7.2,3f6.4,2i8,f15.11,i8,i3,39x,f8.2)'
+rlformat=string('(1x,a',ll_year-2,',42x,f8.3,f7.4,f7.2,3f6.4,2i8,f15.11,i8,i3,39x,f8.2)')
+print,rlformat
 while(eof(unit) eq 0) do begin
   readf,unit,names
   runlogstr(j)=names
@@ -93,7 +100,7 @@ read,kspec
 print,kspec,nspe
 if kspec lt 0 or kspec gt nspe-1 then goto,rtn5
 kspec=kspec-1
-kskip=1
+kskip=1l
 
 rtn1b:
 kskip=kskip/abs(kskip)   ; +1 or -1
@@ -110,8 +117,7 @@ if kspec gt nspe-1 then begin
    kspec=nspe-1
    kskip=-1
 endif
-reads,runlogstr(kspec),$
-format='(1x,a21,42x,f8.3,f7.4,f7.2,3f6.4,2i8,f15.11,i8,i3,39x,f8.2)',$
+reads,runlogstr(kspec),format=rlformat,$
 spectrum,asza,zenoff,opd,fovi,fovo,amal,ifirst,ilast,graw,possp,bpw,pout
 spectrum=strtrim(spectrum)
 ;graw=graw*(double(1.)+(fovi^2+amal^2)*6.25e-02)
@@ -192,7 +198,7 @@ case ll(0) of
         goto,rtn2
       end
    3: begin          ; skip
-        print,format='("currently at spectrum #:",(i4)," /",(i4))',kspec,nspe
+        print,format='("currently at spectrum #:",(i5)," /",(i5))',kspec,nspe
         print,format='($,"how many spectra to skip?")'
         read,kskip
         goto,rtn2

@@ -1,9 +1,9 @@
-      subroutine write_mav(z,t,p,d,vmr,nlev,lunv,
+      subroutine write_mav(z,t,p,d,vmr,nlev,lun_mav,
      & t_cell,p_cell,gas_in_cell,vmrlabel,isofile,mgas)
 c
 c  writes the model and vmr profiles to LUNV
       implicit none
-      integer*4 lunv,nspeci,jspeci,nlev,i,j,kspeci,zdiff,
+      integer*4 lun_mav,nspeci,jspeci,nlev,i,j,kspeci,zdiff,
      & i10,mmode,istat,jvmr,kvmr,nvmr,lunt,mgas,gas_in_cell
       parameter (kspeci=230,kvmr=70,mmode=30,lunt=20)
       integer*4 gasindex(kspeci),sagindex(kvmr),
@@ -13,7 +13,7 @@ c  writes the model and vmr profiles to LUNV
      &     delta(kspeci),epsilon(kspeci),fia,dumreal,
      &     dumrealarr(mmode),boltzmann,t_cell,p_cell,zero
       character isofile*(*),
-     &     shortname(kspeci)*(8), fullname(kspeci)*(9),
+     &     shortname(kspeci)*(8), fullname(kspeci)*(11),
      &     vmrlabel*(*),vmrgases(kvmr)*10,speci_id*24
 
       boltzmann=1.38066E-23
@@ -83,8 +83,9 @@ c  found in "isotopologs.dat"
       endif
 c     
 c     Output model information (SUNRUN.MAV)
-      write(lunv,*) 2, nspeci+4, nlev+1
-      write(lunv,'(a24,230a9)')' Height Temp Pres Dens  ',
+      write(lun_mav,*) 2, nspeci+4, nlev+1
+      write(lun_mav,'(a38,230a11)')
+     & ' Height  Temp   Pres       Density    ',
      $     (fullname(jspeci),jspeci=1,nspeci)
 
 c  Define tropospheric vmr
@@ -99,7 +100,7 @@ c  Define tropospheric vmr
 c      write(*,*) 'i10 = ',i10,' z(i10) = ',z(i10)
 c
 c First line of .mav file contains cell information
-          write(lunv,'(2f7.2,2(1pe11.3),230e11.3)')
+          write(lun_mav,'(2f7.2,2(1pe11.3),230e11.3)')
      $    -9.9,t_cell,p_cell/1013.25,0.0001*p_cell/boltzmann/t_cell,
      &    (zero,j=1,speci_cell-nspeci_cell),
      &    (1.0,j=1,nspeci_cell),
@@ -107,12 +108,12 @@ c First line of .mav file contains cell information
       do i=1,nlev
          if (z(i).le.10.0) then
 c     Write tropospheric fractions
-            write(lunv,'(2f7.2,2(1pe11.3),144e11.3)')
+            write(lun_mav,'(2f7.2,2(1pe11.3),144e11.3)')
      $           z(i),t(i),p(i),d(i),(vmr(gasindex(j),i)*
      $           (1.0+delta(j)/1000.0),j=1,nspeci)
          else
 c     Write stratospheric enrichments          
-            write(lunv,'(2f7.2,2(1pe11.3),144e11.3)')
+            write(lun_mav,'(2f7.2,2(1pe11.3),144e11.3)')
      $           z(i),t(i),p(i),d(i),((1.0+delta(j)/1000.0)*
      &           vmr(gasindex(j),i)**(1.+epsilon(j)/1000.0)/
      $           vmr(gasindex(j),i10)**(epsilon(j)/1000.0),

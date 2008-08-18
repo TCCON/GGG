@@ -7,8 +7,8 @@ CSRC = $(GGGPATH)/src/comn
 #LDFLAGS =
 
 #linux gnu g77, compiler flags, linker flags
-FC = g77
-FFLAGS = -c -C -pedantic -Wimplicit -Wunused -Wuninitialized -Wsurprising -W
+FC=g77
+FFLAGS = -c  -O -fbounds-check -Wunused -Wuninitialized  -W -Wall
 LDFLAGS =
 
 #linux absoft f95, compiler flags, linker flags
@@ -16,10 +16,21 @@ LDFLAGS =
 #FFLAGS = -c -en -g
 #LDFLAGS = -g -lU77
 
+
 SRCS = \
-	ak.f \
 	fetch.f \
+	solar_gas_shift.f \
+	write_col.f \
+	compute_residual.f \
+	compute_vertical_paths.f \
+	spectrum_loop.f \
+	do_retrieval.f \
+	do_retrieval2.f \
+	do_retrieval3.f \
+	subtract_cf.f \
 	fm.f \
+	fm2.f \
+	fm3.f \
 	fringes.f \
 	gfit.f \
 	jetspe.f \
@@ -27,7 +38,7 @@ SRCS = \
 	read_mav.f
 
 CSRCS = \
-	$(CSRC)/abscoh.f \
+	$(CSRC)/abscoi.f \
 	$(CSRC)/gasdev.f \
 	$(CSRC)/gct_humlik.f \
 	$(CSRC)/getendian.f \
@@ -49,11 +60,13 @@ CSRCS = \
 	$(CSRC)/rbyte.f \
 	$(CSRC)/read_runlog.f \
 	$(CSRC)/skiprec.f \
-	$(CSRC)/solar_spectrum.f \
+	$(CSRC)/solar_pseudo_trans_spec.f \
 	$(CSRC)/subsolar.f \
 	$(CSRC)/substr.f \
+	$(CSRC)/tlpath.f \
 	$(CSRC)/vsubs.f \
 	$(CSRC)/read_isotop.f \
+	$(CSRC)/wlimit.f \
 	$(CSRC)/zenaz.f
 
 OBJ = $(SRCS:.f=.o)
@@ -62,7 +75,6 @@ COBJ = $(CSRCS:.f=.o)
 .SUFFIXES : .f
 
 .f.o :
-	$(FC) $(FFLAGS) $<
 
 gfit : $(OBJ) comn_objs
 	$(FC) $(LDFLAGS) -o $(BINDIR)/$@ $(OBJ) $(COBJ)

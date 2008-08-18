@@ -2,6 +2,7 @@ C     Re-coded per changes to Numerical Recipes
 C     Bill Irion, May 14, 2003
 
         FUNCTION ran1(idum)
+        implicit none
         INTEGER idum,IA,IM,IQ,IR,NTAB,NDIV
         REAL ran1,AM,EPS,RNMX
         PARAMETER (IA=16807,IM=2147483647,AM=1./IM,IQ=127773,IR=2836,

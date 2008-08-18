@@ -8,7 +8,7 @@ CSRC = $(GGGPATH)/src/comn
 
 #linux gnu g77, compiler flags, linker flags
 FC = g77
-FFLAGS = -c -O -pedantic -Wimplicit -Wunused -Wuninitialized -Wsurprising -W
+FFLAGS = -c -O -fbounds-check -Wunused -Wuninitialized -W -Wall
 LDFLAGS =
 
 #linux absoft f95, compiler flags, linker flags
@@ -18,15 +18,16 @@ LDFLAGS =
 
 SRCS = \
 	gsetup.f \
+	clistindex.f \
 	write_mav.f \
 	setvmr.f \
+	simulate_co2_vmr.f \
 	gravity.f \
 	readmenu.f \
 	readmodFC.f \
 	readvmrFC.f
 
 CSRCS = \
-	$(CSRC)/clistindex.f \
 	$(CSRC)/fbc.f \
 	$(CSRC)/fnbc.f \
 	$(CSRC)/height.f \

@@ -26,7 +26,7 @@ c
       implicit none
 c      
       character modname*(*),string*100,dummy*20
-      integer lunr,nlev,i,k,nlhead,ncol,ninlvl,minlvl,ii,nss
+      integer lunr,nlev,i,j,k,nlhead,ncol,ninlvl,minlvl,ii,nss
       real*4 gas,radius,ecc2,tlat,gs,gravity,pfact,zero,h2ox,
      & h2ovmr(nlev),h2oold,h2onew,inheight,inmw,
      & pold,zold,hold,told,pnew,hk,x,hnew,tnew,avagadro,log1pxox
@@ -37,13 +37,21 @@ c
      & inh2ovmr(minlvl) !temp storage
       real*8 ptrop
 c
-c     Read in input levels, pressures and temperatures
-	open(unit=lunr,file=modname,status='old')
-      read(lunr,*)nlhead,ncol
-c      write(*,*)nlhead,ncol
-      read(lunr,'(a)')string
+      write(*,'(a,a)')' readmodFC: modname = ',modname
+      radius=6378.00
+      ecc2=6.0e-5
+      tlat=-34.0
+      gs=9.81
+      zold=0.0
+      pfact=1.0
+      ptrop=200.0 ! mbar
 c
       if(index(modname,'.mod').gt.0)then           !DG Jan03
+c        Read in input levels, pressures and temperatures
+         open(unit=lunr,file=modname,status='old')
+         read(lunr,*)nlhead,ncol
+c         write(*,*)nlhead,ncol
+         read(lunr,'(a)')string
 c        GFIT format model, listed bottom-up
          call substr(string,dummy,1,nss)  ! nss = number of sub-strings
          if(nss.eq.6) then
@@ -89,6 +97,9 @@ c         write(*,*)'ninlvl=',ninlvl
          close(lunr)
       elseif(index(modname,'.zpt').gt.0)then           !DG Jan03
 c        FASCOD format model, levels listed top-down
+         open(unit=lunr,file=modname,status='old')
+         read(lunr,*)nlhead,ncol
+         read(lunr,'(a)')string
          ninlvl=ncol
          read(lunr,*)(inlvl(i),i=1,ninlvl)
          read(lunr,*)
@@ -98,13 +109,37 @@ c        FASCOD format model, levels listed top-down
          enddo
          read(lunr,*)
          read(lunr,*)(intemp(ninlvl+1-i),i=1,ninlvl)
-         radius=6378.00
-         ecc2=6.0e-5
-         tlat=-34.0
-         gs=9.81
-         zold=0.03
-         pfact=1.0
+         zold=inlvl(1)
          close(lunr)
+      elseif(index(modname,'.prf').gt.0)then           ! DG Apr 08
+c        FASCOD format model, levels listed top-down
+         open(unit=lunr,file=modname,status='old')
+         read(lunr,*)            ! blank
+         read(lunr,'(a)')string  ! number of levels
+         read(lunr,*)            ! $
+         read(lunr,*)ninlvl
+         read(lunr,*)
+         read(lunr,*)
+         read(lunr,'(a)')string  ! altitude
+         read(lunr,*)            ! $
+         read(lunr,'(5(f10.2,1x))')(inlvl(i),i=1,ninlvl)
+c         write(*,*) (inlvl(j),j=1,ninlvl)
+         read(lunr,*)            ! blank
+         read(lunr,'(a)')string  ! pressure
+         read(lunr,*)            ! $
+         read(lunr,'(5(e10.3,1x))')(inpress(i),i=1,ninlvl)
+c         write(*,*) (inpress(j),j=1,ninlvl)
+         do i=1,ninlvl
+            inpress(i)=inpress(i)/1013.25
+            inh2ovmr(i)=0.0
+         enddo
+         read(lunr,*)            ! blank
+         read(lunr,'(a)')string  ! temperature
+         read(lunr,*)            ! $
+         read(lunr,'(5(f10.2,1x))')(intemp(i),i=1,ninlvl)
+c         write(*,*) (intemp(j),j=1,ninlvl)
+         close(lunr)
+         zold=inlvl(1)
       else  
          write(*,*)'Model format not recognised'
          write(*,*)'Model name: ',modname
@@ -122,19 +157,27 @@ c      read(lunr,*,end=3)pnew,tnew
       told=intemp(1)
       h2oold=inh2ovmr(1)
 
-      pnew=inpress(2)
-      tnew=intemp(2)
-      h2onew=inh2ovmr(2)
-      ii=2
+      if(nlev.gt.1) then
+         pnew=inpress(2)
+         tnew=intemp(2)
+         h2onew=inh2ovmr(2)
+         ii=2
+      else
+         hnew=1.E+36
+         tnew=told
+         h2onew=h2oold
+      endif
 c
+c      write(*,*)hold,pold,told
       x=tnew/told-1
       hnew=hold+gas*told*log(pold/pnew)/gs/w(1)/log1pxox(x)
+c      write(*,*)hnew,pnew,tnew
 c      write(*,*)hnew,hnew/(1-hnew/radius),pnew,tnew
 c      if(z(1).lt.zold)
 c     &   write(6,*)' Warning! Levels may not extend low enough'
-      do k=1,nlev         ! loop over levels
-        hk=z(k)/(1+z(k)/radius) ! Convert from geometric to geopotential
- 4      if(hk.gt.hnew) then ! hold & hnew are both below hk; read another record
+      do k=1,nlev                ! loop over levels
+        hk=z(k)/(1+z(k)/radius)  ! Convert from geometric to geopotential
+ 4      if(hk.gt.hnew) then      ! hold & hnew are both below hk; read another record
           pold=pnew
           told=tnew
           hold=hnew
@@ -156,17 +199,15 @@ c      write(*,*)hnew,hnew/(1-hnew/radius),pnew,tnew
           h2onew=inh2ovmr(ii)
           go to 4
         else  !   z(k) is bracketed by zold & znew; proceed with interpolation
-          x=(tnew/told-1)*(hk-hold)/(hnew-hold)
-          t(k)=told*(1+x)
-          p(k)=pold/pfact*exp((hold-hk)*w(k)*gs*log1pxox(x)/gas/told)
-c  density units are cm-2.km-1. multiply density by 10e-5 to get units of
-c  cm-3. multiply density by 10e+0 to get units of m-3.
-c          d(k)=10132.5*avagadro*p(k)/t(k)/gas  !units of cm-2.km-1
-          d(k)=0.101325*avagadro*p(k)/t(k)/gas  !units of cm-3
-           h2ox=(h2onew/h2oold-1)*(hk-hold)/(hnew-hold) !RAW Linear
+           x=(tnew/told-1)*(hk-hold)/(hnew-hold)
+           t(k)=told*(1+x)
+           p(k)=pold/pfact*exp((hold-hk)*w(k)*gs*log1pxox(x)/gas/told)
+           d(k)=0.101325*avagadro*p(k)/t(k)/gas  !units of cm-3
+           h2ox=0.0
+           if(h2oold.gt.0.0)h2ox=(h2onew/h2oold-1)*(hk-hold)/(hnew-hold)
            h2ovmr(k)=h2oold*(1+h2ox) !RAW Linear interpolation of H2O
         endif
-c       write(*,*)zold,pold,z(k),t(k),p(k)
+c       write(*,*)zold,pold,told,z(k),t(k),p(k),h2ovmr(k)
       end do
       return
 c

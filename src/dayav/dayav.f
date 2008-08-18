@@ -1,11 +1,14 @@
-c  Program reads the output files (e.g. fts93avg.vav) produced  by GGGAVG,
+c  Program dayav
+c  Reads the output files (e.g. fts93avg.vav) produced  by GGGAVG,
 c  then averages these results over a user-selected period (AVPER days)
 c  and writes the averaged results.
+
+      implicit none
       integer j,k,lunr,lunw,naux,ncol,mcol,nlhead,nfmt,nlabel,lnbc,lr,
      & ios,navg,ntotavg,nspe
       parameter (lunr=12)
       parameter (lunw=14)
-      parameter (naux=15)   ! number of auxiliary variables (e.g. Year, Day, Lat, Long)
+      parameter (naux=19) ! number of auxiliary variables (e.g. Year, Day, Lat, Long)
       parameter (mcol=500)  ! maximum allowed number of primary variables
       character pabel*1000,outfile*40,infile*40,version*44,keyword*8,
      & clabel(naux+2*mcol)*32,gtext*1200
@@ -17,14 +20,14 @@ c  Prompt user for input
       write(6,*)version
       lr=0
       do while (lr .le. 0)
-         write(6,'(a,$)') ' File to be averaged (e.g. gndallav.vav): '
+         write(6,'(a)') ' File to be averaged (e.g. gndallav.vav): '
          read(5,85)infile
          lr=lnbc(infile)
       end do   !  while (lr .le. 0)
       open(lunr,file=infile,status='old')
  85   format(a)
 c
-      write(6,'(a,$)')' Averaging period in days (e.g. 30.5 = 1 month):'
+      write(6,'(a)')' Averaging period in days (e.g. 30.5 = 1 month):'
       read(5,*) avper
 c====================================================================
 c  Open input & output files and read/write header information.
@@ -59,11 +62,12 @@ c  Main loop
       nspe=0
       ntotavg=0
       ios=0
+      write(*,*)'naux, ncol=',naux,ncol
       do while ( ios .eq. 0 )
          read(lunr,75,iostat=ios) (yaux(k),k=1,naux),
      &   (yobs(k),yerr(k),k=1,ncol)
- 75      format(f12.6,14f12.5,1000(1pe12.4))
-         time=365.25d0*yaux(1)
+ 75      format(f14.8,18f13.5,1000(1pe12.4))
+         time=365.25d0*yaux(1)  ! convert from years to days
 c         time=365.25d0*yaux(1)+yaux(2)+yaux(4)/24  ! old format files
          if ( dabs(time-twas) .le. avper .and. ios .eq. 0 ) then
             navg=navg+1
@@ -90,7 +94,7 @@ c         time=365.25d0*yaux(1)+yaux(2)+yaux(4)/24  ! old format files
             write(lunw,75)(ta(k)/navg,k=1,naux),(ty(k),tt(k),k=1,ncol)
             nspe=nspe+navg
             ntotavg=ntotavg+1
-            write(*,'(2i6,2f7.0)')ntotavg,navg,ta(1)/navg,ta(2)/navg
+            write(*,'(3i6)')int(ta(1)/navg),nint(ta(2)/navg), navg
             endif
 c  Set TA, TT, TY to zero.
             navg=1

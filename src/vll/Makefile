@@ -8,7 +8,7 @@ CSRC = $(GGGPATH)/src/comn
 
 #linux gnu g77, compiler flags, linker flags
 FC = g77
-FFLAGS = -c -C -pedantic -Wimplicit -Wunused -Wuninitialized -Wsurprising -W
+FFLAGS = -c -O -fbounds-check -Wunused -Wuninitialized -W -Wall
 LDFLAGS =
 
 #linux absoft f95, compiler flags, linker flags

@@ -48,7 +48,7 @@ c
       character specname*(*),spfmt*2,path*(*),amon*3,apf*2,
      & hst*80,runtype*1,date*8,c16*2
       integer*4 dtype,hedlen,luns,iy,im,id,idwas,hh,mm,ss,ms,
-     & object,ktype,nscans,nip,nnn,isr,dfr,pkl,prl
+     & object,ktype,nip,nnn,isr,dfr,pkl,prl
 c      integer*2 mrs
       parameter (hedlen=512,luns=19)
 c      integer*2 i2val(mrs)
@@ -59,16 +59,17 @@ c      integer*2 i2val(mrs)
      $ iend,nscan,iscan,nintp,ncenter
 
       real*8 delwav,wsfact,dstep,nus,nue,nubar,
-     $ eorv,ervc,tplat,tplon,tpalt,apt,dur,lfl,hfl,
-     $ startf,stopf,res,phr,vel,foc,pi,d2r,tsza,tgmt,gmtoff,
-     & oblat,oblon,obalt,zpdtim,t_s,dt
+     $ apt,dur,lfl,hfl,oblat,oblon,obalt,
+     & sia,sis,
+     $ startf,stopf,res,phr,vel,foc,pi,d2r,tgmt,
+     & zpdtim,t_s,dt
       parameter (pi=3.14159265d0,d2r=pi/180)
 
       real*8 fovi,gmt,gmtstart,gmtwas,lasf,
-     & opd,scandelt,sampfreq,airmass,
+     & opd,scandelt,sampfreq,
      $ snr,zoff,resn,wavtkr,dopp,
      & pins,tins,hins,pout,tout,hout,
-     & asza,azim,ed,efl,aptdiam(0:15),sza1,sza2
+     & asza,ed,efl,aptdiam(0:15),sza1,sza2
 
       save aptdiam
       save hh,mm,ss,idwas,gmtwas,nip
@@ -106,7 +107,6 @@ c  previous spectrum in the event that a spectrum header could not be read.
       fovi=0.0d0
       snr=0.0d0
       apf='XX'
-      asza=0.0d0
 c      iy=0
 c      id=0
 c      gmt=0
@@ -128,9 +128,6 @@ c  DG Jan03
      &  status='old',recl=hedlen/4)
 c       Read Grams header 512 bytes
         read(19,rec=1)i2hedr
-c        read(chhedr,
-c     &  '(36x,F8.3,53x,i1,2x,2(i2,x),i4,2x,2(i2,x),i2,6x,f7.3)')^M
-c     &  resn,ifil,id,im,iy,hh,mm,ss,asza
         nus=r8hedr(2)           !start freq.
         nue=r8hedr(3)           !end freq.
         npoints=i4hedr(2)
@@ -266,15 +263,6 @@ c        ss=ss+(nfwdscans-1)*0.375*opd  ! REV runs are twice as fast as FWD
         oblat= -34.45
         oblon=+150.88
         obalt=0.030
-cc  Calculate the solar zenith and azimuth angles at time of ZPD
-c        call zenaz(object,oblat,oblon,obalt,iy,im,id,
-c     &  gmt/24.d0,asza,azim,eorv,ervc,tplat,tplon,tpalt)
-c
-c       write(*,*)
-c     &'PCAT resn ifil id im iy   hh mm ss   asza   apert pins nscans'
-c       write(*,'(L5,F6.3,x,i2,x,2(i2,x),i4,2x,2(i2,x),i2,x,
-c     & f7.3,x,f4.1,x,f6.1,I4)')
-c     &  pcat,resn,ifil,id,im,iy,hh,mm,ss,asza,fovi*325,pins,nfwdscans
 
 c=====================================================================
       elseif(spfmt.eq.'at') then
@@ -314,13 +302,6 @@ c        hout=r4hedr(99)
 c        oblat=34.3819
 c        oblon=-117.6776
 c        obalt=2.258
-c
-c  Calculate the solar zenith and azimuth angles at time of ZPD
-        call zenaz(object,oblat,oblon,obalt,iy,im,id,
-     &  gmt/24.d0,asza,azim,eorv,ervc,tplat,tplon,tpalt)
-c        tout=5.
-c        pout=781.
-c        hout=20.
 c
         snr=dfloat(i4hedr(64))/r4hedr(80)
         gmt=dble(r4hedr(77)/3600.d0)
@@ -418,18 +399,14 @@ c        hins=10.
         endif
 c
 c  Compute mean ASZA as the average of the ZPD SZAs of the individual interferograms.
-        tsza=0.0d0
         tgmt=0.0d0
         zpdtim=hh+(mm+(ss+float(ncenter)/sampfreq)/60.)/60. 
         scandelt=(dur-dfloat(nintp)/sampfreq)/(nscan-1)
         do iscan=1,nscan
-          tsza=tsza+asza
           tgmt=tgmt+zpdtim
           zpdtim=zpdtim+scandelt/3600
         end do
         gmt=tgmt/nscan ! airmass-weighted average GMT
-c        write(*,'(a12,i4,2i8,5f11.5)')specname,nscan,
-c     &  ncenter,nintp,gmt,dur,180*sza1/pi,180*sza2/pi,asza
 c
 
 c  Read the lab spectra taken on 10/29/2003 at Kitt Peak, using 100m 
@@ -514,7 +491,6 @@ c        hins=10.
           write(6,*)nue,nue/delwav
         endif
 c
-        asza=0.0d0
         gmt=7.d0+hh+(mm+(ss+dur/2.)/60.d0)/60.d0     !yzh 20031104
 c
 c============================================================
@@ -630,9 +606,6 @@ c        tins=20.0
 c        hins=20.0
 c        oblat=46.55
 c        oblon=7.98
-c Bruker header has no solar zenith angle, so calculate it.....
-        call zenaz(object,oblat,oblon,obalt,iy,im,id,
-     &  gmt/24.d0,asza,azim,eorv,ervc,tplat,tplon,tpalt)
 c        tout=-5.0
 c        pout=660.0
 c        hout=50.0
@@ -727,10 +700,6 @@ c        hout=41.0
            endif
         endif
 
-c Giessen header has no solar zenith angle, so calculate it.....
-        call zenaz(object,oblat,oblon,obalt,iy,im,id,
-     &  gmt/24.d0,asza,azim,eorv,ervc,tplat,tplon,tpalt)
-
         foc=203.3        ! Collimator focal length, in mm
         fovi=1.12/foc    ! Field stop of 1.12 mm in diameter
         delwav=(nue-nus)/i4hedr(66)
@@ -770,10 +739,16 @@ c
         dtype=1031 ! data_type (1031=spectrum)
         c16=specname(16:17)
         if(c16.eq.'A.' .or. c16.eq.'B.' .or. c16.eq.'X.') dtype=2055 ! interferogram
-        call rdopushead(path,iend,dtype,npoints,startf,stopf,iy,im,id,
-     &  hh,mm,ss,ms,apt,nscans,dur,vel,apf,phr,res,lasf,foc,nip,dfr,
-     &  pkl,prl,gfw,gbw,lfl,hfl,possp)
-c        write(*,*)iy,im,id,hh,mm,ss,ms
+
+       call read_opus_header(path,iend,dtype,npoints,startf,stopf,iy,im,
+     &  id,hh,mm,ss,ms,apt,dur,vel,apf,phr,res,lasf,foc,nip,dfr,
+     &  pkl,prl,gfw,gbw,lfl,hfl,possp,oblat,oblon,obalt,tins,pins,hins,
+     &  tout,pout,hout,sia,sis)
+
+c        call rdopushead(path,iend,dtype,npoints,startf,stopf,iy,im,id,
+c     &  hh,mm,ss,ms,apt,nscans,dur,vel,apf,phr,res,lasf,foc,nip,dfr,
+c     &  pkl,prl,gfw,gbw,lfl,hfl,possp)
+c        write(*,'(a,7i6)')'iy,im,id,hh,mm,ss,ms=',iy,im,id,hh,mm,ss,ms
 c
         delwav=(stopf-startf)/(npoints-1)
         ifirst=nint(startf/delwav)
@@ -783,16 +758,17 @@ c        write(*,'(a,2f16.9,i6,f16.11)')'startf,stopf,npoints= ',
 c     &  startf,stopf,npoints,delwav
         opd=0.9/res
         fovi=apt/foc
+        write(*,*)path,apt,foc,fovi
         delwav=delwav*(1.D0+(fovi**2)/16)  ! FOV correction
-c        write(*,'(a,2f16.9,i6,f16.11)')'startf,stopf,npoints= ',
-c     &  startf,stopf,npoints,delwav
+        write(*,'(a,2f16.9,i6,f16.11)')'startf,stopf,npoints= ',
+     &  startf,stopf,npoints,delwav
         if(dtype.eq.2055) then   ! Interferogram
            delwav=1.d0
            ifirst=1
            ilast=nip
         endif
         gmtstart=dble(hh+(mm+(ss+ms/1000.)/60.)/60.)  ! Scan start time
-c        write(*,*)'  Delta_t(s) =',
+c        write(*,*)'  gmtstart  Delta_t(s) =',specname,gmtstart,
 c     &  nint(((id-idwas)*24.0d0+gmtstart-gmtwas)*3600)
         idwas=id
         gmtwas=gmtstart
@@ -802,6 +778,7 @@ c     &  nint(((id-idwas)*24.0d0+gmtstart-gmtwas)*3600)
               nip=2*0.9*(hfl-lfl)*(1/res+1/phr)
            else
               nip=pkl+prl  ! Primary Sites (slice-ipp)
+c              write(*,*)'pkl,prl,nip=',pkl,prl,nip
               if(gfw.le.0) pkl=0
               if(gbw.le.0) prl=0
            endif
@@ -821,13 +798,6 @@ c Reverse REV scans that OPUS has flipped to make appear as FWD scan
         dt=dur/2+t_s*(dfloat(pkl+prl)/nnn-0.5d0)
         gmt=gmtstart+dt/3600.
 
-c
-c        write(*,*)'nscans,gmtstart,nip,pkl,prl,gfw,gbw,dur,vel,t_s=',
-c     &  nscans,gmtstart,nip,pkl,prl,gfw,gbw,dur,vel,t_s,dt
-c  
-       
-        call zenaz(object,oblat,oblon,obalt,iy,im,id,
-     &  gmt/24.d0,asza,azim,eorv,ervc,tplat,tplon,tpalt)
 c===================================================================
 c      elseif(spfmt.eq.'kp') then
 c        openr(luns,file=path(lnbc(path)-3)//'hdr',

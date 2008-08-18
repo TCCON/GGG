@@ -47,6 +47,7 @@ c    sigma_scale(nwin)
 c    sew
 c    error_weight
 c    
+      implicit none
       integer nspe,nwin,mwin,iwin,jspe,loop
       real*8 yobs(mwin,nspe),yerr(mwin,nspe),eps,ss,vv,se,ve,
      $vmr(nspe),sigma_vmr(nspe),scale(mwin),sigma_scale(mwin),
@@ -71,7 +72,8 @@ c  Re-evaluate vmrs (or column abundances)
             vmr_num=0.d0
             vmr_denom=0.d0
             do iwin=1,nwin   !  loop over windows
-               if(yerr(iwin,jspe).ne.valmiss) then
+               if( yerr(iwin,jspe).ne.valmiss .and.
+     &         yerr(iwin,jspe) .ne. 0.0 ) then
                   se=scale(iwin)/yerr(iwin,jspe)
                   vmr_num=vmr_num+se*yobs(iwin,jspe)/yerr(iwin,jspe)
                   vmr_denom=vmr_denom+se*se
@@ -96,7 +98,8 @@ c  Re-evaluate scale factors (for each window)
             scale_num=1.0d0    ! A priori estimate
             scale_denom=1.0d0  ! A priori estimate
             do jspe=1,nspe        !  loop over spectra
-               if(yerr(iwin,jspe).ne.valmiss) then
+               if(yerr(iwin,jspe).ne.valmiss .and.
+     &         yerr(iwin,jspe).ne.0.0) then
                   ve=vmr(jspe)/yerr(iwin,jspe)
                   scale_num=scale_num+ve*yobs(iwin,jspe)/yerr(iwin,jspe)
                   scale_denom=scale_denom+ve*ve
@@ -130,7 +133,8 @@ c  In a perfect world it would be unity.
         trr=0.0d0
         twt=0.0d0
         do jspe=1,nspe
-          if(yerr(iwin,jspe).ne.valmiss) then
+          if( yerr(iwin,jspe).ne.valmiss .and.
+     &    yerr(iwin,jspe).ne.0.0) then
           twt=twt+1.0d0
           res=yobs(iwin,jspe)-vmr(jspe)*scale(iwin)
           trr=trr+( res/yerr(iwin,jspe) )**2

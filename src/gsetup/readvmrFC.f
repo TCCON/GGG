@@ -14,21 +14,23 @@ c      parameter (mg=134,minlvl=151)    !minlvl <= mg  -DG: not necessary if inl
       parameter (mg=230,minlvl=250)    !DG Jan03
       CHARACTER vmrpath*(*),pabel*(*),dum*16,string*1000,modname*48
       real*4 z(nlev),zold,znew,vold(mg),vnew(mg),vmr(mgas,nlev),fr,
-     &vshift,inlvl(minlvl)
+     &vshift,inlvl(minlvl),zero
 c      equivalence (inlvl,vold)
+
       if(mgas.gt.mg) then
         write(*,*) 'mgas=',mgas
         write(*,*) 'mg=',mg
         stop 'readvmrFC: increase parameter MG'
       endif
       vshift=0.0
+      zero=0.0
 c==================================================================
 c  Read in names of gases in vmr set
 c      write(6,*)'readvmr: mgas,nlev ',mgas,nlev
       open(lunr,file=vmrpath,status='old')
       read(lunr,'(a)')string
 c
-      if(index(vmrpath,'.vmr').gt.0.or.index(vmrpath,'.set').gt.0) then          !DG Jan03
+      if(index(vmrpath,'.vmr').gt.0.or.index(vmrpath,'.set').gt.0)then !DG Jan03
 c         GFIT format
           backspace (lunr)
           read(lunr,*)nn,ncol
@@ -51,25 +53,30 @@ c     Read VMRs level by level testing to make sure that there are NCOL values
           read(lunr,'(a)')string
           call substr(string,dum,1,nss)
           if(nss.ne.ncol) then
-            write(*,*) nss,ncol
-            stop 'READVMR: mismatch b/n number of data values & labels'
+             write(*,*) nss,ncol
+             stop 'READVMR: mismatch: number of data values/labels'
           endif
           read(string,*)zold,(vold(jcol),jcol=1,ngas)
 c          write(*,*)'readvmrFC:',zold
 c
-          read(lunr,'(a)')string
-          call substr(string,dum,1,nss)
-          if(nss.ne.ncol) then
-            write(*,*) nss,ncol
-            stop 'READVMR: mismatch b/n number of data values & labels'
-          endif
-          read(string,*)znew,(vnew(jcol),jcol=1,ngas)
-c          write(*,*)'readvmrFC:',znew
+        if(nlev.eq.1) then  ! It's a lab spectrum
+           znew=1.E+38
+c           call vmov(zero,0,vnew,1,ngas)
+        else
+           read(lunr,'(a)')string
+           call substr(string,dum,1,nss)
+           if(nss.ne.ncol) then
+              write(*,*) nss,ncol
+              stop 'READVMR: mismatch: number of data values/labels'
+           endif
+           read(string,*)znew,(vnew(jcol),jcol=1,ngas)
+        endif
 c
           if(z(1).lt.zold+vshift) then
             write(6,*)'Warning: vmrs may not extend low enough'
             write(*,*) 'z(1), zold, vshift', z(1), zold, vshift
           endif
+
           do klev=1,nlev
 c          write(*,*)klev,nlev,z(klev),znew
  11         if(z(klev).gt.znew+vshift) then

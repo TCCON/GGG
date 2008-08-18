@@ -41,6 +41,8 @@ calc=datarray(2,0:npoints-1)
 residual=(meas-calc)
 wt=fltarr(npoints)
 wt=1/(0.000025+calc*calc/4)  ;  assumes error of 0.5% + calc/2
+print,format='(a21,a14,f7.3,a3,f7.3)',strmid(text(ntgas),0,21),": Delta ZOFF =",total(residual*wt)/total(wt)," +-",1/sqrt(total(wt))
+
 
 !p.charsize=2.5
 !p.charsize=2
@@ -96,7 +98,8 @@ for i=tg2,tg1,-1 do begin
 ;   endif else begin
 ;     kcolor=190-135*i/(ntgas-1) ; i=0 red; i=ntgas-1 blue
 ;   endelse
-   kcolor=250-180*i/(ntgas-1) ; i=0 red; i=ntgas-1 blue
+;   kcolor=250-180*i/(ntgas-1) ; i=0 red; i=ntgas-1 blue
+   kcolor=250*(1.0-0.75*i/(ntgas-1)) ; i=0 red; i=ntgas-1 blue
 ;   kcolor=kcolor/2
 ;   if kcolor gt 140 then kcolor = kcolor+30 
    print, i,tg1,tg2,kcolor

@@ -9,49 +9,67 @@ c  The first line must contain the number of header lines, and columns.
 c  The next header lines will be included as comment lines in the Ames file.
 c  The last header line should contain the column labels, one per column.
 c
-c  Note that the first column of the resulting table (record_#) is inserted 
+c  Note that the first column (record_#) of the resulting table is chosen
 c  by SS2AMES to be the independent variable in the Ames-format file,
 c  guaranteeing that it increase monotonically by a sufficient amount.
 c
+      implicit none
       integer jcol,kcol,ncol,mcol,ij,j,k,lunss,lunhdr,lunames,
-     & nmisscol,nlheadss,ios,ls,lsmax,
+     & nmisscol,nlheadss,ios,ls,lsmax,maxcpl,
      & iobs,nobs,nlheadames,ffi,nscoml,nncoml,lnbc,nvpl
       parameter (
      &   lunss=12,    !  the spreadsheet-format input file
      &   lunhdr=13,   !  the header file
      &   lunames=14,  !  the ames-format output file
+     &   maxcpl=132,  !  Maximum Characters Per Line
      &   mcol=102)    !  maximum number of columns
       integer indxcol(mcol)
-      character header*2048,filnam*60,comment*80,string*80,
-     & colabel(mcol)*48,misslabel(mcol)*32,version*44,fmt*8,
+      character header*2048,filnam*80,comment*(maxcpl),string*2048,
+     & colabel(mcol)*80,misslabel(mcol)*80,version*44,fmt*8,
      & yval(mcol)*12,valmiss(mcol)*12,vscal*12,siobs*6
-      parameter (vscal='  1.0000E+00',ffi=1001 )
-      filnam=
-     & '                                                            '
+      parameter (vscal='  1.0000E+00', ffi=1001 )
 
-      version=' SS2AMES   Version 3.0.0    7-Feb-2000   GCT'
+      version=' SS2AMES   Version 3.1.1   27-Mar-2008   GCT'
       write(6,*)version
+
+      write(filnam,'(80a1)') (' ',j=1,80)
+      write(comment,'(200a1)') (' ',j=1,maxcpl)
       do while (lnbc(filnam) .le. 0)
-         write(6,'(a,$)') ' Enter Name of Ames-format Output File : '
+         write(6,'(a)') ' Enter Name of Ames-format Output File : '
          read(5,'(a)') filnam
       end do
 c
 c  Find out how many columns in input file
       open(lunss,file=filnam(:lnbc(filnam))//'.ss',status='old')
       read(lunss,*) nlheadss,ncol
+      write(*,*)'nlheadss,ncol=',nlheadss,ncol
       nscoml=nlheadss-1
       call skiprec(lunss,nlheadss-3)
-      read(lunss,'(8x,a)')string
-      call substr(string,valmiss,mcol,ncol)
-      read(lunss,'(a)') header
+
+c  Missing Values
+      read(lunss,'(8x,a)')string   ! missing values
+      call substr(string,valmiss,mcol,kcol)
+      if( kcol .ne. ncol ) then
+         write(*,*)'kcol,ncol=',kcol,ncol
+         stop 'wrong number of missing values'
+      endif
+      lsmax=5
+      do jcol=1,ncol
+         ls=lnbc(valmiss(jcol))
+         if(ls.gt.lsmax) lsmax=ls
+      end do
+
+      read(lunss,'(a)') header     ! column headers
       call substr(header,colabel,mcol,kcol)
-      if( kcol .ne. ncol ) stop 'Mismatched number of columns/titles'
+      if( kcol .ne. ncol ) then
+         write(*,*)'kcol,ncol=',jcol,ncol
+         stop 'wrong number of column headers'
+      endif
 c
 c  Find out how many rows of data in .ss (input) file
 c  and find the longest data-value string (lsmax)
       iobs=0
       ios=0
-      lsmax=5
       do while (ios .eq. 0)
          read(lunss,'(a)',iostat=ios) string
          call substr(string,yval,mcol,ncol)
@@ -62,8 +80,8 @@ c  and find the longest data-value string (lsmax)
          iobs=iobs+1
       end do
       nobs=iobs-1
-      write(*,*)nobs,lsmax
-      nvpl=80/(lsmax+1)  ! Number of Values Per Line
+      write(*,*)'ncol,nobs,lsmax=',ncol,nobs,lsmax
+      nvpl=maxcpl/(lsmax+1)  ! Number of Values Per Line
       write(fmt,'(a1,i2,a1,i2.2,a1)') '(',nvpl,'a',lsmax+1,')'
       write(*,*) fmt
 c
@@ -71,9 +89,10 @@ c  Find out how many comment lines will be needed in output file
       open(lunhdr,file=filnam(:lnbc(filnam))//'.hdr',status='old')
       call skiprec(lunhdr,7)
       read(lunhdr,*) nncoml
+      write(*,*)'nncoml=',nncoml
       rewind(lunhdr)
 c
-c  Compute how meany header lines the Ames format Output file will have.
+c  Compute how many header lines the Ames format Output file will have.
       nlheadames=10+2*(1+(ncol-2)/nvpl)+ncol
      & +(1+nncoml)+(1+nscoml)
 c
@@ -82,14 +101,14 @@ c  Write Ames-format output file.
       write(lunames,*)nlheadames,ffi
       do k=1,7
          read(lunhdr,'(a)') string
-         write(lunames,'(a)')string
+         write(lunames,'(a)')string(:lnbc(string))
       end do
       write(lunames,'(a)')' record_#'
       write(lunames,*)ncol
       write(lunames,fmt)(vscal,j=1,ncol)
       write(lunames,fmt)(valmiss(j),j=1,ncol)
       do j=1,ncol
-         write(lunames,'(a)') colabel(j)
+         write(lunames,'(a)') colabel(j)(:lnbc(colabel(j)))
       end do
 c
 c  Write the special comment lines from the .ss header.
@@ -100,21 +119,22 @@ c  Write the special comment lines from the .ss header.
       write(lunames,'(a)') version
       do k=3,nscoml
           read(lunss,'(a)') comment
-          write(lunames,'(a)') comment
+          write(lunames,'(a)') comment(:lnbc(comment))
       end do
       call skiprec(lunss,2)  ! skip missing values and header
 c
 c   Write the normal comment lines from the .hdr file
       read(lunhdr,*) nncoml
+      write(*,*)'nncoml=',nncoml
       write(lunames,*)nncoml
       do j=1,nncoml
         read(lunhdr,'(a)') string
-        write(lunames,'(a)')string
+        write(lunames,'(a)')string(:lnbc(string))
       end do
 c
 c  Read which gases to cite as missing
       read(lunhdr,'(a)') string
-      write(*,'(a)') string
+      write(*,'(a)') string(:lnbc(string))
       close(lunhdr)
       call substr(string,misslabel,mcol,nmisscol)
       do k=1,nmisscol
@@ -147,14 +167,8 @@ c
         write(lunames,fmt)siobs,(yval(j),j=1,ncol)
       end do
 c
- 300  close(lunss)
+      close(lunss)
       close(lunames)
       write(*,*) 'NOBS, NCOL = ',nobs,ncol
       stop
       end
-
-c      include '/ggg/src/comn/substr.f'
-c      include '/ggg/src/comn/fbc.f'
-c      include '/ggg/src/comn/fnbc.f'
-c      include '/ggg/src/comn/lnbc.f'
-c      include '/ggg/src/comn/skiprec.f'

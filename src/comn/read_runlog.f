@@ -10,7 +10,7 @@ c  of the code that depends on the runlog format into
 c  a single subroutine. This has two advantages:
 c  1) It simplifies the calling programs
 c  2) It means that if the runlog format is changed
-c  in the future, only readrunlog needs to be changed,
+c  in the future, only read_runlog subroutine needs to be changed,
 c  not the dozen main programs that read the runlog.
 c
 c
@@ -20,7 +20,8 @@ c    lun   Logical Unit number of file to be read
 c  Outputs:
 c    everything else
 
-      integer*4
+      implicit none
+      integer*4 lnbc,lr,
      & lun,              ! Logical unit number
      & istat,            ! status flag (0=success, 1=EOF)
      & iyr,              ! year 
@@ -60,8 +61,8 @@ c    everything else
 
       character
      & col1*1,           ! first column of runlog record
-     & record*235,       ! runlog record
-     & runlab*21,        ! spectrum name
+     & record*400,       ! runlog record
+     & runlab*(*),       ! spectrum name
      & apf*2             ! apodization function (e.g. BX N2, etc)
 
 1      read(lun,'(a1,a)',end=99) col1,record
@@ -69,24 +70,35 @@ c    everything else
       if(col1.ne.'-' .and. col1.ne.'+' .and. col1.ne.' ') then
          record=col1//record   ! Runlog is the old format
       endif
+      lr=lnbc(record)
+c      write(*,*)'read_runlog: lr= ', lr
 c
 c Note: ASCI character 9 is a horizontal tab.
       if(index(record,char(9)).gt.0) then    ! TAB delimited (e.g. ATMOS)
         read(record,*) runlab,iyr,iset,zpdtim,oblat,oblon,
      &  obalt,asza,zenoff,opd,fovi,fovo,amal,ifirst,ilast,graw,
      &  possp,bytepw,zoff,zerr,snr,scalf,apf
-      else                                   ! SPACE delimited (e.g. MkIV)
+      elseif(lr.le.233) then     ! SPACE delimited (e.g. MkIV)
+        read(record,332,err=97) runlab,iyr,iset,zpdtim,oblat,oblon,
+     &  obalt,asza,zenoff,opd,fovi,fovo,amal,ifirst,ilast,graw,possp,
+     &  bytepw,zoff,snr,apf,tins,pins,hins,tout,pout,hout,lasf,wavtkr,
+     &  sia,sis,aipl
+ 332  format(a21,1x,2i4,f8.4,f8.3,f9.3,2f8.3,f7.0,f7.2,3f6.0,2i8,f15.11,
+     & i8,i3,1x,2f5.0,1x,a2,2(f6.0,f8.0,f5.0),f10.0,f7.0,2f6.1,f7.3)
+      else                 ! New GDS-format runlog
         read(record,333,err=98) runlab,iyr,iset,zpdtim,oblat,oblon,
      &  obalt,asza,zenoff,opd,fovi,fovo,amal,ifirst,ilast,graw,possp,
      &  bytepw,zoff,snr,apf,tins,pins,hins,tout,pout,hout,lasf,wavtkr,
      &  sia,sis,aipl
-      endif
- 333  format(a21,1x,2i4,f8.4,f8.3,f9.3,2f8.3,f7.0,f7.2,3f6.0,2i8,f15.11,
+ 333  format(a34,2x,2i4,f8.4,f8.3,f9.3,2f8.3,f7.0,f7.2,3f6.0,2i8,f15.11,
      & i8,i3,1x,2f5.0,1x,a2,2(f6.0,f8.0,f5.0),f10.0,f7.0,2f6.1,f7.3)
+      endif
       istat=0
       return
-98    istat=1
+97    istat=1
       return
-99    istat=2
+98    istat=2
+      return
+99    istat=3
       return
       end

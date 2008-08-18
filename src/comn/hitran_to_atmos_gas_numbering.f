@@ -15,6 +15,7 @@ c     then  KGAS = 0 is returned.
 c
 c     Input arguments are overwritten by outputs
 
+      implicit none
       integer*4 kgas,kiso,mgas
       parameter (mgas=39)
       integer*4 llindex(mgas)
@@ -64,9 +65,9 @@ c
 c  H2O is a bit messy because ATMOS decided
 c  to designate HDO as a separate molecule.
        if(kgas.le.0) then
-          stop 'hitran2atmos: kgas.le.0'
+          stop 'hitran_to_atmos_gas_numbering: kgas.le.0'
        elseif(kgas.gt.mgas) then
-          stop 'hitran2atmos: kgas.gt.mgas'
+          stop 'hitran_to_atmos_gas_numbering: kgas.gt.mgas'
        elseif(kgas.eq.1 .and. kiso.ge.4) then
           kgas=49
           kiso=kiso-3

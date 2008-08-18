@@ -1,5 +1,5 @@
       subroutine getendian(iend)
-c  Determines the "endian" of the host computer
+c  Determines the "endian-ness" of the host computer
 c     Inputs:
 c              None
 c

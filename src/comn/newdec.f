@@ -75,7 +75,7 @@ c Test for cases which will cause array-bound violations
       endif
       klo=int( sh+2 )
       if(klo.lt.1) write(*,*)' NEWDEC warning: KLO < 1:',klo,1
-c         write(*,*)'nout,rdec,sh,nhw=', nout,rdec,sh,nhw
+c      write(*,*)'nout,rdec,sh,nhw=', nout,rdec,sh,nhw
       khi=int( (nout-1)*rdec+sh+1+2*nhw )
       if(khi.gt.nin) write(*,*)' NEWDEC warning: KHI > NIN:',khi,nin
 c      write(*,*) nout, rdec, sh, nhw,khi,nin

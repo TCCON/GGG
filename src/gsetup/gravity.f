@@ -24,6 +24,7 @@ c  (to .07%) by the simple expression g = 0.99746*GM/radius**2, the latitude
 c  variation coming entirely from the variation of surface r with latitude.
 c
 
+      implicit none
       real*4  d2r,gm,omega,con,shc,eqrad,gdlat,altit,
      & gclat,         ! geocentric latitude (radians)
      & radius,        ! radial distance (metres)

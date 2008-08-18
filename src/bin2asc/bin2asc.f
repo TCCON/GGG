@@ -1,123 +1,171 @@
 c  Program bin2asc.f
+c  Converts a series of binary spectra to two-column (freq, signal) ascii format
 c
-c  Converts binary spectra to ascii format.
-c  Works for any binary spectra having a GGG-format runlog.
-c  Uses the appropriate GGG-format runlog as an input file.
-c  Works transparently for I*2 and R*4 data types.
-c  Byte-reversal handled automatically, if needed.
+c  Works for any binary spectra having a GGG-format runlog,
+c  which is used as the input file.
 c
-c   To run, type, e.g.
-c       /home/toon/ggg/bin/bin2asc < pa20050309.grl
-c  ASCII output spectras are created in the local directory
+c  Works transparently for I*2 and R*4 binary data types.
 c
-      integer*4 lunr,luns,lunw,nmax,j,iabpw,lnbc,i,iend,spsv,ispe,lr
-c     &,kk,irec
-      parameter (lunr=5,luns=15,lunw=16)
-      parameter (nmax=4*1024*2048)
+c  Byte-reversal handled automatically, if the computer
+c  that you are working on has a different endian-ness
+c  from the computer that wrote the binary spectra.
 c
-      integer*4 buf4(nmax/4)
+c  ASCII output spectra are created in the local directory.
 c
-      integer*2  buf2(nmax/2)
-c
-      byte bbuf(nmax)
+      implicit none
+      integer*4
+     & lunr,   ! LUN to read input runlogs from
+     & luns,   ! LUN to read binary spectras from
+     & lunw,   ! LUN to write ascii spectra to
+     & mem,    ! maximum buffer size in bytes
+     & i,j,
+     & iabpw,  ! absolute values of the bytes per word
+     & lnbc,   ! function Last Non-Black Character
+     & iend,   ! Endianess of host computer
+     & npts,   ! Number of spectral values
+     & lr      ! 
+
+      parameter (lunr=25,luns=15,lunw=16)
+      parameter (mem=4*1024*2048)
+      real*4 bufr4(mem/4)
+      integer*2  bufi2(mem/2)
+      byte bbuf(mem)
 
       character 
-     & inpath*32,chead*1
+     & runlog*120,inpath*80,chead*1
 
       integer*4
-     & istat,            ! status flag (0=success, 1=EOF)
-     & iyr,              ! year
-     & iset,             ! day of year
-     & ifirst,           ! index of first spectral point in disk file
-     & ilast,            ! index of last spectral point in disk file
-     & possp,            ! Length of attached header in bytes
-     & bytepw            ! Bytes per data word, usually 2 (I*2) or 4 (R*4)
+     & istat,        ! status flag (0=success, 1=EOF)
+     & iyr,          ! year
+     & iset,         ! day of year
+     & ifirst,       ! index of first spectral point in disk file
+     & ilast,        ! index of last spectral point in disk file
+     & m1, m2,       ! starting and ending spectral point indices in output file
+     & possp,        ! Length of attached header in bytes
+     & bytepw        ! Bytes per data word, usually 2 (I*2) or 4 (R*4)
 
       real*8
-     & oblat,            ! observation latitude (deg).
-     & oblon,            ! observation longitude (deg).
-     & obalt,             ! observation altitude (km)
-     & asza,             ! astronomical solar zenith angle (unrefracted)
-     & opd,              ! Optical path difference (cm) of interferogram
-     & graw,             ! spacing of raw spectrum (cm-1) from GETINFO
-     & zpdtim,           ! Time of ZPD (UT hours)
-     & zenoff,           ! Zenith angle pointing offset (deg)
-     & fovi,             ! Internal angular diameter of FOV (radians)
-     & fovo,             ! External angular diameter of FOV (radians)
-     & amal,             ! angular misalignment of interferometer (radians)
-     & zoff,             ! Zero level offset (dimensionless fraction)
-     & snr,              ! Signal-to-Noise Ratio (dimensionless)
-     & tins,             ! Inside temperature
-     & pins,             ! Inside pressure
-     & hins,             ! Inside humidity
-     & tout,             ! Outside temperature
-     & pout,             ! Outside pressure
-     & hout,             ! Outside humidity
-     & sia,              ! Solar Intensity (Average)
-     & sis,              ! Solar Intensity (SD)
-     & aipl,             ! Airmass-Independent Path Length (km)
-     & lasf,             ! Laser Frequency (e.g. 15798 cm-1)
-     & wavtkr            ! suntracker frequency (active tracking)
+     & oblat,        ! observation latitude (deg).
+     & oblon,        ! observation longitude (deg).
+     & obalt,        ! observation altitude (km)
+     & asza,         ! astronomical solar zenith angle (unrefracted)
+     & opd,          ! Optical path difference (cm) of interferogram
+     & graw,         ! spacing of raw spectrum (cm-1) from GETINFO
+     & zpdtim,       ! Time of ZPD (UT hours)
+     & zenoff,       ! Zenith angle pointing offset (deg)
+     & fovi,         ! Internal angular diameter of FOV (radians)
+     & fovo,         ! External angular diameter of FOV (radians)
+     & amal,         ! angular misalignment of interferometer (radians)
+     & zoff,         ! Zero level offset (dimensionless fraction)
+     & snr,          ! Signal-to-Noise Ratio (dimensionless)
+     & tins,         ! Inside temperature
+     & pins,         ! Inside pressure
+     & hins,         ! Inside humidity
+     & tout,         ! Outside temperature
+     & pout,         ! Outside pressure
+     & hout,         ! Outside humidity
+     & sia,          ! Solar Intensity (Average)
+     & sis,          ! Solar Intensity (SD)
+     & aipl,         ! Airmass-Independent Path Length (km)
+     & lasf,         ! Laser Frequency (e.g. 15798 cm-1)
+     & wavtkr,       ! suntracker frequency (active tracking)
+     & nus, nue      ! selected frequency range of interest
 
       character
-     & col1*1,           ! first column of runlog record
-     & runlab*21,        ! spectrum name
-     & root*64,          ! path to the ggg directories
-     & apf*2             ! apodization function (e.g. BX N2, etc)
+     & col1*1,       ! first column of runlog record
+     & runlab*34,    ! spectrum name
+     & root*80,      ! path to the ggg directories
+     & apf*2         ! apodization function (e.g. BX N2, etc)
 c
-      equivalence (bbuf,buf2,buf4)
+      equivalence (bbuf,bufi2,bufr4)
 
       write(6,*)
-     & ' BIN2ASC Program   Version 1.2.1   11-Oct-2006   GCT'
-
+     & ' BIN2ASC Program   Version 1.4.0   15-Aug-2008   GCT'
       call getendian(iend)  ! Find endian-ness of host computer
-      read(lunr,*)          ! Skip header line of runlog
-c
-      do ispe=1,999999  ! Main loop over spectra
 
-         call read_runlog(lunr,col1,runlab,iyr,iset,zpdtim,
+      write(*,*)'Enter path to input file/runlog:'
+      read(*,'(a)') runlog
+      open(lunr,file=runlog,status='old')
+      read(lunr,*)          ! Skip header line of runlog
+
+      write(*,*)'Enter Starting & Ending frequencies:'
+      write(*,*)'Enter 0 99999 to retain original spectral limits'
+      read(*,*) nus,nue
+
+c  Interrogate environmental variable GGGPATH to find location
+c  of root partition (e.g. "/home/toon/ggg/" ).
+      call getenv('GGGPATH',root) 
+      lr=lnbc(root)     ! length of root string (e.g. 14)
+c
+      istat=0
+      do while (istat.eq.0)     ! Main loop over spectra
+
+c  Read input runlog
+1        call read_runlog(lunr,col1,runlab,iyr,iset,zpdtim,
      &    oblat,oblon,obalt,asza,zenoff,opd,fovi,fovo,amal,ifirst,
      &    ilast,graw,possp,bytepw,zoff,snr,apf,tins,pins,hins,
      &    tout,pout,hout,lasf,wavtkr,sia,sis,aipl,istat)
          if(istat.ne.0) exit
  
-         call getenv('GGGPATH',root)
-         lr=lnbc(root)
+c  Check that buffer will be large enough
+         iabpw=iabs(bytepw)
+         m1=int(nus/graw)+1
+         if(m1.lt.ifirst) m1=ifirst
+         m2=int(nue/graw)
+         if(m2.gt.ilast) m2=ilast
+         npts=m2-m1+1
+         if(npts*iabpw.gt.mem) stop 'Increase parameter NMAX'
+         if(npts.lt.1) go to 1
+
+c  Search for binary spectrum "runlab"
          call gindfile(root(:lr)//'/config/data_part.lst',runlab,
      &   inpath)
          if(lnbc(inpath).eq.0) then
-            write(*,*) runlab
-            stop ' Cant find input spectrum'
+            write(*,*) runlab, ' Cant find input spectrum'
+            go to 1
          endif
  
-         iabpw=iabs(bytepw)
-         spsv=ilast-ifirst+1
-         if(iabpw*spsv.gt.nmax) stop 'iabpw*spsv>nmax'
-c  Read spectral header and data values all at once.
+c  Open binary spectrum with recl = total length be read
          open(luns,file=inpath,access='direct',status='old',
-     &   form='unformatted',recl=possp+iabpw*spsv)
-         read(luns,rec=1) (chead,j=1,possp),(bbuf(j),j=1,iabpw*spsv)
-         if(iend*bytepw.lt.0) call rbyte(bbuf,iabpw,spsv)
+     &   form='unformatted',recl=possp+iabpw*(m2-ifirst+1))
+
+c  Read spectral header and data values all at once.
+         read(luns,rec=1) (chead,j=1,possp+iabpw*(m1-ifirst)),
+     &   (bbuf(j),j=1,iabpw*npts)
+
+c  If necessary, byte-reverse data
+         if(iend*bytepw.lt.0) call rbyte(bbuf,iabpw,npts)
+
          close(luns)
   
-         write(6,*)ispe,'  '//inpath
+c  Write ASCI spectrum
+         write(6,*)inpath(:lnbc(inpath))
          open(lunw,file='./asc_'//runlab,status='unknown')
-         write(lunw,*)3,2
-         write(lunw,*)runlab,zpdtim,oblat,oblon,obalt,pout,tout
+         write(lunw,*)4,2
+         write(lunw,'(a)') ' Spectrum_File_Name    Year  Day  Hour'//
+     &  '   oblat    oblon   obalt    ASZA   POFF    OPD   FOVI  FOVO'//
+     &  '  AMAL  IFIRST   ILAST    DELTA_NU   POINTER  BPW ZOFF SNR'//
+     &  '  APF tins  pins  hins   tout   pout  hout   lasf    wavtkr'//
+     &  '  sia   sis   aipl'
+         call write_runlog(lunw,col1,runlab,iyr,iset,zpdtim,oblat,
+     &   oblon,obalt,asza,zenoff,opd,fovi,fovo,amal,m1,m2,
+     &   graw,possp,bytepw,zoff,snr,apf,tins,pins,hins,tout,
+     &   pout,hout,lasf,wavtkr,sia,sis,aipl,istat)         
          write(lunw,*)' Frequency_(cm-1)  Signal'
          if(iabpw.eq.2) then
-            do i=1,spsv
-               write(lunw,'(f9.4,i7)') graw*(i+ifirst-1),buf2(i)
+            do i=1,npts
+              write(lunw,'(f12.6,f9.4)') graw*(i+m1-1),float(bufi2(i))/15000.
             end do
          elseif(iabpw.eq.4) then
-            do i=1,spsv
-               write(lunw,'(f11.5,1pe12.4)') graw*(i+ifirst-1),buf4(i)
+            do i=1,npts
+              write(lunw,'(f12.6,1pe12.4)') graw*(i+m1-1),bufr4(i)
             end do
          else
             stop 'unknown format'
          endif
          close(lunw)
-      end do   ! loop over spectra
+
+      end do        ! Main loop over spectra
       close(lunr)
       stop
       end

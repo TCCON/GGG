@@ -24,6 +24,7 @@ c     nline=k2-k1
 c     do k=1,mnline
 c        read(lunc,llformat,rec=k+k1)
 c     end do
+
       implicit none
       integer unit,nrec,new,nlo,nhi
       real*8 freq,fpos

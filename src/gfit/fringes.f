@@ -1,4 +1,4 @@
-      subroutine fringes(cfamp,cffreq,cfphase,resids,nmp,mmp)
+      subroutine fringes(cfamp,cffreq,cfphase,ybuf,nmp,mmp)
 c  Solves the equation RESID = CFAMP.COS[CFFREQ.RAMP+CFPHASE] by FFT methods
 c  in order to parameterizes the channel fringes present in vector RESID.
 c
@@ -20,9 +20,9 @@ c      3) Returns CFAMP, CFPHASE, CFFREQ all = 0.0 if fringe
 c         characteristics could not be unambiguously determined.
 c
       implicit none
-      integer*4 nfft,nmp,mmp,nop,i,imax
-      real*4 resids(mmp),cfamp,cffreq,cfphase,zero,tiny,aa,
-     & xi,am,dm,amax,ap,dp,phasm,phasi,phasp,dd,pi,denom
+      integer*4 nfft,nmp,mmp,i,imax
+      real*4 ybuf(mmp),cfamp,cffreq,cfphase,zero,tiny,aa,
+     & xi,am,dm,amax,ap,dp,phasm,phasi,phasp,pi,denom
       parameter (zero=0.0,tiny=0.e-18,pi=3.14159265)
 c
       cfamp=0.0
@@ -37,23 +37,24 @@ c  Find the smallest power of 2 to accomodate NMP
       if (nfft.gt.mmp) stop 'fringes: Increase parameter MMP'
 c
 c  Re-arrange RESID vector to FFT-packed format
-      nop=(nmp-1)/2
-      dd=resids(1+2*nop)
-      call vswap(resids(1),1,resids(1+nop),1,nop)
-      call vmov(resids(2*nop),-1,resids(nfft),-1,nop)
-      resids(nop+1)=dd
-      call vmov(zero,0,resids(nop+2),1,nfft-2*nop-1)
+      call fft_pack(ybuf,nmp,nfft)
+c      nop=(nmp-1)/2
+c      dd=ybuf(1+2*nop)
+c      call vswap(ybuf(1),1,ybuf(1+nop),1,nop)
+c      call vmov(ybuf(2*nop),-1,ybuf(nfft),-1,nop)
+c      ybuf(nop+1)=dd
+c      call vmov(zero,0,ybuf(nop+2),1,nfft-2*nop-1)
 c
 c  Perform fast Fourier transform.
-      call ffak(resids,nfft)
+      call ffak(ybuf,nfft)
 c
 c  Search for point IMAX having the peak amp (ignoring DC and Nyquist terms)
       imax=0
       amax=0.0
-      am=abs(resids(1))
-      aa=cabs(cmplx(resids(3),resids(4)))
+      am=abs(ybuf(1))
+      aa=cabs(cmplx(ybuf(3),ybuf(4)))
       do i=3,nfft/2
-        ap=cabs(cmplx(resids(2*i-1),resids(2*i)))
+        ap=cabs(cmplx(ybuf(2*i-1),ybuf(2*i)))
         if(aa.ge.amax) then
         if(aa.ge.am .and. aa.ge.ap) then
            amax=aa
@@ -70,22 +71,22 @@ c
 c  Use point IMAX, together with its two neighbors, to determine the
 c  fractional frequency point having the peak amp. 
       amax=2*tiny+amax
-      am=tiny+cabs(cmplx(resids(2*(imax-1)-1),resids(2*(imax-1))))
-      ap=tiny+cabs(cmplx(resids(2*(imax+1)-1),resids(2*(imax+1))))
-      phasm=atan2(-resids(2*(imax-1))/am,resids(2*(imax-1)-1)/am)
-      phasi=atan2(-resids(2*(imax+0))/amax,resids(2*(imax+0)-1)/amax)
-      phasp=atan2(-resids(2*(imax+1))/ap,resids(2*(imax+1)-1)/ap)
+      am=tiny+cabs(cmplx(ybuf(2*(imax-1)-1),ybuf(2*(imax-1))))
+      ap=tiny+cabs(cmplx(ybuf(2*(imax+1)-1),ybuf(2*(imax+1))))
+      phasm=atan2(-(ybuf(2*(imax-1))/am),ybuf(2*(imax-1)-1)/am)
+      phasi=atan2(-(ybuf(2*(imax+0))/amax),ybuf(2*(imax+0)-1)/amax)
+      phasp=atan2(-(ybuf(2*(imax+1))/ap),ybuf(2*(imax+1)-1)/ap)
       if(abs(phasi-phasm).gt. pi) phasm=phasm+sign(2*pi,phasi-phasm)
       if(abs(phasi-phasp).gt. pi) phasp=phasp+sign(2*pi,phasi-phasp)
       dp=ap
       dm=am
       if( abs(2*phasi-phasp-phasm) .gt. pi/2 ) then
       if( ap*abs(phasi-phasm) .gt. am*abs(phasi-phasp)) then
-        phasm=atan2(resids(2*(imax-1))/am,-resids(2*(imax-1)-1)/am)
-        dm=-4*am
+        phasm=atan2(ybuf(2*(imax-1))/am,-(ybuf(2*(imax-1)-1)/am))
+        dm=-(4*am)
       else
-        phasp=atan2(resids(2*(imax+1))/ap,-resids(2*(imax+1)-1)/ap)
-        dp=-4*ap
+        phasp=atan2(ybuf(2*(imax+1))/ap,-(ybuf(2*(imax+1)-1)/ap))
+        dp=-(4*ap)
       endif
       endif
       if(abs(phasi-phasm).gt. pi) phasm=phasm+sign(2*pi,phasi-phasm)
@@ -102,5 +103,40 @@ c  Interpolate peak amp and phase to channel fringe frequency.
 c      cfphase=(phasm*am+phasi*amax+phasp*ap)/(am+amax+ap) ! old method
       cfamp=(2*amax+xi*(dp-dm))/nmp
 c      write(*,'(4f12.4)')xi,cfamp,cffreq,cfphase
+      return
+      end
+
+
+      subroutine fft_pack(ybuf,nmp,nfft)
+c  Performs an in-place FFT-packing of vector Y
+c  This involves moving the samples from
+c  NMP/2-2 to NFFT-2
+c  NMP/2-1 to NFFT-1
+c  NMP/2+0 to NFFT
+c  NMP/2+1 to 1 
+c  NMP/2+2 to 2 
+c  NMP/2+3 to 3 
+c  etc, etc,
+c  It fills in the middle NFFT-NMP points with zeros.
+c
+c  For the special case where nmp=nfft, fft-pack simply
+c  swaps the first and second halves of the y-vector.
+c
+      integer*4 nmp,nfft,nop,i,k
+      real*4 ybuf(nfft),temp,ylast
+
+      nop=nmp/2
+      k=nfft
+      ylast=ybuf(nmp)
+      do i=nop,1,-1
+         temp=ybuf(i)
+         ybuf(i)=ybuf(i+nop)
+         ybuf(k)=temp
+         k=k-1
+      end do
+      do i=1+nop,nfft-nop
+         ybuf(i)=0.0
+      end do
+      if(2*nop.lt.nmp) ybuf(nop+1)=ylast    ! NMP odd
       return
       end

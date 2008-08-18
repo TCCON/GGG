@@ -1,13 +1,13 @@
-      integer function lloc(string,dl)
-c  Returns last location (LLOC) of character DL in STRING
-c  Useful for extracting filename from path.
-c  GCT 11-Aug-2001  
+      integer function lloc(string,dlm)
+c  Returns the Last Location Of Character DLM in STRING.
+c  LLOC =  Last Location Of Character
+c  GCT 15-Oct-2007   
 c
       implicit none
-      character string*(*),dl*1
+      character string*(*),dlm*1
       do lloc=len(string),1,-1
-         if ( string(lloc:lloc).eq.dl) return
+         if( string(lloc:lloc) .eq. dlm ) return
       end do
-      lloc=0   ! DLM not found
+      lloc=0   ! DLM not found anywhere
       return   ! Abnormal return
       end

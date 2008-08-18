@@ -10,6 +10,7 @@ c       path  C*(*)  Path to spectrum
 c       iend  I*4  Endianess of host computer
 
 c OUTPUTS:
+c     Everything else
 
       implicit none
 
@@ -151,6 +152,7 @@ c IALIAS should be a small integer (e.g. 1,2,3,4) unless byte-reversed
         call rbyte(altd,4,1)
         call rbyte(alat,4,1)
         call rbyte(alon,4,1)
+        call rbyte(soaz,4,1)
         call rbyte(soze,4,1)
         call rbyte(zpdtim,4,1)
         call rbyte(text,4,1)
@@ -158,6 +160,7 @@ c IALIAS should be a small integer (e.g. 1,2,3,4) unless byte-reversed
         call rbyte(hext,4,1)
         call rbyte(stnr,4,1)
       endif
+      write(*,*)'zpdtim=',strt,alat,alon,soaz,soze,text,pext
 
       tout=dble(text)
       pout=dble(pext)

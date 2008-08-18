@@ -1,5 +1,6 @@
       subroutine lowercase(ss)
 c  Performs an in-place conversion of string SS to lower-case.
+
       implicit none
       integer*4 i,ic
       character ss*(*)

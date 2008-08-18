@@ -50,11 +50,12 @@ C
       endif
       if(apo.gt.4) stop 'maximum apo is 4'
 c
-c      if(apo.lt.0) then
-c         call vmov(zero,0,a,1,ns)
-c         a((ns+1)/2)=1.0
-c         return
-c      endif
+c  ILS is a delta-function
+      if(apo.lt.0) then
+         call vmov(zero,0,a,1,ns)
+         a((ns+1)/2)=1.0
+         return
+      endif
       
 c  NP= number of (equally weighted) points used to represent the rectangular
 c  contribution of the ILS. Their point spacing DEL is chosen to match the first

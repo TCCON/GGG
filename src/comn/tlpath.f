@@ -32,6 +32,10 @@ c      ifail=2  ray did not intersect atmosphere. sp(j) all = 0.0
 c      ifail=3  did not encounter tangent point or z(nlev) within maxstep steps
 c      ifail=4  unrefracted ray passed more than 100km below surface.
 c      ifail=5  iteration to estimate apparent angle did not converge.
+c      ifail=6  tlpath called with NLEV=1
+
+c      subroutine tlpath(nlev,z,t,p,asza_in,fovr,roc,zobs,wavtkr,
+c     & wavmic,zmin,bend,sp,ifail)
       implicit none
       integer*4 maxiter,ifail,lev1,lev2,nlev,it,iter,k,l,jt,mlev
       parameter (mlev=250)
@@ -44,12 +48,20 @@ c      ifail=5  iteration to estimate apparent angle did not converge.
      & droc,rtnt
       parameter (pi=3.1415926536d0,d2r=pi/180.d0,maxiter=22)
       ifail=0
+      if(nlev.eq.1) then
+        write(*,*) 'TLPATH exiting due to NLEV<=1'
+        sp(1)=0.0
+        bend=0.0
+        zmin=z(1)
+        ifail=6
+        return
+      endif
       opcon_tkr=calc_opcon(wavtkr)
       rsza=abs(asza_in)
       droc=dble(roc)
       if(nlev.gt.mlev) stop 'nlev>mlev'
       if(asza_in.lt.0.0) go to 7   ! angle is already refracted - no iteration.
-c      write(6,*)'in slpath: wavmic: ',wavmic
+c      write(6,*)'in tlpath: wavmic: ',wavmic
 c=============================================================================
 c  estimate, using a simple empirical model that involves no ray tracing,
 c  the refracted angle, rsza, that gives rise to the astronomical angle = asza
@@ -179,7 +191,7 @@ c  astronomical solar zenith angle.
      & ztoa,zhp,del_zlev,pres,temp,x1,x2,a1,a2,con,roc
       real*8 opcon,ds,dx,dz,dt,dphi,phi,th,thp,zh,rpsh,rp,grad,d2r,pi,
      & piby2,droc
-      parameter (maxstep=4000)
+      parameter (maxstep=6400)
 c
       droc=dble(roc)
       piby2=dacos(0.0d0)

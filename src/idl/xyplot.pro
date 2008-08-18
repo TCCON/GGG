@@ -38,6 +38,16 @@ version = '   xyplot  V3.5.1  11-Sep-06' ;
 version = '   xyplot  V3.5.2  11-Sep-06' ;  
 
 
+; The following code should already be inside your ~/.idl/startup.pro
+; In case not, it is included below.
+if(!version.os_family eq 'unix') then device, true_color=24
+window, /free, /pixmap, colors=-10
+wdelete, !d.window
+device, retain=2, decomposed=0, set_character_size=[10,12]
+device, get_visual_depth=depth
+print, 'Display depth = ', depth
+print, 'Color table size = ', !d.table_size
+
 ; Initialize stuff
 ipanel=0
 flen=1
@@ -55,7 +65,7 @@ proj=string('xyplot')
 print
 print,version
 print
-mfile=40  ; Maximum number of input files
+mfile=50  ; Maximum number of input files
 fname = strarr(mfile)
 
 ;openw, units, 'av.out', /get_lun
@@ -678,6 +688,7 @@ skip1:
           end
 
      'ca' : begin  ;  Write symbols and captions onto plot
+          print,nsym
           for isym=0,nsym-1 do begin
              print,format='($,i1,"/",i1,") Enter Xcap, Ycap, caption")',isym+1,nsym
              read, xd,yd,sss

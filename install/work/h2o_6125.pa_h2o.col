@@ -1,0 +1,27 @@
+ 21 17
+ GFIT      Version 4.1.2    6-Aug-2008    GCT                   
+ GSETUP Version 2.7.1       2 Feb 2008    GCT
+/home2/toon/ggg/config/data_part.lst
+/home2/toon/ggg/apriori/gfit_ap.gnd
+/home2/toon/ggg/runlogs/gnd/pa_h2o.grl
+/home2/toon/ggg/levels/integral.gnd
+/home2/toon/ggg/models/gnd/
+/home2/toon/ggg/vmrs/gnd/
+pa_h2o.mav                                                                      
+pa_h2o.ray                                                                      
+/home2/toon/ggg/isotopologs/isotopologs.dat                                     
+/home2/toon/ggg/windows/gnd/tccon_ingaas.gnd
+
+/home2/toon/ggg/linelist/atm.101 /home2/toon/ggg/linelist/gct.101 /home2/toon/ggg/linelist/fcia.101 /home2/toon/ggg/linelist/scia.101
+/home2/toon/ggg/linelist/solar_dc.101
+/home2/toon/ggg/ak/k
+/home2/toon/ggg/spt/z
+h2o_6125.pa_h2o.col
+ 6125.85   1.45  15 1 1 0  cl  ct  fs  so    : h2o hdo
+  Spectrum            Nit  CL   CT   FS  S-G  ZO    RMS/CL   Zpres  AM_h2o    OVC_h2o    VSF_h2o    VSF_h2o_error  AM_hdo    OVC_hdo    VSF_hdo    VSF_hdo_error
+ pa20040721saaaaa.049  6 0.272  0.3 -1.4 -0.4 0.000 0.3162   0.472  1.297 1.4878E+23   0.8496 1.3E-02  1.297 1.4624E+23   1.0301 1.3E+01
+ pa20040721saaaaa.125  6 0.264  0.6 -1.5  0.0 0.000 0.4825   0.473  2.251 1.4872E+23   0.7002 1.6E-02  2.250 1.4617E+23   1.0751 2.0E+01
+ pa20040721saaaaa.182  6 0.238  1.1 -1.8  0.1 0.000 0.7451   0.475  7.215 1.4860E+23   0.6662 2.3E-02  7.219 1.4605E+23   1.2283 3.0E+01
+ pa20040721saaaaa.185  6 0.235  1.1 -2.0  0.0 0.000 0.7505   0.473  7.734 1.4872E+23   0.6514 2.3E-02  7.740 1.4617E+23   1.2438 3.1E+01
+ pa20041222saaaaa.021  6 0.398  0.2  1.2 -0.6 0.000 0.2206   0.479  7.779 5.5447E+21   1.2343 2.6E-02  7.786 4.2107E+21   1.0000 9.0E+00
+ pa20041222saaaaa.022  6 0.399  0.2  1.2 -0.6 0.000 0.2164   0.477  7.396 5.5490E+21   1.2133 2.7E-02  7.402 4.2141E+21   1.0000 8.8E+00
