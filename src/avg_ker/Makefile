@@ -1,43 +1,21 @@
-BINDIR = $(GGGPATH)/bin
-CSRC = $(GGGPATH)/src/comn
-
-#sun solaris f77, compiler flags, linker flags
-#FC = f77
-#FFLAGS = -c -Nl50 -O
-#LDFLAGS =
-
-#linux gnu g77, compiler flags, linker flags
 FC = g77
-FFLAGS = -c -O -fbounds-check -Wunused -Wuninitialized -W -Wall
+TARGET=avg_ker
+TSRC = $(GGGPATH)/src/$(TARGET)
+COMN = $(GGGPATH)/src/comn
+CFLAGS = -c -O -fbounds-check -Wunused -Wuninitialized -W -Wall
 LDFLAGS =
 
-#linux absoft f95, compiler flags, linker flags
-#FC = f95
-#FFLAGS = -c -en -g
-#LDFLAGS = -g -lU77
+#  Statement of dependencies
+$(TARGET) : $(TSRC)/$(TARGET).o \
+	$(COMN)/fbc.f \
+	$(COMN)/fnbc.f \
+	$(COMN)/lnbc.f \
+	$(COMN)/vsubs.f \
+	$(COMN)/hfti.f
 
-SRCS = \
-	avg_ker.f \
+#  Link the object files to create the executable
+	$(FC) $(LDFLAGS) -o $(GGGPATH)/bin/$@ $^
 
-CSRCS = \
-	$(CSRC)/fbc.f \
-	$(CSRC)/fnbc.f \
-	$(CSRC)/lnbc.f \
-	$(CSRC)/vsubs.f \
-	$(CSRC)/hfti.f
-
-OBJS = $(SRCS:.f=.o)
-COBJS = $(CSRCS:.f=.o)
-
-.SUFFIXES : .f
-.f.o :
-	$(FC) $(FFLAGS) $<
- 
-avg_ker: $(OBJS) comn_objs
-	$(FC) $(LDFLAGS) -o $(BINDIR)/$@ $(OBJS) $(COBJS)
- 
-comn_objs:
-	cd $(CSRC); make avg_ker
- 
-clean:
-	/bin/rm -f $(OBJS) $(COBJS)
+#  Compile the .f files that are newer than the corresponding .o files
+%.o : %.f
+	$(FC)  $(CFLAGS) -o $@ $<

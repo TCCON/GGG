@@ -1,44 +1,21 @@
-BINDIR = $(GGGPATH)/bin
-CSRC = $(GGGPATH)/src/comn
-
-#sun solaris f77, compiler flags, linker flags
-#FC = f77
-#FFLAGS = -c -Nl50 -O
-#LDFLAGS =
-
-#linux gnu g77, compiler flags, linker flags
 FC = g77
-FFLAGS = -c -O -fbounds-check -Wunused -Wuninitialized -W -Wall
+TARGET=vll
+TSRC = $(GGGPATH)/src/$(TARGET)
+COMN = $(GGGPATH)/src/comn
+CFLAGS = -c -O -fbounds-check -Wunused -Wuninitialized -W -Wall
 LDFLAGS =
 
-#linux absoft f95, compiler flags, linker flags
-#FC = f95
-#FFLAGS = -c -en -g
-#LDFLAGS = -g -lU77
+#  Statement of dependencies
+$(TARGET) : $(TSRC)/$(TARGET).o \
+  $(COMN)/lnbc.o \
+  $(COMN)/lloc.o \
+  $(COMN)/hitran_to_atmos_gas_numbering.o \
+  $(COMN)/file_size_in_bytes.o \
+  $(COMN)/posnall.o
 
-SRCS = \
-	vll.f
+#  Link the object files to create the executable
+	$(FC) $(LDFLAGS) -o $(GGGPATH)/bin/$@ $^
 
-CSRCS = \
-	$(CSRC)/lnbc.f \
-	$(CSRC)/lloc.f \
-	$(CSRC)/hitran_to_atmos_gas_numbering.f \
-	$(CSRC)/file_size_in_bytes.f \
-	$(CSRC)/posnall.f
-
-OBJ = $(SRCS:.f=.o)
-COBJ = $(CSRCS:.f=.o)
-
-.SUFFIXES : .f
-
-.f.o :
-	$(FC) $(FFLAGS) $<
-
-vll : $(OBJ) comn_objs
-	$(FC) $(LDFLAGS) -o $(BINDIR)/$@ $(OBJ) $(COBJ)
-
-comn_objs :
-	cd $(CSRC); make vll
-
-clean :
-	/bin/rm -f $(OBJ) $(COBJ)
+#  Compile the .f files that are newer than the corresponding .o files
+%.o : %.f
+	$(FC)  $(CFLAGS) -o $@ $<

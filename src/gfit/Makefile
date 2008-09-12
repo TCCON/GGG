@@ -1,86 +1,63 @@
-BINDIR = $(GGGPATH)/bin
-CSRC = $(GGGPATH)/src/comn
-
-#sun solaris f77, compiler flags, linker flags
-#FC = f77
-#FFLAGS = -c -Nl50 -O
-#LDFLAGS =
-
-#linux gnu g77, compiler flags, linker flags
-FC=g77
-FFLAGS = -c  -O -fbounds-check -Wunused -Wuninitialized  -W -Wall
+FC = g77
+TARGET=gfit
+TSRC = $(GGGPATH)/src/$(TARGET)
+COMN = $(GGGPATH)/src/comn
+CFLAGS = -c -O -fbounds-check -Wunused -Wuninitialized -W -Wall
 LDFLAGS =
 
-#linux absoft f95, compiler flags, linker flags
-#FC = f95
-#FFLAGS = -c -en -g
-#LDFLAGS = -g -lU77
+$(TARGET): \
+  $(TSRC)/$(TARGET).o \
+  $(TSRC)/fetch.o \
+  $(TSRC)/solar_gas_shift.o \
+  $(TSRC)/write_col.o \
+  $(TSRC)/compute_residual.o \
+  $(TSRC)/compute_vertical_paths.o \
+  $(TSRC)/spectrum_loop.o \
+  $(TSRC)/do_retrieval.o \
+  $(TSRC)/do_retrieval2.o \
+  $(TSRC)/do_retrieval3.o \
+  $(TSRC)/subtract_cf.o \
+  $(TSRC)/fm.o \
+  $(TSRC)/fm2.o \
+  $(TSRC)/fm3.o \
+  $(TSRC)/fringes.o \
+  $(TSRC)/jetspe.o \
+  $(TSRC)/write_spt.o \
+  $(TSRC)/read_mav.o \
+  $(COMN)/abscoi.o \
+  $(COMN)/gasdev.o \
+  $(COMN)/gct_humlik.o \
+  $(COMN)/getendian.o \
+  $(COMN)/gindfile.o \
+  $(COMN)/file_size_in_bytes.o \
+  $(COMN)/hitran_to_atmos_gas_numbering.o \
+  $(COMN)/fbc.o \
+  $(COMN)/fnbc.o \
+  $(COMN)/hfti.o \
+  $(COMN)/julian.o \
+  $(COMN)/lloc.o \
+  $(COMN)/lnbc.o \
+  $(COMN)/lowercase.o \
+  $(COMN)/modfft.o \
+  $(COMN)/newdec.o \
+  $(COMN)/posnall.o \
+  $(COMN)/profzl.o \
+  $(COMN)/ran1.o \
+  $(COMN)/rbyte.o \
+  $(COMN)/read_runlog.o \
+  $(COMN)/skiprec.o \
+  $(COMN)/solar_pseudo_trans_spec.o \
+  $(COMN)/subsolar.o \
+  $(COMN)/substr.o \
+  $(COMN)/tlpath.o \
+  $(COMN)/vsubs.o \
+  $(COMN)/read_isotop.o \
+  $(COMN)/wlimit.o \
+  $(COMN)/zenaz.o
 
+#  Link the object files to create the executable
+	$(FC) $(LDFLAGS) -o $(GGGPATH)/bin/$@ $^
 
-SRCS = \
-	fetch.f \
-	solar_gas_shift.f \
-	write_col.f \
-	compute_residual.f \
-	compute_vertical_paths.f \
-	spectrum_loop.f \
-	do_retrieval.f \
-	do_retrieval2.f \
-	do_retrieval3.f \
-	subtract_cf.f \
-	fm.f \
-	fm2.f \
-	fm3.f \
-	fringes.f \
-	gfit.f \
-	jetspe.f \
-	write_spt.f \
-	read_mav.f
-
-CSRCS = \
-	$(CSRC)/abscoi.f \
-	$(CSRC)/gasdev.f \
-	$(CSRC)/gct_humlik.f \
-	$(CSRC)/getendian.f \
-	$(CSRC)/gindfile.f \
-	$(CSRC)/file_size_in_bytes.f \
-	$(CSRC)/hitran_to_atmos_gas_numbering.f \
-	$(CSRC)/fbc.f \
-	$(CSRC)/fnbc.f \
-	$(CSRC)/hfti.f \
-	$(CSRC)/julian.f \
-	$(CSRC)/lloc.f \
-	$(CSRC)/lnbc.f \
-	$(CSRC)/lowercase.f \
-	$(CSRC)/modfft.f \
-	$(CSRC)/newdec.f \
-	$(CSRC)/posnall.f \
-	$(CSRC)/profzl.f \
-	$(CSRC)/ran1.f \
-	$(CSRC)/rbyte.f \
-	$(CSRC)/read_runlog.f \
-	$(CSRC)/skiprec.f \
-	$(CSRC)/solar_pseudo_trans_spec.f \
-	$(CSRC)/subsolar.f \
-	$(CSRC)/substr.f \
-	$(CSRC)/tlpath.f \
-	$(CSRC)/vsubs.f \
-	$(CSRC)/read_isotop.f \
-	$(CSRC)/wlimit.f \
-	$(CSRC)/zenaz.f
-
-OBJ = $(SRCS:.f=.o)
-COBJ = $(CSRCS:.f=.o)
-
-.SUFFIXES : .f
-
-.f.o :
-
-gfit : $(OBJ) comn_objs
-	$(FC) $(LDFLAGS) -o $(BINDIR)/$@ $(OBJ) $(COBJ)
-
-comn_objs :
-	cd $(CSRC); make gfit
-
-clean :
-	/bin/rm -f $(OBJ) $(COBJ)
+#  Compile the .f files that are newer than the corresponding .o files
+%.o : %.f
+	$(FC)  $(CFLAGS) -o $@ $<

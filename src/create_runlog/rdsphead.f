@@ -721,7 +721,7 @@ c        hout=41.0
         resn=dfloat(i4hedr(7))+dfloat(i4hedr(8))/2**24
         opd=0.5/resn
         close(19)
-        write(*,*)nus,nue,delwav,resn,opd
+c        write(*,*)nus,nue,delwav,resn,opd
 c  Correct for ACQ laser wavenumber
         delwav=delwav*(15798.00364D0/lasf)
 c  Correct for laser off-axis (to avoid laser back-feed)
@@ -758,10 +758,10 @@ c        write(*,'(a,2f16.9,i6,f16.11)')'startf,stopf,npoints= ',
 c     &  startf,stopf,npoints,delwav
         opd=0.9/res
         fovi=apt/foc
-        write(*,*)path,apt,foc,fovi
+c        write(*,*)path,apt,foc,fovi
         delwav=delwav*(1.D0+(fovi**2)/16)  ! FOV correction
-        write(*,'(a,2f16.9,i6,f16.11)')'startf,stopf,npoints= ',
-     &  startf,stopf,npoints,delwav
+c        write(*,'(a,2f16.9,i6,f16.11)')'startf,stopf,npoints= ',
+c     &  startf,stopf,npoints,delwav
         if(dtype.eq.2055) then   ! Interferogram
            delwav=1.d0
            ifirst=1
@@ -840,74 +840,31 @@ c  This only takes about log2(NRUN) iterations if the list is ordered.
       jlo=0
       jhi=nrun+1
       do while(jhi-jlo.gt.1)
-	 jj=(jlo+jhi)/2                ! Bisect remaining range of positions
-	 read(unit,rec=jj) specnamel(:nchr)
-	 if(specnamel.le.specname) then
-	    jlo=jj
-	 else
-	    jhi=jj
-	 endif
+         jj=(jlo+jhi)/2                ! Bisect remaining range of positions
+         read(unit,rec=jj) specnamel(:nchr)
+         if(specnamel.le.specname) then
+            jlo=jj
+         else
+            jhi=jj
+         endif
       end do
 c
 c  JLO points to where the run should be in the list.
 c  If jlo=0  or  jlo=nrun+1 then it definately did not find the run
       if(jlo.gt.0 .and. jlo.le.nrun) then
-	 posnrun=jlo
-	 read(unit,rec=jlo) specnamel(:nchr)
-	 if(specnamel.eq.specname) return   ! success
+         posnrun=jlo
+         read(unit,rec=jlo) specnamel(:nchr)
+         if(specnamel.eq.specname) return   ! success
       endif
 c
 c  If the ordered search failed then it can mean that either the run
 c  is not in the runlog, or the runlog is not sorted properly.
 c  So try a complete systematic search (very slow)
       do posnrun=1,nrun
-	 read(unit,rec=posnrun) specnamel(:nchr)
-	 if(specnamel.eq.specname) return   ! success
+         read(unit,rec=posnrun) specnamel(:nchr)
+         if(specnamel.eq.specname) return   ! success
       end do
       write(6,*)'POSNRUN:', specname,' not present in runlog '
       write(6,*)'May need to increase parameter NRUN currently = ',nrun
       stop
       end
-
-c     NOTE:
-c     RBYTE and BYTEREV have a variable-length parameter list.
-c     The Digital Fortran compiler doesn't like this, and gives warnings
-c     at compilation time.
-c     RBYTE and BYTEREV  are also in comn.lib
-c     However, if they are removed from here, the Digital Fortran compiler
-c     will not link the program at all.  I don't know why!  (DG 000920)
-
-c      subroutine rbyte(c,lenw,nword)
-cc  Performs an in-place byte reversal of array/hst C containing
-cc  NWORD consecutive data words each of length LENW bytes.
-cc  In the calling program C can be of any data type ( I*2, I*4, R*4,
-cc  R*8 or anything else. It doesn't matter because only the starting
-cc  address of C is actually passed to this subroutine.
-c
-cc  INPUTS:
-cc      C        Data array to be reversed
-cc      LENW     Word Length (bytes)
-cc      NWORD    Number of consecutive words to be revered
-c
-cc   OUTPUT:
-cc      C     Data array/string
-c
-c      integer*4 lenw,nword,iword,klo,jlo,jhi,ibyte
-c      character c*(*),chartemp*1
-c
-c      klo=0
-c      do iword=1,nword
-c          jlo=klo+1
-c          jhi=klo+lenw
-c          do ibyte=1,lenw/2
-c              chartemp=c(jhi:jhi)
-c              c(jhi:jhi)=c(jlo:jlo)
-c              c(jlo:jlo)=chartemp
-c              jlo=jlo+1
-c              jhi=jhi-1
-c          end do        !  ibyte=1,lenw/2
-c          klo=klo+lenw
-c      end do           !  iword=1,nword
-c      return
-c      end
-

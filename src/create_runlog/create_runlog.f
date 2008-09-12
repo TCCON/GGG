@@ -85,7 +85,7 @@ c  find the spectral file, return the PATH to the spectrum
      &   bytepw,apf,delwav,opd,fovi,snr,
      &   iy,im,id,gmt,lasf,wavtkr)
          fovo=fovi/tel_mag
-         write(*,*) path,ifirst,ilast,possp,bytepw,apf,delwav
+c         write(*,*) path,ifirst,ilast,possp,bytepw,apf,delwav
 
 c  Fudge the starting index to prevent use of noise regions.
          ifmin=nint(fmin/delwav)
@@ -142,4 +142,3 @@ c
       write(*,*) ispe-1, ' spectra found'
       stop
       end
-

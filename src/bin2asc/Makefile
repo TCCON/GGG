@@ -1,47 +1,24 @@
-BINDIR = $(GGGPATH)/bin
-CSRC = $(GGGPATH)/src/comn
-
-#sun solaris f77, compiler flags, linker flags
-#FC = f77
-#FFLAGS = -c -Nl50 -O
-#LDFLAGS =
-
-#linux gnu g77, compiler flags, linker flags
 FC = g77
-FFLAGS = -c -O -fbounds-check -Wunused -Wuninitialized -W -Wall
+TARGET=bin2asc
+TSRC = $(GGGPATH)/src/$(TARGET)
+COMN = $(GGGPATH)/src/comn
+CFLAGS = -c -O -fbounds-check -Wunused -Wuninitialized -W -Wall
 LDFLAGS =
 
-#linux absoft f95, compiler flags, linker flags
-#FC = f95
-#FFLAGS = -c -en -g
-#LDFLAGS = -g -lU77
+#  Statement of dependencies
+$(TARGET) : $(TSRC)/$(TARGET).o \
+  $(COMN)/gindfile.o \
+  $(COMN)/lnbc.o \
+  $(COMN)/lloc.o \
+  $(COMN)/rbyte.o \
+  $(COMN)/getendian.o \
+  $(COMN)/write_runlog.o\
+  $(COMN)/wlimit.o\
+  $(COMN)/read_runlog.o
 
-SRCS = \
-	bin2asc.f
+#  Link the object files to create the executable
+	$(FC) $(LDFLAGS) -o $(GGGPATH)/bin/$@ $^
 
-CSRCS = \
-	$(CSRC)/gindfile.f \
-	$(CSRC)/lnbc.f \
-	$(CSRC)/lloc.f \
-	$(CSRC)/rbyte.f \
-	$(CSRC)/getendian.f \
-        $(CSRC)/write_runlog.f\
-        $(CSRC)/wlimit.f\
-	$(CSRC)/read_runlog.f
-
-OBJ = $(SRCS:.f=.o)
-COBJ = $(CSRCS:.f=.o)
-
-.SUFFIXES : .f
-
-.f.o :
-	$(FC) $(FFLAGS) $<
-
-bin2asc : $(OBJ) comn_objs
-	$(FC) $(LDFLAGS) -o $(BINDIR)/$@ $(OBJ) $(COBJ)
-
-comn_objs :
-	cd $(CSRC); make bin2asc
-
-clean :
-	/bin/rm -f $(OBJ) $(COBJ)
+#  Compile the .f files that are newer than the corresponding .o files
+%.o : %.f
+	$(FC)  $(CFLAGS) -o $@ $<

@@ -37,7 +37,7 @@ c
      & inh2ovmr(minlvl) !temp storage
       real*8 ptrop
 c
-      write(*,'(a,a)')' readmodFC: modname = ',modname
+c      write(*,'(a,a)')' readmodFC: modname = ',modname
       radius=6378.00
       ecc2=6.0e-5
       tlat=-34.0

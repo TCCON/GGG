@@ -51,7 +51,7 @@ c  The factor 0.16*(8.0+log10(h2ovmr(ilev))) represents
 c  the isotopic fractionation of HDO/H2O.
       if(h2ovmr(1).gt.0.0) then ! An H2O profile was found in the .mod file
          if ( pout.gt.600.0 ) then ! ground-based observations
-            write(*,*) 'Replacing H2O & HDO vmrs with NCEP profiles'
+c            write(*,*) 'Replacing H2O & HDO vmrs with NCEP profiles'
             do ilev=1,nlev
               vmr(1,ilev)=h2ovmr(ilev)  ! H2O
               vmr(49,ilev)=h2ovmr(ilev)*0.16*(8.0+log10(h2ovmr(ilev))) ! HDO

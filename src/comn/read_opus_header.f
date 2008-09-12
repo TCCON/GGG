@@ -129,7 +129,7 @@ c             write(*,*)'i,NSP,FXV,LXV=',i,nsp,fxv,lxv
                    read(cval,'(i2,1x,i2,1x,i4)')id,im,iy
                 endif
              endif
-             write(*,*)'iy,im,id=',iy,im,id
+c             write(*,*)'iy,im,id=',iy,im,id
              call getopusparval(luns,bpointer,'TIM',iend,mrs,i2val,rs)
              if(rs.gt.10 .and. cval(9:9).eq.'.') then
                  read(cval,'(i2,1x,i2,1x,i2,1x,i3)')hh,mm,ss,ms
