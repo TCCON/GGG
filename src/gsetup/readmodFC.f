@@ -26,7 +26,7 @@ c
       implicit none
 c      
       character modname*(*),string*100,dummy*20
-      integer lunr,nlev,i,j,k,nlhead,ncol,ninlvl,minlvl,ii,nss
+      integer lunr,nlev,i,k,nlhead,ncol,ninlvl,minlvl,ii,nss
       real*4 gas,radius,ecc2,tlat,gs,gravity,pfact,zero,h2ox,
      & h2ovmr(nlev),h2oold,h2onew,inheight,inmw,
      & pold,zold,hold,told,pnew,hk,x,hnew,tnew,avagadro,log1pxox
@@ -123,12 +123,10 @@ c        FASCOD format model, levels listed top-down
          read(lunr,'(a)')string  ! altitude
          read(lunr,*)            ! $
          read(lunr,'(5(f10.2,1x))')(inlvl(i),i=1,ninlvl)
-c         write(*,*) (inlvl(j),j=1,ninlvl)
          read(lunr,*)            ! blank
          read(lunr,'(a)')string  ! pressure
          read(lunr,*)            ! $
          read(lunr,'(5(e10.3,1x))')(inpress(i),i=1,ninlvl)
-c         write(*,*) (inpress(j),j=1,ninlvl)
          do i=1,ninlvl
             inpress(i)=inpress(i)/1013.25
             inh2ovmr(i)=0.0
@@ -137,7 +135,6 @@ c         write(*,*) (inpress(j),j=1,ninlvl)
          read(lunr,'(a)')string  ! temperature
          read(lunr,*)            ! $
          read(lunr,'(5(f10.2,1x))')(intemp(i),i=1,ninlvl)
-c         write(*,*) (intemp(j),j=1,ninlvl)
          close(lunr)
          zold=inlvl(1)
       else  
@@ -211,7 +208,9 @@ c       write(*,*)zold,pold,told,z(k),t(k),p(k),h2ovmr(k)
       end do
       return
 c
-3     write(*,*)'modname z(k) zold znew = ',modname,ninlvl,z(k),
+3     write(*,*)'ii, ninlvl, modname z(k) zold znew = ',ii,ninlvl,
+     & modname,ninlvl,z(k),
      & hold/(1-hold/radius),hnew/(1-hnew/radius)
+      write(*,*)' Warning: Model levels do not extend high enough'
       stop ' Model levels do not extend high enough'
       end

@@ -1,0 +1,19 @@
+ 19
+ GSETUP Version 2.7.1       2 Feb 2008    GCT 
+/home/toon/ggg/config/data_part.lst
+/home/toon/ggg/apriori/gfit_ap.gnd
+/home/toon/ggg/runlogs/gnd/pa_h2o.grl
+/home/toon/ggg/levels/integral.gnd            
+/home/toon/ggg/models/gnd/
+/home/toon/ggg/vmrs/gnd/
+pa_h2o.mav
+pa_h2o.ray
+/home/toon/ggg/isotopologs/isotopologs.dat
+/home/toon/ggg/windows/gnd/tccon_ingaas.gnd        
+
+/home/toon/ggg/linelist/atm.101 /home/toon/ggg/linelist/gct.101 /home/toon/ggg/linelist/fcia.101 /home/toon/ggg/linelist/scia.101
+/home/toon/ggg/linelist/solar_dc.101
+/home/toon/ggg/ak/k
+/home/toon/ggg/spt/z
+hcl_5683.pa_h2o.col
+ 5683.57   0.36  15 1 1 0 cl  ct  fs  so     : hcl h2o                                                                  

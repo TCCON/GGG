@@ -304,8 +304,8 @@ c      write(*,*)'runlab, runlabmav=',runlab, runlabmav
             stop
          endif
 66       continue
-         if(index(winfo,' sa_temp ').gt.0) call vadd(t,1,5.,0,t,1,nlev)  ! +5K
-         if(index(winfo,' sa_pres ').gt.0) call vmul(p,1,.95,0,p,1,nlev) ! .95*P
+         if(index(winfo,' sa_temp ').gt.0) call vadd(t,1,5.,0,t,1,nlev)
+         if(index(winfo,' sa_pres ').gt.0) call vmul(p,1,.95,0,p,1,nlev)
 c
 c  Pre-compute absorption coefficient
 c         nva=ncp*nlev*(ntg+1)

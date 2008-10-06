@@ -84,7 +84,7 @@ c      integer*2 i2val(mrs)
       logical*1 pcat
 
 c      equivalence (i2val,i4val,r8val,cval)  ! for OPUS
-      equivalence (chhedr,i2hedr,i4hedr,r4hedr,r8hedr)	
+      equivalence (chhedr,i2hedr,i4hedr,r4hedr,r8hedr)
       equivalence (bombin,i2bombin,i4bombin,r4bombin,r8bombin)
 c     DG 4/7/2002  - define actual bandpass for NDSC filters to avoid GFIT
 c     fitting noise regions at edge of bandpass.

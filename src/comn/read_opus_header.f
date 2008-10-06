@@ -190,7 +190,7 @@ c            write(*,*) 'rs, VEL=',rs,' ',cval(:4),vel
 
           elseif(btype.eq.64) then  !  FTPAR block
              call getopusparval(luns,bpointer,'APF',iend,mrs,i2val,rs)
-             if(rs.gt.0) apf=cval
+             if(rs.gt.0) apf=cval(:2)
              call getopusparval(luns,bpointer,'PHR',iend,mrs,i2val,rs)
              if(rs.eq.4) phr=r8val
           elseif(btype.eq.48) then  !  AQPAR block
@@ -225,7 +225,7 @@ c             if(rs.eq.2) nss=i4val
              call getopusparval(luns,bpointer,'GBW',iend,mrs,i2val,rs)
              if(rs.eq.2) gbw=i4val
              call getopusparval(luns,bpointer,'INS',iend,mrs,i2val,rs)
-             if(rs.gt.0) instname=cval
+             if(rs.gt.0) instname=cval(:7)
              call getopusparval(luns,bpointer,'FOC',iend,mrs,i2val,rs)
              if(rs.gt.0) then
                 foc=r8val

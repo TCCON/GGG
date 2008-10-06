@@ -132,7 +132,7 @@ c before investing alot of time on computing absorption coeffs.
      & dplist,ntg,speci,nspeci,solarll,pars,sptfile)
 c======================================================================
       open(lun_col,file=colfile,status='unknown')
-      write(lun_col,*)  nlhead_ggg+2,9+4*ntg
+      write(lun_col,'(2i3)')  nlhead_ggg+2,9+4*ntg
       write(lun_col,88) version
 c     &//fdate()//getlog()//hostnam(:lnbc(hostnam))  ! cpp
       write(lun_col,88) gsversion(:lnbc(gsversion))

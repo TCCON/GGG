@@ -139,8 +139,7 @@ c  choose an observation geometry
       write(6,*) version
  3    write(6,9913)
  9913 format(' Geometry (a=air,b=bal,g=gnd,l=lab,o=orb,s=syn) ? ',$)
-      read(5,88) ext(1:1)
- 88   format(a)
+      read(5,'(a)') ext(1:1)
       if(ext(1:1).eq.'a') ext(1:3)='air'
       if(ext(1:1).eq.'b') ext(1:3)='bal'
       if(ext(1:1).eq.'g') ext(1:3)='gnd'
@@ -204,51 +203,51 @@ c        write(*,*)lg,le,filnam
         filnamwas=filnam
 c        write(*,*)'filnam=',filnam
         open(lun_ggg,file=filnam,status='unknown')
-        write(lun_ggg,*) nlhead_ggg
-        write(lun_ggg,88) version
-c        write(lun_ggg,88) version
-        write(lun_ggg,88) root(:lrt)//'config'//dl//'data_part.lst'
-        write(lun_ggg,88) root(:lrt)//'apriori'//dl//'gfit_ap.'//ext
-        write(lun_ggg,88) root(:lrt)//'runlogs'//dl//ext//dl//
+        write(lun_ggg,'(i3)') nlhead_ggg
+        write(lun_ggg,'(a)') version
+c        write(lun_ggg,'(a)') version
+        write(lun_ggg,'(a)') root(:lrt)//'config'//dl//'data_part.lst'
+        write(lun_ggg,'(a)') root(:lrt)//'apriori'//dl//'gfit_ap.'//ext
+        write(lun_ggg,'(a)') root(:lrt)//'runlogs'//dl//ext//dl//
      $  runlog(:lr)
-        write(lun_ggg,88) root(:lrt)//'levels'//dl//levels
-        write(lun_ggg,88) root(:lrt)//'models'//dl//ext//dl
-        write(lun_ggg,88) root(:lrt)//'vmrs'//dl//ext//dl
-        write(lun_ggg,88) runlog(:lr-3)//'mav'
-        write(lun_ggg,88) runlog(:lr-3)//'ray'
-        write(lun_ggg,88) root(:lrt)//'isotopologs'//dl//
+        write(lun_ggg,'(a)') root(:lrt)//'levels'//dl//levels
+        write(lun_ggg,'(a)') root(:lrt)//'models'//dl//ext//dl
+        write(lun_ggg,'(a)') root(:lrt)//'vmrs'//dl//ext//dl
+        write(lun_ggg,'(a)') runlog(:lr-3)//'mav'
+        write(lun_ggg,'(a)') runlog(:lr-3)//'ray'
+        write(lun_ggg,'(a)') root(:lrt)//'isotopologs'//dl//
      &  'isotopologs.dat'
-        write(lun_ggg,88) root(:lrt)//'windows'//dl//ext//dl//listof
+        write(lun_ggg,'(a)') root(:lrt)//'windows'//dl//ext//dl//listof
 
 c  write names of linelists
-        write(lun_ggg,88) 
-        write(lun_ggg,88)
+        write(lun_ggg,'(a)') 
+        write(lun_ggg,'(a)')
      &  root(:lrt)//'linelist'//dl//'atm.101 '//
      &  root(:lrt)//'linelist'//dl//'gct.101 '//
      &  root(:lrt)//'linelist'//dl//'fcia.101 '//
      &  root(:lrt)//'linelist'//dl//'scia.101'
-        write(lun_ggg,88) root(:lrt)//'linelist'//dl//'solar_dc.101'
+        write(lun_ggg,'(a)') root(:lrt)//'linelist'//dl//'solar_dc.101'
 
 c  write location of .ak files (averaging kernels)
-        write(lun_ggg,88) root(:lrt)//'ak'//dl//'k'
+        write(lun_ggg,'(a)') root(:lrt)//'ak'//dl//'k'
 
 c  write location of spectral fits
         if(platform.le.1)then                                !DG Jan03
-           write(lun_ggg,88) root(:lrt)//'spt'//dl//'z'
+           write(lun_ggg,'(a)') root(:lrt)//'spt'//dl//'z'
         else
-           write(lun_ggg,88) 'spt'//dl//'z'
+           write(lun_ggg,'(a)') 'spt'//dl//'z'
         endif
 
-        write(lun_ggg,88) filnam(:lnbc(filnam)-3)//'col'
-c        write(lun_ggg,88) filnam(lnbc(filnam)-11:lnbc(filnam)-3)//'col'
-        write(lun_ggg,88) window
+        write(lun_ggg,'(a)') filnam(:lnbc(filnam)-3)//'col'
+c        write(lun_ggg,'(a)') filnam(lnbc(filnam)-11:lnbc(filnam)-3)//'col'
+        write(lun_ggg,'(a)') window
         close(lun_ggg)
 c
         if(platform.le.1)then                                     !DG:000909    
-            write(lun_bat,88) root(:lrt)//'bin'//dl//'gfit<'//
+            write(lun_bat,'(a)') root(:lrt)//'bin'//dl//'gfit<'//
      $            filnam(:lnbc(filnam))//'>/dev/null'
         else
-            write(lun_bat,88) root(:lrt)//'bin'//dl//'gfit<'//
+            write(lun_bat,'(a)') root(:lrt)//'bin'//dl//'gfit<'//
      $            filnam(:lnbc(filnam))
         endif
  102  continue
@@ -258,9 +257,9 @@ c
 c------------------------------------------------------------------
 c  Compute the slant paths and write them to disk.
       write(lun_rpt,*)
-      write(lun_rpt,88)
+      write(lun_rpt,'(a)')
      $'  Spectrum        Zobs   Pobs    ASZA    BEND    FOVO    TANG'
-      write(lun_rpt,88)
+      write(lun_rpt,'(a)')
      $'                   km    mbar    deg.    deg.    mrad     km'
       nspe=0
       open(lun_mav,file=runlog(:lr-3)//'mav',status='unknown')
@@ -268,8 +267,8 @@ c  Open the file which will contain the slant paths
       write(lun_mav,'(a)')version
       write(*,*)' Opening: ',runlog(:lr-3)//'ray'
       open(lun_ray,file=runlog(:lr-3)//'ray',status='unknown')
-      write(lun_ray,*) nlhead_in,nlev+8
-      write(lun_ray,*) version
+      write(lun_ray,'(i2,i4)') nlhead_in,nlev+8
+      write(lun_ray,'(a)') version
 c      write(lun_ray,'(a38,<mlev>(a2,i3.3))')
       write(lun_ray,'(a,250(a2,i3.3))')
      $' SpectrumName      Zobs  Pobs  ASZA  Bend  FOV  Zmin  Cell',

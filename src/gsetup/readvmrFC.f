@@ -120,7 +120,7 @@ c         levels are first read from zpt model file
               if(jcol.ne.igas)then
                 write(*,*)'Species numbers do not match: ',jcol, igas
                 return
-	        endif
+              endif
               string=pabel(1:lnbc(pabel))
               pabel=string(1:lnbc(string))//' '//dum
               read(lunr,*)(vnew(ninlvl+1-i),i=1,ninlvl)

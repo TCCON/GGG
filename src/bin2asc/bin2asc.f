@@ -154,7 +154,8 @@ c  Write ASCI spectrum
          write(lunw,*)' Frequency_(cm-1)  Signal'
          if(iabpw.eq.2) then
             do i=1,npts
-              write(lunw,'(f12.6,f9.4)') graw*(i+m1-1),float(bufi2(i))/15000.
+              write(lunw,'(f12.6,f9.4)') graw*(i+m1-1),
+     &                            float(bufi2(i))/15000.
             end do
          elseif(iabpw.eq.4) then
             do i=1,npts

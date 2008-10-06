@@ -1,0 +1,3 @@
+FC = gfortran
+CFLAGS = -c -O -fbounds-check -Wall -W
+LDFLAGS =

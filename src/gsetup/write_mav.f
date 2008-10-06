@@ -83,7 +83,7 @@ c  found in "isotopologs.dat"
       endif
 c     
 c     Output model information (SUNRUN.MAV)
-      write(lun_mav,*) 2, nspeci+4, nlev+1
+      write(lun_mav,'(3i4)') 2, nspeci+4, nlev+1
       write(lun_mav,'(a38,230a11)')
      & ' Height  Temp   Pres       Density    ',
      $     (fullname(jspeci),jspeci=1,nspeci)

@@ -1,22 +1,25 @@
-FC = g77
+# include file contains: chosen fortran compiler and link options
+include $(GGGPATH)/install/.compiler_ggg
+
 TARGET=list_maker
 TSRC = $(GGGPATH)/src/$(TARGET)
 COMN = $(GGGPATH)/src/comn
-CFLAGS = -c -O -fbounds-check -Wunused -Wuninitialized -W -Wall
-LDFLAGS =
 
-#  Statement of dependencies
-$(TARGET) : $(TSRC)/$(TARGET).o \
-  $(COMN)/gindfile.o \
-  $(COMN)/lloc.o \
-  $(COMN)/julian.o \
-  $(COMN)/caldat.o \
-  $(COMN)/fnbc.o \
-  $(COMN)/lnbc.o
+SOURCES := \
+  $(TSRC)/$(TARGET).f \
+  $(COMN)/gindfile.f \
+  $(COMN)/lloc.f \
+  $(COMN)/julian.f \
+  $(COMN)/caldat.f \
+  $(COMN)/fnbc.f \
+  $(COMN)/lnbc.f
 
-#  Link the object files to create the executable
-	$(FC) $(LDFLAGS) -o $(GGGPATH)/bin/$@ $^
+OBJECTS := $(patsubst %.f, %.o, $(SOURCES))
 
 #  Compile the .f files that are newer than the corresponding .o files
-%.o : %.f
+.f.o:
 	$(FC)  $(CFLAGS) -o $@ $<
+
+#  Link the object files to create the executable
+$(TARGET) : $(OBJECTS)
+	$(FC) $(LDFLAGS) -o $(GGGPATH)/bin/$@ $^

@@ -11,7 +11,7 @@ c
       real*8 amal,fovi,fovo,gmt,tins,pins,hins,tout,pout,hout,
      & obalt,asza,azim,snr,wavtkr,zoff,zpoff,oblat,oblon,opd,
      & lasf,fmin,fmax,fsf,delwav,tcorr,sia,sis,aipl,tel_mag,
-     & eorv,ervc,tplat,tplon,tpalt,site_solar_noon,wlimit
+     & eorv,ervc,tplat,tplon,tpalt,site_solar_noon
 c
 c      logical flexst
       character apf*2,dl*1,ext*3,spfmt*2,logfile*40,outfile*64,

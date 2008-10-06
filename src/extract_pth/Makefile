@@ -1,20 +1,22 @@
-FC = g77
+# include file contains: chosen fortran compiler and link options
+include $(GGGPATH)/install/.compiler_ggg
+
 TARGET=extract_pth
 TSRC = $(GGGPATH)/src/$(TARGET)
 COMN = $(GGGPATH)/src/comn
-CFLAGS = -c -O -fbounds-check -Wunused -Wuninitialized -W -Wall
-LDFLAGS =
 
-#  Statement of dependencies
-$(TARGET) : $(TSRC)/$(TARGET).o \
+SOURCES := \
+  $(TSRC)/$(TARGET).f \
   $(COMN)/log1pxox.o \
   $(COMN)/read_runlog.o \
   $(COMN)/lnbc.o
 
-
-#  Link the object files to create the executable
-	$(FC) $(LDFLAGS) -o $(GGGPATH)/bin/$@ $^
+OBJECTS := $(patsubst %.f, %.o, $(SOURCES))
 
 #  Compile the .f files that are newer than the corresponding .o files
-%.o : %.f
+.f.o:
 	$(FC)  $(CFLAGS) -o $@ $<
+
+#  Link the object files to create the executable
+$(TARGET) : $(OBJECTS)
+	$(FC) $(LDFLAGS) -o $(GGGPATH)/bin/$@ $^

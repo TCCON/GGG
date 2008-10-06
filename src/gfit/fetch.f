@@ -1,6 +1,7 @@
       subroutine fetch(specpath,bytepw,iskip,buf,npts)
 c  Reads a contiguous swath of binary data from disk file PATH into array BUF.
 c
+c
 c INPUTS:
 c     PATH    C**  Location of spectrum file.
 c     BYTEPW  I*4  Number of bytes per data word (usually +/-2 or +/-4).

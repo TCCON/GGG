@@ -1,0 +1,27 @@
+ 21 21
+ GFIT      Version 4.1.2    6-Aug-2008    GCT                   
+ GSETUP Version 2.7.1       2 Feb 2008    GCT
+/home/toon/ggg/config/data_part.lst
+/home/toon/ggg/apriori/gfit_ap.gnd
+/home/toon/ggg/runlogs/gnd/pa_h2o.grl
+/home/toon/ggg/levels/integral.gnd
+/home/toon/ggg/models/gnd/
+/home/toon/ggg/vmrs/gnd/
+pa_h2o.mav                                                                      
+pa_h2o.ray                                                                      
+/home/toon/ggg/isotopologs/isotopologs.dat                                      
+/home/toon/ggg/windows/gnd/tccon_ingaas.gnd
+
+/home/toon/ggg/linelist/atm.101 /home/toon/ggg/linelist/gct.101 /home/toon/ggg/linelist/fcia.101 /home/toon/ggg/linelist/scia.101
+/home/toon/ggg/linelist/solar_dc.101
+/home/toon/ggg/ak/k
+/home/toon/ggg/spt/z
+hcl_5763.pa_h2o.col
+ 5763.20   0.70  15 1 1 0 cl  ct  fs  so     : hcl h2o ch4
+  Spectrum            Nit  CL   CT   FS  S-G  ZO    RMS/CL   Zpres  AM_hcl    OVC_hcl    VSF_hcl    VSF_hcl_error  AM_h2o    OVC_h2o    VSF_h2o    VSF_h2o_error  AM_ch4    OVC_ch4    VSF_ch4    VSF_ch4_error
+ pa20040721saaaaa.049  6 0.295  1.4  0.1 -1.3 0.000 0.1388   0.472397.673 3.0703E+15   1.0841 2.2E-02  1.297 1.4878E+23  -0.2167 3.7E-01  1.299 3.5907E+19   0.9753 4.8E-02
+ pa20040721saaaaa.125  6 0.284  1.2  0.0 -2.4 0.000 0.1624   0.473398.611 3.0703E+15   1.0767 2.7E-02  2.251 1.4872E+23   0.1590 2.5E-01  2.252 3.5903E+19   0.9614 3.4E-02
+ pa20040721saaaaa.182  5 0.261 -1.5  0.1 -2.0 0.000 0.2065   0.475402.699 3.0702E+15   1.1203 4.0E-02  7.215 1.4860E+23   0.8564 1.2E-01  7.000 3.5895E+19   0.9520 1.8E-02
+ pa20040721saaaaa.185  6 0.257 -1.5  0.1 -1.9 0.000 0.1938   0.473403.032 3.0703E+15   1.0971 3.8E-02  7.734 1.4872E+23   0.8293 1.0E-01  7.471 3.5903E+19   0.9562 1.6E-02
+ pa20041222saaaaa.021  6 0.473 -1.0  0.5 -2.9 0.000 0.2468   0.479469.071 2.6472E+15   1.1325 4.2E-02  7.779 5.5447E+21   3.9947 3.9E+00  7.522 3.6659E+19   0.9760 1.9E-02
+ pa20041222saaaaa.022  6 0.472 -0.7  0.4 -2.0 0.000 0.2431   0.477468.812 2.6472E+15   1.1341 4.2E-02  7.396 5.5490E+21   3.2823 4.0E+00  7.173 3.6667E+19   0.9786 2.0E-02
