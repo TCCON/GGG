@@ -1,13 +1,17 @@
 # include file contains: chosen fortran compiler and link options
 include $(GGGPATH)/install/.compiler_ggg
 
-TARGET=bin2asc
+TARGET=avg_ker
 TSRC = $(GGGPATH)/src/$(TARGET)
 COMN = $(GGGPATH)/src/comn
 
 SOURCES := \
   $(TSRC)/$(TARGET).f \
   $(COMN)/gindfile.f \
+  $(COMN)/hfti.f \
+  $(COMN)/vsubs.f \
+  $(COMN)/fbc.f \
+  $(COMN)/fnbc.f \
   $(COMN)/lnbc.f \
   $(COMN)/lloc.f \
   $(COMN)/rbyte.f \

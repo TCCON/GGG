@@ -65,7 +65,10 @@ c
       real*4 a(mmp,mfp),b(mmp,mlev),work(mfp),rnorm(mlev),
      & tau,psc(mlev),pres(mlev),ps,pwas,tsc,
      & ak1,ak2,ak,akwas,tak,tb
-      character colfile*128,filename*128,akpath*128,spectrum*80
+      character colfile*128,filename*128,akpath*128,spectrum*80,
+     & version*60
+
+      version=' avg_ker   Version 1.1.3    2009-01-25   GCT'
 
       tau=1.e-7
 
@@ -75,7 +78,7 @@ c  Find out what window the AK's are to be calculated for.
       open(luns,file=colfile,status='old')
       read(luns,*) nlhead
       do i=2,nlhead-4
-         read(luns,'(a)') akpath
+         read(luns,'(34x,a)') akpath
       end do
       do i=nlhead-3,nlhead
          read(luns,*)
@@ -119,29 +122,30 @@ c
       close(lunr)
       call vdot(psc,1,1.0,0,tsc,nlev)        ! total slant column
 c
-c Write out the PD's in a form that can be easily plotted (e.g. xyplot)
-c This is for trouble-shooting purposes only.
-      open(lunw,file=filename(:lf)//'.wtf', status='unknown')
-      write(lunw,*)2,1+nfp+nlev
-      write(lunw,'(a14,999(9x,a1,i2.2))')
-     & 'i  CL  CT  FS ',
-     & ('T',itg,itg=1,ntg),
-     & ('S',ilev,ilev=0,nlev-1)
-      do imp=1,nmp
-         write(lunw,'(i5,999(1pe12.4))') imp,
-     &    (a(imp,itg),itg=ntg+1,ntg+3),  ! CL, CT, FS
-     &    (a(imp,itg),itg=1,ntg),
-     &    (b(imp,ilev),ilev=1,nlev)
-      end do
-      close(lunw)
-c
+cc  Write out the PD's in a form that can be easily plotted (e.g. xyplot)
+cc  This is for trouble-shooting purposes only.
+c      open(lunw,file=filename(:lf)//'.wtf', status='unknown')
+c      write(lunw,*)2,1+nfp+nlev
+c      write(lunw,'(a14,999(9x,a1,i2.2))')
+c     & 'i  CL  CT  FS ',
+c     & ('T',itg,itg=1,ntg),
+c     & ('S',ilev,ilev=0,nlev-1)
+c      do imp=1,nmp
+c         write(lunw,'(i5,999(1pe12.4))') imp,
+c     &    (a(imp,itg),itg=ntg+1,ntg+3),  ! CL, CT, FS
+c     &    (a(imp,itg),itg=1,ntg),
+c     &    (b(imp,ilev),ilev=1,nlev)
+c      end do
+c      close(lunw)
+
 c  Solve the equation A.x=b
       call shfti(a,mmp,nmp,nfp,b,mmp,nlev,tau,krank,rnorm,work,ip)
-      if(krank.lt.nfp) write(*,*)krank,nfp
+      if(krank.lt.nfp) write(*,*)' Rank Geficiency: ',krank,nfp
 c
 c  Write out the Averaging Kernels.
       open(lunw,file=filename(:lf)//'.aks', status='unknown')
-      write(lunw,*)2,3
+      write(lunw,*)3,3
+      write(lunw,*) version
       write(lunw,*)  'Level   AK   Pressure_(atm)'
       ak1=b(1,1)*tsc/psc(1)
       ak2=b(1,2)*tsc/psc(2)

@@ -45,7 +45,7 @@ psn=1
 idn=0
 ttyp=0
 vbar_was=0.
-version=string('pfit  v.4.5.0    11-Aug-2006    GCT')
+version=string('pfit  v.4.5.1    11-Oct-2008    GCT')
 print,version
 
 disk=getenv('GGGPATH')+'/'
@@ -63,7 +63,6 @@ rtn1:
 on_ioerror,rtn1
 print,format='($,"enter runlog")'
 read,occul
-print,string(disk,'runlogs/gnd/',occul)
 ;
 ;idot=strpos(occul,'.')    ; First instance of '.' in string OCCUL
 ;
@@ -72,6 +71,7 @@ idot=strlen(occul)
 while (strmid(occul,idot,1) ne '.') do begin
    idot=idot-1
 endwhile
+print,idot+1, strmid(occul,idot+1,1)
 ;
 case strmid(occul,idot+1,1) of
    'g': openr,unit,string(disk,'runlogs/gnd/',occul),/get_lun
@@ -80,6 +80,8 @@ case strmid(occul,idot+1,1) of
    'l': openr,unit,string(disk,'runlogs/lab/',occul),/get_lun
 endcase
 
+readf,unit,names   ; skip title line
+readf,unit,names   ; skip title line
 readf,unit,names   ; skip title line
 ll_year=strpos(names,'Year')
 nspec=0l
@@ -90,6 +92,7 @@ while(eof(unit) eq 0) do begin
    if ( prefix ne ":" ) then begin
       if ( prefix eq " " or prefix eq "+" or prefix eq "-" ) then names=strmid(names,1,ll_year-2)
       spectrum=strtrim(strmid(names,0,ll_year-2),2)
+      print,spectrum
       path(nspec)=disk+'spt/z'+spectrum
       nspec=nspec+1
    endif
@@ -122,8 +125,8 @@ two:
   on_ioerror,closeunit
   readf,unit,nhl,ncol
   print,nhl,ncol,path(kspec)
-  ntgas=ncol-3  ; the first 3 columns are Freq, Tm & Tc
-  if(ntgas gt 1) then begin
+  ntgas=ncol-3  ; the first 3 columns are Freq, Tm, Tc, Other, Solar
+  if(ntgas gt 2) then begin
      readf,unit,format='(2f14.6,i7,3f8.3,f7.4,f7.3,1x,i3,f4.1,1x,i3)',$
      fmin,fmax,npoints,asza,zobs,tang,rms,colmant,colexp,errmant,errexp
      expont=max([colexp,errexp])

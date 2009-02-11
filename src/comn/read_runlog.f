@@ -1,7 +1,7 @@
-      subroutine read_runlog(lun,col1,runlab,iyr,iset,zpdtim,
-     & oblat,oblon,obalt,asza,zenoff,opd,fovi,fovo,amal,ifirst,
-     & ilast,graw,possp,bytepw,zoff,snr,apf,tins,pins,hins,
-     & tout,pout,hout,lasf,wavtkr,sia,sis,aipl,istat)
+      subroutine read_runlog(lun_rlg,col1,specname,iyr,iset,zpdtim,
+     & oblat,oblon,obalt,asza,zenoff,azim,osds,opd,fovi,fovo,amal,
+     & ifirst,ilast,graw,possp,bytepw,zoff,snr,apf,tins,pins,hins,
+     & tout,pout,hout,fvsi,wspd,wdir,lasf,wavtkr,aipl,istat)
 c
 c  Reads a single record from the runlog file.
 c  File must already have been opened.
@@ -15,14 +15,14 @@ c  not the dozen main programs that read the runlog.
 c
 c
 c  Input:
-c    lun   Logical Unit number of file to be read
+c    lun_rlg   Logical Unit number of file to be read
 
 c  Outputs:
 c    everything else
 
       implicit none
       integer*4 lnbc,lr,
-     & lun,              ! Logical unit number
+     & lun_rlg,              ! Logical unit number
      & istat,            ! status flag (0=success, 1=EOF)
      & iyr,              ! year 
      & iset,             ! day of year
@@ -40,6 +40,8 @@ c    everything else
      & graw,             ! spacing of raw spectrum (cm-1) from GETINFO
      & zpdtim,           ! Time of ZPD (UT hours)
      & zenoff,           ! Zenith angle pointing offset (deg)
+     & azim,             ! Solar azimuth angle
+     & osds,             ! Observer-Sun Doppler Shift (ppm)
      & fovi,             ! Internal angular diameter of FOV (radians)
      & fovo,             ! External angular diameter of FOV (radians)
      & amal,             ! angular misalignment of interferometer (radians)
@@ -51,8 +53,10 @@ c    everything else
      & tout,             ! Outside temperature
      & pout,             ! Outside pressure
      & hout,             ! Outside humidity
-     & sia,              ! Solar Intensity (Average)
-     & sis,              ! Solar Intensity (SD)
+     & fvsi,             ! Fractional Variation in Solar Intensity
+     & sia,sis,          ! Solar itensity
+     & wspd,             ! Wind Speed (m/s)
+     & wdir,             ! Wind Direction (deg)
      & aipl,             ! Airmass-Independent Path Length (km)
      & lasf,             ! Laser Frequency (e.g. 15798 cm-1)
      & wavtkr,           ! suntracker frequency (active tracking)
@@ -62,35 +66,50 @@ c    everything else
       character
      & col1*1,           ! first column of runlog record
      & record*400,       ! runlog record
-     & runlab*(*),       ! spectrum name
+     & specname*(*),     ! spectrum name
      & apf*2             ! apodization function (e.g. BX N2, etc)
 
-1      read(lun,'(a1,a)',end=99) col1,record
+1      read(lun_rlg,'(a1,a)',end=99) col1,record
       if( col1.eq.':') go to 1
       if(col1.ne.'-' .and. col1.ne.'+' .and. col1.ne.' ') then
          record=col1//record   ! Runlog is the old format
       endif
       lr=lnbc(record)
 c      write(*,*)'read_runlog: lr= ', lr
+      osds=0.0
+      wspd=0.0
+      wdir=0.0
+      fvsi=0.0
 c
 c Note: ASCI character 9 is a horizontal tab.
       if(index(record,char(9)).gt.0) then    ! TAB delimited (e.g. ATMOS)
-        read(record,*) runlab,iyr,iset,zpdtim,oblat,oblon,
+        read(record,*) specname,iyr,iset,zpdtim,oblat,oblon,
      &  obalt,asza,zenoff,opd,fovi,fovo,amal,ifirst,ilast,graw,
      &  possp,bytepw,zoff,zerr,snr,scalf,apf
       elseif(lr.le.233) then     ! SPACE delimited (e.g. MkIV)
-        read(record,332,err=97) runlab,iyr,iset,zpdtim,oblat,oblon,
+        read(record,332,err=97) specname,iyr,iset,zpdtim,oblat,oblon,
      &  obalt,asza,zenoff,opd,fovi,fovo,amal,ifirst,ilast,graw,possp,
      &  bytepw,zoff,snr,apf,tins,pins,hins,tout,pout,hout,lasf,wavtkr,
      &  sia,sis,aipl
+        if(sia.ne.0.0) fvsi=sis/sia
  332  format(a21,1x,2i4,f8.4,f8.3,f9.3,2f8.3,f7.0,f7.2,3f6.0,2i8,f15.11,
      & i8,i3,1x,2f5.0,1x,a2,2(f6.0,f8.0,f5.0),f10.0,f7.0,2f6.1,f7.3)
+      elseif(lr.eq.268) then
+        read(record,333,err=98) specname,iyr,iset,zpdtim,oblat,oblon,
+     &  obalt,asza,zenoff,azim,osds,opd,fovi,fovo,amal,ifirst,ilast,
+     &  graw,possp,bytepw,zoff,snr,apf,tins,pins,hins,tout,pout,hout,
+     &  fvsi,wspd,wdir,lasf,wavtkr,aipl
+ 333  format(a35,1x,2i4,f8.4,f8.3,f9.3,2f8.3,f7.0,f8.3,f7.3,
+     & f7.2,3f6.0,2i8,f15.11,
+     & i8,i3,1x,2f5.0,1x,a2,2(f6.0,f8.0,f5.0),
+     & f6.4,f6.1,f6.0,f10.0,f7.0,f7.3)
       else                 ! New GDS-format runlog
-        read(record,333,err=98) runlab,iyr,iset,zpdtim,oblat,oblon,
+        read(record,334,err=98) specname,iyr,iset,zpdtim,oblat,oblon,
      &  obalt,asza,zenoff,opd,fovi,fovo,amal,ifirst,ilast,graw,possp,
      &  bytepw,zoff,snr,apf,tins,pins,hins,tout,pout,hout,lasf,wavtkr,
      &  sia,sis,aipl
- 333  format(a34,2x,2i4,f8.4,f8.3,f9.3,2f8.3,f7.0,f7.2,3f6.0,2i8,f15.11,
+        if(sia.ne.0.0) fvsi=sis/sia
+ 334  format(a35,1x,2i4,f8.4,f8.3,f9.3,2f8.3,f7.0,f7.2,3f6.0,2i8,f15.11,
      & i8,i3,1x,2f5.0,1x,a2,2(f6.0,f8.0,f5.0),f10.0,f7.0,2f6.1,f7.3)
       endif
       istat=0

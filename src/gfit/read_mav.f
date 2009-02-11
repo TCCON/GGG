@@ -31,7 +31,7 @@ c
       endif
       call skiprec(lunm,nlhead-1)  !   Skip header
 
-c      write(*,*)'READMAV: nlev,nspeci=',nlev,nspeci
+c      write(*,*)'READ_MAV: nlev,nspeci=',nlev,nspeci
       do ilev=1,nlev
          read(lunm,'(2f7.2,2(1pe11.3),150(e11.3))')
      &   z(ilev),t(ilev),p(ilev),d(ilev),(vmr(j,ilev),j=1,nspeci)

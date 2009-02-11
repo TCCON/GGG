@@ -52,11 +52,11 @@ c
      &   mgas,ngas,kgas,    ! Number of different gases found in MOLPAR
 c     &   cnss, jss,  ! number of sub-strings
      &   mlev,idot,
-     &   mlf,nlf, ! maximum & actual number of linefiles
-     & posnall,mm,reclen,nlines,kiso,i,k,
-     & lmax,lfile,ilev,istat,fsib,file_size_in_bytes
+     &   mlf,nlf,  ! maximum & actual number of linefiles
+     &   posnall,mm,reclen,nlines,kiso,i,k,
+     &   lmax,lfile,ilev,istat,fsib,file_size_in_bytes
 c
-      parameter (mlev=175,mgas=64,mlf=10,mmode=30,lun_ll=21,lun_iso=22,
+      parameter (mlev=175,mgas=68,mlf=10,mmode=30,lun_ll=21,lun_iso=22,
      & lunw=23, mspeci=230)
       integer*4
      &   targmol(nspeci),
@@ -140,7 +140,7 @@ c      write(*,*)'abscog '
       write(lunw,43)' Pre-computing VACs from ',
      &fzero+grid,'  to ',fmax,' cm-1 :',ncp,
      &' grid points at a primitive point spacing of ',grid, ' cm-1'
- 43   format(a,f10.4,a,f10.4,a,/,i6,a,f10.8,a)
+ 43   format(a,f12.6,a,f12.6,a,/,i6,a,f12.10,a)
 c
 c   SET PARAMETERS FOR TRANSMISSION CALCULATION
       hw=grid*(ncp-1)/2
@@ -258,7 +258,7 @@ c         write(*,*) ispeci,lmax,nlev,cgsmax,vmr(ispeci,lmax)
 c---------------------------------------------------------------
 c
 c      tnulst=1.0e-12*sqrt(p(2))
-      tnulst=1.0e-12
+      tnulst=1.0e-13
 c  HITRAN
 c      llformat='(i2,i1,f12.6,e10.3,10x,f5.0,f5.4,f10.4,f4.2,f8.6,a24)'
       llformat='(i2,i1,f12.6,e10.3,10x,2f5.0,f10.4,f4.2,f8.6,a34)'
@@ -328,6 +328,7 @@ c            read(quantum,'(15x,i2)')nprime2
 c            abhw=0.001*( 84.1 - .753*nprime2 + .0059*nprime2**2)
           endif
 
+c          if(kgas.eq.30) abhw=0.8*abhw   ! Reduce CH3Cl widths (GCT 20081011)
     
 c  Check that all linelist gases/species are in isotopomers.dat file
           if(kgas.le.0 .or. kgas.gt.ngas) then
@@ -425,7 +426,7 @@ c            endif
             nv=kv2-kv1+1
             if(nv.gt.0) then
               x1=godw*(dble(kv1)-vcent)  ! start
-              call humlik(nv,x1,godw,y,vv(kv1))
+              call gct_humlik(nv,x1,godw,y,vv(kv1))
               sxcgsorpidw=sxcgsopidw*srpi
               ss=sxcgsorpidw
               do jv=kv1,kv2

@@ -7,11 +7,11 @@ COMN = $(GGGPATH)/src/comn
 
 SOURCES := \
   $(TSRC)/$(TARGET).f \
-  $(COMN)/lnbc.o \
-  $(COMN)/lloc.o \
-  $(COMN)/hitran_to_atmos_gas_numbering.o \
-  $(COMN)/file_size_in_bytes.o \
-  $(COMN)/posnall.o
+  $(COMN)/lnbc.f \
+  $(COMN)/lloc.f \
+  $(COMN)/hitran_to_atmos_gas_numbering.f \
+  $(COMN)/file_size_in_bytes.f \
+  $(COMN)/posnall.f
 
 OBJECTS := $(patsubst %.f, %.o, $(SOURCES))
 

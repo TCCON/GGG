@@ -13,7 +13,6 @@ c  GCT 17-Oct-1997
 c  GCT 11-May-1998   Added comma and horizontal tab  
 c  GCT 11-Jun-2006   Added carriage return
 c
-c
       implicit none
       integer ic
       character string*(*)

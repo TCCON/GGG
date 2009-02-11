@@ -6,7 +6,7 @@ c  Used to guarantee that a value written in f-format does
 c  not overflow, producing '********' in the output file.
 c
 c  Inputs:
-c     vvv      R*4  Floating point value
+c     vvv      R*8  Floating point value
 c     wformat  C*(*)  Format (e.g. 'f5.3')
 c
 c  Output:

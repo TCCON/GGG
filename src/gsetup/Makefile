@@ -19,11 +19,13 @@ SOURCES := \
  $(COMN)/fnbc.f \
  $(COMN)/height.f \
  $(COMN)/lnbc.f \
+ $(COMN)/vsubs.f \
  $(COMN)/lowercase.f \
  $(COMN)/read_runlog.f \
  $(COMN)/read_isotop.f \
  $(COMN)/log1pxox.f \
  $(COMN)/tlpath.f \
+ $(COMN)/wlimit.f \
  $(COMN)/substr.f 
 
 OBJECTS := $(patsubst %.f, %.o, $(SOURCES))

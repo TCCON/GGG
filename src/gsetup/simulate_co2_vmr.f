@@ -88,7 +88,6 @@ c
          else                               ! in the stratosphere
             age=atoa-(atoa-atrop)*sqrt(p(ilev)/ptrop_atm)
          endif
-c         write(*,*)ilev,p(ilev),age
          vmr0=vco2ref*(1-roi*age) ! assume CO2 increases at 0.5%/year
 c  sdma = 
          sdma=sin(2*pi*(float(iday+75)/365.25-age))    
@@ -97,7 +96,6 @@ c  sdma =
          if(z(ilev).gt.90) then
             co2vmr(ilev)=co2vmr(ilev)/sqrt(1+((z(ilev)-90.)/7.5)**3)
          endif
-
       end do
       return
       end

@@ -59,7 +59,7 @@ c     pd(nmp,ntg)   R*4  Individual gas transmittance spectra
      & mit,nit,
      & jva,jpd,kn2
 
-      parameter (mmp=360000,mfp=14)
+      parameter (mmp=360000,mfp=16)
 
       real*4
      & slit(nii),
@@ -138,7 +138,7 @@ c          cx(n2)=sign(1.0,cx(n2))
 c        endif
 
 c  Calculate spectrum & PD's
-c         write(*,*)'do_retrieval calling fm: cx=',cx
+         if(debug) write(*,*)'do_retrieval calling fm: cx=',cx
          call fm(0,winfo,slit,nii,ldec,spts,spxv,dspdzxv,
      &   vac,splos,nlev,ncp,rdec,sssss,cx,ntg,calcul,pd,nmp)
          call vdot(calcul,1,calcul,1,sumr2,nmp)
@@ -271,6 +271,7 @@ c  Place them in PD, which just so happens to be exactly the right size.
       jpd=1
       kn2=1+ncp*(n1) ! Start address of workspace
       sh=rdec*(cx(n3)+sssss)
+c      write(*,*)'do_retrieval: sh=',sh,rdec,cx(n3),sssss
       do jtg=0,ntg
          if(jtg.eq.0) then ! non-target gases
             call vexp(spxv(jva),1,spxv(kn2),1,ncp)

@@ -1,19 +1,18 @@
- 19
- GSETUP Version 2.7.1       2 Feb 2008    GCT 
-/home/toon/ggg/config/data_part.lst
-/home/toon/ggg/apriori/gfit_ap.gnd
-/home/toon/ggg/runlogs/gnd/pa_h2o.grl
-/home/toon/ggg/levels/integral.gnd            
-/home/toon/ggg/models/gnd/
-/home/toon/ggg/vmrs/gnd/
+ 18
+ GSETUP Version 2.7.4       3 Feb 2009    GCT 
+/home2/toon/ggg/config/data_part.lst
+/home2/toon/ggg/apriori/gfit_ap.gnd
+/home2/toon/ggg/runlogs/gnd/pa_h2o.grl
+/home2/toon/ggg/levels/integral.gnd            
+/home2/toon/ggg/models/gnd/
+/home2/toon/ggg/vmrs/gnd/
 pa_h2o.mav
 pa_h2o.ray
-/home/toon/ggg/isotopologs/isotopologs.dat
-/home/toon/ggg/windows/gnd/tccon_ingaas.gnd        
-
-/home/toon/ggg/linelist/atm.101 /home/toon/ggg/linelist/gct.101 /home/toon/ggg/linelist/fcia.101 /home/toon/ggg/linelist/scia.101
-/home/toon/ggg/linelist/solar_dc.101
-/home/toon/ggg/ak/k
-/home/toon/ggg/spt/z
+/home2/toon/ggg/isotopologs/isotopologs.dat
+/home2/toon/ggg/windows/gnd/tccon.gnd               
+/home2/toon/ggg/linelist/atm.101 /home2/toon/ggg/linelist/gct.101 /home2/toon/ggg/linelist/fcia.101 /home2/toon/ggg/linelist/scia.101
+/home2/toon/ggg/linelist/solar_dc.101
+/home2/toon/ggg/ak/k
+/home2/toon/ggg/spt/z
 ch4_5938.pa_h2o.col
  5938.00 116.00  15 1 1 0  cl  ct  fs  so    : ch4 co2 h2o hdo                                                          

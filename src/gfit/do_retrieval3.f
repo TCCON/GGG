@@ -60,7 +60,7 @@ c     pd(nmp,ntg)   R*4  Individual gas transmittance spectra
      & mit,nit,
      & jva,jpd,kn2
 
-      parameter (mmp=360000,mfp=14)
+      parameter (mmp=360000,mfp=16)
 
       real*4
      & solzen,roc,fbar,
@@ -145,7 +145,7 @@ c          cx(n2)=sign(1.0,cx(n2))
 c        endif
 
 c  Calculate spectrum & PD's
-c         write(*,*)'do_retrieval calling fm: cx=',cx
+         write(*,*)'do_retrieval3 calling fm: cx=',cx
          call fm3(0,winfo,slit,nii,ldec,spts,spxv,dspdzxv,
      &   z,t,p,solzen,fovo,roc,obalt,wavtkr,fbar,
      &   vac,splos,nlev,ncp,rdec,sssss,cx,ntg,calcul,pd,

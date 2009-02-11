@@ -66,6 +66,7 @@ c--------------------------------------------------------------------------
       real*4 fin(nin),oper(nop),fout(nout),tot0,tot1,fr
       real*8 rdec,sh,xx
 
+c      write(*,*)'NEWDEC:',nin,nop,odec,rdec,sh,nout
 c
 c Test for cases which will cause array-bound violations
       nhw=(nop-1)/odec/2
@@ -74,7 +75,7 @@ c Test for cases which will cause array-bound violations
           stop ' NEWDEC called with NOP < 1+2*ODEC'
       endif
       klo=int( sh+2 )
-      if(klo.lt.1) write(*,*)' NEWDEC warning: KLO < 1:',klo,1
+      if(klo.lt.1) write(*,*)' NEWDEC warning: KLO < 1:',klo,1,sh
 c      write(*,*)'nout,rdec,sh,nhw=', nout,rdec,sh,nhw
       khi=int( (nout-1)*rdec+sh+1+2*nhw )
       if(khi.gt.nin) write(*,*)' NEWDEC warning: KHI > NIN:',khi,nin

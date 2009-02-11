@@ -1,4 +1,4 @@
-      SUBROUTINE HUMLIK ( N, X1, DX, Y, K )
+      SUBROUTINE GCT_HUMLIK ( N, X1, DX, Y, K )
 
 *     To calculate the Faddeeva function with relative error less than 10^(-4).
 

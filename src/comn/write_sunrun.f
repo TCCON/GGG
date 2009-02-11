@@ -1,6 +1,6 @@
       subroutine write_sunrun(lun,col1,specname,obj,tcorr,oblat,
-     &   oblon,obalt,tins,pins,hins,tout,pout,hout,nus,nue,fsf,
-     &   lasf,wavtkr,sia,sis,aipl,tel_mag,istat)
+     &   oblon,obalt,tins,pins,hins,tout,pout,hout,fvsi,wspd,wdir,
+     &   nus,nue,fsf,lasf,wavtkr,aipl,tel_mag,istat)
 c
 c  Writes a single record to a sunrun file.
 c  The file must already have been opened.
@@ -39,10 +39,11 @@ c    istat
      & tout,             ! Outside temperature (C)
      & pout,             ! Outside pressure (mbar)
      & hout,             ! Outside humidity (%)
-     & sia,              ! Solar Intensity (Average)
+     & wspd,             ! Outside Wind Speed (m/s)
+     & wdir,             ! Outside Wind Speed (deg.)
+     & fvsi,             ! Fractional Variation in Solar Intensity (dimentionless)
      & aipl,             ! Airmass-Independent Path Length (km)
      & tel_mag,          ! Telescope Magification (dimensionless)
-     & sis,              ! Solar Intensity (SD)
      & nus,              ! Start frequency (cm-1)
      & nue,              ! End frequency (cm-1)
      & fsf,              ! Frequency Stretch Factor
@@ -51,13 +52,13 @@ c    istat
 
       character
      & col1*1,           ! first column
-     & specname*21         ! spectrum name
+     & specname*35       ! spectrum name
 
       write(lun,34,err=99) col1,specname,obj,tcorr,oblat,oblon,obalt,
-     & tins,pins,hins,tout,pout,hout,nus,nue,fsf,lasf,wavtkr,sia,sis,
-     & aipl,tel_mag
- 34   format(a1,a21,1x,i2,f8.0,f9.4,f10.4,f7.3,f6.1,f8.2,f6.1,f6.1,f8.2,
-     & f6.1,1x,2f7.0,f11.8,f11.3,f7.0,2f6.1,f7.3,f6.2)
+     & tins,pins,hins,tout,pout,hout,fvsi,wspd,wdir,nus,nue,fsf,lasf,
+     & wavtkr,aipl,tel_mag
+ 34   format(a1,a35,1x,i2,f8.0,f9.4,f10.4,f7.3,f6.1,f8.2,f6.1,f6.1,f8.2,
+     & f6.1,1x,f5.4,f6.1,f6.0,1x,2f7.0,f11.8,f11.3,f7.0,f7.3,f6.2)
       istat=0
       return
 99    istat=1

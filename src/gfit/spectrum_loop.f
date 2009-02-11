@@ -24,7 +24,7 @@ c  mode=1    Does full calculation
       logical
      & debug
 
-      integer*4
+      integer*4 i,nlhead,lf,fbc,
      & ncall,           ! counts the number of times that subroutine is called
      & lcolon,
      & totit,nn,ncol,nspectra,mspectra,
@@ -34,7 +34,7 @@ c  mode=1    Does full calculation
      & mvmr,
      & istat,ifm,
      & nscycle,
-     & mspec,ispec,
+     & mspt,ispec,
      & freq_flag,       ! =1  presents spectral fits in solar rest frame. 
                         ! =0  presents spectral fits in atmosphere rest frame.
      & lun_ak,
@@ -57,14 +57,14 @@ c  mode=1    Does full calculation
      & mlev,nlev,ilev,
      & mit,nit,
      & iyr,iset,
-     & kspecflag,ifirst,ilast,bytepw,possp,
+     & kspflag,ifirst,ilast,bytepw,possp,
      & kcp1,kcp2,
      & nsh,nhwmax,
      & lun_col,lun_spt,lun_mav,lun_ray,lun_rlg,mavfound
 
-      parameter (mmp=360000,mva=65000000,mcp=1240000,
+      parameter (mmp=360000,mva=10000000,mcp=1240000,
      & nscycle=25,
-     & mvmr=24000,mtg=15,mfp=mtg+4,mii=103847,mspec=2000,mlev=200,
+     & mvmr=28000,mtg=15,mfp=mtg+4,mii=103847,mlev=200,
      & mslpd=10*mmp*mtg,mspxv=5*mcp)
 
       parameter (lun_apx=23,lun_sts=24,lun_rlg=25,lun_ak=26,
@@ -107,14 +107,14 @@ c  mode=1    Does full calculation
      & riair,
      & tottc,tottc2,toterr,avgtc,rmstc,avgcl,avgrms,
      & sssss,
-     & eorv,             ! Earth-Object Radial velocity (m/s)
+     & eorv,             ! Earth-Object Radial Velocity (m/s)
      & ervc,             ! Earth Rotational Velocity Component (m/s)
      & frac,             ! fractional size of FOVO compared with solar diameter
      & dopp,             ! Earth-SUN Doppler stretch.
      & resn,             ! 0.5d0/opd = half width of SINC function in cm-1
      & resmax,           ! maximum value of resn
      & rect,             ! frqcen*(fovi**2+amal**2)/8 = width of rectangle(cm-1)
-     & resnog,           ! RESN / GRID
+     & resnog,           ! RESN / GRID = 0.5/(OPD*grid)
      & rectog,           ! RECT / GRID
      & rdec,             ! Ratio: GINT/GRID = spectral/primitive point spacings
      & frqcen,           ! centRal frequency (cm-1) of spectral window
@@ -125,7 +125,9 @@ c  mode=1    Does full calculation
      & nue,              ! microwindow ending frequency (cm-1)
      & graw,             ! spacing of raw spectrum (cm-1) from GETINFO
      & gint,             ! spacing of OBSRVD (cm-1) after interpolation
-     & grid              ! spacing of primitive spectrum 
+     & grid,             ! spacing of primitive spectrum 
+     & vbar,             ! mean frequency of measured spectrum
+     & hwid              ! half-width of measured spectrum
 
       real*8 
      & oblat,            ! observation latitude (deg).
@@ -134,6 +136,8 @@ c  mode=1    Does full calculation
      & zpdtim,           ! Time of ZPD (UT hours)
      & asza,             ! astronomical solar zenith angle (unrefracted)
      & zenoff,           ! zenith pointing offset
+     & azim,             ! azimuth angle
+     & osds,             ! Observer-Sun Doppler Stretch
      & fovi,             ! Internal angular diameter of FOV (radians)
      & fovo,             ! External angular diameter of FOV (radians)
      & amal,             ! angular misalignment of interferometer (radians)
@@ -145,19 +149,20 @@ c  mode=1    Does full calculation
      & tout,             ! Temperature OUTside the instrument
      & pout,             ! Pressure OUTside the instrument
      & hout,             ! Humidity OUTside the instrument
-     & sia,              ! Solar Intensity (Average)
-     & sis,              ! Solar Intensity (SD)
+     & fvsi,             ! Fractional Variation in Solar Intensity
+     & wspd,             ! Wind Speed
+     & wdir,             ! Wind Direction
      & aipl,             ! Airmass-Independent Path Length (km)
      & lasf,             ! laser frequency (e.g. 15798.03 cm-1)
      & wavtkr,           ! suntracker operating frequency (e.g. 9900 cm-1)
      & opd,              ! Optical path difference (cm) of interferogram
      & ddum
 
-      character winfo*(*),ap_file*(*),runlab*34,pars(ntg)*(*),
+      character winfo*(*),ap_file*(*),runlab*35,pars(ntg)*(*),
      & sptfile*(*),akpath*128,akfile*(*),specpath*128,sptpath*128,
-     & solarll*(*),runlabmav*34,oformat*10,colabel*500,
-     & mavstring*34,linefiles*(*),parfile*(*),dplist*(*),
-     & col1*1,apf*2,rayfile*(*),specray*34,runlog*(*),mavfile*(*),
+     & solarll*(*),runlabmav*35,oformat*10,colabel*600,
+     & mavstring*35,linefiles*(*),parfile*(*),dplist*(*),
+     & col1*1,apf*2,rayfile*(*),specray*35,runlog*(*),mavfile*(*),
      & string*48
 
       parameter (zero=0.0,unity=1.0,ckm2cm=1.0E+05,pi=3.14159265,
@@ -173,6 +178,11 @@ c
       n3=ntg+3
       n4=ntg+4
       nfp=ntg+4
+
+c  Read max # of SPT files (if a value is provided on the SPT line of the .ggg file)
+      mspt=2000  ! default value
+      lf=fbc(sptfile)
+      if(lnbc(sptfile).gt.lf) read(sptfile(lf:),*) mspt
 
       if( index(winfo,'debug') .gt. 0 ) then
          debug=.true.
@@ -239,13 +249,17 @@ C
       totit=0
       mavfound=0
       open(lun_rlg,file=runlog,status='unknown')
-      read(lun_rlg,*)
+      read(lun_rlg,*) nlhead,ncol
+      do i=2,nlhead
+         read(lun_rlg,*)
+      end do
       if(debug) write(*,*)' Main loop...',nspectra
       do ispec=1,mspectra         !  Main fitting loop over spectra
 141     call read_runlog(lun_rlg,col1,runlab,iyr,iset,zpdtim,
-     &  oblat,oblon,obalt,asza,zenoff,opd,fovi,fovo,amal,ifirst,
-     &  ilast,graw,possp,bytepw,zoff,snr,apf,tins,pins,hins,
-     &  tout,pout,hout,lasf,wavtkr,sia,sis,aipl,istat)
+     &  oblat,oblon,obalt,asza,zenoff,azim,osds,
+     7  opd,fovi,fovo,amal,ifirst,ilast,graw,possp,bytepw,zoff,snr,apf,
+     &  tins,pins,hins,tout,pout,hout,
+     &  fvsi,wspd,wdir,lasf,wavtkr,aipl,istat)
         if(debug) write(*,*) runlab, istat
         if(istat.ne.0) go to 89
 c           if(ncall.le.0) go to 89
@@ -256,7 +270,7 @@ c        endif  ! istat.ne.0
         lr=lnbc(runlab)
         runlab=runlab(:lr)
 c
-        read(lun_ray,*)specray,rdum,rdum,sza_ray,bend,rdum,zmin,
+        read(lun_ray,*) specray,rdum,rdum,sza_ray,bend,rdum,zmin,
      &  (splos(j),j=1,nlev)
 c        write(37,*)zmin,zminwas,sza_ray,sza_raywas,
 c     &  (zmin-zminwas)/(sza_ray-sza_raywas)
@@ -269,25 +283,31 @@ c     &  (zmin-zminwas)/(sza_ray-sza_raywas)
         endif
 c
 c  Apply air-to-vacuum  & FOV corrections
-        graw=graw*riair(lasf,tins,pins,hins)/
+        if(kspflag.lt.2) graw=graw*riair(lasf,tins,pins,hins)/
      &  riair(frqcen,tins,pins,hins)
 c        graw=graw*(1.D0+(amal**2+fovi**2)/16)  ! FOV correction
 
 c  If MIT > 0, check that requested spectrum is on disk,
 c  and that it covers the specified spectral interval.
-        kspecflag=0
+        kspflag=0
         call gindfile(dplist,runlab,specpath)
 c        write(*,*)runlab,specpath
-        if(lnbc(specpath).eq.0) kspecflag=2
+        if(lnbc(specpath).eq.0) kspflag=2
         resn=0.5d0/opd
         if(resn.gt.resmax) resmax=resn
 c        if(resn.lt.graw) resn=graw
 c  Measured spectrum must be wider than fitting interval to
 c  allow convolution with apodizing/interpolating ILS
-        dd=nscycle*resn ! half-width of the slit function in cm-1
-        if(kspecflag.eq.2) dd=0.0
-        if(nint((nus-dd)/graw).lt.ifirst .or.
-     &  nint((nue+dd)/graw).gt.ilast) kspecflag=1
+        dd=nscycle*resn ! half-width of the slit function in cm-1 (always +ve)
+        vbar=0.5d0*graw*(ilast+ifirst)
+        hwid=0.5d0*dabs(graw*(ilast-ifirst))
+c        write(*,*)ilast,ifirst,vbar,hwid,dd
+        if(kspflag.eq.2) dd=0.0
+        if(debug)write(*,*)kspflag,nus,nue,vbar,hwid,vbar-hwid,vbar+hwid
+        if( nus-dd .lt. vbar-hwid ) kspflag=1   ! Lower window limit < disk file
+        if( nue+dd .gt. vbar+hwid ) kspflag=1   ! Upper window limit > disk file
+c        if(nint((nus-dd)/graw).lt.ifirst .or.
+c     &  nint((nue+dd)/graw).gt.ilast) kspflag=1
 c========================================================================
 c  Read model & vmr information (SUNRUN.MAV)
 c      write(*,*)'runlab, runlabmav=',runlab, runlabmav
@@ -304,16 +324,16 @@ c      write(*,*)'runlab, runlabmav=',runlab, runlabmav
             stop
          endif
 66       continue
-         if(index(winfo,' sa_temp ').gt.0) call vadd(t,1,5.,0,t,1,nlev)
+         if(index(winfo,' sa_temp ').gt.0) call vadd(t,1,5.,0,t,1,nlev) 
          if(index(winfo,' sa_pres ').gt.0) call vmul(p,1,.95,0,p,1,nlev)
 c
 c  Pre-compute absorption coefficient
 c         nva=ncp*nlev*(ntg+1)
          call vmov(zero,0,vac,1,nva)
-         write(*,*)' Calling abscoi...'
+c         write(*,*)' Calling abscoi...'
          call abscoi(nlev,t,p,d,nspexi,targmol,vmr,vpf,
      &   linefiles,parfile,fzero,grid,ncp,vac,vac(nva+1))
-         write(*,*)' Called abscoi...'
+c         write(*,*)' Called abscoi...'
          write(oformat,'(a5,i2.2,a3)')'(1x,a',lr+1,',a)'
 c         write(6,'(1x,a21,a)')runlab(:lr+1),
          write(6,oformat)' Spectrum            ',
@@ -345,13 +365,13 @@ c         write(6,'(1x,a21,a)')runlab(:lr+1),
          endif
       endif          ! (runlab.eq.runlabmav)
       endif          ! (ncall.ge.1) then
-      if(debug) write(*,*)'mit, kspecflag=',mit, kspecflag
-      if(mit.gt.0 .and. kspecflag.gt.0) goto 141 ! skip missing/partial spectrum
-      if(mit.eq.0 .and. kspecflag.eq.1) goto 141 ! skip missing/partial spectrum
+      if(debug) write(*,*)'mit, kspflag=',mit, kspflag
+      if(mit.gt.0 .and. kspflag.gt.0) goto 141 ! skip missing/partial spectrum
+      if(mit.eq.0 .and. kspflag.eq.1) goto 141 ! skip missing/partial spectrum
 c=========================================================
       resn=0.5d0/opd
 c      if(resn.lt.graw) resn=graw
-      if(index(winfo,' sa_fovi ').gt.0) fovi=fovi*1.07
+      if(index(winfo,' sa_fovi ').gt.0) fovi=fovi*1.97
       rect=frqcen*(fovi**2+amal**2)/8  ! old code
       if(ncall.ge.1) then
 c
@@ -365,12 +385,12 @@ c      else
 c         rect=frqcen*(fovi**2+amal**2)/8
 c      endif
 c
-c  Select apodisation function
+c  Select apodization function
         if(apf.eq.'BX') then
            apo_m=defapo
            apo_c=defapo
         else  ! if the measured spectra are already apodized
-           apo_m=-1  ! for perfect representation of synthetic spectra
+           apo_m=0  ! for perfect representation of synthetic spectra
            if(apf.eq.'N1') then
              apo_c=1
            elseif(apf.eq.'N2') then
@@ -385,25 +405,29 @@ c  Select apodisation function
              stop
            endif
         endif
+
 c---------------------------------------------------------
 c  FIND the spectral file, return the PATH to the spectrum
       call vmov(zero,0,obsrvd,1,mmp)
-      if(kspecflag.eq.0) then
+      if(kspflag.eq.0) then
         call jetspe(specpath,opd,graw,ifirst,ilast,possp,bytepw,nus,
      &  nue,apo_m,interp,zero,zero,
      &  obsrvd,mmp,nmp,startm,gint,rc)
         if(rc.ne.0) then
            write(6,*)' Error in JETSPE. Spectrum ',runlab,rc,nmp
            write(6,*)' This error should never happen'
-           kspecflag=1
+           kspflag=1
         endif
       endif
-      if(kspecflag.eq.2) then
-        startm=nus
-        gint=graw/interp
-        nmp=1+(nue-nus)/gint
+      if(kspflag.eq.2) then
+         startm=nus
+         gint=graw/interp
+         nmp=1+(nue-nus)/gint
       endif
-      if(nmp.gt.mmp) stop 'increase parameter MMP'
+      if(nmp.gt.mmp) then
+        write(*,*)'nmp,mmp=',nmp,mmp
+        stop 'Increase parameter MMP'
+      endif
 
       if(index(winfo,' sa_snr ').gt.0) then  ! Add noise
 c  Add noise and systematic error to OBSRVD (assumes a continuum level of 1.0)
@@ -526,6 +550,12 @@ c   Use SPXV(JSP+NCP) as work space for Voigt functions.
             dopp=+1.55d-6
          elseif(runlab .eq. '810509R0.005') then
             dopp=+2.75d-6
+         elseif(runlab .eq. '790401R0.008') then
+            dopp=+3.00d-6
+         elseif(runlab .eq. '830619R0.003') then
+            dopp=+3.20d-6
+         elseif(runlab .eq. '830619R0.005') then
+            dopp=+2.90d-6
          elseif(runlab(:9) .eq. 'phg06000.')then
               dopp=0.0d0
          elseif(runlab(:9) .eq. 'phg07000.')then
@@ -629,9 +659,9 @@ c  dominate the CO2/Air ratio uncertainties.
       if(index(winfo,' air ').gt.0) ex(1)=1.0e-08
 
 c  Write .spt file for the first MSPT spectral fits
-c       write(*,*)'sptpath=',sptpath, ispec,mspec
-       if(ispec .lt. mspec) then
-          sptpath=sptfile(:lnbc(sptfile))//runlab
+c       write(*,*)'sptpath=',sptpath, ispec,mspt
+       if(ispec .le. mspt) then
+          sptpath=sptfile(:lf-1)//runlab
           call write_spt(lun_spt,winfo,sptpath,
      &    obsrvd,calcul,cx,ex,startm+gint*(cx(n3)),
      &    dopp*freq_flag,gint,overcol, pars, asza+zenoff,obalt,zmin,

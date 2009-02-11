@@ -1,7 +1,7 @@
 c  Program list_maker.f
 c
 c  Generates a chronological list of files (spectra), given
-c  user-supplied starting and ending file names.
+c  user-supplied starting and ending file name templates.
 c
 c  The starting and ending filenames don't have to exist.
 c  They merely represents the lowest and highest values of date,
@@ -11,7 +11,7 @@ c  Motivated by the failure of the Unix "ls" command, on many
 c  computers, to generate a list when the directory contains
 c  too many files.
 c
-c  Uses the gindfile command to search through the list of
+c  Uses the gindfile subroutine to search through the list of
 c  data partitions where spectra may be stored.
 c
       integer*4 lunw,fnbc,lnbc,lf,iyyyy,imm,idd,j1,j2,jul,

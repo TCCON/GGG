@@ -155,7 +155,7 @@ c  Write ASCI spectrum
          if(iabpw.eq.2) then
             do i=1,npts
               write(lunw,'(f12.6,f9.4)') graw*(i+m1-1),
-     &                            float(bufi2(i))/15000.
+     &                         float(bufi2(i))/15000.
             end do
          elseif(iabpw.eq.4) then
             do i=1,npts

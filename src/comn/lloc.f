@@ -6,7 +6,7 @@ c
       implicit none
       character string*(*),dlm*1
       do lloc=len(string),1,-1
-         if( string(lloc:lloc) .eq. dlm ) return
+         if( string(lloc:lloc) .eq. dlm ) return ! success
       end do
       lloc=0   ! DLM not found anywhere
       return   ! Abnormal return

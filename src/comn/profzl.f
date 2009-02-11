@@ -42,7 +42,8 @@ c
      &       0.0,-.0833,-.154838,0.00,
      &       0.0,0.5353,.894838,.5875,
      &       0.0,0.0000,0.0000,0.3225/
-C
+c
+c      write(*,*)'profzl:',apo,ns,resnog,rectog
       hwid=0.5d0*(ns-1)
       if(abs(off)+resnog.gt.hwid) then
          write(*,*)'Warning from PROFZL: offset exceeds NK'
@@ -50,12 +51,12 @@ C
       endif
       if(apo.gt.4) stop 'maximum apo is 4'
 c
-c  ILS is a delta-function
-      if(apo.lt.0) then
-         call vmov(zero,0,a,1,ns)
-         a((ns+1)/2)=1.0
-         return
-      endif
+cc  ILS is a delta-function
+c      if(apo.lt.0) then
+c         call vmov(zero,0,a,1,ns)
+c         a((ns+1)/2)=1.0
+c         return
+c      endif
       
 c  NP= number of (equally weighted) points used to represent the rectangular
 c  contribution of the ILS. Their point spacing DEL is chosen to match the first
@@ -92,6 +93,8 @@ c  Calculate truncated instrumental function (sinx/x for apo=0)
       ENDIF
       if(apo.eq.4) then
          a(k)=a(k)+sngl(tr)  ! 'TR' apodization  = sinc(T/2)**2
+      elseif(apo.le.0) then
+         a(k)=a(k)+Q0
       else
          a(k)=a(k)+sngl(C(apo,0)*Q0+C(apo,1)*Q1+C(apo,2)*Q2+C(apo,3)*Q4)
       endif

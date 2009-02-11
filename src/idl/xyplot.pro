@@ -217,6 +217,7 @@ repeat begin
 	print,'     sm#  -  multiply the #-register by a user-supplied scalar'
 	print,'     sd#  -  divide the #-register by a user-supplied scalar'
 	print,'     sa#  -  add a user-supplied scalar to the #-register'
+	print,'     ss#  -  Selective Scalar Add to the #-register'
 	print,'     va&# -  adds the &-register to the #-register'
 	print,'     vs&# -  subtracts the &-register from the #-register'
 	print,'     vm&# -  multiplies the #-register by the &-register'
@@ -377,7 +378,7 @@ repeat begin
           read, sval
           printf,unitw,sval
           reads, sval, xadd, thresh
-          add=where(value(*,kd) gt thresh, icount)
+          add=where(value(*,kd) lt thresh, icount)
           print,icount
           if (icount gt 0) then value(add,kd)=value(add,kd)+xadd
           if (nmiss gt 0) then value(bad,kd) = gmissing

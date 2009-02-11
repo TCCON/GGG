@@ -10,6 +10,7 @@ SOURCES := \
   $(COMN)/fbc.f \
   $(COMN)/fnbc.f \
   $(COMN)/lnbc.f \
+  $(COMN)/lloc.f \
   $(COMN)/read_runlog.f \
   $(COMN)/substr.f
 

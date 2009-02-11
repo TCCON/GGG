@@ -1,7 +1,7 @@
       subroutine read_opus_header(path,iend,dtype,nsp,fxv,lxv,iy,im,
      & id,hh,mm,ss,ms,apt,dur,vel,apf,phr,res,lwn,foc,nip,dfr,
      & pkl,prl,gfw,gbw,lfl,hfl,possp,oblat,oblon,obalt,
-     & tins,pins,hins,tout,pout,hout,sia,sis)
+     & tins,pins,hins,tout,pout,hout,wspd,wdir,sia,sis)
 c
 c  Subroutine to extract information from OPUS headers.
 c
@@ -42,12 +42,13 @@ c
       character path*(*),apf*2,cval*36,instname*7
       integer*4 dtype,luns,mc,iend,bigendian
       integer*2 mrs,rs
-      parameter (luns=19,mrs=26,mc=26,bigendian=1)
+      parameter (luns=19,mrs=50,mc=26,bigendian=1)
       integer*2 i2val(mrs)
 
       integer*4 nsp,iy,im,id,hh,mm,ss,ms,nip,pkl,prl,possp,i4val,lc,lnbc
       real*8 fxv,lxv,vel,phr,res,apt,lwn,foc,dur,r8val,sia,sis,lfl,hfl,
-     & velocity(10),oblat,oblon,obalt,tins,pins,hins,tout,pout,hout
+     & velocity(10),oblat,oblon,obalt,tins,pins,hins,tout,pout,hout,
+     & wspd,wdir
       integer*4 i,ndb,mdb,magic,prog,ip,ivel,ldot,btype,bpointer,
      & itype(mc),ilen(mc),ipoint(mc),reclen,dfr,gfw,gbw
 
@@ -58,8 +59,8 @@ c----------------------------------------------------------
 
 c
 c  Read Header Block.
+c        write(*,*)'read_opus_header: ',path
         reclen=12
-c        write(*,*)'read_opus_header:',path
         open(luns,file=path,form='unformatted',status='old',
      &  access='direct',recl=reclen)
         read(luns,rec=1)magic,prog        ! magic number, version number
@@ -82,6 +83,7 @@ c
 c  Read NDB Directory Blocks.
         do i=1,ndb
            read(luns,rec=i+ip) itype(i),ilen(i),ipoint(i)
+c           write(*,*) itype(i),ilen(i),ipoint(i)
         end do
         close(luns)
         if(iend.eq.bigendian) then
@@ -110,10 +112,12 @@ c  names appear in multiple blocks with different values.
         do i=1,ndb
            btype=mod(itype(i),2**30)  ! block type
            bpointer=ipoint(i)         ! block pointer
+c           write(*,*)i,btype,bpointer
 c
 c  1047 (417 hex) is DSTAT parameters for Master spectrum (Si)
 c  1047+32768 (8417 hex) is DSTAT parameters for Slave spectrum (InGaAs)
-          if(mod(btype,32768).eq.1047) then  !  AMPL+SAMP+DSTAT+SPEC 
+          if(mod(btype,32768).eq.1047     !  AMPL+SAMP+DSTAT+SPEC 
+     &       .or. mod(btype,32768).eq.5151) then  !  RAL C2H6 spectra
              call getopusparval(luns,bpointer,'NPT',iend,mrs,i2val,rs)
              if(rs.eq.2) nsp=i4val
              call getopusparval(luns,bpointer,'FXV',iend,mrs,i2val,rs)
@@ -155,6 +159,10 @@ c             write(*,*)'iy,im,id=',iy,im,id
              if(rs.eq.4) sia=r8val
              call getopusparval(luns,bpointer,'SIS',iend,mrs,i2val,rs)
              if(rs.eq.4) sis=r8val
+             call getopusparval(luns,bpointer,'WSA',iend,mrs,i2val,rs)
+             if(rs.eq.4) wspd=r8val
+             call getopusparval(luns,bpointer,'WDA',iend,mrs,i2val,rs)
+             if(rs.eq.4) wdir=r8val
           elseif(btype.eq.96) then  ! OPTPAR block
              call getopusparval(luns,bpointer,'APT',iend,mrs,i2val,rs)
              if(rs.ge.4) read(cval(:index(cval,'mm')-1),*) apt
@@ -242,7 +250,8 @@ c  If btype=1031 (407 hex) it's the master spectrum data bloak
 c  If btype=1031+32768 (8407 hex) it's the slave spectrum data block
 c  If btype=2055 (807 hex) it's the master interferogram data bloak
 c  If btype=2055+32768 (8807 hex) it's the slave interferogram data block
-          elseif(mod(btype,32768).eq.dtype) then  ! spectrum/igram data
+          elseif(mod(btype,32768).eq.dtype   ! spectrum/igram data
+     &    .or. mod(btype,32768).eq.5135) then  ! RAL C2H6 spectra 
              possp=bpointer
           endif
         end do  ! i=1,ndb

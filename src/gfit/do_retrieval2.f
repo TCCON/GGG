@@ -59,7 +59,7 @@ c     pd(nmp,ntg)   R*4  Individual gas transmittance spectra
      & mit,nit,
      & jva,jpd,kn3
 
-      parameter (mmp=360000,mfp=14,mspxv=8000000)
+      parameter (mmp=360000,mfp=16,mspxv=8000000)
 
       real*4
      & ckm2cm,

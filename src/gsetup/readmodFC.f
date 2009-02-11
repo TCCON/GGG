@@ -1,4 +1,5 @@
-      subroutine readmodFC(modname,z,t,p,d,h2ovmr,w,roc,nlev,ptrop)
+      subroutine readmodFC
+     & (lun_mod,modname,z,t,p,d,h2ovmr,w,roc,nlev,ptrop)
 c
 c  Reads a model (P,T) from file MODNAME at arbitrary vertical levels and then
 c  uses the hydrostatic equation together with the mean molecular weights W to
@@ -8,6 +9,7 @@ c  This version adapted to read FASCODE-format model input files
 c  Dave Griffith, Sept 00
 c
 c  Inputs:
+c      LUN_MOD   I*4     Logical Unit number
 c      MODNAME   C*(*)   Name of model
 c      Z(NLEV)   R*4     Array of altitudes onto which T & P are to be interpolated
 c      W(NLEV)   R*4     Array of mean molecular weights
@@ -26,11 +28,11 @@ c
       implicit none
 c      
       character modname*(*),string*100,dummy*20
-      integer lunr,nlev,i,k,nlhead,ncol,ninlvl,minlvl,ii,nss
+      integer lun_mod,nlev,i,k,nlhead,ncol,ninlvl,minlvl,ii,nss
       real*4 gas,radius,ecc2,tlat,gs,gravity,pfact,zero,h2ox,
      & h2ovmr(nlev),h2oold,h2onew,inheight,inmw,
      & pold,zold,hold,told,pnew,hk,x,hnew,tnew,avagadro,log1pxox
-      parameter (gas=8.31432,lunr=19,avagadro=6.02217e+23,zero=0.0)
+      parameter (gas=8.31432,avagadro=6.02217e+23,zero=0.0)
       parameter (minlvl=4000)
       real*4 z(nlev),t(nlev),p(nlev),d(nlev),w(nlev),roc
       real*4 inlvl(minlvl),inpress(minlvl),intemp(minlvl),
@@ -48,10 +50,10 @@ c      write(*,'(a,a)')' readmodFC: modname = ',modname
 c
       if(index(modname,'.mod').gt.0)then           !DG Jan03
 c        Read in input levels, pressures and temperatures
-         open(unit=lunr,file=modname,status='old')
-         read(lunr,*)nlhead,ncol
+         open(unit=lun_mod,file=modname,status='old')
+         read(lun_mod,*)nlhead,ncol
 c         write(*,*)nlhead,ncol
-         read(lunr,'(a)')string
+         read(lun_mod,'(a)')string
 c        GFIT format model, listed bottom-up
          call substr(string,dummy,1,nss)  ! nss = number of sub-strings
          if(nss.eq.6) then
@@ -66,11 +68,11 @@ c        GFIT format model, listed bottom-up
          endif
 
          do k=3,nlhead
-            read(lunr,*)
+            read(lun_mod,*)
          enddo
 
          do i=1,minlvl
-            read(lunr,'(a)',end=10) string
+            read(lun_mod,'(a)',end=10) string
             call substr(string,dummy,1,nss)  ! nss = number of sub-strings
             if(nss.eq.5) then
                read(string,*,end=10)inpress(i),intemp(i),inheight,inmw,
@@ -94,48 +96,48 @@ c        GFIT format model, listed bottom-up
          stop 'increase parameter minlvl'
 10       ninlvl=i-1
 c         write(*,*)'ninlvl=',ninlvl
-         close(lunr)
+         close(lun_mod)
       elseif(index(modname,'.zpt').gt.0)then           !DG Jan03
 c        FASCOD format model, levels listed top-down
-         open(unit=lunr,file=modname,status='old')
-         read(lunr,*)nlhead,ncol
-         read(lunr,'(a)')string
+         open(unit=lun_mod,file=modname,status='old')
+         read(lun_mod,*)nlhead,ncol
+         read(lun_mod,'(a)')string
          ninlvl=ncol
-         read(lunr,*)(inlvl(i),i=1,ninlvl)
-         read(lunr,*)
-         read(lunr,*)(inpress(ninlvl+1-i),i=1,ninlvl)
+         read(lun_mod,*)(inlvl(i),i=1,ninlvl)
+         read(lun_mod,*)
+         read(lun_mod,*)(inpress(ninlvl+1-i),i=1,ninlvl)
          do i=1,ninlvl
             inpress(i)=inpress(i)/1013.25
          enddo
-         read(lunr,*)
-         read(lunr,*)(intemp(ninlvl+1-i),i=1,ninlvl)
+         read(lun_mod,*)
+         read(lun_mod,*)(intemp(ninlvl+1-i),i=1,ninlvl)
          zold=inlvl(1)
-         close(lunr)
+         close(lun_mod)
       elseif(index(modname,'.prf').gt.0)then           ! DG Apr 08
 c        FASCOD format model, levels listed top-down
-         open(unit=lunr,file=modname,status='old')
-         read(lunr,*)            ! blank
-         read(lunr,'(a)')string  ! number of levels
-         read(lunr,*)            ! $
-         read(lunr,*)ninlvl
-         read(lunr,*)
-         read(lunr,*)
-         read(lunr,'(a)')string  ! altitude
-         read(lunr,*)            ! $
-         read(lunr,'(5(f10.2,1x))')(inlvl(i),i=1,ninlvl)
-         read(lunr,*)            ! blank
-         read(lunr,'(a)')string  ! pressure
-         read(lunr,*)            ! $
-         read(lunr,'(5(e10.3,1x))')(inpress(i),i=1,ninlvl)
+         open(unit=lun_mod,file=modname,status='old')
+         read(lun_mod,*)            ! blank
+         read(lun_mod,'(a)')string  ! number of levels
+         read(lun_mod,*)            ! $
+         read(lun_mod,*)ninlvl
+         read(lun_mod,*)
+         read(lun_mod,*)
+         read(lun_mod,'(a)')string  ! altitude
+         read(lun_mod,*)            ! $
+         read(lun_mod,'(5(f10.2,1x))')(inlvl(i),i=1,ninlvl)
+         read(lun_mod,*)            ! blank
+         read(lun_mod,'(a)')string  ! pressure
+         read(lun_mod,*)            ! $
+         read(lun_mod,'(5(e10.3,1x))')(inpress(i),i=1,ninlvl)
          do i=1,ninlvl
             inpress(i)=inpress(i)/1013.25
             inh2ovmr(i)=0.0
          enddo
-         read(lunr,*)            ! blank
-         read(lunr,'(a)')string  ! temperature
-         read(lunr,*)            ! $
-         read(lunr,'(5(f10.2,1x))')(intemp(i),i=1,ninlvl)
-         close(lunr)
+         read(lun_mod,*)            ! blank
+         read(lun_mod,'(a)')string  ! temperature
+         read(lun_mod,*)            ! $
+         read(lun_mod,'(5(f10.2,1x))')(intemp(i),i=1,ninlvl)
+         close(lun_mod)
          zold=inlvl(1)
       else  
          write(*,*)'Model format not recognised'
@@ -148,8 +150,8 @@ c      if(radius.le.6300.0) write(6,*)'wrong radius:',radius
       hold=zold/(1+zold/radius)  ! Convert geometric to geopotential altitude
       roc=radius                 ! don't correct for Earth's ecentricity
 c                                ! OK for ground based & mid latitude
-c      read(lunr,*)pold,told
-c      read(lunr,*,end=3)pnew,tnew     
+c      read(lun_mod,*)pold,told
+c      read(lun_mod,*,end=3)pnew,tnew     
       pold=inpress(1)
       told=intemp(1)
       h2oold=inh2ovmr(1)
@@ -179,7 +181,7 @@ c     &   write(6,*)' Warning! Levels may not extend low enough'
           told=tnew
           hold=hnew
           h2oold=h2onew 
-c          read(lunr,*,end=3)pnew,tnew
+c          read(lun_mod,*,end=3)pnew,tnew
           ii=ii+1
           if(ii.gt.ninlvl)goto 3
           pnew=inpress(ii)

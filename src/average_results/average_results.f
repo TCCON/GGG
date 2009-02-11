@@ -10,7 +10,7 @@ c  and are treated as such in the averaging_with XXX_bias subroutines
       implicit none
       integer irow,j,jj,k,lnbc,mlabel,mval,navg,iav,
      & lr,lunr,lunw,luno,lunt,mwin,nwin,iwin,ngas,kgas,
-     & mrow,nauxcol,nlhead,mgas,ncol,jcol,icol,cwas,jav,
+     & mrow,mauxcol,nauxcol,nlhead,mgas,ncol,jcol,icol,cwas,jav,
      & nrow,nss,locnaux,loc,lwas
       parameter (lunr=12)      ! input file (.xsw)
       parameter (lunw=14)      ! output file (.xav)
@@ -18,9 +18,9 @@ c  and are treated as such in the averaging_with XXX_bias subroutines
       parameter (luno=16)      ! outlier file (.xsw)
       parameter (mgas=80)      ! Max number of gases
       parameter (mwin=600)     ! Total number of columns/windows
-      parameter (mrow=160000)  ! Max number of output records/spectra
-      parameter (mval=3200000) ! Max number of values (NROW * NCOL)
-      parameter (nauxcol=19)   ! Number of auxiliary parameters/columns
+      parameter (mrow=240000)  ! Max number of output records/spectra
+      parameter (mval=12000000) ! Max number of values (NROW * NCOL)
+      parameter (mauxcol=25)   ! Number of auxiliary parameters/columns
       parameter (mlabel=18000) ! Max Number of column lable characters
 
       integer avindx(mgas+1)
@@ -28,7 +28,7 @@ c  and are treated as such in the averaging_with XXX_bias subroutines
      & gfit_version*48,gsetup_version*48,
      & collabel*(mlabel),swfile*80,avfile*80,
      & sign(mrow)*1,ftype*1,
-     & clab(2*mwin+nauxcol)*17,
+     & clab(2*mwin+mauxcol)*17,
      & collate_version*48,ar_version*48,
      & avlabel(mgas+1)*8
 
@@ -36,12 +36,12 @@ c  and are treated as such in the averaging_with XXX_bias subroutines
 
       real*4
      & ymiss,rew(mrow),cew(mwin),tew,error_sigma,
-     & yaux(nauxcol,mrow),
+     & yaux(mauxcol,mrow),
      & yobs(mval),yerr(mval),
      & ybar(mrow),eybar(mrow),
      & bias(mwin),ebias(mwin)
 
-      ar_version=' average_results  version 1.0.1  2008-10-03  GCT'
+      ar_version=' average_results  version 1.1.0  2009-01-31  GCT'
 
       write(*,'(a)')
      & 'Enter name of .?sw file whose contents are to be averaged'
@@ -53,7 +53,8 @@ c  and are treated as such in the averaging_with XXX_bias subroutines
 c  Read the entire contents of the .xsw disk file
       open(lunr,file=swfile,status='old')
       open(lunw,file=avfile,status='unknown')
-      read(lunr,'(i2,i4,i6)') nlhead,ncol,nrow
+      read(lunr,'(i2,i4,i7,i4)') nlhead,ncol,nrow,nauxcol
+      if(nrow.gt.mrow) stop 'increase parameter mrow'
       nwin=(ncol-nauxcol)/2
       read(lunr,'(a)') collate_version
       read(lunr,'(a)') gfit_version
@@ -61,7 +62,7 @@ c  Read the entire contents of the .xsw disk file
       read(lunr,'(8x,1016(e12.4))') (ymiss,j=1,ncol)
       read(lunr,'(a)') collabel
       do irow=1,mrow
-         read(lunr,'(a1,f13.8,18f13.5,800(e12.4))',end=99)
+         read(lunr,'(a1,f13.8,21f13.5,800(e12.4))',end=99)
      &   sign(irow),year(irow),(yaux(k,irow),k=2,nauxcol),
      $   (yobs(irow+nrow*(k-1)),yerr(irow+nrow*(k-1)),k=1,nwin)
       end do  !  irow=1,mrow
@@ -73,7 +74,7 @@ c
       write(lunt,'(a)')' Window     Mean_Col   Std_Err   Chi2/N'
 
       open(luno,file=avfile(:lr)//'.outliers',status='unknown')
-      call substr(collabel,clab,2*mwin+nauxcol,nss)
+      call substr(collabel,clab,2*mwin+mauxcol,nss)
       if(nss.ne.ncol) stop 'NSS .NE. NCOL'
       write(*,*)nrow,nwin,nss
       locnaux=index(clab(nauxcol+1),'_')
@@ -160,11 +161,11 @@ c
 c
 c  Write averaged values to file
       open (lunw,file=avfile,status='unknown')
-      write(lunw,'(i2,i4,i6)') nlhead+1,nauxcol+2*ngas,nrow
-      write(lunw,'(a)') ar_version
-      write(lunw,'(a)') collate_version
-      write(lunw,'(a)') gfit_version
-      write(lunw,'(a)') gsetup_version
+      write(lunw,'(i2,i4,i7,i4)') nlhead+1,nauxcol+2*ngas,nrow,nauxcol
+      write(lunw,'(a)') ar_version(:lnbc(ar_version))
+      write(lunw,'(a)') collate_version(:lnbc(collate_version))
+      write(lunw,'(a)') gfit_version(:lnbc(gfit_version))
+      write(lunw,'(a)') gsetup_version(:lnbc(gsetup_version))
       write(lunw,'(a8,219(1pe12.4))')'MISSING:',
      &  (ymiss,j=1,nauxcol+2*ngas)
       write(lunw,'(a,60(a8,2x,a14))') collabel(:locnaux),

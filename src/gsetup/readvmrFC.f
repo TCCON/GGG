@@ -18,9 +18,9 @@ c      parameter (mg=134,minlvl=151)    !minlvl <= mg  -DG: not necessary if inl
 c      equivalence (inlvl,vold)
 
       if(mgas.gt.mg) then
-        write(*,*) 'mgas=',mgas
-        write(*,*) 'mg=',mg
-        stop 'readvmrFC: increase parameter MG'
+         write(*,*) 'mgas=',mgas
+         write(*,*) 'mg=',mg
+         stop 'readvmrFC: increase parameter MG'
       endif
       vshift=0.0
       zero=0.0
@@ -59,18 +59,17 @@ c     Read VMRs level by level testing to make sure that there are NCOL values
           read(string,*)zold,(vold(jcol),jcol=1,ngas)
 c          write(*,*)'readvmrFC:',zold
 c
-        if(nlev.eq.1) then  ! It's a lab spectrum
-           znew=1.E+38
-c           call vmov(zero,0,vnew,1,ngas)
-        else
-           read(lunr,'(a)')string
-           call substr(string,dum,1,nss)
-           if(nss.ne.ncol) then
-              write(*,*) nss,ncol
-              stop 'READVMR: mismatch: number of data values/labels'
-           endif
-           read(string,*)znew,(vnew(jcol),jcol=1,ngas)
-        endif
+          if(nlev.eq.1) then  ! It's a lab spectrum
+             call vmov(zero,0,vnew,1,ngas)
+          else
+             read(lunr,'(a)')string
+             call substr(string,dum,1,nss)
+             if(nss.ne.ncol) then
+                write(*,*) nss,ncol
+                stop 'READVMR: mismatch: number of data values/labels'
+             endif
+             read(string,*)znew,(vnew(jcol),jcol=1,ngas)
+          endif
 c
           if(z(1).lt.zold+vshift) then
             write(6,*)'Warning: vmrs may not extend low enough'
@@ -78,22 +77,21 @@ c
           endif
 
           do klev=1,nlev
-c          write(*,*)klev,nlev,z(klev),znew
- 11         if(z(klev).gt.znew+vshift) then
-              zold=znew
-              do jcol=1,ngas
-                vold(jcol)=vnew(jcol)
-              end do
-              read(lunr,'(a)',end=110)string
-              call substr(string,dum,1,nss)
-              if(nss.ne.ncol) then
-                write(*,*) nss,ncol,klev
-                stop 'READVMR: mismatch b/n no. of data values & labels'
-              endif
+c            write(*,*)klev,nlev,z(klev),znew
+ 11          if(z(klev).gt.znew+vshift) then
+                zold=znew
+                do jcol=1,ngas
+                   vold(jcol)=vnew(jcol)
+                end do
+                read(lunr,'(a)',end=110)string
+                call substr(string,dum,1,nss)
+                if(nss.ne.ncol) then
+                  write(*,*) nss,ncol,klev
+                  stop 'READVMR: mismatch b/n # of data values & labels'
+                endif
               read(string,*)znew,(vnew(jcol),jcol=1,ngas)
               go to 11
             else
-c             write(*,*)fr,znew,zold
               fr=(z(klev)-zold-vshift)/(znew-zold)
               do jcol=1,ngas
                 vmr(jcol,klev)=fr*vnew(jcol)+(1.-fr)*vold(jcol)
@@ -101,8 +99,8 @@ c             write(*,*)fr,znew,zold
              endif
           end do
           close(lunr)
-c 33       write(6,*)'Warning: vmrs do not extend high enough'
-c          stop
+c33       write(6,*)'Warning: vmrs do not extend high enough'
+c         stop
       elseif(index(vmrpath,'.ref').gt.0)then                       !DG jan03
 c         FASCODE input format
 c         vmr file must contain same number of levels as zpt model
@@ -146,5 +144,6 @@ c         levels are first read from zpt model file
           write(*,*)'VMR name: ',vmrpath
           stop
       endif
+
 110   return
       end

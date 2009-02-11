@@ -5,7 +5,7 @@ idl_device=string('x')
 occul=string(14)
 resp=string('n')
 runlogstr=strarr(80000)
-spectrum=string('                     ')
+spectrum=string('                                   ')
 termtp=string('xwin')
 names=''
 
@@ -82,10 +82,12 @@ endif
 on_ioerror,rtn5
 j=0l
 readf,unit,names
+readf,unit,names
+readf,unit,names
 print,strpos(names,'Year')
 ll_year=strpos(names,'Year')
-;rlformat='(1x,a21,42x,f8.3,f7.4,f7.2,3f6.4,2i8,f15.11,i8,i3,39x,f8.2)'
-rlformat=string('(1x,a',ll_year-2,',42x,f8.3,f7.4,f7.2,3f6.4,2i8,f15.11,i8,i3,39x,f8.2)')
+;rlformat=string('(1x,a',ll_year-2,',42x,f8.3,f7.4,f7.2,3f6.4,2i8,f15.11,i8,i3,39x,f8.2)')
+rlformat=string('(1x,a',ll_year-2,',42x,f8.3,f7.4,f8.3,f7.3,f7.2,3f6.4,2i8,f15.11,i8,i3,39x,f8.2)')
 print,rlformat
 while(eof(unit) eq 0) do begin
   readf,unit,names
@@ -118,11 +120,11 @@ if kspec gt nspe-1 then begin
    kskip=-1
 endif
 reads,runlogstr(kspec),format=rlformat,$
-spectrum,asza,zenoff,opd,fovi,fovo,amal,ifirst,ilast,graw,possp,bpw,pout
+spectrum,asza,zenoff,azim,osds,opd,fovi,fovo,amal,ifirst,ilast,graw,possp,bpw,pout
 spectrum=strtrim(spectrum)
 ;graw=graw*(double(1.)+(fovi^2+amal^2)*6.25e-02)
-if ((round((frqcen-0.5*wid)/graw) gt ilast) or $
-  (long((frqcen+0.5*wid)/graw) lt ifirst)) then begin
+if ((round(frqcen-0.5*wid) gt ilast*graw) or $
+  (long(frqcen+0.5*wid) lt ifirst*graw)) then begin
   print,format='(a22," only encompasses ",f9.1," to ",f9.1, " cm-1")',$
     spectrum,ifirst*graw,ilast*graw
 ;    print,format='($,"central frequency (cm-1)")'

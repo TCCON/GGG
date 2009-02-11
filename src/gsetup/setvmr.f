@@ -1,4 +1,4 @@
-      subroutine setvmr(vmr,mgas,z,t,p,h2ovmr,nlev,iyr,iday,
+      subroutine setvmr(vmr,mgas,z,t,p,h2ovmr,co2vmr,nlev,iyr,iday,
      & uttime,oblat,oblon,obalt,tout,pout,hout,ptrop_atm,ppbl_atm)
 c
 c  Purpose:    Allows a vmr profile to be modified
@@ -20,8 +20,8 @@ c
      & p(nlev),          ! pressures of levels (atm.)
      & t(nlev),          ! temperatures of levels (K)
      & z(nlev),          ! altitudes of levels (km)
-     & co2vmr(nlev),     ! H2O vmr profile from .mod file
-     & h2ovmr(nlev)      ! H2O vmr profile from .mod file
+     & h2ovmr(nlev),     ! H2O vmr profile from .mod file
+     & co2vmr(nlev)      ! CO2 vmr profile from simulate_co2_vmr
 
       real*8 
      & uttime,           ! UT Time (hours)

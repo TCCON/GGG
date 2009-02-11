@@ -11,7 +11,9 @@ c        write(*,*)k,p(k),pobs
         if(p(k).le.pobs) goto 12
       end do
       write(6,*)'nl,Z(top),P(top), Pobs =',k-1,z(k-1),p(k-1),pobs
-      stop 'Error in function HEIGHT: insufficiently small p'
+      write(6,*) 'Warning from function HEIGHT: insufficiently small p'
+      height=z(nl)
+      return
  12   fr=log(p(k-1)/pobs)/log(p(k-1)/p(k))
 c      write(*,*) k,p(k),z(k),pobs,p(k-1),z(k-1)
       fta=1.

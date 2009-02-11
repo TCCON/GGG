@@ -85,7 +85,7 @@ c
       real*8 fzero,grid,flinwid,srot,frac,xx,x2,d4,y2,margin,
      & rr,ff,pi,acc,freq,w_wid,stren,d_wid,sbhw,eprime,tdpbhw
       character llformat*53,sss*36,solarll*(*)
-      parameter (pi=3.14159265d0,acc=0.0001d0,margin=20.)
+      parameter (pi=3.14159265d0,acc=0.00001d0,margin=90.)
       llformat='(i3,f12.6,2e10.3,f5.4,f5.4,f10.4,f8.4,1x,a36)'
 c
 c      write(*,*)'SOLAR_SPEC',grid,fzero,ncp

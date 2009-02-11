@@ -60,7 +60,7 @@ c      integer*2 i2val(mrs)
 
       real*8 delwav,wsfact,dstep,nus,nue,nubar,
      $ apt,dur,lfl,hfl,oblat,oblon,obalt,
-     & sia,sis,
+     & wspd,wdir,sia,sis,
      $ startf,stopf,res,phr,vel,foc,pi,d2r,tgmt,
      & zpdtim,t_s,dt
       parameter (pi=3.14159265d0,d2r=pi/180)
@@ -94,6 +94,7 @@ c     fitting noise regions at edge of bandpass.
      &            1350.0, 1350.0, 1025.0/
 
 
+c      write(*,*)'rdsphead: ',path
       object=2  ! 1=moon; 2=sun
       call getendian(iend)  ! iend=+1 on Sun; iend=-1 on PC
 c  Initialize variables to zero so that they will not be remembered from the
@@ -107,9 +108,9 @@ c  previous spectrum in the event that a spectrum header could not be read.
       fovi=0.0d0
       snr=0.0d0
       apf='XX'
-c      iy=0
-c      id=0
-c      gmt=0
+      iy=0
+      id=0
+      gmt=0
       wavtkr=9900.0d0
 
 c================================================================
@@ -345,7 +346,7 @@ c        obalt=2.092d0     ! Kitt Peak
               elseif(hst(:9).eq.'RESOLUTN=') then
                  read(hst(10:),*)resn
               elseif(hst(:9).eq.'ID      =') then
-                 write(*,'(a)') path(:lnbc(path)),hst(10:)
+c                 write(*,'(a)') path(:lnbc(path)),hst(10:)
               elseif(hst(:9).eq.'DAY     =') then
                  read(hst(10:),*) date
                  read(date,'(i2,1x,i2,1x,i2)')im,id,iy 
@@ -433,7 +434,7 @@ c  Read Header Block.
               irec=irec+1
               read(luns,'(a)') hst       ! header string
               if    (hst(:9).eq.'id      =') then
-                 write(*,'(a)') hst(10:)
+c                 write(*,'(a)') hst(10:)
               elseif(hst(:9).eq.'day     =') then
                  read(hst(10:),*) date
                  read(date,'(i2,1x,i2,1x,i2)')im,id,iy
@@ -743,7 +744,7 @@ c
        call read_opus_header(path,iend,dtype,npoints,startf,stopf,iy,im,
      &  id,hh,mm,ss,ms,apt,dur,vel,apf,phr,res,lasf,foc,nip,dfr,
      &  pkl,prl,gfw,gbw,lfl,hfl,possp,oblat,oblon,obalt,tins,pins,hins,
-     &  tout,pout,hout,sia,sis)
+     &  tout,pout,hout,wspd,wdir,sia,sis)
 
 c        call rdopushead(path,iend,dtype,npoints,startf,stopf,iy,im,id,
 c     &  hh,mm,ss,ms,apt,nscans,dur,vel,apf,phr,res,lasf,foc,nip,dfr,
@@ -753,6 +754,8 @@ c
         delwav=(stopf-startf)/(npoints-1)
         ifirst=nint(startf/delwav)
         ilast=nint(stopf/delwav)
+c        write(*,*)startf,stopf,delwav
+c        write(*,*)startf/delwav,stopf/delwav
         delwav=15798.0138d0*delwav/lasf  ! Some OPUS Bruker data has wrong laser freq (15798.10)
 c        write(*,'(a,2f16.9,i6,f16.11)')'startf,stopf,npoints= ',
 c     &  startf,stopf,npoints,delwav
@@ -861,8 +864,8 @@ c  If the ordered search failed then it can mean that either the run
 c  is not in the runlog, or the runlog is not sorted properly.
 c  So try a complete systematic search (very slow)
       do posnrun=1,nrun
-         read(unit,rec=posnrun) specnamel(:nchr)
-         if(specnamel.eq.specname) return   ! success
+        read(unit,rec=posnrun) specnamel(:nchr)
+        if(specnamel.eq.specname) return   ! success
       end do
       write(6,*)'POSNRUN:', specname,' not present in runlog '
       write(6,*)'May need to increase parameter NRUN currently = ',nrun

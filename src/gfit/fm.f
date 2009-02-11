@@ -62,6 +62,7 @@ c      end do
       n3=ntg+3  !
       n4=ntg+4  !
       sh=rdec*(cx(n3)+sssss)
+c      write(*,*)'fm.f: sh=',sh,rdec,cx(n3),sssss
 c  Compute primitive transmittance spectrum using spxv(1,n3) as work space.
 c  Scale the limb opacities by CX and co-add to produce the total limb opacity
       call vmov(spxv(1,0),1,spxv(1,n1),1,ncp)    ! non-target limb opacity
@@ -82,9 +83,15 @@ c         dspdzxv(i,n1)=1+d2/8+d4/192+d2*d4/9216+d4*d4/737280
       end do
       call vmul(dspdzxv(1,n1),1,spxv(1,n1),1,spxv(1,n1),1,ncp)  ! FOV correction
       call vmul(spts,1,spxv(1,n1),1,spxv(1,n1),1,ncp)    ! STS*T
+      call vdot(spxv(1,n1),1,spxv(1,n1),1,sum2,ncp)
+c      write(*,*)'fm: ss=',sqrt(sum2/ncp)
+c      write(*,*) 'slit=',ldec,(slit(k),k=1,nii)
 c
 c  Compute PD's and convolve with ILS using PD(1,NTG+3) for workspace
       call newdec(spxv(1,n1),ncp,slit,nii,ldec,rdec,sh,pd(1,n1),nmp)  ! SLIT*T
+      call vdot(pd(1,n1),1,pd(1,n1),1,sum2,nmp)
+c      write(*,*) 'pd=',pd(1,n1),pd(2,n1),pd(3,n1),pd(nmp,n1)
+c      write(*,*)'fm: sum=',sqrt(sum2/nmp)
       call vramp(pd(1,n2),1,nmp)                                    ! Ramp
       call vsma(pd(1,n2),1,cx(n1)*cx(n2),cx(n1),0,pd(1,n3),1,nmp)   ! a.(1+b.R) 
       call vmul(pd(1,n2),1,pd(1,n1),1,pd(1,n2),1,nmp)               ! R.SLIT*T

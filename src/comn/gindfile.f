@@ -46,6 +46,7 @@ c
 c  If first call, read file containing list of data partitions to be searched.
          if(npart.lt.1) then
          call getenv('HOME',homepath)
+c            write(*,*)dplist
             open(lunr,file=dplist,status='old')
             do j=1,mpart
  1             read(lunr,'(a)',end=88) partition(j)

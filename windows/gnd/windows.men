@@ -1,2 +1,22 @@
 Windows       Description
+tccon.gnd     Standard TCCON windows
 tccon_ingaas.gnd  Standard TCCON windows
+co2_iso.bal   18O CO2 windows
+all_mols.air  Complete list of all the airborne windows
+all_mols.bal  Complete list of all balloon windows
+esmosii.gnd   Jungfraujoch spectra for use in ESMOSII
+esmosiii.gnd  Jungfraujoch spectra for use in ESMOS3
+1h2o.bal      H2O(16) water windows.
+h2o.bal       H2O windows (all isotopes).
+ocs.lab       OCS windows for examining ILS in lab spectra.
+solar.orb
+clo.gnd       2 ground-based ClO windows at 833 and 834 cm-1.
+mcm1986.gnd   all ground-based windows from 600 to 4000 cm-1
+hcooh.gnd     1106 cm-1 interval
+hf.gnd        HCL and HF windows
+h2o_lamp.gnd  For IFS125 lamp runs
+hcl_cell.gnd  Runs on May 3, 2004
+kp.gnd        NIR O2, CO2, and CH4 windows 
+cit.gnd       kp.gnd + hcl_cell.gnd
+co_all.gnd    4200-4300 co band
+nir.gnd       HF, CO, CH4, CO2(2) and O2 (3) windows

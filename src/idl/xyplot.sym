@@ -8,13 +8,13 @@ line_thick:  4.0
 orientation: landscape
 orientation: portrait
    size   nt  nls  nrot fill col   ls  xeb yeb
-   0.5    1   12    0    0   45    -0   1   1   $    ; circle (empty)
-   0.5    1    5    4    0   80    -1   1   1   $    ; pentagon down (empty)
-   0.5    1    4    0    0  240    -0   1   1   $    ; diamond (filled)
-   0.5    1    4    1    0   50    -0   1   1   $    ; square (filled)
-   0.5    1    3    4    0   50    -0   1   1   $    ; triangle down (empty)
-   0.5    1    3    4    0   60    -0   1   1   $    ; triangle down (empty)
-   0.5    1    3    4    1   60    -0   1   1   $    ; triangle down (empty)
+   1.5    1    5    4    0   50    -0   1   0   $    ; pentagon down (empty)
+   0.5    1    4    0    0  220    -0   1   0   $    ; diamond (filled)
+   0.5    1    4    1    0  100    -0   1   0   $    ; square (filled)
+   0.5    1    3    4    0  130    -0   1   0   $    ; triangle down (empty)
+   0.5    1   12    0    0  240    -0   1   0   $    ; circle (empty)
+   0.5    1   12    0    1   45    -0   1   0   $    ; circle (empty)
+   0.5    1    3    4    0   60    -1   1   1   $    ; triangle down (empty)
    0.5    1    5    0    0   70    -0   1   1   $    ; pentagon up (empty)
    0.5    1    5    0    0   75    -0   1   1   $    ; pentagon up (empty)
    0.5    1    5    2    0   75    -1   1   1   $    ; pentagon right (empty)

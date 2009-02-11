@@ -5,7 +5,7 @@ c  writes the model and vmr profiles to LUNV
       implicit none
       integer*4 lun_mav,nspeci,jspeci,nlev,i,j,kspeci,zdiff,
      & i10,mmode,istat,jvmr,kvmr,nvmr,lunt,mgas,gas_in_cell
-      parameter (kspeci=230,kvmr=70,mmode=30,lunt=20)
+      parameter (kspeci=230,kvmr=70,mmode=30,lunt=19)
       integer*4 gasindex(kspeci),sagindex(kvmr),
      & kgas,kiso,dumint,ifail,
      & dumintarr(mmode),nmode,speci_cell,nspeci_cell
@@ -60,6 +60,7 @@ c  found in the .vmr file.
       call clistindex(nspeci,fullname,nvmr,vmrgases(2),gasindex)
       call clistindex(nspeci,shortname,nvmr,vmrgases(2),gasindex)
       do jspeci=1,nspeci
+c         write(*,*)jspeci,gasindex(jspeci),vmr(gasindex(jspeci),12)
          if(gasindex(jspeci).le.0) then
             write(19,*) ' write_mav: Warning: '//
      &      shortname(jspeci)//' not found in .vmr file '
@@ -118,7 +119,7 @@ c     Write stratospheric enrichments
      &           vmr(gasindex(j),i)**(1.+epsilon(j)/1000.0)/
      $           vmr(gasindex(j),i10)**(epsilon(j)/1000.0),
      &           j=1,nspeci)
-         end if
+         endif
       end do      ! i=1,nlev
       return
       end
