@@ -1,4 +1,4 @@
-; mod_maker5.pro plus subroutines
+; mod_maker6.pro plus subroutines
 ;*************************************************************
 ; Interpolates in time, lat/longitude into the NCEP re-analyses to
 ; produce a model file for a particular site for a series of dates.
@@ -39,7 +39,22 @@
 ;  You must then edit mod_maker.input and enter at the top of the file
 ;  the lat/long of your site and the names of the four input files.
 ;  
-;  You are now ready to run mod_maker5
+;  You are now ready to run mod_maker6
+;
+;*************************************************************
+;    MOD_MAKER6.PRO     17 Feb 2009
+; We were having memory problems when running with
+; an entire year of global data. The larger input
+; files were over 500MB each and so several GB of
+; memory was needed by mod_maker5.  So I reduced the
+; memory footprint by a factor ~4 by reorganizing
+; the main program to re-use global data arrays
+; (Global_Data) rather than having separate
+; arrays for each parameter (AT, GH, TP, SH).
+; This required that the interpolation to the lat/long
+; of the site happen immediately after reading in the
+; global data. Also removed some of the intermediate
+; global arrays (e.g. Geopotential_Hgt, Specific_Humidity)
 ;*************************************************************
   
 ; Major changes introduced by GCT in Jan/Mar 2007:
@@ -119,7 +134,7 @@
 ; 9) All input now comes from the file mod_maker.input.
 ;   This includes the lat/long of the site and the names
 ;   of the files containing the NCDF data. Thus there is
-;   no longer any user input required for mod_maker5.
+;   no longer any user input required for mod_maker6.
 ;   This facilitates automation, and improves tracability
 ;   of the results.
 ;
@@ -244,9 +259,8 @@ pro bilinear_interp2, fin, xx, yy, fout
   fout=reform(fout,/overwrite)
 end
 
-
 ; MAIN PROGRAM:
-pro mod_maker5
+pro mod_maker6
 ;*************************************************************
 ; Read site abbreviation, lat/long & names of NCDF files from "mod_maker.input"
 ; Note that it only reads the first 6 lines of this file.
@@ -267,6 +281,8 @@ pro mod_maker5
  readf, unitr,ncdf_SH_file
  close, unitr
  free_lun, unitr
+if(Site_Lon lt 0.0) then Site_Lon=Site_Lon+360.0
+if(Site_Lon gt 180.0 ) then Site_Lon_180=Site_Lon-360.0 else Site_Lon_180=Site_Lon
 ;*************************************************************
 ; Read Air Temperature file:
 ;*************************************************************
@@ -275,13 +291,21 @@ pro mod_maker5
   NCDF_VARGET, ncid,  1, Lat_AT       ; Read in variable 'lat'
   NCDF_VARGET, ncid,  2, Lon_AT       ; Read in variable 'lon'
   NCDF_VARGET, ncid,  3, Tim_AT       ; Read in variable 'time'
-  NCDF_VARGET, ncid,  4, air          ; Read in variable 'air'
-    NCDF_ATTGET, ncid,  4, 'add_offset', air_add_offset
-    air_add_offset = STRING(air_add_offset)
-    NCDF_ATTGET, ncid,  4, 'scale_factor', air_scale_factor
-    air_scale_factor = STRING(air_scale_factor)
+  NCDF_VARGET, ncid,  4, Global_Data  ; Read in variable 'Global_Data'
+  NCDF_ATTGET, ncid,  4, 'add_offset', Global_Data_add_offset
+  NCDF_ATTGET, ncid,  4, 'scale_factor', Global_Data_scale_factor
   NCDF_CLOSE, ncid      ; Close the NetCDF file
-  Global_AT = air*Float(air_scale_factor) + Float(air_add_offset)
+  Global_Data = Global_Data*Float(Global_Data_scale_factor) + Float(Global_Data_add_offset)
+
+  dlon=Lon_AT[N_Elements(Lon_AT)-1]-Lon_AT[0]
+ if (Site_Lat-Lat_AT[N_Elements(Lat_AT)-1])*(Site_Lat-Lat_AT[0]) gt 0 or $
+    (Site_Lon-Lon_AT[N_Elements(Lon_AT)-1])*(Site_Lon-Lon_AT[0])*dlon gt 0 then begin
+       print,'The data file '+ncdf_AT_file+' does not cover this Site'
+       print,'Latitudes: ',Lat_AT
+       print,'Longitudes:',Lon_AT
+       stop
+ endif
+  bilinear_interp2,Global_Data,(Site_Lon-Lon_AT[0])/(Lon_AT[1]-Lon_AT[0]),(Site_Lat-Lat_AT[0])/(Lat_AT[1]-Lat_AT[0]), Site_AT
 
 ;*************************************************************
 ; Read Geopotential Height file:
@@ -291,75 +315,16 @@ pro mod_maker5
   NCDF_VARGET, ncid,  1, Lat_GH       ; Read in variable 'lat'
   NCDF_VARGET, ncid,  2, Lon_GH       ; Read in variable 'lon'
   NCDF_VARGET, ncid,  3, Tim_GH       ; Read in variable 'time'
-  NCDF_VARGET, ncid,  4, hgt          ; Read in variable 'hgt'
-    NCDF_ATTGET, ncid,  4, 'add_offset', hgt_add_offset
-    hgt_add_offset = STRING(hgt_add_offset)
-    NCDF_ATTGET, ncid,  4, 'scale_factor', hgt_scale_factor
-    hgt_scale_factor = STRING(hgt_scale_factor)
+  NCDF_VARGET, ncid,  4, Global_Data          ; Read in variable 'Global_Data'
+  NCDF_ATTGET, ncid,  4, 'add_offset', Global_Data_add_offset
+  NCDF_ATTGET, ncid,  4, 'scale_factor', Global_Data_scale_factor
   NCDF_CLOSE, ncid     ; Close the NetCDF file
+
+  Global_Data = Global_Data*Float(Global_Data_scale_factor) + Float(Global_Data_add_offset)
+
+; Convert Geopotential height to Geometric Height
   Earth_Radius=6356.766*1000.0
-  Geopotential_Hgt = hgt*Float(hgt_scale_factor) + Float(hgt_add_offset)
-  Global_GH = geopotential_Hgt/(1+Geopotential_Hgt/Earth_Radius)
-
-;*************************************************************
-; Read Tropopause Pressure file:
-;*************************************************************
-  ncid = NCDF_OPEN(home_path+'/ncdf/'+ncdf_TP_file)       ; Open The NetCDF file
-  NCDF_VARGET, ncid,  0, Lat_TP       ; Read in variable 'lat'
-  NCDF_VARGET, ncid,  1, Lon_TP       ; Read in variable 'lon'
-  NCDF_VARGET, ncid,  2, Tim_TP       ; Read in variable 'time'
-  NCDF_VARGET, ncid,  3, pres         ; Read in variable 'pres'
-    NCDF_ATTGET, ncid,  3, 'add_offset', pres_add_offset
-    pres_add_offset = STRING(pres_add_offset)
-    NCDF_ATTGET, ncid,  3, 'scale_factor', pres_scale_factor
-    pres_scale_factor = STRING(pres_scale_factor)
-  NCDF_CLOSE, ncid     ; Close the NetCDF file
-  Global_TP = pres*Float(pres_scale_factor) + Float(pres_add_offset)
-
-;*************************************************************
-; Read Specific Humidity file:
-;*************************************************************
-  ncid = NCDF_OPEN(home_path+'/ncdf/'+ncdf_SH_file)
-  NCDF_VARGET, ncid,  0, Lev_SH       ; Read in variable 'level'
-  NCDF_VARGET, ncid,  1, Lat_SH       ; Read in variable 'lat'
-  NCDF_VARGET, ncid,  2, Lon_SH       ; Read in variable 'lon'
-  NCDF_VARGET, ncid,  3, TIM_SH       ; Read in variable 'tim'
-  NCDF_VARGET, ncid,  4, shum         ; Read in variable 'shum'
-    NCDF_ATTGET, ncid, 4, 'add_offset', shum_add_offset
-    shum_add_offset = STRING(shum_add_offset)
-    NCDF_ATTGET, ncid, 4, 'scale_factor', shum_scale_factor
-    shum_scale_factor = STRING(shum_scale_factor)
-  NCDF_CLOSE, ncid     ; Close the NetCDF file
-  Specific_Humidity = shum*Float(shum_scale_factor) + Float(shum_add_offset)
-  Global_SH = Specific_Humidity * 28.96 / 18.02
-
-;*************************************************************
-; Check that the number of levels are the same for 
-; Geopotential & Air Temperature files
-;*************************************************************
-  If(N_Elements(Lev_AT) lt 17 or N_Elements(Lev_GH) lt 17) Then Begin
-    print,'You must download all 17 levels of data from the'
-    print,'NCEP/NCAR website, please redo your downloads'
-    exit
-  EndIf
-
-if(Site_Lon lt 0.0) then Site_Lon=Site_Lon+360.0
-if(Site_Lon gt 180.0 ) then Site_Lon_180=Site_Lon-360.0 else Site_Lon_180=Site_Lon
-  
-;*******************************************************************
-; Check that the site Lat-Long is covered by the NetCDF files.
-; This is slightly tricky because the NCEP model latitudes go
-; from large to small values (i.e. -ve increment) and because
-; the longitudes have a 360 deg discontinuity.
-;******************************************************************* 
- dlon=Lon_AT[N_Elements(Lon_AT)-1]-Lon_AT[0]
- if (Site_Lat-Lat_AT[N_Elements(Lat_AT)-1])*(Site_Lat-Lat_AT[0]) gt 0 or $
-    (Site_Lon-Lon_AT[N_Elements(Lon_AT)-1])*(Site_Lon-Lon_AT[0])*dlon gt 0 then begin
-       print,'The data file '+ncdf_AT_file+' does not cover this Site'
-       print,'Latitudes: ',Lat_AT
-       print,'Longitudes:',Lon_AT
-       stop
- endif
+  Global_Data = Global_Data /(1+Global_Data/Earth_Radius)
 
  dlon=Lon_GH[N_Elements(Lon_GH)-1]-Lon_GH[0]
  if (Site_Lat-Lat_GH[N_Elements(Lat_GH)-1])*(Site_Lat-Lat_GH[0]) gt 0 or $
@@ -369,6 +334,21 @@ if(Site_Lon gt 180.0 ) then Site_Lon_180=Site_Lon-360.0 else Site_Lon_180=Site_L
        print,'Longitudes:',Lon_GH
        stop
  endif
+  bilinear_interp2,Global_Data,(Site_Lon-Lon_GH[0])/(Lon_GH[1]-Lon_GH[0]),(Site_Lat-Lat_GH[0])/(Lat_GH[1]-Lat_GH[0]), Site_GH
+
+;*************************************************************
+; Read Tropopause Pressure file:
+;*************************************************************
+  ncid = NCDF_OPEN(home_path+'/ncdf/'+ncdf_TP_file)       ; Open The NetCDF file
+  NCDF_VARGET, ncid,  0, Lat_TP       ; Read in variable 'lat'
+  NCDF_VARGET, ncid,  1, Lon_TP       ; Read in variable 'lon'
+  NCDF_VARGET, ncid,  2, Tim_TP       ; Read in variable 'time'
+  NCDF_VARGET, ncid,  3, Global_Data         ; Read in variable 'Global_Data'
+  NCDF_ATTGET, ncid,  3, 'add_offset', Global_Data_add_offset
+  NCDF_ATTGET, ncid,  3, 'scale_factor', Global_Data_scale_factor
+  NCDF_CLOSE, ncid     ; Close the NetCDF file
+
+  Global_Data = Global_Data*Float(Global_Data_scale_factor) + Float(Global_Data_add_offset)
 
  dlon=Lon_TP[N_Elements(Lon_TP)-1]-Lon_TP[0]
  if (Site_Lat-Lat_TP[N_Elements(Lat_TP)-1])*(Site_Lat-Lat_TP[0]) gt 0 or $
@@ -379,6 +359,22 @@ if(Site_Lon gt 180.0 ) then Site_Lon_180=Site_Lon-360.0 else Site_Lon_180=Site_L
        stop
  endif
 
+  bilinear_interp1,Global_Data,(Site_Lon-Lon_TP[0])/(Lon_TP[1]-Lon_TP[0]),(Site_Lat-Lat_TP[0])/(Lat_TP[1]-Lat_TP[0]), Site_TP
+;*************************************************************
+; Read Specific Humidity file:
+;*************************************************************
+  ncid = NCDF_OPEN(home_path+'/ncdf/'+ncdf_SH_file)
+  NCDF_VARGET, ncid,  0, Lev_SH       ; Read in variable 'level'
+  NCDF_VARGET, ncid,  1, Lat_SH       ; Read in variable 'lat'
+  NCDF_VARGET, ncid,  2, Lon_SH       ; Read in variable 'lon'
+  NCDF_VARGET, ncid,  3, TIM_SH       ; Read in variable 'tim'
+  NCDF_VARGET, ncid,  4, Global_Data         ; Read in variable 'Global_Data'
+  NCDF_ATTGET, ncid, 4, 'add_offset', Global_Data_add_offset
+  NCDF_ATTGET, ncid, 4, 'scale_factor', Global_Data_scale_factor
+  NCDF_CLOSE, ncid     ; Close the NetCDF file
+
+  Global_Data = (Global_Data*Float(Global_Data_scale_factor)+Float(Global_Data_add_offset))*28.96/18.02
+
  dlon=Lon_SH[N_Elements(Lon_SH)-1]-Lon_SH[0]
  if (Site_Lat-Lat_SH[N_Elements(Lat_SH)-1])*(Site_Lat-Lat_SH[0]) gt 0 or $
     (Site_Lon-Lon_SH[N_Elements(Lon_SH)-1])*(Site_Lon-Lon_SH[0])*dlon gt 0 then begin
@@ -388,14 +384,17 @@ if(Site_Lon gt 180.0 ) then Site_Lon_180=Site_Lon-360.0 else Site_Lon_180=Site_L
        stop
  endif
 
-;*******************************************************************
-; Calculate Air Temperature, Geopotential Height, Tropopause Pressure,
-; Specific Humidity at chosen site by bi-linear (lat/lon) interpolation
-;******************************************************************* 
-  bilinear_interp2,Global_AT,(Site_Lon-Lon_AT[0])/(Lon_AT[1]-Lon_AT[0]),(Site_Lat-Lat_AT[0])/(Lat_AT[1]-Lat_AT[0]), Site_AT
-  bilinear_interp2,Global_GH,(Site_Lon-Lon_GH[0])/(Lon_GH[1]-Lon_GH[0]),(Site_Lat-Lat_GH[0])/(Lat_GH[1]-Lat_GH[0]), Site_GH
-  bilinear_interp1,Global_TP,(Site_Lon-Lon_TP[0])/(Lon_TP[1]-Lon_TP[0]),(Site_Lat-Lat_TP[0])/(Lat_TP[1]-Lat_TP[0]), Site_TP
-  bilinear_interp2,Global_SH,(Site_Lon-Lon_SH[0])/(Lon_SH[1]-Lon_SH[0]),(Site_Lat-Lat_SH[0])/(Lat_SH[1]-Lat_SH[0]), Site_SH
+  bilinear_interp2,Global_Data,(Site_Lon-Lon_SH[0])/(Lon_SH[1]-Lon_SH[0]),(Site_Lat-Lat_SH[0])/(Lat_SH[1]-Lat_SH[0]), Site_SH
+
+;*************************************************************
+; Check that the number of levels are the same for 
+; Geopotential & Air Temperature files
+;*************************************************************
+  If(N_Elements(Lev_AT) lt 17 or N_Elements(Lev_GH) lt 17) Then Begin
+    print,'You must download all 17 levels of data from the'
+    print,'NCEP/NCAR website, please redo your downloads'
+    exit
+  EndIf
 
 ;*************************************************************************
 ; Define the name of the models

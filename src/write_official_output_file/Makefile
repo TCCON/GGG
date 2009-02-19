@@ -10,6 +10,7 @@ SOURCES := \
   $(COMN)/lnbc.f \
   $(COMN)/fnbc.f \
   $(COMN)/fbc.f \
+  $(COMN)/wlimit.f \
   $(COMN)/substr.f
 
 OBJECTS := $(patsubst %.f, %.o, $(SOURCES))

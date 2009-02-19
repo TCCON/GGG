@@ -11,19 +11,23 @@ c  Output Files:
 c       runlog.vav.ada.aia.oof
 c       
       implicit none
-      integer*4 lunr,luns,lunw,lunc,ncoml,ncol,mcol,kcol,icol,j,lg,
-     & lnbc,nrow,li,ncolout,k,kmax,mpar,kpar,npar,irow,lo,eflag,ii
-      parameter (lunr=14,luns=15,lunw=16,lunc=17,mcol=150,mpar=150)
+      integer*4 lunr,luns,lunw,lunc,lunh,
+     & ncoml,ncol,mcol,kcol,icol,j,lg,ncoml_head,
+     & lnbc,nrow,li,nco,k,kmax,mpar,kpar,npar,irow,lo,eflag,ii,
+     & jj,nflag,ncoml_qc,ncol_qc,nrow_qc
+      parameter (lunr=14,luns=15,lunw=16,lunc=17,lunh=18,mcol=150,
+     & mpar=150)
       integer*4 flag(mpar),pindex(mcol)
       character header*800,headarr(mcol)*20,parname(mpar)*20,gggdir*80,
-     & inputfile*80,outputfile*80,csvfile*80,version*62,
-     & outputfmt*150,temp*20, fmt(mpar)*4,unit(mpar)*6,headout*800,
+     & inputfile*80,outputfile*80,csvfile*80,version*62,outfmt*150,
+     & ofmt(mpar)*4,temp*20, fmt(mpar)*4,unit(mpar)*6,headout*800,
      & ssss*800,sarr(mcol)*20,cc*20
       real*4 yrow(mcol),dev,dmax,scale(mpar),
      & vmin(mpar),vmax(mpar)
+      real*8 wlimit
 
       version=
-     & ' write_official_output_file   Version 1.0.4   2009-02-06   GCT'
+     & ' write_official_output_file   Version 1.0.8   2009-02-18   GCT'
 
       call getenv('GGGPATH',gggdir)
       lg=lnbc(gggdir)
@@ -36,16 +40,55 @@ c
       outputfile=inputfile(:li)//'.oof'
       csvfile=inputfile(:li)//'.oof.csv'
 
+c  Find length of site_oof_header.dat file
+      open(lunh,
+     & file=gggdir(:lg)//'/tccon/'//inputfile(1:2)//'_oof_header.dat',
+     & status='old')
+      do j=1,999
+         read(lunh,'(a)',end=66),ssss
+      end do
+66    ncoml_head=j-1
+      close(lunh)
+
 c  Open the Quality Control (QC) file and read in the information
       open(lunr,file=inputfile, status='old')
+      read(lunr,'(i2,i4,i7)') ncoml,ncol,nrow
+      if(ncol.gt.mcol) stop 'increase mcol'
       open(lunw,file=outputfile,status='unknown')
       open(lunc,file=csvfile,status='unknown')
       open(luns,file=gggdir(:lg)//'/tccon/'//inputfile(1:2)//'_qc.dat',
      & status='old')
-      read(luns,*)ncoml,ncol
-      do k=2,ncoml
-         read(luns,*)
+      read(luns,*)ncoml_qc,ncol_qc,nrow_qc
+      write(lunw,*) ncoml_head+ncoml_qc+ncoml+nrow_qc,ncol
+      write(lunc,*) ncoml_head+ncoml_qc+ncoml+nrow_qc,ncol
+      write(lunw,'(a)') version
+      write(lunc,'(a)') version
+      do j=2,ncoml-2
+         read(lunr,'(a)') header
+         write(lunw,'(a)') header(:lnbc(header))
+         write(lunc,'(a)') header(:lnbc(header))
       end do
+      read(lunr,'(a)') header ! missing values
+      read(lunr,'(a)') header ! column headers
+      call substr(header,headarr,mcol,kcol)
+      if(kcol.ne.ncol) stop 'ncol/kcol mismatch'
+
+      open(lunh,
+     & file=gggdir(:lg)//'/tccon/'//inputfile(1:2)//'_oof_header.dat',
+     & status='old')
+      do j=1,ncoml_head
+         read(lunh,'(a)'),ssss
+         write(lunw,'(a)') ssss(:lnbc(ssss))
+         write(lunc,'(a)') ssss(:lnbc(ssss))
+      end do
+      close(lunh)
+
+      do k=2,ncoml_qc
+         read(luns,'(a)') header
+         write(lunw,'(a)') header(:lnbc(header))
+         write(lunc,'(a)') header(:lnbc(header))
+      end do
+
       do kpar=1,mpar
          read(luns,'(a)',end=88) ssss
          write(lunw,'(a)') ssss(:lnbc(ssss))
@@ -60,13 +103,6 @@ c  Open the Quality Control (QC) file and read in the information
 c  Read the header of the .aia file and figure out the
 c  mapping between the gases in the corrections.dat
 c  and those in the .vav file header
-      read(lunr,'(i2,i4,i7)') ncoml,ncol,nrow
-      if(ncol.gt.mcol) stop 'increase mcol'
-      do j=2,ncoml
-         read(lunr,'(a)') header
-      end do
-      call substr(header,headarr,mcol,kcol)
-      if(kcol.ne.ncol ) stop 'ncol/kcol mismatch'
       do icol=1,ncol
          pindex(icol)=0
          do kpar=1,npar
@@ -80,27 +116,35 @@ c  and those in the .vav file header
       end do
 
       headout=' flag'
-      outputfmt='(i3'
+      outfmt='(i3'
       lo=0
+      jj=0
       do icol=1,ncol
          kpar=pindex(icol)
          if(flag(kpar).ge.1) then
-            lo=lnbc(outputfmt)
-            outputfmt=outputfmt(:lo)//','//fmt(kpar)
+            lo=lnbc(outfmt)
+            jj=jj+1
+            ofmt(jj)=fmt(kpar)
+            outfmt=outfmt(:lo)//','//fmt(kpar)
             headout=headout(:lnbc(headout))//'  '//
      &      headarr(icol)(:lnbc(headarr(icol)))//unit(kpar)
          endif
       end do
-      outputfmt(lo+6:lo+6)=')'
+      outfmt(lo+6:lo+6)=')'
 
       write(lunw,'(a)') headout(:lnbc(headout))
       write(lunc,'(a)') headout(:lnbc(headout))
 
+      write(lunw,'(a)') '-----------------------------------------------
+     &-----------------------------------------------------------------'
+      write(lunc,'(a)') '-----------------------------------------------
+     &-----------------------------------------------------------------'
 c  Read each day of data into memory and multiply XGas values by the
 c  appropriate correction factors.
+      nflag=0
       do irow=1,9999999
          read(lunr,*,end=99) (yrow(j),j=1,ncol)
-         ncolout=0
+         nco=0
          eflag=0
          kmax=0
          dmax=0.0
@@ -113,17 +157,20 @@ c  appropriate correction factors.
                kmax=kpar
             endif
             if(flag(kpar).ge.1) then
-               ncolout=ncolout+1
-               yrow(ncolout)=yrow(icol)*scale(kpar)
+               nco=nco+1
+               yrow(nco)=yrow(icol)*scale(kpar)
             endif
          end do  ! do icol=1,ncol
-         if(dmax.gt.0.5) eflag=kmax
+         if(dmax.gt.0.5) then
+            eflag=kmax
+            nflag=nflag+1
+         endif
          yrow(1)=int(yrow(1))   ! year
          yrow(2)=int(yrow(2))   ! Day
-         write(lunw,outputfmt) eflag,(yrow(j),j=1,ncolout)
-         write(ssss,outputfmt) eflag,(yrow(j),j=1,ncolout)
+         write(lunw,outfmt)eflag,(wlimit(dble(yrow(j)),ofmt(j)),j=1,nco)
+         write(ssss,outfmt)eflag,(wlimit(dble(yrow(j)),ofmt(j)),j=1,nco)
          call substr(ssss,sarr,mcol,kcol)
-         if(kcol.ne.ncolout+1) stop 'kcol.ne.ncolout+1'
+         if(kcol.ne.nco+1) stop 'kcol.ne.nco+1'
          ssss=sarr(1)
          do k=2,kcol
             cc=sarr(k)
@@ -135,6 +182,7 @@ c  appropriate correction factors.
 99    close(lunr)
       close(lunw)
       close(lunc)
+      write(*,*)irow-1,' data records, of which',nflag,' flagged as bad'
       stop
       end
 
