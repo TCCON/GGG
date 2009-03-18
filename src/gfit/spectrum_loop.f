@@ -62,7 +62,7 @@ c  mode=1    Does full calculation
      & nsh,nhwmax,
      & lun_col,lun_spt,lun_mav,lun_ray,lun_rlg,mavfound
 
-      parameter (mmp=360000,mva=10000000,mcp=1240000,
+      parameter (mmp=360000,mva=125000000,mcp=1240000,
      & nscycle=25,
      & mvmr=28000,mtg=15,mfp=mtg+4,mii=103847,mlev=200,
      & mslpd=10*mmp*mtg,mspxv=5*mcp)
@@ -107,10 +107,7 @@ c  mode=1    Does full calculation
      & riair,
      & tottc,tottc2,toterr,avgtc,rmstc,avgcl,avgrms,
      & sssss,
-     & eorv,             ! Earth-Object Radial Velocity (m/s)
-     & ervc,             ! Earth Rotational Velocity Component (m/s)
      & frac,             ! fractional size of FOVO compared with solar diameter
-     & dopp,             ! Earth-SUN Doppler stretch.
      & resn,             ! 0.5d0/opd = half width of SINC function in cm-1
      & resmax,           ! maximum value of resn
      & rect,             ! frqcen*(fovi**2+amal**2)/8 = width of rectangle(cm-1)
@@ -137,7 +134,7 @@ c  mode=1    Does full calculation
      & asza,             ! astronomical solar zenith angle (unrefracted)
      & zenoff,           ! zenith pointing offset
      & azim,             ! azimuth angle
-     & osds,             ! Observer-Sun Doppler Stretch
+     & osds,             ! Observer-Sun Doppler Stretch (ppm)
      & fovi,             ! Internal angular diameter of FOV (radians)
      & fovo,             ! External angular diameter of FOV (radians)
      & amal,             ! angular misalignment of interferometer (radians)
@@ -155,8 +152,7 @@ c  mode=1    Does full calculation
      & aipl,             ! Airmass-Independent Path Length (km)
      & lasf,             ! laser frequency (e.g. 15798.03 cm-1)
      & wavtkr,           ! suntracker operating frequency (e.g. 9900 cm-1)
-     & opd,              ! Optical path difference (cm) of interferogram
-     & ddum
+     & opd               ! Optical path difference (cm) of interferogram
 
       character winfo*(*),ap_file*(*),runlab*35,pars(ntg)*(*),
      & sptfile*(*),akpath*128,akfile*(*),specpath*128,sptpath*128,
@@ -516,77 +512,87 @@ c     &   (-dspdzxv(jsp+jj),jj=0,ncp-1,ncp/6-1)
          jsp=jsp+ncp
       end do
 
-      dopp=0.0d0
 c   Add solar optical thickness spectrum to non-target ones in SPXV(JSP)
 c   Use SPXV(JSP+NCP) as work space for Voigt functions.
       if( index(winfo,' so ') .gt. 0) then
          if    (runlab .eq. 'phg92258.600') then
-            dopp=-0.04d-5
+            osds=-0.4
          elseif(runlab .eq. 'pin92258.600') then
-            dopp=-0.22d-5
+            osds=-2.2
          elseif(runlab .eq. 'psl3.sun.1') then
-            dopp=+2.68d-5
+            osds=+26.8
          elseif(runlab .eq. 'psl3.sun.2') then
-            dopp=+2.42d-5
+            osds=+24.2
          elseif(runlab .eq. 'psl3.sun.3') then
-            dopp=+2.37d-5
+            osds=+23.7
          elseif(runlab .eq. 'psl3.sun.4') then
-            dopp=+2.3d-5
+            osds=+23.0
          elseif(runlab .eq. 'pat3.f09ss.sun') then
-            dopp=-0.34d-5
+            osds=-3.4
          elseif(runlab .eq. 'pat3.f12ss.sun') then
-            dopp=+0.23d-5
+            osds=+2.3
          elseif(runlab .eq. 'pat3.f03ss.sun') then
-            dopp=-0.13d-5
+            osds=-1.3
         elseif(runlab .eq. 'pat3.f04ss.sun') then
-            dopp=+0.89d-5
+            osds=+8.9
          elseif(runlab .eq. 'camy-peyret.solar_ir') then
-            dopp=-0.06d-5
+            osds=-0.6
          elseif(runlab .eq. '901218R0.003') then
-            dopp=-1.11d-6
+            osds=-1.11
          elseif(runlab .eq. '901218R0.006') then
-            dopp=+0.72d-6
+            osds=+0.72
          elseif(runlab .eq. '810509R0.004') then
-            dopp=+1.55d-6
+            osds=+1.55
          elseif(runlab .eq. '810509R0.005') then
-            dopp=+2.75d-6
+            osds=+2.75
          elseif(runlab .eq. '790401R0.008') then
-            dopp=+3.00d-6
+            osds=+3.00
          elseif(runlab .eq. '830619R0.003') then
-            dopp=+3.20d-6
+            osds=+3.20
          elseif(runlab .eq. '830619R0.005') then
-            dopp=+2.90d-6
+            osds=+2.90
+         elseif(runlab .eq. '830805R0.005') then
+            osds=+1.60
+         elseif(runlab .eq. '850408R0.001') then
+            osds=+2.30
+         elseif(runlab .eq. '881026R0.010') then
+            osds=+0.60
+         elseif(runlab .eq. 'pa20050308saaaaa.124') then
+            osds=+1.00
+         elseif(runlab .eq. 'pa20050308saaaab.124') then
+            osds=+1.00
+         elseif(runlab .eq. 'pa20050308saaaaa.125') then
+            osds=+1.00
+         elseif(runlab .eq. 'pa20050308saaaab.125') then
+            osds=+1.00
+         elseif(runlab .eq. 'iz20070520NI.19') then
+            osds=+1.00
          elseif(runlab(:9) .eq. 'phg06000.')then
-              dopp=0.0d0
+            osds=0.0d0
          elseif(runlab(:9) .eq. 'phg07000.')then
-              dopp=0.0d0
+            osds=0.0d0
          elseif(runlab(:9) .eq. 'phg06000.')then
-              dopp=0.0d0
+            osds=0.0d0
          elseif(runlab(:9) .eq. 'phg07000.')then
-              dopp=0.0d0
-         else
-c compute Earth - Sun doppler stretch
-            call zenaz(2,oblat,oblon,obalt,iyr,1,iset,
-     &      zpdtim/24.0d0,ddum,ddum,eorv,ervc,
-     &      ddum,ddum,ddum)
-            dopp=(eorv+ervc)/3.d+08
+            osds=0.0d0
          endif
 
          frac=fovo/9.2e-3  ! the sun is 9.2 mrad in diameter on average
          call solar_pseudo_trans_spec(lun_sts,solarll,
-     &  fzero*(1.d0+dopp),grid*(1.d0+dopp),frac,spts,ncp)
+     &  fzero*(1.d0+osds*1.E-06),grid*(1.d0+osds*1.E-06),frac,spts,ncp)
       else
+         osds=0.0d0
          call vmov(unity,0,spts,1,ncp)
-      endif
+      endif  ! index(winfo,' so ') .gt. 0
       if(index(winfo,' sa_zoff ').gt.0) zoff=zoff+0.002
 
 c===================================================================
 c  Compute the vertical slant path distances
       if (nlev.le.2) then
-        spver(1)=splos(1)
-        spver(nlev)=splos(nlev)
+         spver(1)=splos(1)
+         spver(nlev)=splos(nlev)
       else
-        call compute_vertical_paths(zmin,z,d,spver,nlev)
+         call compute_vertical_paths(zmin,z,d,spver,nlev)
       endif  ! nlev.le.2
 c===================================================================
 c Compute vertical and LOS slant columns for the target gases
@@ -664,8 +670,8 @@ c       write(*,*)'sptpath=',sptpath, ispec,mspt
           sptpath=sptfile(:lf-1)//runlab
           call write_spt(lun_spt,winfo,sptpath,
      &    obsrvd,calcul,cx,ex,startm+gint*(cx(n3)),
-     &    dopp*freq_flag,gint,overcol, pars, asza+zenoff,obalt,zmin,
-     &    abs(100*rms/cx(n1)), pd, ssnmp, nmp, nmpfp, ntg)
+     &    osds*1.0E-06*freq_flag,gint,overcol,pars,asza+zenoff,obalt,
+     &    zmin, abs(100*rms/cx(n1)), pd, ssnmp, nmp, nmpfp, ntg)
        endif
 
 c  Solar_Gas_shift is the difference of the solar shift and the gas shift

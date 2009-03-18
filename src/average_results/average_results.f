@@ -23,14 +23,16 @@ c  and are treated as such in the averaging_with XXX_bias subroutines
       parameter (mauxcol=25)   ! Number of auxiliary parameters/columns
       parameter (mlabel=18000) ! Max Number of column lable characters
 
-      integer avindx(mgas+1)
+      integer avindx(mgas+1), naux, nchar
       character
      & gfit_version*48,gsetup_version*48,
      & collabel*(mlabel),swfile*80,avfile*80,
      & sign(mrow)*1,ftype*1,
      & clab(2*mwin+mauxcol)*17,
-     & collate_version*48,ar_version*48,
-     & avlabel(mgas+1)*8
+     & collate_version*48,ar_version*62,
+     & spectrum(mrow)*35, 
+     & avlabel(mgas+1)*8,
+     & input_fmt*40, output_fmt*40
 
       real*8 year(mrow)
 
@@ -41,7 +43,10 @@ c  and are treated as such in the averaging_with XXX_bias subroutines
      & ybar(mrow),eybar(mrow),
      & bias(mwin),ebias(mwin)
 
-      ar_version=' average_results  version 1.1.0  2009-01-31  GCT'
+      ar_version=
+     &' average_results              version 1.1.0   2009-03-02   GCT'
+      write(*,*) ar_version
+      nchar=0
 
       write(*,'(a)')
      & 'Enter name of .?sw file whose contents are to be averaged'
@@ -51,20 +56,41 @@ c  and are treated as such in the averaging_with XXX_bias subroutines
       ftype=swfile(lr-2:lr-2)
 
 c  Read the entire contents of the .xsw disk file
+
       open(lunr,file=swfile,status='old')
       open(lunw,file=avfile,status='unknown')
       read(lunr,'(i2,i4,i7,i4)') nlhead,ncol,nrow,nauxcol
       if(nrow.gt.mrow) stop 'increase parameter mrow'
-      nwin=(ncol-nauxcol)/2
       read(lunr,'(a)') collate_version
       read(lunr,'(a)') gfit_version
       read(lunr,'(a)') gsetup_version
       read(lunr,'(8x,1016(e12.4))') (ymiss,j=1,ncol)
       read(lunr,'(a)') collabel
+      if (index(collabel, 'Spectrum') .gt. 0) nchar=1
+      naux=nauxcol+nchar         ! ncol includes spectrum name
+      nwin=(ncol-naux)/2
+
+      if (nchar .eq. 1) then
+         input_fmt='(a1,(a35,1x),f13.8,NNf13.5,800(e12.4))'
+         write(input_fmt(20:21),'(i2.2)') nauxcol-1
+      else
+         input_fmt='(a1,f13.8,NNf13.5,800(e12.4))'
+         write(input_fmt(11:12),'(i2.2)') nauxcol-1
+      endif
+
       do irow=1,mrow
-         read(lunr,'(a1,f13.8,21f13.5,800(e12.4))',end=99)
-     &   sign(irow),year(irow),(yaux(k,irow),k=2,nauxcol),
-     $   (yobs(irow+nrow*(k-1)),yerr(irow+nrow*(k-1)),k=1,nwin)
+        if (nchar .eq. 1) then
+c           read(lunr,'(a1,(a35,1x),f13.8,22f13.5,800(e12.4))',end=99)
+           read(lunr,input_fmt,end=99)
+     $     sign(irow),spectrum(irow),year(irow),
+     $     (yaux(k,irow),k=2,nauxcol),
+     $     (yobs(irow+nrow*(k-1)),yerr(irow+nrow*(k-1)),k=1,nwin)
+        else
+           read(lunr,input_fmt,end=99)
+     $     sign(irow),year(irow),
+     $     (yaux(k,irow),k=2,nauxcol),
+     $     (yobs(irow+nrow*(k-1)),yerr(irow+nrow*(k-1)),k=1,nwin)
+        endif
       end do  !  irow=1,mrow
 99    close(lunr)
       if(nrow.ne.irow-1) stop 'NROW mismatch'
@@ -77,10 +103,10 @@ c
       call substr(collabel,clab,2*mwin+mauxcol,nss)
       if(nss.ne.ncol) stop 'NSS .NE. NCOL'
       write(*,*)nrow,nwin,nss
-      locnaux=index(clab(nauxcol+1),'_')
-      locnaux=index(collabel,clab(nauxcol+1)(:locnaux-1))-1
-      cwas=nauxcol-1
-      icol=nauxcol+1
+      locnaux=index(clab(naux+1),'_')
+      locnaux=index(collabel,clab(naux+1)(:locnaux-1))-1
+      cwas=naux-1
+      icol=naux+1
       lwas=1
       kgas=1
       do iwin=1,nwin
@@ -117,7 +143,7 @@ c              write(*,*)irow,ybar(irow),eybar(irow),rew(irow)
                 if(abs(error_sigma).gt.5.) 
      &          write(luno,'(a12,f9.5,a22,i6,a11,a10)')
      &          ' Deviation =', error_sigma,' sigma for spectrum # ',
-     &          nint(yaux(4,irow)),' in window ',clab(nauxcol+2*jcol-1)
+     &          nint(yaux(4,irow)),' in window ',clab(naux+2*jcol-1)
                 endif
                 jcol=jcol+1
               end do
@@ -134,7 +160,7 @@ c              write(*,*)irow,ybar(irow),eybar(irow),rew(irow)
                 if(abs(error_sigma).gt.5.) 
      &          write(luno,'(a12,f9.5,a22,i6,a11,a10)')
      &          ' Deviation =', error_sigma,' sigma for spectrum # ',
-     &          nint(yaux(4,irow)),' in window ',clab(nauxcol+2*jcol-1)
+     &          nint(yaux(4,irow)),' in window ',clab(naux+2*jcol-1)
                 endif
                 jcol=jcol+1
              end do
@@ -150,7 +176,7 @@ c
          if(navg.gt.1) then
          do iav=1,navg
             write(lunt,'(a10,3f10.5)')
-     &      clab(nauxcol+2*(avindx(kgas)+iav-1)-1),
+     &      clab(naux+2*(avindx(kgas)+iav-1)-1),
      &      bias(iav),ebias(iav),cew(iav)
          end do
          write(lunt,*)
@@ -159,22 +185,41 @@ c
       end do   ! do kgas=1,ngas
 
 c
+
+      if (nchar .eq. 1) then
+         output_fmt='(a1,(a35,1x),f13.8,NNf13.5,200(1pe12.4))'
+         write(output_fmt(20:21),'(i2.2)') nauxcol-1
+      else
+         output_fmt='(a1,f13.8,NNf13.5,200(1pe12.4))'
+         write(output_fmt(11:12),'(i2.2)') nauxcol-1
+      endif
+c
 c  Write averaged values to file
       open (lunw,file=avfile,status='unknown')
-      write(lunw,'(i2,i4,i7,i4)') nlhead+1,nauxcol+2*ngas,nrow,nauxcol
+      write(lunw,'(i2,i4,i7,i4)') nlhead+1,naux+2*ngas,nrow,nauxcol
       write(lunw,'(a)') ar_version(:lnbc(ar_version))
       write(lunw,'(a)') collate_version(:lnbc(collate_version))
       write(lunw,'(a)') gfit_version(:lnbc(gfit_version))
       write(lunw,'(a)') gsetup_version(:lnbc(gsetup_version))
       write(lunw,'(a8,219(1pe12.4))')'MISSING:',
-     &  (ymiss,j=1,nauxcol+2*ngas)
+     &  (ymiss,j=1,naux+2*ngas)
       write(lunw,'(a,60(a8,2x,a14))') collabel(:locnaux),
      & (avlabel(kgas)(:lnbc(avlabel(kgas))),
      &  avlabel(kgas)(:lnbc(avlabel(kgas)))//'_error',kgas=1,ngas)
       do irow=1,nrow
-         write(lunw,'(a1,f13.8,18f13.5,200(1pe12.4))')
-     &   sign(irow),year(irow),(yaux(k,irow),k=2,nauxcol),
-     &   (yobs(irow+nrow*(k-1)),yerr(irow+nrow*(k-1)),k=1,ngas)
+        if (nchar .eq. 1) then
+c           write(lunw,'(a1,(a35,1x),f13.8,22f13.5,200(1pe12.4))')
+           write(lunw,output_fmt)
+     &     sign(irow),spectrum(irow),year(irow),
+     &     (yaux(k,irow),k=2,nauxcol),
+     &     (yobs(irow+nrow*(k-1)),yerr(irow+nrow*(k-1)),k=1,ngas)
+        else
+c           write(lunw,'(a1,f13.8,22f13.5,200(1pe12.4))')
+           write(lunw,output_fmt)
+     &     sign(irow),year(irow),
+     &     (yaux(k,irow),k=2,nauxcol),
+     &     (yobs(irow+nrow*(k-1)),yerr(irow+nrow*(k-1)),k=1,ngas)
+        endif
       end do
       close(lunw)
       close(luno)

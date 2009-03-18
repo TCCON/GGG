@@ -32,7 +32,7 @@ c
 c     & llsize*80,        ! path to llsize.dat file
      & linefiles*400,    ! paths to linelists
      & solarll*80,       ! solar linelist
-     & gfit_version*60,  ! gfit version number
+     & gfit_version*62,  ! gfit version number
      & gsversion*64,     ! GSETUP version number
      & dplist*80,        ! Data Partition List (e.g. m4part.lst)
      & runlog*80,        ! name of occultation file
@@ -61,7 +61,8 @@ c
      &   speci_id*24
 
       data speci/mtg*0/
-      data gfit_version/' GFIT     Version 4.3.1  23-Jan-2009   GCT '/
+      gfit_version=
+     &' GFIT                Version 4.4.0      21-Feb-2009     GCT   '
 
       write(6,*)
       write(6,'(a)')gfit_version

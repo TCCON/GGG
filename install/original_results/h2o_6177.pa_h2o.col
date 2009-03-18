@@ -1,23 +1,23 @@
  23 25
- GFIT     Version 4.3.1  23-Jan-2009   GCT                  
- GSETUP Version 2.7.4       3 Feb 2009    GCT
-4ca7ff2187c7463afda90634b6907e4e  /home2/toon/ggg/config/data_part.lst
-df46c8832a8e15e46185f3875bd00554  /home2/toon/ggg/apriori/gfit_ap.gnd
-2aedec1514a84b943bb4d3e3788887c2  /home2/toon/ggg/runlogs/gnd/pa_h2o.grl
-7ff3c96fbfd4e17b9b04e78805c67363  /home2/toon/ggg/levels/integral.gnd
-                                  /home2/toon/ggg/models/gnd/
-                                  /home2/toon/ggg/vmrs/gnd/
-c3ab926ab722eeeeddd3ae2aae58f23c  pa_h2o.mav
-7924ba380125567eceb4fee02272ba88  pa_h2o.ray
-bd48e9711da92a9430ff869ebf2816ff  /home2/toon/ggg/isotopologs/isotopologs.dat
-1e2c7fe2fa29307664495f64480f33b7  /home2/toon/ggg/windows/gnd/tccon.gnd
-4dfacb7dd4b9c0af363c8bac296632cf  /home2/toon/ggg/linelist/atm.101
-5419bd0ac900e77fb2e1d28bf2e14d93  /home2/toon/ggg/linelist/gct.101
-6fd821359b77fa5a0f3bb7608ffa007e  /home2/toon/ggg/linelist/fcia.101
-61e34bb86814b4d71a3a74f517412a19  /home2/toon/ggg/linelist/scia.101
-e33f945d24f5cf318991232106e5ef7d  /home2/toon/ggg/linelist/solar_dc.101
-                                  /home2/toon/ggg/ak/k
-                                  /home2/toon/ggg/spt/z
+ GFIT                Version 4.4.0      21-Feb-2009     GCT   
+ GSETUP Version 2.7.5       6 Mar 2009    GCT
+4ca7ff2187c7463afda90634b6907e4e  /home/toon/ggg/config/data_part.lst
+df46c8832a8e15e46185f3875bd00554  /home/toon/ggg/apriori/gfit_ap.gnd
+61c38bdfa8c584d44e4443a35532e36c  /home/toon/ggg/runlogs/gnd/pa_h2o.grl
+7ff3c96fbfd4e17b9b04e78805c67363  /home/toon/ggg/levels/integral.gnd
+                                  /home/toon/ggg/models/gnd/
+                                  /home/toon/ggg/vmrs/gnd/
+1d38e14aa61ba5abf9ff10a92f96040c  pa_h2o.mav
+90f8eceeb77bf6497b55ff32a8eb1bc7  pa_h2o.ray
+bd48e9711da92a9430ff869ebf2816ff  /home/toon/ggg/isotopologs/isotopologs.dat
+1e2c7fe2fa29307664495f64480f33b7  /home/toon/ggg/windows/gnd/tccon.gnd
+4dfacb7dd4b9c0af363c8bac296632cf  /home/toon/ggg/linelist/atm.101
+5419bd0ac900e77fb2e1d28bf2e14d93  /home/toon/ggg/linelist/gct.101
+6fd821359b77fa5a0f3bb7608ffa007e  /home/toon/ggg/linelist/fcia.101
+61e34bb86814b4d71a3a74f517412a19  /home/toon/ggg/linelist/scia.101
+e33f945d24f5cf318991232106e5ef7d  /home/toon/ggg/linelist/solar_dc.101
+                                  /home/toon/ggg/ak/k
+                                  /home/toon/ggg/spt/z
                                   h2o_6177.pa_h2o.col
  6177.30   0.83  15 1 1 0  cl  ct  fs  so    : h2o hdo co2 ch4
   Spectrum            Nit  CL   CT   FS  S-G  ZO    RMS/CL   Zpres  AM_h2o    OVC_h2o    VSF_h2o    VSF_h2o_error  AM_hdo    OVC_hdo    VSF_hdo    VSF_hdo_error  AM_co2    OVC_co2    VSF_co2    VSF_co2_error  AM_ch4    OVC_ch4    VSF_ch4    VSF_ch4_error

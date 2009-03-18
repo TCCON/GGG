@@ -1,4 +1,4 @@
-c  Program: derive_airmass_dependence.f
+c  Program: apply_insitu_correction.f
 c
 c  Purpose: To apply the (airmass-independent) in situ correction to the data
 c  in the selected runlog.vav.ada file
@@ -23,11 +23,15 @@ c
      & kgas,lnbc,irow,naux,mgas,ngas,nrow,li,k
       parameter (lunr=14,luns=15,lunw=16,mcol=150,mgas=9)
       character header*800,headarr(mcol)*20,gasname(mgas)*20,
-     & gggdir*80,inputfile*40,outputfile*40, version*60,gaserr*32
+     & gggdir*80,inputfile*40,outputfile*40, version*62,gaserr*32
       real*8 yrow(mcol),adcf(mgas),aicf(mgas),cf(mcol)
 
+      character output_fmt*32, specname*35
+      integer nchar
+      nchar=0
+
       version=
-     & ' apply_insitu_correction    Version 1.0.4   2009-02-04   GCT'
+     & ' apply_insitu_correction      Version 1.1.2   2009-03-09   GCT'
 
       call getenv('GGGPATH',gggdir)
 
@@ -66,6 +70,7 @@ c  and those in the .vav file header
          read(lunr,'(a)') header
          write(lunw,'(a)') header(:lnbc(header))
       end do
+      if (index(header,'Spectrum') .gt. 0) nchar=1
       call substr(header,headarr,mcol,kcol)
       if(kcol.ne.ncol ) stop 'ncol/kcol mismatch'
       do icol=1,ncol
@@ -76,20 +81,35 @@ c         write(*,*)kgas,icol,gasname(kgas),headarr(icol),aicf(kgas),cf(icol)
            if( headarr(icol) .eq. gasname(kgas) ) cf(icol)=aicf(kgas)
            if( headarr(icol) .eq. gaserr        ) cf(icol)=aicf(kgas)
          end do
-         if(icol.gt.naux) write(*,'(i4,a16,f8.3)')
+         if(icol.gt.naux+nchar) write(*,'(i4,a16,f8.3)')
      &   icol,headarr(icol),cf(icol)
       end do
+
+      if (nchar .eq. 1) then
+         output_fmt='(a35,f14.8,NNf13.5,200(1pe12.4))'
+         write(output_fmt(12:13),'(i2.2)') naux-1
+      else
+         output_fmt='(f14.8,NNf13.5,200(1pe12.4))'
+         write(output_fmt(8:9),'(i2.2)') naux-1
+      endif
 
 c  Read each day of data into memory and divide XGas values by the
 c  appropriate correction factors.
       do irow=1,9999999
-         read(lunr,*,end=99) (yrow(j),j=1,ncol)
-         do k=naux+1,ncol-1,2
+         if (nchar .eq. 1) then
+            read(lunr,*,end=99) specname, (yrow(j),j=1+nchar,ncol)
+         else
+            read(lunr,*,end=99) (yrow(j),j=1,ncol)
+         endif
+         do k=naux+nchar+1,ncol-1,2
               yrow(k)=yrow(k)/cf(k)
               yrow(k+1)=yrow(k+1)/cf(k)
          end do
-         write(lunw,65) (yrow(j),j=1,ncol)
-65       format (f14.8,18f13.5,200(1pe12.4))
+         if (nchar .eq. 1) then
+            write(lunw,output_fmt) specname, (yrow(j),j=1+nchar,ncol)
+         else
+            write(lunw,output_fmt) (yrow(j),j=1,ncol)
+         endif
       end do         ! do irow=1,9999999
       stop ' irow exceeded 9999999'
 99    close (lunr)

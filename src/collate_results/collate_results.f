@@ -33,10 +33,11 @@ c     runlog.xsw   Spreadsheet of individual window values for each spectrum
 
       character ans*1,apf*2,cdum*20,colabel*500,
      & gfit_version*80,gsetup_version*80,col_string*500,
-     & csformat*80,collabel*(mlabel),auxcol*200,outfile*40,col1*1,
-     & specname_grl*35,specname_col*35,runlog*72,sign(mrow)*1,
+     & csformat*90,collabel*(mlabel),auxcol*200,outfile*80,col1*1,
+     & specname_grl*35,specname_col*35,runlog*80,sign(mrow)*1,
      & spectrum(mrow)*35,tabel*80,
-     & colfile*40,collate_version*54,window(mcol)*10,specname_gwas*35
+     & output_fmt*40,
+     & colfile*40,collate_version*62,window(mcol)*10,specname_gwas*35
 
       real*8 airmass,asza,cl,tilt,zlo,fcen,width,zobs,rmin,rmax,
      & fqshift,graw,obslat,obslon,opd,ovcol,rmsfit,
@@ -46,21 +47,27 @@ c     runlog.xsw   Spreadsheet of individual window values for each spectrum
       real*4
      & vsf,vsf_err,ymiss,
      & yaux(mauxcol,mrow),
-     & yobs(mval), yerr(mval)
+     & yobs(mval), yerr(mval), qc(mrow)
       parameter (ymiss=9.9999e+29)
 
       real*8 zpdtim,tout,pout,hout,tins,pins,hins,fovi,fovo,amal,
      & snr,zenoff,zoff,sg,zpdwas,max_delta_t,delta_t,zmin
       integer bytepw,ifirst,ilast,possp
 
+      logical append_qcflag
+      logical append_spectrum_name
+
+      append_qcflag=.false.
+      append_spectrum_name=.false.
+    
       collate_version=
-     & ' collate_results    Version 1.1.1    2009-02-01    GCT'
+     &' collate_results            Version 1.1.3    2009-03-18    GCT'
       write(6,*) collate_version
 
 c  Initialize character arrays (Necessary for the G77 compiler).
-       do i=1,mlabel
+      do i=1,mlabel
          collabel(i:i)=' '
-       end do
+      end do
 
       write(6,'(a)')
      $' vsf [t], vertical column [v], los column [l],',
@@ -113,6 +120,7 @@ c  in order to read data from appropriate target gas.
         do k=4,nlhead-2
            if(nlhead.eq.23) read(lun_col,'(34x,a)')colabel
            if(nlhead.eq.21) read(lun_col,'(a)')colabel
+           if(k.eq.6) runlog=colabel    ! GCT 2009-03-04
            if(index(colabel,'runlogs').gt.0) runlog=colabel
         end do
 c        write(*,*) runlog
@@ -156,8 +164,13 @@ c           write(*,'(a)')col_string(:lnbc(col_string))
            l4=fbc(col_string(l3:))+l3-1   ! First space following NIT
 c           write(*,*)l2,l3,l4
 
-           write(csformat,'(a,i2.2,a)')'(1x,a',l4-5,
+           if (index(gfit_version,'2.40.2') .ne. 0) then !  old col file format 
+               csformat='(1x,a21,i2,1x,f5.3,3(1x,f4.1),1x,f5.3,'
+     &         //'1x,f6.4,f7.3,1x,9(0pf7.3,1pe10.3,0pf9.4,1pe8.1))'
+           else                                  ! assume new col file format 
+               write(csformat,'(a,i2.2,a)')'(1x,a',l4-5,
      &     ',i3,f6.3,3f5.1,f6.3,f7.4,f8.3,15(f7.3,e11.4,f9.4,e8.1))'
+           endif
 
 c           write(*,*) csformat
            read(col_string,csformat) specname_col,nit,cl,tilt,fqshift,
@@ -165,9 +178,9 @@ c           write(*,*) csformat
            totnit=totnit+nit
            if(nit.lt.mit) ntc=ntc+1  ! Number of Times Converged
            if(rmsfit.le.0.0) then
-              write(*,*) colfile,irow
+              write(*,*) 'rmsfit <= 0', colfile,irow
               write(*,*)specname_col,nit,cl,tilt,fqshift,sg,zlo,rmsfit
-              stop 'rmsfit <= 0'
+c              stop 'rmsfit <= 0'   ! Commented 2009-03-18
            endif
            if(rmsfit.gt.rmax) rmax=rmsfit
            if(rmsfit.lt.rmin) rmin=rmsfit
@@ -297,7 +310,6 @@ c           write(*,*)irow,npp,specname_col
       close(lun_rpt)
       close(lun_nts)
 c====================================================================
-      write(*,*)lr,runlog
 c      do k=lr,1,-1
 c         if(ichar(runlog(k:k)) .eq. 92) go to 101  ! backslash
 c         if(ichar(runlog(k:k)) .eq. 47) go to 101  ! forward slash
@@ -309,20 +321,47 @@ c==================================================================
      & '  year  day  hour  run   lat   long  zobs  zmin  asza  azim'//
      $ '  osds  opd  fovi  graw  tins  pins  tout  pout  hout  fvsi'//
      $ '  wspd  wdir'
+c====================================================================
+      if (append_qcflag) then
+         auxcol=auxcol(:lnbc(auxcol))//'  qcflag'
+         call substr(auxcol,cdum,1,nauxcol)
+         call generate_qc_flag(nrow,spectrum,qc)
+         do irow=1, nrow
+            yaux(nauxcol,irow)=qc(irow)
+         enddo
+      endif
+c====================================================================
       call substr(auxcol,cdum,1,nauxcol)
-       if(nauxcol.gt.mauxcol) stop 'increase parameter mauxcol'
+      if(nauxcol.gt.mauxcol) stop 'increase parameter mauxcol'
+
+      if (append_spectrum_name) then
+         output_fmt='(a1,(a35,1x),f13.8,NNf13.5,800(1pe12.4))'
+         write(output_fmt(20:21),'(i2.2)') nauxcol-1
+      else
+         output_fmt='(a1,f13.8,NNf13.5,800(1pe12.4))'
+         write(output_fmt(11:12),'(i2.2)') nauxcol-1
+      endif
 
 c  Write out all analyzed abundances to the .?sw disk file.
       open(lun_xsw,file=outfile,status='unknown')
-      write(lun_xsw,'(i2,i4,i7,i4)') 6,nauxcol+2*ncol,nrow,nauxcol
+      if (append_spectrum_name) then
+         write(lun_xsw,'(i2,i4,i7,i4)') 6,nauxcol+2*ncol+1,nrow,nauxcol
+      else
+         write(lun_xsw,'(i2,i4,i7,i4)') 6,nauxcol+2*ncol,nrow,nauxcol
+      endif
       write(lun_xsw,'(a)') collate_version(:lnbc(collate_version))
       write(lun_xsw,'(a)') gfit_version(:lnbc(gfit_version))
       write(lun_xsw,'(a)') gsetup_version(:lnbc(gsetup_version))
 c      write(lun_xsw,'(a8,<nauxcol+2*ncol>(1pe12.4))') 'MISSING:',
       write(lun_xsw,'(a8,1016(1pe12.4))') 'MISSING:',
      $(ymiss,j=1,nauxcol+2*ncol)
-      write(lun_xsw,'(a)') auxcol(:lnbc(auxcol))//
-     & collabel(:lnbc(collabel)+1)
+      if (append_spectrum_name) then
+         write(lun_xsw,'(a)') '  Spectrum'//auxcol(:lnbc(auxcol))//
+     &   collabel(:lnbc(collabel)+1)
+      else
+         write(lun_xsw,'(a)') auxcol(:lnbc(auxcol))//
+     &   collabel(:lnbc(collabel)+1)
+      endif
 c  Note that the SIGN array and the following IF statement are merely
 c  to support both the new and the old runlog formats.
       nfound=0
@@ -338,10 +377,16 @@ c  to support both the new and the old runlog formats.
                 nfound=nfound+1
              endif
           end do
-          write(lun_xsw,75) sign(irow),year(irow),
-     &    (yaux(k,irow),k=2,nauxcol),
-     $    (yobs(k+ncol*(irow-1)),yerr(k+ncol*(irow-1)),k=1,ncol)
-75        format(a1,f13.8,21f13.5,800(1pe12.4))
+          if (append_spectrum_name) then
+             write(lun_xsw,output_fmt) sign(irow),spectrum(irow),
+     &       year(irow),(yaux(k,irow),k=2,nauxcol),
+     &       (yobs(k+ncol*(irow-1)),yerr(k+ncol*(irow-1)),k=1,ncol)
+          else
+             write(lun_xsw,output_fmt) sign(irow),year(irow),
+     &       (yaux(k,irow),k=2,nauxcol),
+     &       (yobs(k+ncol*(irow-1)),yerr(k+ncol*(irow-1)),k=1,ncol)
+          endif
+
       end do  !  irow=1,nrow
       close(lun_xsw)
 c====================================================================

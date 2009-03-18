@@ -17,23 +17,36 @@ c
       implicit none
       integer*4 lunr,luns,lunw,ncoml,ncol,mcol,kcol,icol,i,j,k,kco2,ko2,
      & iy1,id1,ih1,im1,is1,iy2,id2,ih2,im2,is2,nap,lnbc,lg,kap,
-     & nrow,irow,kair,kh2o,ksia,kyear,klat,klon,ksza
+     & nchar,
+     & kqcflag,
+     & nrow,irow,kair,kh2o,kfvsi,kyear,klat,klon,ksza
       parameter (lunr=14,luns=15,lunw=16,mcol=50)
-      character header*800, headarr(mcol)*20, gggdir*80, inputfile*40
+      character header*800, headarr(mcol)*20, gggdir*80, inputfile*40,
+     & specname*35, version*62
       real*8 yrow(mcol),alat,alon,zz,tk,ratio,
-     & tt,ty,ty2,tsza,
+     & tt,ty,ty2,tsza, 
+     & qc_threshold,
      & s0,s1,s2,t0,t1,t2,tn,tt0,tt1,tt2,ttn,tstart,tstop,
-     & xco2_ac,xco2_ac_err,yy,wt,fco2,fxco2_ac,fsia,fair,fh2o
+     & xco2_ac,xco2_ac_err,yy,wt,fco2,fxco2_ac,fvsi,fair,fh2o
+
+      version=
+     &' derive_insitu_correction         1.1.2     2008-03-04     GCT'
+      write(*,*) version
 
       kair=0
       kh2o=0
       kco2=0
       ko2=0
-      ksia=0
+      kfvsi=0
       kyear=0
       klat=0
       klon=0
       ksza=0
+      kqcflag=0
+
+      nchar=0
+      qc_threshold=2.
+
       call getenv("GGGPATH", gggdir)
       write(*,*)gggdir
       lg=lnbc(gggdir)
@@ -48,6 +61,7 @@ c
       read(lunr,'(a)')header
       call substr(header,headarr,mcol,kcol)
       if(kcol.ne.ncol ) stop 'ncol/kcol mismatch'
+      if (index(header,'Spectrum') .gt. 0) nchar=1
       open(lunw,file='dic_'//
      & inputfile(:lnbc(inputfile))//'.out',status='unknown')
       do icol=1,ncol
@@ -58,29 +72,38 @@ c  This allows flexibility in the order of the columns.
          if(headarr(icol) .eq. 'xh2o') kh2o=icol
          if(headarr(icol) .eq. 'xco2') kco2=icol
          if(headarr(icol) .eq.  'xo2') ko2=icol
-         if(headarr(icol) .eq. 'sia') ksia=icol
+         if(headarr(icol) .eq. 'fvsi') kfvsi=icol
          if(headarr(icol) .eq.'year') kyear=icol
          if(headarr(icol) .eq. 'lat') klat=icol
          if(headarr(icol) .eq.'long') klon=icol
          if(headarr(icol) .eq.'asza') ksza=icol
+         if(headarr(icol) .eq.'qcflag') kqcflag=icol
       end do
 
       if(kco2.eq.0) stop 'xco2 missing from input file  '
       if(ko2.eq.0)  stop ' xo2 missing from input file  '
       if(kh2o.eq.0) stop 'xh2o missing from input file  '
       if(kair.eq.0) stop 'xair missing from input file  '
-c      write(*,*)kair,kh2o,kco2,ko2,ksia,kyear,klat,klon,ksza
+c      write(*,*)kair,kh2o,kco2,ko2,kfvsi,kyear,klat,klon,ksza
 
       tk=0.0d0
       tt=0.0d0
       ty=0.0d0
       ty2=0.0d0
       do irow=1,999999
-         read(lunr,*,end=99) (yrow(j),j=1,ncol)
-         fsia=yrow(ksia+1)/yrow(ksia)       ! fractional uncertainty
+         if (nchar .eq. 1) then
+             read(lunr,*,end=88) specname, (yrow(j),j=1+nchar,ncol)
+         else
+             read(lunr,*,end=88) (yrow(j),j=1,ncol)
+         endif
+         if (kqcflag .ne. 0) then
+            if( yrow(kqcflag) .lt. qc_threshold) cycle
+         endif
+         fvsi=yrow(kfvsi)                   ! fractional uncertainty
+         if(fvsi.lt.0.) fvsi=0.             ! Don't let missing data affect WT
          fair=yrow(kair+1)/yrow(kair)       ! fractional uncertainty
          fh2o=yrow(kh2o+1)/yrow(kh2o)       ! fractional uncertainty
-         wt=1/(0.00001+fair**2+(fh2o*18.02/28.964)**2+fsia**2)
+         wt=1/(0.00001+fair**2+(fh2o*18.02/28.964)**2+fvsi**2)
          zz=yrow(ko2)/(yrow(kair)-yrow(kh2o)*18.02/28.964)
          tk=tk+1
          tt=tt+wt
@@ -134,15 +157,23 @@ c Read the FTS data file, again
            read(lunr,*) 
          end do
          do i=1,nrow
-            read(lunr,*) (yrow(j),j=1,ncol)
+            if (nchar .eq. 1) then
+               read(lunr,*,end=88) specname, (yrow(j),j=1+nchar,ncol)
+            else
+               read(lunr,*,end=88) (yrow(j),j=1,ncol)
+            endif
+            if (kqcflag .ne. 0) then
+               if( yrow(kqcflag) .lt. qc_threshold) cycle
+            endif
 c  If a measurement coincides with the current aircraft overpass      
             if(yrow(kyear).ge.tstop) exit
             if(yrow(kyear).ge.tstart) then
                if(abs(yrow(klat)-alat) .lt. 0.2) then
                   if(abs(yrow(klon)-alon) .lt. 0.5) then
                      fco2=yrow(kco2+1)/yrow(kco2)
-                     fsia=yrow(ksia+1)/yrow(ksia)    ! fractional uncertainty
-                     wt=1/(0.00001+fco2**2+fxco2_ac**2+fsia**2)
+                     fvsi=yrow(kfvsi)   ! fractional uncertainty
+                     if(fvsi.lt.0.0) fvsi=0.0  ! Don't let missing data affect WT
+                     wt=1/(0.00001+fco2**2+fxco2_ac**2+fvsi**2)
                      yy=yrow(kco2)/xco2_ac
                      tn=tn+1
                      t0=t0+wt
@@ -150,7 +181,7 @@ c  If a measurement coincides with the current aircraft overpass
                      t2=t2+wt*yy**2
                      tsza=tsza+wt*yrow(ksza)
                      zz=yrow(kco2)
-                     wt=1/(0.00001+fco2**2+fsia**2)
+                     wt=1/(0.00001+fco2**2+fvsi**2)
                      s0=s0+wt
                      s1=s1+wt*zz
                      s2=s2+wt*zz**2

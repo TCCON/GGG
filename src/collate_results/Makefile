@@ -7,6 +7,7 @@ COMN = $(GGGPATH)/src/comn
 
 SOURCES := \
   $(TSRC)/$(TARGET).f \
+  $(TSRC)/generate_qc_flag.f \
   $(COMN)/fbc.f \
   $(COMN)/fnbc.f \
   $(COMN)/lnbc.f \

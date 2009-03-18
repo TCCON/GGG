@@ -62,30 +62,35 @@ c
       integer*4 lunr,luns,lunw,ncoml,ncol,mcol,kcol,icol,j,kgas,ko2,
      & lnbc,mrow,nmp,imp,ntot,mfp,nfp,
      & iyear,iywas,idoy,idwas,li,
-     & ksia,kyear,kdoy,klat,klon,ksza
+     & kfvsi,kyear,kdoy,klat,klon,ksza, kqcflag, nchar
       parameter (lunr=14,luns=15,lunw=16,mcol=50,mrow=1000,mfp=3)
       character header*800,headarr(mcol)*20,gas*20,
-     & inputfile*40,outputfile*40,version*50
+     & inputfile*40,outputfile*40,version*62, specname*35
       real*4 yy(mrow),uy(mrow),bf(mrow,mfp),apx(mfp),apu(mfp),
      & rnorm, uscale,
-     & fugas,fuo2,fusia,solar_noon,b,eot,diff
+     & fugas,fuo2,solar_noon,b,eot,diff, qc_threshold
       real*8 yrow(mcol),pi,d2r,chi2
 
-      version='derive_airmass_correction  V1.0.1  2008-01-23  GCT'
+      version=
+     &' derive_airmass_correction        1.1.2     2008-03-04     GCT'
       write(*,*) version
 
       pi=4*datan(1.0d0)
       d2r=pi/180
       nfp=3
 
+      qc_threshold=2.
+      nchar=0
+
       kgas=0
       ko2=0
-      ksia=0
+      kfvsi=0
       kyear=0
       kdoy=0
       klat=0
       klon=0
       ksza=0
+      kqcflag=0
       write(*,*)'Enter name of input file (e.g. paIn_1.0lm.vav):'
       read(*,'(a)') inputfile
       li=lnbc(inputfile)
@@ -131,16 +136,18 @@ c  which columns contain the values that we need.
       end do
       read(lunr,'(a)')header
       call substr(header,headarr,mcol,kcol)
+      if (index(header,'Spectrum') .gt. 0) nchar=1
       if(kcol.ne.ncol ) stop 'ncol/kcol mismatch'
       do icol=1,ncol
          if(headarr(icol) .eq. gas) kgas=icol
          if(headarr(icol) .eq.  'o2') ko2=icol
-         if(headarr(icol) .eq. 'sia') ksia=icol
+         if(headarr(icol) .eq.'fvsi') kfvsi=icol
          if(headarr(icol) .eq.'year') kyear=icol
          if(headarr(icol) .eq. 'day') kdoy=icol
          if(headarr(icol) .eq. 'lat') klat=icol
          if(headarr(icol) .eq.'long') klon=icol
          if(headarr(icol) .eq.'asza') ksza=icol
+         if(headarr(icol) .eq.'qcflag') kqcflag=icol
       end do
 
       outputfile='dac_'//inputfile(:li)//'_'//gas(:lnbc(gas))//'.out'
@@ -157,7 +164,14 @@ c  Read each day of data into memory.
       imp=1
       do while (imp.lt.mrow-nfp)
          yrow(kyear)=0
-         read(lunr,*,end=88) (yrow(j),j=1,ncol)
+         if (nchar .eq. 1) then
+             read(lunr,*,end=88) specname, (yrow(j),j=1+nchar,ncol)
+         else
+             read(lunr,*,end=88) (yrow(j),j=1,ncol)
+         endif
+         if (kqcflag .ne. 0) then
+            if( yrow(kqcflag) .lt. qc_threshold) cycle
+         endif
          b=2*pi*(yrow(kdoy)-81.0)/364             ! From Wikipedia (364 ???)
          eot=9.87*sin(2*b)-7.53*cos(b)-1.5*sin(b) ! Equation of Time (minutes)
          solar_noon=0.5-yrow(klon)/360-eot/60/24  ! solar noontime (days)
@@ -177,12 +191,12 @@ c  Read each day of data into memory.
          endif
          endif
 
-         fusia=yrow(ksia+1)/yrow(ksia)       ! fractional uncertainty in solar instensity
+         if(yrow(kfvsi).lt.0.0) yrow(kfvsi)=0.0  ! Don't let missing data affect UY
          fuo2=yrow(ko2+1)/yrow(ko2)          ! fractional uncertainty in column O2
          fugas=yrow(kgas+1)/yrow(kgas)       ! fractional uncertainty in chosen gas
          yy(imp)=0.2095*yrow(kgas)/yrow(ko2) ! Xgas
          uy(imp)=yy(imp)*sqrt(0.00001+fuo2**2+fugas**2
-     &  +0.1*fusia**2                        ! contribution of solar intensity variations
+     &  +0.1*yrow(kfvsi)**2                  ! contribution of solar intensity variations
      &  +0.1*(yrow(ksza)/90)**8)             ! de-weight high zenith angles
 
 c   Divide measurements (YY) and basis functions (BF) by uncertainties (UY)

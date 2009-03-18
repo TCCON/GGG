@@ -71,8 +71,9 @@ c
 c Test for cases which will cause array-bound violations
       nhw=(nop-1)/odec/2
       if(nhw.lt.1) then
-          write(*,*) nop,odec,nhw
-          stop ' NEWDEC called with NOP < 1+2*ODEC'
+         write(*,*)' NEWDEC called with NOP < 1+2*ODEC',nop,odec,nhw
+c         stop ' NEWDEC called with NOP < 1+2*ODEC'  ! Commented GCT 2009-03-18
+         nhw=1
       endif
       klo=int( sh+2 )
       if(klo.lt.1) write(*,*)' NEWDEC warning: KLO < 1:',klo,1,sh

@@ -1,0 +1,229 @@
+ 223 42
+ write_official_output_file   Version 1.1.1   2009-03-04   GCT
+ apply_insitu_correction      Version 1.1.1   2009-03-02   GCT
+ apply_airmass_correction     Version 1.1.1   2009-03-02   GCT
+ average_results              version 1.1.0   2009-03-02   GCT
+ collate_results            Version 1.1.2    200
+ GFIT                Version 4.4.0      21-Feb-2
+ GSETUP Version 2.7.5       6 Mar 2009    GCT
+--------------------------------------------------------------------------
+
+Carbon Dioxide Dry Column-Averaged Mixing Ratios from Park Falls
+Wisconsin, 2004 - 2008
+
+Version: 2009-02-18
+
+--------------------------------------------------------------------------
+CONTENTS
+
+1. Data source and contacts
+2. Use of data
+3. Reciprocity
+4. Warnings
+5. Update notes
+6. Introduction
+7. General Comments on data
+8. References
+
+
+--------------------------------------------------------------------------
+1. DATA SOURCE AND CONTACTS
+
+California Institute of Technology
+
+Correspondence concerning these data should be directed to:
+Paul Wennberg, Rebecca Washenfelder, Gretchen Aleks, and Geoffrey Toon
+
+Email: wennberg@gps.caltech.edu, rebecca.washenfelder@noaa.gov
+gka@gps.caltech.edu, geoffrey.c.toon@jpl.nasa.gov
+
+Paul Wennberg and Gretchen Aleks
+Division of Engineering and Applied Science
+California Institute of Technology
+MC 150-21
+1200 E. California Blvd.
+Pasadena, CA 91125
+
+Funded by NASA grants NAG5-12247 and NNG05-GD07G.
+
+--------------------------------------------------------------------------
+2. USE OF DATA
+
+These data are made freely available to the public and the scientific
+community in the belief that their wide dissemination will lead to greater
+understanding and new scientific insights.  The availability of these
+data does not constitute publication of the data.  We expect all users
+to assure that the authors receive fair credit for their work.  If the
+data are obtained for potential use in a publication or presentation
+the authors should be informed at the outset of the nature of this work.
+If the data are essential to the work, or if an important result or
+conclusion depends on the data, co-authorship may be appropriate.
+This should be discussed at an early stage in the work.  Manuscripts
+using the data should be sent to the authors for review before they
+are submitted for publication, so we can insure that the quality and
+limitations of the data are accurately represented.
+
+
+--------------------------------------------------------------------------
+3. RECIPROCITY
+
+Use of these data implies an agreement to reciprocate.  Individuals
+making similar measurements agree to make their own data available to
+the general public and to the scientific community in an equally complete
+and easily accessible form.  Modelers are encouraged to make available to
+the community, upon request, their own tools used in the interpretation
+of this data, namely well-documented model code, transport fields, and
+additional information necessary for other scientists to repeat the work
+and to run modified versions.  Model availability includes collaborative
+support for new users of the models.
+
+
+--------------------------------------------------------------------------
+4. WARNINGS
+
+Every effort is made to produce the most accurate and precise measurements
+possible.  However, we reserve the right to make corrections to the data.
+We are not responsible for results and conclusions based on use of these
+data without regard to this warning.
+
+
+--------------------------------------------------------------------------
+5. UPDATE NOTES
+
+None.
+
+
+--------------------------------------------------------------------------
+6. INTRODUCTION
+
+Column-average Dry Mole Fractions (DMF) reported in this file were
+acquired using a Fourier Transform Spectrometer (FTS) located at the
+Wisconsin Tall Tower site (45.945 deg N, 90.273 deg W, 442 m above
+sea level).  Direct solar spectra were acquired in the near-infrared
+spectral region.  These spectra were used to retrieve column abundances
+of CO2 and O2.
+
+A description of the observatory, location, spectral retrievals
+and calibration procedure are given in
+
+Washenfelder, R.A., G.C. Toon, J-F. Blavier, Z. Yang, N.T. Allen
+P.O. Wennberg, S.A. Vay, D.M. Matross, and B.C. Daube, 2006, Carbon
+dioxide column abundances at the Wisconsin Tall Tower site, Journal of
+Geophysical Research, 2006, 111, doi:10.1029/2006JD007154.
+
+Since then, the calibration procedure has evolved. An airmass-correction
+is performed for XCO2 which accounts for the fact that due to spectroscopic
+inadequacies, XCO2 at all sites is SZA-dependent. This procedure is described in
+https://tccon-wiki.caltech.edu/Air_Mass_Correction_Take_II
+
+--------------------------------------------------------------------------
+7. GENERAL COMMENTS ON THE DATA
+
+Dry column-average CO2 DMF has been calculated according to
+
+CO2 DMF = 0.2095 x column CO2 / column O2.
+
+Column CO2 is retrieved for two CO2 bands centered at 6228 cm-1 and
+6348 cm-1.  Column O2 is retrieved from the electronic band centered at
+7882 cm-1.  The average of the two calculated CO2 DMFs is presented here.
+
+The dry column-average CO2 DMF (0.2095 x column CO2 / column O2) is
+affected by three main sources of error:
+
+1. Measurement precision
+The standard deviation of column CO2 / column O2 during a one hour period
+is better than 0.1% under clear sky conditions and ~0.2% under partly
+cloudy conditions.  Repeatability of the measurement is not a significant
+source of error.
+
+2. Spectroscopic errors
+The retrieved O2 columns were NOT reduced by 2.27% to bring them into
+agreement with the dry surface pressure, as described in Washenfelder et
+al. (2006).  The absolute accuracy of the CO2 retrievals was calibrated
+by comparison to integrated aircraft profiles, resulting in a correction
+of 0.99.  The standard deviation of the fitting residuals is ~0.1%.
+The aircraft profiles were performed with the sun
+at airmass 1.1 to 2.0 (SZA 25 to 60 deg), and the column-average CO2 DMF is
+now well-calibrated for these values.  However, additional systematic
+errors may be present at higher airmass due to errors in the spectroscopy
+of CO2 and or O2.
+
+3. Systematic instrumental changes over time
+Retrieved O2 DMF increased by ~0.3% during the observation period reported
+here. We believe that this error affects both the CO2 and O2 retrievals
+similarly, but for now assume that the column CO2 / column O2 ratio may
+also have a systematic error of 0.3% over the observation period.
+
+In summary, the measurement precision of ~0.1% under clear sky and
+~0.2% under partly cloudy conditions does not affect the accuracy of the
+measurements.  However, spectroscopic errors introduce a systematic bias
+which depends on airmass.  We have calibrated the FTS column retrievals
+at airmass 1.1 to 2.0 during Jul to Aug 2004, and expect that the absolute
+accuracy at these airmasses has been maintained within 0.3% throughout
+the subsequent data record.
+
+--------------------------------------------------------------------------
+8. REFERENCES
+
+Washenfelder, R.A., G.C. Toon, J-F. Blavier, Z. Yang, N.T. Allen
+P.O. Wennberg, S.A. Vay, D.M. Matross, and B.C. Daube, 2006.  Carbon
+dioxide column abundances at the Wisconsin Tall Tower site, Journal of
+Geophysical Research, 2006, 111, doi:10.1029/2006JD007154.
+
+--------------------------------------------------------------------------
+
+The table below lists the acceptable range of parameters in the .vav.ada.aia files
+In the event that the data fall out of range, the error flag points
+to the #-value of the variable that was furthest out of range.
+ # Variable  Output  Scale  Format   Unit     Vmin     Vmax     Description
+ 1 "year"        1  1.0E+00 "f7.0" "      "   2004.0   2016.5   Year (e.g. (2009)
+ 2 "day"         1  1.0E+00 "f6.0" "      "   0        367      Day of the year (1-366)
+ 3 "hour"        1  1.0E+00 "f8.3" "      "  -12.0     36.0     Fractional UT Hour
+ 4 "run"         0  1.0E+00 "f6.0" "      "   0        999999   Not output
+ 5 "lat"         0  1.0E+00 "f8.2" "(deg) "   45.8     46.0     Latitude (deg.)
+ 6 "long"        0  1.0E+00 "f9.2" "(deg) "  -91      -90       Longitude (deg.)
+ 7 "zobs"        0  1.0E+00 "f7.2" "(km)  "   0.44     0.45     Geometric Altitude (km)
+ 8 "zmin"        0  1.0E+00 "f7.2" "(km)  "  -0.0     +0.9      Pressure Altitude (km)
+ 9 "asza"        1  1.0E+00 "f7.2" "(deg) "   0.0      84.0     Solar Zenith Angle (deg)
+10 "azim"        1  1.0E+00 "f8.2" "(deg) "  -180      360      Solar Azimuth Angle (deg)
+11 "osds"        0  1.0E+00 "f7.3" "(ppm) "  -9        9        Observer-Sun Doppler Stretch (ppm)
+12 "opd"         0  1.0E+00 "f7.2" "(cm)  "   40.0     50.0     Optical path Difference (cm)
+13 "fovi"        0  1.0E+00 "f6.3" "(rad) "   0.0      0.005    Internal Field Of View (rad)
+14 "graw"        0  1.0E+00 "f7.4" "(cm-1)"   0.0      0.016    Spectral Point Spacing (cm-1)
+15 "tins"        0  1.0E+00 "f6.1" "(C)   "   25.0     35.0     Internal Temperature (C)
+16 "pins"        0  1.0E+00 "f7.1" "(mbar)"   0.0      1030.0   Internal Pressure (hPa)
+17 "tout"        1  1.0E+00 "f6.1" "(C)   "  -35.      40.      External Temperature (C)
+18 "pout"        1  1.0E+00 "f7.1" "(hPa) "   940.     1030.    External  pressure (hPa)
+19 "hout"        1  1.0E+00 "f6.1" "(%RH) "   0        110.     External Humidity (%)
+20 "fvsi"        1  1.0E+02 "f7.3" "(%)   "   0.0      5.       Fractional Variation in Solar Intensity
+21 "wspd"        1  1.0E+00 "f6.1" "(m/s) "   0.0      30.0     Wind Speed (m/s)
+22 "wdir"        1  1.0E+00 "f6.0" "(deg) "  -180      360.0    Wind Direction (deg.)
+23 "xair"        1  1.0E+00 "f7.3" "      "   0.96     1.04     0.2095*column_air/column_O2
+24 "xair_error"  1  0.3E+00 "f6.3" "      "   0.0      0.05     one-sigma precision
+25 "xhf"         1  1.0E+12 "f7.1" "(ppt) "  -1        500      0.2095*column_hf/column_o2
+26 "xhf_error"   1  0.7E+12 "f7.1" "(ppt) "   0        500      one-sigma precision
+27 "xh2o"        1  1.0E+06 "f9.2" "(ppm) "  -1.       15000    0.2095*column_h2o/column_o2
+28 "xh2o_error"  1  0.9E+06 "f8.2" "(ppm) "   0        5000     one-sigma precision
+29 "xhdo"        1  1.0E+06 "f9.2" "(ppm) "  -1.       15000    0.2095*column_h2o/column_o2
+30 "xhdo_error"  1  0.6E+06 "f8.2" "(ppm) "   0        5000     one-sigma precision
+31 "xco"         1  1.0E+09 "f7.1" "(ppb) "  -1.       500.     0.2095*column_hdo/column_o2
+32 "xco_error"   1  0.4E+09 "f7.1" "(ppb) "   0        20.      one-sigma precision
+33 "xn2o"        1  1.0E+09 "f8.2" "(ppb) "   100      400      0.2095*column_co/column_o2
+34 "xn2o_error"  1  0.3E+09 "f7.2" "(ppb) "   0        50       one-sigma precision
+35 "xch4"        1  1.0E+06 "f8.3" "(ppm) "   0        2        0.2095*column_ch4/column_o2
+36 "xch4_error"  1  1.2E+05 "f7.3" "(ppm) "   0        0.1      one-sigma precision
+37 "xco2"        1  1.0E+06 "f8.1" "(ppm) "   350      400      0.2095*column_co2/column_o2
+38 "xco2_error"  1  1.3E+05 "f7.1" "(ppm) "   0        10       one-sigma precision
+39 "xo2"         0  1.0E+00 "f7.4" "      "   0.20     0.22     0.2095*column_o2/column_o2=0.2095
+40 "xo2_error"   0  0.3E+00 "f7.4" "      "   0        0.05     one-sigma precision
+41 "xhcl"        0  1.0E+09 "f7.1" "(ppb) "   0        5        0.2095*column_hcl/column_o2
+42 "xhcl_error"  0  0.6E+09 "f7.1" "(ppb) "   0        50       one-sigma precision
+43 "qcflag"      0  1.0E+00 "f7.1" "      "   2.00     2.00     qcflag
+ flag  year  day  hour  asza(deg)  azim(deg)  tout(C)  pout(hPa)  hout(%RH)  fvsi(%)  wspd(m/s)  wdir(deg)  xair  xair_error  xhf(ppt)  xhf_error(ppt)  xh2o(ppm)  xh2o_error(ppm)  xhdo(ppm)  xhdo_error(ppm)  xco(ppb)  xco_error(ppb)  xn2o(ppb)  xn2o_error(ppb)  xch4(ppm)  xch4_error(ppm)  xco2(ppm)  xco2_error(ppm)
+----------------------------------------------------------------------------------------------------------------
+  0   2004.   203.   20.596   39.68   242.28   29.1   950.7   62.8   0.720    1.7   125.   0.984  0.003    63.4     2.9   6004.40    55.35   5489.70    51.63    83.5     1.0   290.05    1.24    1.708   0.002    373.5     0.6
+  0   2004.   203.   22.980   63.80   272.66   29.4   950.6   61.2   0.530    1.8   139.   0.985  0.004    66.4     4.3   4931.20    60.39   4655.30    64.48    87.8     1.1   291.57    1.58    1.726   0.003    371.7     0.7
+ 26   2004.   203.   24.797   82.27   291.21   28.4   950.4   68.0   0.990    0.2    22.   0.988  0.005  2321.7  3908.4   4714.90    75.31   4453.00    92.41    83.6     1.2   292.64    2.58    1.722   0.004    372.7     0.9
+ 26   2004.   203.   24.854   82.82   291.80   28.3   950.6   69.0   1.270    0.2    14.   0.983  0.005  1573.6 12727.4   4596.10    73.03   4278.60    93.61    83.6     1.2   291.76    2.62    1.720   0.004    372.4     0.9
+  0   2004.   357.   14.668   82.85   134.93  -23.1   965.1   80.0   0.680    0.0     0.   0.978  0.003    73.9     2.3    320.10     3.02    214.44     2.80    90.1     1.3   287.95    2.17    1.741   0.002    379.5     0.5
+  0   2004.   357.   14.722   82.45   135.56  -23.0   965.3   80.0   1.060    0.0     0.   0.977  0.003    74.5     2.4    317.95     3.06    211.89     2.79    90.0     1.2   287.56    2.10    1.740   0.002    379.5     0.5

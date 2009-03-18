@@ -1,27 +1,2 @@
 Runlog         Description
 pa_h2o.grl      6 spectra with high & low H2O.
-pa_all_solar.grl 
-db_all_solar.grl 
-pa20040909.grl  5 spectral pairs during the afternoon (41 to 79 SZA)
-pa_representative_subset.grl  1075 Park Falls spectra
-pa111111.grl    Synthetic PF spectra for use in T-sensitivity study
-pa20050308.grl  Single day having low and constant H2O column
-pa20050716.grl  Single day having high and constant H2O column
-jcIn_1.0ab.grl
-paIn_1.0kl2.grl
-paIn_1.0lm.grl  July 24 2008 version of Gretchen's runlog
-jc200801.grl    OCO TV2 scans Jan 2008
-lh20080123.grl
-db20051220.grl  One day during the rainy season
-dbIn_dcgh.grl   Complete Darwin runlog Sep 2005 to Dec 2007
-iz2007.grl      Izana  3 days  50 spectra
-kp_solar_dc.grl Kitt Peak spectra
-kp_solar_di.grl Kitt Peak spectra
-paIn_080512.grl Park Falls Aircraft overflight day
-db_wet_dry.grl darwin wet and dry spectra at 87 degrees
-pa20050308_13.grl  Dry cold day in spring (fairly low airmass)
-jcIn_stan.grl   Four spectra at 78 deg SZA
-pa20041222.grl  Two cold Park Falls spectra
-db2005_2008.grl
-pa20080618.grl  Clear PF day (361 spectra)
-test_syn.grl    Testing synthetic spectra

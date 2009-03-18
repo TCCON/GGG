@@ -36,6 +36,7 @@ c
 
       integer*4
      & istat,        ! status flag (0=success, 1=EOF)
+     & nlhead,       ! 
      & iyr,          ! year
      & iset,         ! day of year
      & ifirst,       ! index of first spectral point in disk file
@@ -48,7 +49,9 @@ c
      & oblat,        ! observation latitude (deg).
      & oblon,        ! observation longitude (deg).
      & obalt,        ! observation altitude (km)
-     & asza,         ! astronomical solar zenith angle (unrefracted)
+     & asza,         ! astronomical solar/lunar zenith angle (unrefracted)
+     & azim,         ! solar/lunar azimuth angle
+     & osds,         ! Observer-Sun Doppler Stretch (ppm)
      & opd,          ! Optical path difference (cm) of interferogram
      & graw,         ! spacing of raw spectrum (cm-1) from GETINFO
      & zpdtim,       ! Time of ZPD (UT hours)
@@ -64,8 +67,8 @@ c
      & tout,         ! Outside temperature
      & pout,         ! Outside pressure
      & hout,         ! Outside humidity
-     & sia,          ! Solar Intensity (Average)
-     & sis,          ! Solar Intensity (SD)
+     & fvsi,         ! Fractional Variation of Solar Intensity
+     & wspd,wdir,    ! Winf speed & direction
      & aipl,         ! Airmass-Independent Path Length (km)
      & lasf,         ! Laser Frequency (e.g. 15798 cm-1)
      & wavtkr,       ! suntracker frequency (active tracking)
@@ -73,20 +76,25 @@ c
 
       character
      & col1*1,       ! first column of runlog record
-     & runlab*34,    ! spectrum name
+     & specname*35,  ! spectrum name
+     & version*62,   ! Version number
      & root*80,      ! path to the ggg directories
      & apf*2         ! apodization function (e.g. BX N2, etc)
 c
       equivalence (bbuf,bufi2,bufr4)
 
       write(6,*)
-     & ' BIN2ASC Program   Version 1.4.0   15-Aug-2008   GCT'
+      version=
+     &' BIN2ASC                   Version 1.4.1    08-Mar-2009    GCT'
       call getendian(iend)  ! Find endian-ness of host computer
 
       write(*,*)'Enter path to input file/runlog:'
       read(*,'(a)') runlog
       open(lunr,file=runlog,status='old')
-      read(lunr,*)          ! Skip header line of runlog
+      read(lunr,*) nlhead         ! Skip header line of runlog
+      do i=2,nlhead
+         read(lunr,*)
+      end do
 
       write(*,*)'Enter Starting & Ending frequencies:'
       write(*,*)'Enter 0 99999 to retain original spectral limits'
@@ -101,10 +109,11 @@ c
       do while (istat.eq.0)     ! Main loop over spectra
 
 c  Read input runlog
-1        call read_runlog(lunr,col1,runlab,iyr,iset,zpdtim,
-     &    oblat,oblon,obalt,asza,zenoff,opd,fovi,fovo,amal,ifirst,
-     &    ilast,graw,possp,bytepw,zoff,snr,apf,tins,pins,hins,
-     &    tout,pout,hout,lasf,wavtkr,sia,sis,aipl,istat)
+1        call read_runlog(lunr,col1,specname,iyr,iset,zpdtim,
+     &   oblat,oblon,obalt,asza,zenoff,azim,osds,
+     &   opd,fovi,fovo,amal,ifirst,ilast,graw,possp,bytepw,zoff,snr,apf,
+     &   tins,pins,hins,tout,pout,hout,
+     &   fvsi,wspd,wdir,lasf,wavtkr,aipl,istat)
          if(istat.ne.0) exit
  
 c  Check that buffer will be large enough
@@ -117,11 +126,11 @@ c  Check that buffer will be large enough
          if(npts*iabpw.gt.mem) stop 'Increase parameter NMAX'
          if(npts.lt.1) go to 1
 
-c  Search for binary spectrum "runlab"
-         call gindfile(root(:lr)//'/config/data_part.lst',runlab,
+c  Search for binary spectrum "specname"
+         call gindfile(root(:lr)//'/config/data_part.lst',specname,
      &   inpath)
          if(lnbc(inpath).eq.0) then
-            write(*,*) runlab, ' Cant find input spectrum'
+            write(*,*) specname, ' Cant find input spectrum'
             go to 1
          endif
  
@@ -140,17 +149,22 @@ c  If necessary, byte-reverse data
   
 c  Write ASCI spectrum
          write(6,*)inpath(:lnbc(inpath))
-         open(lunw,file='./asc_'//runlab,status='unknown')
-         write(lunw,*)4,2
-         write(lunw,'(a)') ' Spectrum_File_Name    Year  Day  Hour'//
-     &  '   oblat    oblon   obalt    ASZA   POFF    OPD   FOVI  FOVO'//
+         open(lunw,file='./asc_'//specname,status='unknown')
+         write(lunw,*)5,2
+         write(lunw,'(a)') version
+         write(lunw,'(a)')
+     &  '  Spectrum_File_Name                 Year  Day  Hour'//
+     &  '   oblat    oblon   obalt    ASZA   POFF    AZIM   OSDS'//
+     &  '    OPD   FOVI  FOVO'//
      &  '  AMAL  IFIRST   ILAST    DELTA_NU   POINTER  BPW ZOFF SNR'//
-     &  '  APF tins  pins  hins   tout   pout  hout   lasf    wavtkr'//
-     &  '  sia   sis   aipl'
-         call write_runlog(lunw,col1,runlab,iyr,iset,zpdtim,oblat,
-     &   oblon,obalt,asza,zenoff,opd,fovi,fovo,amal,m1,m2,
+     &  '  APF tins  pins  hins   tout   pout  hout'//
+     &  '  fvsi  wspd  wdir  lasf    wavtkr  aipl'
+
+         call write_runlog(lunw,col1,specname,iyr,iset,zpdtim,oblat,
+     &   oblon,obalt,asza,zenoff,azim,osds,opd,fovi,fovo,amal,m1,m2,
      &   graw,possp,bytepw,zoff,snr,apf,tins,pins,hins,tout,
-     &   pout,hout,lasf,wavtkr,sia,sis,aipl,istat)         
+     &   pout,hout,fvsi,wspd,wdir,lasf,wavtkr,aipl,istat)         
+
          write(lunw,*)' Frequency_(cm-1)  Signal'
          if(iabpw.eq.2) then
             do i=1,npts

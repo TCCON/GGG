@@ -18,7 +18,7 @@ c
       implicit none
       integer*4 apo,bytepw,fbc,fnbc,ifirst,ilast,ilev,
      & interp,iset,iyr,j,k,w1,w2,le,lg,lc,lnbc,lrt,lunr,lun_ray,lun_ggg,
-     & lun_rlg,lun_bat,lun_mav,lun_rpt,lun_mod,lun_vmr,
+     & lun_rlg,lun_mul,lun_pp,lun_mav,lun_rpt,lun_mod,lun_vmr,lunz,
      & mlev,nlev,nlhead_rlg,nlhead_ray,nlhead_ggg,
      & lr,la,mgas,i,ncol,
 c    & platform,
@@ -28,12 +28,14 @@ c    & platform,
       parameter (lun_ray=13)     ! for writing the .ray file
       parameter (lunr=14)        ! for reading (general purpose) 
       parameter (lun_ggg=15)     ! for writing the .ggg files
-      parameter (lun_bat=16)     ! for writing the multiggg.sh file
+      parameter (lun_mul=16)     ! for writing the multiggg.sh file
       parameter (lun_mav=17)     ! for writing the .mav file
       parameter (lun_rpt=18)     ! for writing gsetup.rpt
       parameter (lun_rlg=21)     ! for reading the runlog
       parameter (lun_mod=22)     ! for reading the .mod file (readmodFC)
       parameter (lun_vmr=23)     ! for reading the .vmr file (readvmrFC)
+      parameter (lunz=24)        ! for reading (general purpose) 
+      parameter (lun_pp=25)      ! for post_processing.sh
       parameter (mlev=250)       ! maximum number of atmospheric levels
       parameter (mgas=80)        ! maximum number of gases
       parameter (nlhead_ray=3)    ! Number of header lines in .ray file.
@@ -94,6 +96,7 @@ c    & platform,
       character
      & apf*2,              ! apodization function (e.g. 'BX','TR' etc)
      & dl*1,               ! delimiter (='/' Unix, ='\' DOS)
+     & og*1,               ! observation geometry
      & ext*3,              ! observation geometry
      & filnam*48,          ! general purpose character buffer
      & filnamwas*48,       ! general purpose character buffer
@@ -107,7 +110,7 @@ c    & platform,
      & menuinput*80,       ! path to xxx.men file
      & prvwin*14,          ! name of previous window (i.e. GAS_1234)
      & root*64,            ! root directory
-     & specname*35,          ! name of spectrum
+     & specname*35,        ! name of spectrum
      & runlog*40,          ! name of occultation file
      & slk*1,              ! symbol which links gas name and frequency
      & col1,               ! 
@@ -118,7 +121,7 @@ c     & user*8,             ! investigator
      & vmrlabel*1000,      ! column labels from vmr file
      & window*120          ! name of window
 
-      version= ' GSETUP Version 2.7.4       3 Feb 2009    GCT '
+      version= ' GSETUP Version 2.7.5       6 Mar 2009    GCT '
       modname='                                                '
       vmrname='                                                '
       filnamwas='qwertyuioqwertyuioqwertyuioqwertyuio'
@@ -160,6 +163,12 @@ c  choose an observation geometry
       if(ext(1:1).eq.'o') ext(1:3)='orb'
       if(ext(1:1).eq.'s') ext(1:3)='syn'
       if(ext(2:3).eq.'  ') go to 3
+
+      if(ext(1:1).eq.'b' .or. ext(1:1).eq.'b') then
+          og='l'
+      else
+          og='v'
+      endif
 c------------------------------------------------------------------
 c  Choose which runlog to analyze
       menuinput=root(:lrt)//'runlogs'//dl//ext//dl//'runlogs.men'
@@ -186,7 +195,7 @@ c  choose which list of windows to analyze
       call readmenu(lun_men,menuinput,listof)
 
 c  read the individual microwindows and create the xxxxxxxx.ggg input files
-      open(lun_bat,file='multiggg.sh',status='unknown')     
+      open(lun_mul,file='multiggg.sh',status='unknown')     
       open(lunr,file=root(:lrt)//'windows'//dl//ext
      $ //dl//listof(:lnbc(listof)),status='old')
       read(lunr,'(a91)') header
@@ -251,11 +260,11 @@ c        write(lun_ggg,'(a)') filnam(lnbc(filnam)-11:lnbc(filnam)-3)//'col'
         write(lun_ggg,'(a)') window
         close(lun_ggg)
 c
-        write(lun_bat,'(a)') root(:lrt)//'bin'//dl//'gfit<'//
+        write(lun_mul,'(a)') root(:lrt)//'bin'//dl//'gfit<'//
      $  filnam(:lnbc(filnam))//'>/dev/null'
       end do   !  k=1,999999
  103  close(lunr)
-      close(lun_bat)
+      close(lun_mul)
 c------------------------------------------------------------------
 c  Compute the slant paths and write them to disk.
       write(lun_rpt,*)
@@ -496,5 +505,41 @@ c
       if(nspe.le.0)write(6,*)'none of these spectra could be accessed'
       if(nspe.le.0)write(6,*)'or error reading runlog (wrong format?)'
       write(*,*) nspe,' spectra'
+
+c  Code to generate post_processing.sh batch file and associated inputs.
+
+      open(lun_pp,file='post_processing.sh',status='unknown')     
+
+      write(lun_pp,'(a)')'~/ggg/bin/collate_results<.collate.input'
+      open(lunz,file='.collate.input', status='unknown')
+      write(lunz,'(a)') og
+      close(lunz)
+
+      write(lun_pp,'(a)')'~/ggg/bin/average_results<'//
+     &'.average_results.input'
+      open(lunz,file='.average_results.input',status='unknown')
+      write(lunz,'(a)') runlog(:lr-3)//og//'sw'
+      close(lunz)
+
+      write(lun_pp,'(a)') '~/ggg/bin/apply_airmass_correction<'//
+     &'.apply_airmass_correction.input'
+      open(lunz,file='.apply_airmass_correction.input',status='unknown')
+      write(lunz,'(a)') runlog(:lr-3)//og//'av'
+      close(lunz)
+
+      write(lun_pp,'(a)') '~/ggg/bin/apply_insitu_correction<'//
+     &'.apply_insitu_correction.input'
+      open(lunz,file='.apply_insitu_correction.input',status='unknown')
+      write(lunz,'(a)') runlog(:lr-3)//og//'av.ada'
+      close(lunz)
+
+      write(lun_pp,'(a)') '~/ggg/bin/write_official_output_file<'//
+     &'.write_official_output_file.input'
+      open(lunz,file='.write_official_output_file.input',
+     & status='unknown')
+      write(lunz,'(a)') runlog(:lr-3)//og//'av.ada.aia'
+      close(lunz)
+
+      close(lun_pp)
       stop
       end

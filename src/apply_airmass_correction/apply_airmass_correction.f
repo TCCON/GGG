@@ -27,11 +27,16 @@ c
      & kgas,ko2,ksza,lnbc,irow,naux,mgas,ngas,nrow,li,k
       parameter (lunr=14,luns=15,lunw=16,mcol=150,mgas=9)
       character header*800,headarr(mcol)*20,gasname(mgas)*20,gggdir*80,
-     & inputfile*40,outputfile*40, version*60,gaserr*32,output_fmt*28
+     & inputfile*40,outputfile*40, version*62,gaserr*32,output_fmt*32
       real*8 yrow(mcol),adcf(mgas),aicf(mgas),cf(mcol),fu,sbf,vc_air
+      character specname*35
+
+      integer nchar 
+      nchar=0
 
       version=
-     & ' apply_airmass_correction   Version 1.0.6   2009-02-06   GCT'
+     &' apply_airmass_correction     Version 1.1.1   2009-03-02   GCT'
+      write(*,*) version
       call getenv('GGGPATH',gggdir)
       ko2=0
       ksza=0
@@ -73,7 +78,9 @@ c  and those in the .vav file header
       end do
       read(lunr,'(a)') header
       call substr(header,headarr,mcol,kcol)
-      do j=naux+1,ncol
+      if (index(header,'Spectrum') .gt. 0) nchar=1
+      write(*,*) index(header,'Spectrum') 
+      do j=naux+nchar+1,ncol
         headarr(j)='x'//headarr(j)
       end do
       write(lunw,'(100a12)') (headarr(j),j=1,ncol)
@@ -87,31 +94,47 @@ c  and those in the .vav file header
          end do
          if(headarr(jcol) .eq. 'xo2') ko2=jcol
          if(headarr(jcol) .eq. 'asza') ksza=jcol
-         if(jcol.gt.naux) write(*,'(i3,f8.4,2x,a)')
+         if(jcol.gt.naux+nchar) write(*,'(i3,f8.4,2x,a)')
      &   jcol,cf(jcol),headarr(jcol)
       end do
 
       if(ko2.eq.0) stop ' o2 column not found'
       if(ksza.eq.0) stop ' asza column not found'
 
-      output_fmt='(f14.8,NNf13.5,200(1pe12.4))'
-      write(output_fmt(8:9),'(i2.2)') naux-1
+      if (nchar .eq. 1) then
+         output_fmt='(a35,f14.8,NNf13.5,200(1pe12.4))'
+         write(output_fmt(12:13),'(i2.2)') naux-1
+      else 
+         output_fmt='(f14.8,NNf13.5,200(1pe12.4))'
+         write(output_fmt(8:9),'(i2.2)') naux-1
+      endif
 c  Read each day of data into memory.
       do irow=1,9999999
-         read(lunr,*,end=99) (yrow(j),j=1,ncol)
+         if (nchar .eq. 1) then 
+             read(lunr,*,end=99) specname, (yrow(j),j=1+nchar,ncol)
+         else
+             read(lunr,*,end=99) (yrow(j),j=1,ncol)
+         endif
          vc_air=yrow(ko2)/0.2095
          if(yrow(ko2).eq.0.0) then
            write(*,'(a,i6,a)')'Warning: O2_column=0 for spectrum',irow,
      &     '  (lamp run?)  Your output file will contain Inf'
          endif
          sbf=((yrow(ksza)+13)/(90+13))**3-((45.0+13)/(90+13))**3  ! Symmetric Basis Function
-         do k=naux+1,ncol-1,2
-            fu=sqrt((yrow(k+1)/yrow(k))**2+(yrow(ko2+1)/yrow(ko2))**2)
-            yrow(k)=yrow(k)/vc_air/(1+cf(k)*sbf)     ! apply airmass correction
+         do k=naux+nchar+1,ncol-1,2
+            if(k.eq.ko2) then
+              fu=yrow(k+1)/yrow(k)                 ! fractional uncertainty
+            else
+              fu=sqrt((yrow(k+1)/yrow(k))**2+(yrow(ko2+1)/yrow(ko2))**2)
+            endif
+            yrow(k)=yrow(k)/vc_air/(1+cf(k)*sbf)   ! apply airmass correction
             yrow(k+1)=yrow(k)*fu
          end do
-         write(lunw,output_fmt) (yrow(j),j=1,ncol)
-c65       format (f14.8,21f13.5,200(1pe12.4))
+         if (nchar .eq. 1) then
+            write(lunw,output_fmt) specname, (yrow(j),j=1+nchar,ncol)
+         else
+            write(lunw,output_fmt) (yrow(j),j=1,ncol)
+         endif
       end do      ! do irow=1,9999999
       stop ' irow exceeded 9999999'
 99    close (lunr)
