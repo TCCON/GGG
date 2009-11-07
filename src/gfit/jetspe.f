@@ -47,15 +47,15 @@ C======================================================================
       implicit none
       character specpath*(*)
 
-      INTEGER*4 apo_m,possp,nmp,npts,STATUS,mii,MMP,KINTPC,
+      INTEGER*4 apo_m,possp,nmp,npts,STATUS,mii,MMP,
      & k1,m1,m2,i1,i2,k,bytepw,IFIRST,ilast,INTERP,iskip,iabpw,
-     & nhw,nsf,nii,nele,nscycle
+     & nhw,nsf,nii,nele,nscycle,j1,j2,ii
       parameter (mii=50753,nscycle=25)  ! max dimension of slit function 
 c
       REAL*8 dzero,fr,resnog,resn,rect,opd,vbar,hwid,dd
       REAL*8 nus,nue,graw,delwav,nustrt
 c
-      REAL*4 slit(mii),yobs(mmp),foff,res,unity,tot
+      REAL*4 slit(mii),yobs(mmp),foff,res,unity,tot,dum
       parameter (dzero=0.0d0,unity=1.0)
 c
       if(nus.ge.nue) stop 'NUS >= NUE'
@@ -136,9 +136,20 @@ c  to be performed "in place" without prematurely overwriting any points.
       iabpw=iabs(bytepw)
       if(iabpw.eq.3) iabpw=4
       iskip=possp+iabpw*(m1-iabs(nhw)-ifirst)
+c      write(*,*)'m1, nhw, ifirst=',iabpw, m1, nhw, ifirst, npts
       call fetch(specpath,bytepw,iskip,yobs(k1),npts)
-      if(graw.lt.0.0)
-     & call vswap(yobs(k1),1,yobs(k1+npts-1),-1,npts/2)
+      if(graw.lt.0.0) then
+c       call vswap(yobs(k1),1,yobs(k1+npts-1),-1,npts/2)
+        j1=k1
+        j2=k1+npts-1
+        do ii=1,npts/2
+            dum=yobs(j1)
+            yobs(j1)=yobs(j2)
+            yobs(j2)=dum
+            j1=j1+1
+            j2=j2-1
+        end do
+      endif
 c-------------------------------------------------------------------------
       i1=1+int(interp*nus/dabs(graw))
       i2=int(interp*nue/dabs(graw))

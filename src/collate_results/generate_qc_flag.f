@@ -4,7 +4,7 @@
 
       integer*4 nrow                ! # spectra (runlog)    intent in
       real*4 qc(nrow)               ! qc flag            intent inout
-      character spectrum(nrow)*35   ! runlog spectrum names intent in
+      character spectrum(nrow)*38   ! runlog spectrum names intent in
 
       integer i,i1,idot,icol,jtg,k,ktg,mcol,lunm,lunc,nit,nss,
      & mit, l2,l3,l4, fnbc, fbc, nlhead, date(nrow), selday,
@@ -16,7 +16,7 @@
       character colabel*500,
      & gfit_version*80,gsetup_version*80,col_string*500,
      & csformat*90, cdum*20,
-     & specname_col*35,runlog*80,tabel*80,
+     & specname_col*38,runlog*80,tabel*80,
      & colfile*40,window(mcol)*10
 
       real*8 airmass,cl,tilt,zlo,fcen,width,fqshift,

@@ -1,4 +1,4 @@
-      subroutine rdsphead(spfmt,specname,path,ifirst,ilast,possp,bytepw,
+      Subroutine rdsphead(spfmt,specname,path,ifirst,ilast,possp,bytepw,
      & apf,delwav,opd,fovi,snr,iy,im,id,gmt,lasf,wavtkr)
 
 c
@@ -754,8 +754,6 @@ c
         delwav=(stopf-startf)/(npoints-1)
         ifirst=nint(startf/delwav)
         ilast=nint(stopf/delwav)
-c        write(*,*)startf,stopf,delwav
-c        write(*,*)startf/delwav,stopf/delwav
         delwav=15798.0138d0*delwav/lasf  ! Some OPUS Bruker data has wrong laser freq (15798.10)
 c        write(*,'(a,2f16.9,i6,f16.11)')'startf,stopf,npoints= ',
 c     &  startf,stopf,npoints,delwav
@@ -763,8 +761,9 @@ c     &  startf,stopf,npoints,delwav
         fovi=apt/foc
 c        write(*,*)path,apt,foc,fovi
         delwav=delwav*(1.D0+(fovi**2)/16)  ! FOV correction
-c        write(*,'(a,2f16.9,i6,f16.11)')'startf,stopf,npoints= ',
-c     &  startf,stopf,npoints,delwav
+c        write(*,'(2a,2f15.8,i8,f16.12,f16.6,f8.5)')
+c     &  'start,stop,npts,del,lasf= ',
+c     &  specname,startf,stopf,npoints,delwav,lasf,fovi
         if(dtype.eq.2055) then   ! Interferogram
            delwav=1.d0
            ifirst=1
@@ -800,6 +799,7 @@ c Reverse REV scans that OPUS has flipped to make appear as FWD scan
 
         dt=dur/2+t_s*(dfloat(pkl+prl)/nnn-0.5d0)
         gmt=gmtstart+dt/3600.
+c        write(*,*)' gmtstart: ',dt,dur,pkl,prl,nnn
 
 c===================================================================
 c      elseif(spfmt.eq.'kp') then

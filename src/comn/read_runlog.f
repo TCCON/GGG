@@ -1,7 +1,7 @@
       subroutine read_runlog(lun_rlg,col1,specname,iyr,iset,zpdtim,
      & oblat,oblon,obalt,asza,zenoff,azim,osds,opd,fovi,fovo,amal,
      & ifirst,ilast,graw,possp,bytepw,zoff,snr,apf,tins,pins,hins,
-     & tout,pout,hout,fvsi,wspd,wdir,lasf,wavtkr,aipl,istat)
+     & tout,pout,hout,sia,fvsi,wspd,wdir,lasf,wavtkr,aipl,istat)
 c
 c  Reads a single record from the runlog file.
 c  File must already have been opened.
@@ -70,16 +70,17 @@ c    everything else
      & apf*2             ! apodization function (e.g. BX N2, etc)
 
 1      read(lun_rlg,'(a1,a)',end=99) col1,record
-      if( col1.eq.':') go to 1
-      if(col1.ne.'-' .and. col1.ne.'+' .and. col1.ne.' ') then
-         record=col1//record   ! Runlog is the old format
-      endif
+c      if( col1.eq.':') go to 1
+c      if(col1.ne.'-' .and. col1.ne.'+' .and. col1.ne.' ') then
+c         record=col1//record   ! Runlog is the old format
+c      endif
       lr=lnbc(record)
 c      write(*,*)'read_runlog: lr= ', lr
       osds=0.0
       wspd=0.0
       wdir=0.0
       fvsi=0.0
+
 c
 c Note: ASCI character 9 is a horizontal tab.
       if(index(record,char(9)).gt.0) then    ! TAB delimited (e.g. ATMOS)
@@ -103,13 +104,22 @@ c Note: ASCI character 9 is a horizontal tab.
      & f7.2,3f6.0,2i8,f15.11,
      & i8,i3,1x,2f5.0,1x,a2,2(f6.0,f8.0,f5.0),
      & f6.4,f6.1,f6.0,f10.0,f7.0,f7.3)
-      else                 ! New GDS-format runlog
+      elseif(lr.eq.282) then
         read(record,334,err=98) specname,iyr,iset,zpdtim,oblat,oblon,
+     &  obalt,asza,zenoff,azim,osds,opd,fovi,fovo,amal,ifirst,ilast,
+     &  graw,possp,bytepw,zoff,snr,apf,tins,pins,hins,tout,pout,hout,
+     &  sia,fvsi,wspd,wdir,lasf,wavtkr,aipl
+ 334  format(a38,1x,2i4,f8.4,f8.3,f9.3,2f8.3,f7.0,f8.3,f7.3,
+     & f7.2,3f6.0,2i9,f15.11,
+     & i9,i3,1x,2f5.0,1x,a2,2(f6.0,f8.0,f5.0),
+     & f7.1,f7.4,f6.1,f6.0,f10.0,f7.0,f7.3)
+      else                 ! New GDS-format runlog
+        read(record,335,err=98) specname,iyr,iset,zpdtim,oblat,oblon,
      &  obalt,asza,zenoff,opd,fovi,fovo,amal,ifirst,ilast,graw,possp,
      &  bytepw,zoff,snr,apf,tins,pins,hins,tout,pout,hout,lasf,wavtkr,
      &  sia,sis,aipl
         if(sia.ne.0.0) fvsi=sis/sia
- 334  format(a35,1x,2i4,f8.4,f8.3,f9.3,2f8.3,f7.0,f7.2,3f6.0,2i8,f15.11,
+ 335  format(a35,1x,2i4,f8.4,f8.3,f9.3,2f8.3,f7.0,f7.2,3f6.0,2i8,f15.11,
      & i8,i3,1x,2f5.0,1x,a2,2(f6.0,f8.0,f5.0),f10.0,f7.0,2f6.1,f7.3)
       endif
       istat=0

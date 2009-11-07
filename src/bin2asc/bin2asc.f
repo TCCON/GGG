@@ -67,6 +67,7 @@ c
      & tout,         ! Outside temperature
      & pout,         ! Outside pressure
      & hout,         ! Outside humidity
+     & sia,          ! Solar Intensity (Average)
      & fvsi,         ! Fractional Variation of Solar Intensity
      & wspd,wdir,    ! Winf speed & direction
      & aipl,         ! Airmass-Independent Path Length (km)
@@ -76,7 +77,7 @@ c
 
       character
      & col1*1,       ! first column of runlog record
-     & specname*35,  ! spectrum name
+     & specname*38,  ! spectrum name
      & version*62,   ! Version number
      & root*80,      ! path to the ggg directories
      & apf*2         ! apodization function (e.g. BX N2, etc)
@@ -85,7 +86,7 @@ c
 
       write(6,*)
       version=
-     &' BIN2ASC                   Version 1.4.1    08-Mar-2009    GCT'
+     &' BIN2ASC                   Version 1.4.3    31-Aug-2009    GCT'
       call getendian(iend)  ! Find endian-ness of host computer
 
       write(*,*)'Enter path to input file/runlog:'
@@ -113,7 +114,7 @@ c  Read input runlog
      &   oblat,oblon,obalt,asza,zenoff,azim,osds,
      &   opd,fovi,fovo,amal,ifirst,ilast,graw,possp,bytepw,zoff,snr,apf,
      &   tins,pins,hins,tout,pout,hout,
-     &   fvsi,wspd,wdir,lasf,wavtkr,aipl,istat)
+     &   sia,fvsi,wspd,wdir,lasf,wavtkr,aipl,istat)
          if(istat.ne.0) exit
  
 c  Check that buffer will be large enough
@@ -153,17 +154,17 @@ c  Write ASCI spectrum
          write(lunw,*)5,2
          write(lunw,'(a)') version
          write(lunw,'(a)')
-     &  '  Spectrum_File_Name                 Year  Day  Hour'//
+     &  '  Spectrum_File_Name                    Year  Day  Hour'//
      &  '   oblat    oblon   obalt    ASZA   POFF    AZIM   OSDS'//
      &  '    OPD   FOVI  FOVO'//
      &  '  AMAL  IFIRST   ILAST    DELTA_NU   POINTER  BPW ZOFF SNR'//
-     &  '  APF tins  pins  hins   tout   pout  hout'//
-     &  '  fvsi  wspd  wdir  lasf    wavtkr  aipl'
+     &  '  APF  tins  pins  hins   tout   pout  hout'//
+     &  '  sia  fvsi  wspd  wdir  lasf    wavtkr  aipl'
 
          call write_runlog(lunw,col1,specname,iyr,iset,zpdtim,oblat,
      &   oblon,obalt,asza,zenoff,azim,osds,opd,fovi,fovo,amal,m1,m2,
      &   graw,possp,bytepw,zoff,snr,apf,tins,pins,hins,tout,
-     &   pout,hout,fvsi,wspd,wdir,lasf,wavtkr,aipl,istat)         
+     &   pout,hout,sia,fvsi,wspd,wdir,lasf,wavtkr,aipl,istat)         
 
          write(lunw,*)' Frequency_(cm-1)  Signal'
          if(iabpw.eq.2) then

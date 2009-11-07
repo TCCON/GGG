@@ -26,12 +26,12 @@ c
      & gggdir*80,inputfile*40,outputfile*40, version*62,gaserr*32
       real*8 yrow(mcol),adcf(mgas),aicf(mgas),cf(mcol)
 
-      character output_fmt*32, specname*35
+      character output_fmt*32, specname*38
       integer nchar
       nchar=0
 
       version=
-     & ' apply_insitu_correction      Version 1.1.2   2009-03-09   GCT'
+     & ' apply_insitu_correction      Version 1.2.2   2009-11-07   GCT'
 
       call getenv('GGGPATH',gggdir)
 
@@ -63,13 +63,21 @@ c  Read the header of the .ada file and figure out the
 c  mapping between the gases in the corrections.dat
 c  and those in the .vav file header
       read(lunr,'(i2,i4,i7,i4)') ncoml,ncol,nrow,naux
-      write(lunw,'(i2,i4,i7,i4)') ncoml+1,ncol,nrow,naux
+      write(lunw,'(i2,i4,i7,i4)') ncoml+1+ngas+1,ncol,nrow,naux
       write(lunw,'(a)') version
       if(ncol.gt.mcol) stop 'increase mcol'
-      do j=2,ncoml
+      do j=2,ncoml-1
          read(lunr,'(a)') header
          write(lunw,'(a)') header(:lnbc(header))
       end do
+      
+      write(lunw,'(a)')'Airmass-Independent/In-Situ Correction Factors:'
+      do k=1,ngas
+         write(lunw,'(a,f9.4)') gasname(k),aicf(k)
+      end do
+
+      read(lunr,'(a)') header
+      write(lunw,'(a)') header(:lnbc(header))
       if (index(header,'Spectrum') .gt. 0) nchar=1
       call substr(header,headarr,mcol,kcol)
       if(kcol.ne.ncol ) stop 'ncol/kcol mismatch'

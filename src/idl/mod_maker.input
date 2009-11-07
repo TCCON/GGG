@@ -1,3 +1,15 @@
+tm                ; Site Abbreviation
+ 34.382  -117.677 ; Latitude/Longitude
+NCEP_TMF_30N_40N_240E_245E_20091001_20091031_6hourly_AT.nc
+NCEP_TMF_30N_40N_240E_245E_20091001_20091031_6hourly_GH.nc
+NCEP_TMF_30N_40N_240E_245E_20091001_20091031_6hourly_TP.nc
+NCEP_TMF_30N_40N_240E_245E_20091001_20091031_6hourly_SH.nc
+jc                ;  Site abbreviation
+  34.20  -118.18  ;  Latitude/Longitude
+air.2008.nc
+hgt.2008.nc
+pres.tropp.2008.nc
+shum.2008.nc
 jc                ;  Site abbreviation
   34.20  -118.18  ;  Latitude/Longitude
 NCEP_JPL_30N_35N_240E_245E_20080101_20080126_6hourly_AT.nc

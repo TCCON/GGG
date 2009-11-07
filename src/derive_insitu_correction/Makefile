@@ -1,5 +1,6 @@
 # include file contains: chosen fortran compiler and link options
 include $(GGGPATH)/install/.compiler_ggg
+
 TARGET=derive_insitu_correction
 TSRC = $(GGGPATH)/src/$(TARGET)
 COMN = $(GGGPATH)/src/comn

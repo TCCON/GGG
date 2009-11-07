@@ -125,7 +125,7 @@ ncol      =  lonarr(nfile)
 nrow      =  lonarr(nfile)
 
 print, ' Reading entire contents of data files into memory.....'
-buf = fltarr(8000000)
+buf = fltarr(10000000)
 mcol=1000
 header    =  strarr(nfile,mcol)
 gmissing   =  -999.

@@ -87,7 +87,7 @@ readf,unit,names
 print,strpos(names,'Year')
 ll_year=strpos(names,'Year')
 ;rlformat=string('(1x,a',ll_year-2,',42x,f8.3,f7.4,f7.2,3f6.4,2i8,f15.11,i8,i3,39x,f8.2)')
-rlformat=string('(1x,a',ll_year-2,',42x,f8.3,f7.4,f8.3,f7.3,f7.2,3f6.4,2i8,f15.11,i8,i3,39x,f8.2)')
+rlformat=string('(1x,a',ll_year-2,',42x,f8.3,f7.4,f8.3,f7.3,f7.2,3f6.4,2i9,f15.11,i9,i3,39x,f8.2)')
 print,rlformat
 while(eof(unit) eq 0) do begin
   readf,unit,names

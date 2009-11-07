@@ -14,11 +14,11 @@ c  OUTPUT FILES:
 c     runlog.xsw   Spreadsheet of individual window values for each spectrum
 
       implicit none
-      integer i1,idot,irow,j,jtg,k,ktg,lnbc,fnbc,fbc,lloc,nn,
+      integer i1,idot,irow,jtg,k,ktg,lnbc,fnbc,fbc,lloc,nn,
      & npp,ldot,l2,l3,l4,totnit,ntc,mlabel,mval,jval,lun_nts,
-     &lr,lun_mul,lun_rlg,lun_col,lun_rpt,lun_xsw,mcol,ncol,icol,
-     &mrow,mauxcol,nauxcol,nlhead,nmiss,iyrwas,doywas,
-     &nrow,nss,nit,mit,i,iyr,doy,istat,nfound
+     & lr,lun_mul,lun_rlg,lun_col,lun_rpt,lun_xsw,mcol,ncol,icol,
+     & mrow,mauxcol,nauxcol,nlhead,nmiss,iyrwas,doywas,
+     & nrow,nss,nit,mit,i,iyr,doy,istat,nfound
       parameter (lun_mul=11)       ! multiggg.sh 
       parameter (lun_rlg=12)       ! runlog
       parameter (lun_col=14)       ! .col file
@@ -34,21 +34,21 @@ c     runlog.xsw   Spreadsheet of individual window values for each spectrum
       character ans*1,apf*2,cdum*20,colabel*500,
      & gfit_version*80,gsetup_version*80,col_string*500,
      & csformat*90,collabel*(mlabel),auxcol*200,outfile*80,col1*1,
-     & specname_grl*35,specname_col*35,runlog*80,sign(mrow)*1,
-     & spectrum(mrow)*35,tabel*80,
+     & specname_grl*38,specname_col*38,runlog*80,sign(mrow)*1,
+     & spectrum(mrow)*38,tabel*80,
      & output_fmt*40,
-     & colfile*40,collate_version*62,window(mcol)*10,specname_gwas*35
+     & colfile*40,collate_version*64,window(mcol)*10,specname_gwas*38
 
       real*8 airmass,asza,cl,tilt,zlo,fcen,width,zobs,rmin,rmax,
      & fqshift,graw,obslat,obslon,opd,ovcol,rmsfit,
      & r8was,r8year,r8ydiff,year(mrow),
-     & trms,lasf,wavtkr,aipl,fvsi,azim,wspd,wdir,osds
+     & trms,lasf,wavtkr,aipl,sia,fvsi,azim,wspd,wdir,osds
 
       real*4
      & vsf,vsf_err,ymiss,
      & yaux(mauxcol,mrow),
      & yobs(mval), yerr(mval), qc(mrow)
-      parameter (ymiss=9.9999e+29)
+      parameter (ymiss=9.8765e+29)
 
       real*8 zpdtim,tout,pout,hout,tins,pins,hins,fovi,fovo,amal,
      & snr,zenoff,zoff,sg,zpdwas,max_delta_t,delta_t,zmin
@@ -58,11 +58,13 @@ c     runlog.xsw   Spreadsheet of individual window values for each spectrum
       logical append_spectrum_name
 
       append_qcflag=.false.
+      append_spectrum_name=.true.
       append_spectrum_name=.false.
     
       collate_version=
-     &' collate_results            Version 1.1.3    2009-03-18    GCT'
+     &' collate_results              Version 1.2.1   2009-11-07   GCT'
       write(6,*) collate_version
+      lr=0
 
 c  Initialize character arrays (Necessary for the G77 compiler).
       do i=1,mlabel
@@ -191,7 +193,7 @@ c              stop 'rmsfit <= 0'   ! Commented 2009-03-18
      &        obslat,obslon,zobs,asza,zenoff,azim,osds,opd,
      &        fovi,fovo,amal,ifirst,ilast,
      &        graw,possp,bytepw,zoff,snr,apf,tins,pins,hins,
-     &        tout,pout,hout,fvsi,wspd,wdir,lasf,wavtkr,aipl,istat)
+     &        tout,pout,hout,sia,fvsi,wspd,wdir,lasf,wavtkr,aipl,istat)
 c              if(istat.ne.0) write(*,*) 'istat=',istat
 c              write(*,*) '...called read_runlog.'
               if(istat.ne.0) go to 14     ! Exit Loop  irow=1,mrow
@@ -257,9 +259,10 @@ c           yaux(1,irow)=r8year
            yaux(17,irow)=tout
            yaux(18,irow)=pout
            yaux(19,irow)=hout
-           yaux(20,irow)=fvsi
-           yaux(21,irow)=wspd
-           yaux(22,irow)=wdir
+           yaux(20,irow)=sia
+           yaux(21,irow)=fvsi
+           yaux(22,irow)=wspd
+           yaux(23,irow)=wdir
 c
            if(ans.eq.'t') then
                yobs(jval)=vsf
@@ -319,8 +322,8 @@ c101   outfile=runlog(k+1:lr-3)//ans//'sw'
 c==================================================================
       auxcol=
      & '  year  day  hour  run   lat   long  zobs  zmin  asza  azim'//
-     $ '  osds  opd  fovi  graw  tins  pins  tout  pout  hout  fvsi'//
-     $ '  wspd  wdir'
+     $ '  osds  opd  fovi  graw  tins  pins  tout  pout  hout  sia'//
+     & '  fvsi  wspd  wdir'
 c====================================================================
       if (append_qcflag) then
          auxcol=auxcol(:lnbc(auxcol))//'  qcflag'
@@ -332,10 +335,13 @@ c====================================================================
       endif
 c====================================================================
       call substr(auxcol,cdum,1,nauxcol)
-      if(nauxcol.gt.mauxcol) stop 'increase parameter mauxcol'
+      if(nauxcol.gt.mauxcol) then
+          write(*,*)' mauxcol, nauxcol = ',mauxcol,nauxcol
+          stop 'increase parameter mauxcol'
+      endif
 
       if (append_spectrum_name) then
-         output_fmt='(a1,(a35,1x),f13.8,NNf13.5,800(1pe12.4))'
+         output_fmt='(a1,(a38,1x),f13.8,NNf13.5,800(1pe12.4))'
          write(output_fmt(20:21),'(i2.2)') nauxcol-1
       else
          output_fmt='(a1,f13.8,NNf13.5,800(1pe12.4))'
@@ -353,8 +359,7 @@ c  Write out all analyzed abundances to the .?sw disk file.
       write(lun_xsw,'(a)') gfit_version(:lnbc(gfit_version))
       write(lun_xsw,'(a)') gsetup_version(:lnbc(gsetup_version))
 c      write(lun_xsw,'(a8,<nauxcol+2*ncol>(1pe12.4))') 'MISSING:',
-      write(lun_xsw,'(a8,1016(1pe12.4))') 'MISSING:',
-     $(ymiss,j=1,nauxcol+2*ncol)
+      write(lun_xsw,'(1pe12.4,2x,a)') ymiss,'   ! missing value'
       if (append_spectrum_name) then
          write(lun_xsw,'(a)') '  Spectrum'//auxcol(:lnbc(auxcol))//
      &   collabel(:lnbc(collabel)+1)

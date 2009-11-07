@@ -1,3 +1,0 @@
-FC = f90
-CFLAGS = -c 
-LDFLAGS = -lU77

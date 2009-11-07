@@ -1,4 +1,4 @@
-      subroutine do_retrieval(obsrvd,nmp,apx,apu,slit,nii,
+      Subroutine do_retrieval(obsrvd,nmp,apx,apu,slit,nii,
      & ldec,rdec,spts,spxv,dspdzxv,vac,splos,nlev,ncp,ntg,snr,
      & corrld,sssss,winfo,debug,mit,nit,calcul,rms,cx,ex,pd,ssnmp)
 
@@ -53,13 +53,13 @@ c     pd(nmp,ntg)   R*4  Individual gas transmittance spectra
      & krank,
      & ierr,
      & nlev,
-     & mmp,nmp,imp,nii,ldec,nmpfp,
-     & mfp,ntg,jtg,
-     & nfp,kfp,jfp,i,j,
+     & mmp,nmp,nii,ldec,nmpfp,
+     & mtg,ntg,jtg,
+     & mfp,nfp,kfp,jfp,i,j,
      & mit,nit,
      & jva,jpd,kn2
 
-      parameter (mmp=360000,mfp=16)
+      parameter (mmp=1250000,mtg=16,mfp=mtg+4)
 
       real*4
      & slit(nii),
@@ -127,8 +127,8 @@ c  Check that static array dimensions are adequate
       do nit=0,mit     ! Spectral fitting iteration loop
 
 c  Limit frequency shift to 0.8*GINT
-         if(abs(cx(n3)) .gt. 0.8) then
-            cx(n3)=sign(0.8,cx(n3))
+         if(abs(cx(n3)) .gt. 1.8) then
+            cx(n3)=sign(1.8,cx(n3))
 c            write(6,*)' Warning: Limiting Frequency shift'
          endif
 c  Limit TILT if it exceeds 1.0

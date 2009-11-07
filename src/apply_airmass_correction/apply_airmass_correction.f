@@ -29,13 +29,13 @@ c
       character header*800,headarr(mcol)*20,gasname(mgas)*20,gggdir*80,
      & inputfile*40,outputfile*40, version*62,gaserr*32,output_fmt*32
       real*8 yrow(mcol),adcf(mgas),aicf(mgas),cf(mcol),fu,sbf,vc_air
-      character specname*35
+      character specname*38
 
       integer nchar 
       nchar=0
 
       version=
-     &' apply_airmass_correction     Version 1.1.1   2009-03-02   GCT'
+     &' apply_airmass_correction     Version 1.1.2   2009-11-07   GCT'
       write(*,*) version
       call getenv('GGGPATH',gggdir)
       ko2=0
@@ -69,12 +69,16 @@ c  Read the header of the .vav file and figure out the
 c  mapping between the gases in the corrections.dat
 c  and those in the .vav file header
       read(lunr,'(i2,i4,i7,i4)') ncoml,ncol,nrow,naux
-      write(lunw,'(i2,i4,i7,i4)') ncoml+1,ncol,nrow,naux
+      write(lunw,'(i2,i4,i7,i4)') ncoml+1+ngas+1,ncol,nrow,naux
       write(lunw,'(a)') version
       if(ncol.gt.mcol) stop 'increase mcol'
       do j=2,ncoml-1
          read(lunr,'(a)') header
          write(lunw,'(a)') header(:lnbc(header))
+      end do
+      write(lunw,'(a)') ' Airmass-Dependent Correction Factors: '
+      do k=1,ngas
+         write(lunw,'(a,f9.4)') gasname(k),adcf(k)
       end do
       read(lunr,'(a)') header
       call substr(header,headarr,mcol,kcol)
@@ -120,7 +124,7 @@ c  Read each day of data into memory.
            write(*,'(a,i6,a)')'Warning: O2_column=0 for spectrum',irow,
      &     '  (lamp run?)  Your output file will contain Inf'
          endif
-         sbf=((yrow(ksza)+13)/(90+13))**3-((45.0+13)/(90+13))**3  ! Symmetric Basis Function
+         sbf=((yrow(ksza)+13)/(90+13))**3-((45.+13)/(90+13))**3  ! Symmetric Basis Function
          do k=naux+nchar+1,ncol-1,2
             if(k.eq.ko2) then
               fu=yrow(k+1)/yrow(k)                 ! fractional uncertainty

@@ -1,3 +1,5 @@
+c  Returns a normally (Gaussian) distributed deviate
+c  with zero mean and unit variance
 C     Re-coded per changes to Numerical Recipes
 C     Bill Irion, May 14, 2003
 

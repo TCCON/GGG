@@ -60,6 +60,7 @@ c     Read VMRs level by level testing to make sure that there are NCOL values
 c          write(*,*)'readvmrFC:',zold
 c
           if(nlev.eq.1) then  ! It's a lab spectrum
+             znew=1.E+38
              call vmov(zero,0,vnew,1,ngas)
           else
              read(lunr,'(a)')string

@@ -221,6 +221,9 @@ c             if(rs.eq.2) nss=i4val
              if(rs.eq.4) hins=r8val
              if(hins.gt.99.9) hins=99.9
              call getopusparval(luns,bpointer,'PIM',iend,mrs,i2val,rs)
+             if(rs.eq.0)then
+               call getopusparval(luns,bpointer,'PRS',iend,mrs,i2val,rs)
+             endif
              if(rs.eq.4) pins=r8val
              call getopusparval(luns,bpointer,'TSC',iend,mrs,i2val,rs)
              if(rs.eq.4) tins=r8val

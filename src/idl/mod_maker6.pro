@@ -93,7 +93,7 @@
 ;  For Park Falls this doesn't make much improvement because
 ;  local noon is very close to 18UT, which is a standard
 ;  NCEP model time.  But for Darwin (131E) local noon is
-;  3:16 UT, which is almost half way between OO UT and 06 UT.
+;  03:16 UT, which is almost half way between OO UT and 06 UT.
 ;
 ; 5) Implemented a more sophisticated scheme for calculating
 ;  the H2O vmr above 300 mbar (the top of the NCEP H2O profiles).
@@ -140,17 +140,27 @@
 ;
 ;10) Broke out the functionality of writing the .mod files into
 ;  a subroutine (write_mod.pro). This simplifies mod_maker.pro.
-;  Wrote linear_interp? and bilinear_interp? subroutines to
+;  Wrote linear_interpN and bilinear_interpN subroutines to
 ;  handle the time and lat/long interpolations, respectively.
-;  Since IDL is an interpretive language, these subroutines have
-;  to go at the beginning of the file (so that they are already
-;  interpreted before they are called by the main program).
 ;
+;
+; Note: IDL is an interpretive language, so subroutines must
+; be defined *before* they are called by the main program.
+; So the subroutines are found at the beginning of the file
+; and then the main program is found near the end.
 
-; Note: In IDL, subroutines must be defined before they are
-; called by the main program. So the remainder of the file
-; contains the subroutines first, and then the main program.
-;
+; Subroutine svp_wv_over_ice
+; Uses the Goff-Gratch equation to calculate the saturation vapor
+; pressure of water vapor over ice at a user-specified temperature.
+; Input:  temp (K)
+; Output: svp (mbar)
+pro svp_wv_over_ice, temp, svp
+  t0=273.16   ; triple point temperature (K)
+  tr=t0/temp
+  yy=-9.09718*(tr-1)-3.56654*alog10(tr)+0.876793*(1-1/tr)
+  svp=6.1173*10^yy   ; saturation vapor pressure over ice (mbar)
+end
+
 ; SUBROUTINE WRITE_MOD:
 pro write_mod, mod_path, Site_Lat, Lev_AT, sat, sgh, stp, ssh
 ; Creates a GGG-format .mod file when called by mod_maker.pro.
@@ -169,21 +179,24 @@ pro write_mod, mod_path, Site_Lat, Lev_AT, sat, sgh, stp, ssh
   z_ussa=[31.1,  36.8,  42.4,  47.8,  64.9,  79.3,  92.0,  106.3]
 
 
+    print,Mod_Path
 ; Export the head of .mod
     openw,lunw,Mod_Path,/get_lun
-    printf,lunw,'4  3'
+    printf,lunw,'4  5'
     printf,lunw,6378.00,6.000E-05,Site_Lat,9.81, $
       sgh[0]/1000.0,1013.25, stp/10^2, $
       format='(f7.2,1x,e11.4,1x,f7.3,1(1x,f5.3),3(1x,f8.3))'
-    printf,lunw, 'mbar        Kelvin          km         g/mole'
-    printf,lunw, 'Pressure  Temperature     Height'
+    printf,lunw, ' mbar        Kelvin         km      g/mole      vmr'
+    printf,lunw, 'Pressure  Temperature     Height     MMW        H2O'
   
 ; Export the Pressure, Temp and SHum for lower levels
     for k=0,N_elements(SSH)-1 do begin
-      if (ssh[k] lt 3.0e-06 and k gt 0) then begin
+      if (ssh[k] lt 4.0e-06 and k gt 0) then begin
         print, 'Replacing insufficient SHum ',mod_path, Lev_AT[k],SSH[k]
-        SSH[k]=sqrt(3.0e-06*SSH[k-1])
+        SSH[k]=sqrt(4.0e-06*SSH[k-1])
       endif
+      svp_wv_over_ice, sat[k], svp
+;      print,k,Lev_AT[k],stp/100,sat[k],svp,ssh[k],ssh[k]/(svp/Lev_AT[k])
       printf,lunw,Lev_AT[k], sat[k], sgh[k]/1000.0,28.9640,ssh[k], $
         format='(e9.3,4x,f7.3,4x,f7.3,4x,f7.4,4x,1e9.3)'
     endfor
@@ -191,8 +204,15 @@ pro write_mod, mod_path, Site_Lat, Lev_AT, sat, sgh, stp, ssh
 ; Export Pressure and Temp for middle levels (with no SHum reanalysis)
     dsh=SSH[N_elements(SSH)-1]
     for k=N_elements(SSH),n_elements(Lev_AT)-1 do begin
-        strat_h2o=9.7e-06-2.5E-06*alog10(10.0+Lev_AT[k])
-        dsh=dsh*(Lev_AT[k]/Lev_AT[k-1])^2.5
+        zz=alog10(Lev_AT[k])  ; log10[pressure]
+;        strat_h2o=9.7e-06-2.5E-06*alog10(10.0+Lev_AT[k])
+        strat_h2o=7.5E-06*exp(-0.25*zz^2)+0.5E-09*exp(+4.0*zz)
+        dsh=dsh*(Lev_AT[k]/Lev_AT[k-1])^(5.5-Lev_AT[k]/100)
+        svp_wv_over_ice, sat[k], svp
+        satvmr=svp/Lev_AT[k]   ; vmr of saturated WV at T/P
+;        print,Lev_AT[k],stp/100,sat[k],svp,dsh,dsh/satvmr
+        if ( dsh gt satvmr ) then dsh=satvmr
+        if (Lev_AT(k) lt stp/100) then dsh=sqrt(dsh*strat_h2o)  ; above the trop
       printf,lunw,Lev_AT[k], sat[k], $
         sgh[k]/1000.0,28.9640,max([dsh,strat_h2o]), $
         format='(e9.3,4x,f7.3,4x,f7.3,4x,f7.4,4x,1e9.3)'
@@ -204,7 +224,10 @@ pro write_mod, mod_path, Site_Lat, Lev_AT, sat, sgh, stp, ssh
 ; Export the P-T profile above 10mbar
     for k=1,7 do begin
         Delta_T=Delta_T/2
-        strat_h2o=9.7e-06-2.5E-06*alog10(10.0+p_ussa[k])
+        zz=alog10(p_ussa[k])  ; log10[pressure]
+;        strat_h2o=9.7e-06-2.5E-06*alog10(10.0+p_ussa[k])
+        strat_h2o=7.5E-06*exp(-0.25*zz^2)+0.5E-09*exp(+4.0*zz)
+;        print, p_ussa[k],strat_h2o
       printf,lunw,p_ussa[k],t_ussa[k]+Delta_T,z_ussa[k],28.9640,strat_h2o, $
         format='(e9.3,4x,f7.3,4x,f7.3,4x,f7.4,4x,1e9.3)'
     endfor
@@ -264,8 +287,9 @@ pro mod_maker6
 ;*************************************************************
 ; Read site abbreviation, lat/long & names of NCDF files from "mod_maker.input"
 ; Note that it only reads the first 6 lines of this file.
-; So you can keep other stuff further down in this file.
+; So you can keep other stuff further down for re-use later.
 ;*************************************************************
+ print,'modmaker6.1  03-Oct-2009  GCT'
  Site_Abbrev='xx'
  ncdf_AT_file=' '
  ncdf_GH_file=' '
@@ -284,7 +308,7 @@ pro mod_maker6
 if(Site_Lon lt 0.0) then Site_Lon=Site_Lon+360.0
 if(Site_Lon gt 180.0 ) then Site_Lon_180=Site_Lon-360.0 else Site_Lon_180=Site_Lon
 ;*************************************************************
-; Read Air Temperature file:
+; Read Air Temperature file and interpolate to Lat/Long of site:
 ;*************************************************************
   ncid = NCDF_OPEN(home_path+'/ncdf/'+ncdf_AT_file)       ; Open The NetCDF file
   NCDF_VARGET, ncid,  0, Lev_AT       ; Read in variable 'level'
@@ -308,7 +332,7 @@ if(Site_Lon gt 180.0 ) then Site_Lon_180=Site_Lon-360.0 else Site_Lon_180=Site_L
   bilinear_interp2,Global_Data,(Site_Lon-Lon_AT[0])/(Lon_AT[1]-Lon_AT[0]),(Site_Lat-Lat_AT[0])/(Lat_AT[1]-Lat_AT[0]), Site_AT
 
 ;*************************************************************
-; Read Geopotential Height file:
+; Read Geopotential Height file and interpolate to Lat/Long of site:
 ;*************************************************************
   ncid = NCDF_OPEN(home_path+'/ncdf/'+ncdf_GH_file)       ; Open The NetCDF file
   NCDF_VARGET, ncid,  0, Lev_GH       ; Read in variable 'level'
@@ -337,7 +361,7 @@ if(Site_Lon gt 180.0 ) then Site_Lon_180=Site_Lon-360.0 else Site_Lon_180=Site_L
   bilinear_interp2,Global_Data,(Site_Lon-Lon_GH[0])/(Lon_GH[1]-Lon_GH[0]),(Site_Lat-Lat_GH[0])/(Lat_GH[1]-Lat_GH[0]), Site_GH
 
 ;*************************************************************
-; Read Tropopause Pressure file:
+; Read Tropopause Pressure file and interpolate to Lat/Long of site:
 ;*************************************************************
   ncid = NCDF_OPEN(home_path+'/ncdf/'+ncdf_TP_file)       ; Open The NetCDF file
   NCDF_VARGET, ncid,  0, Lat_TP       ; Read in variable 'lat'
@@ -361,7 +385,7 @@ if(Site_Lon gt 180.0 ) then Site_Lon_180=Site_Lon-360.0 else Site_Lon_180=Site_L
 
   bilinear_interp1,Global_Data,(Site_Lon-Lon_TP[0])/(Lon_TP[1]-Lon_TP[0]),(Site_Lat-Lat_TP[0])/(Lat_TP[1]-Lat_TP[0]), Site_TP
 ;*************************************************************
-; Read Specific Humidity file:
+; Read Specific Humidity file and interpolate to Lat/Long of site:
 ;*************************************************************
   ncid = NCDF_OPEN(home_path+'/ncdf/'+ncdf_SH_file)
   NCDF_VARGET, ncid,  0, Lev_SH       ; Read in variable 'level'
@@ -387,13 +411,20 @@ if(Site_Lon gt 180.0 ) then Site_Lon_180=Site_Lon-360.0 else Site_Lon_180=Site_L
   bilinear_interp2,Global_Data,(Site_Lon-Lon_SH[0])/(Lon_SH[1]-Lon_SH[0]),(Site_Lat-Lat_SH[0])/(Lat_SH[1]-Lat_SH[0]), Site_SH
 
 ;*************************************************************
-; Check that the number of levels are the same for 
+; Check that the full number of levels have been downloaded
 ; Geopotential & Air Temperature files
 ;*************************************************************
-  If(N_Elements(Lev_AT) lt 17 or N_Elements(Lev_GH) lt 17) Then Begin
-    print,'You must download all 17 levels of data from the'
-    print,'NCEP/NCAR website, please redo your downloads'
-    exit
+  If(N_Elements(Lev_AT) lt 17) Then Begin
+    print,'You must download all 17 levels of AT data from the'
+    print,'NCEP/NCAR website. Please redo your AT download'
+  EndIf
+  If(N_Elements(Lev_GH) lt 17) Then Begin
+    print,'You must download all 17 levels of GH data from the'
+    print,'NCEP/NCAR website. Please redo your GH download'
+  EndIf
+  If(N_Elements(Lev_SH) lt 8) Then Begin
+    print,'You must download all 8 levels of SH data from the'
+    print,'NCEP/NCAR website. Please redo your SH download'
   EndIf
 
 ;*************************************************************************

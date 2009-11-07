@@ -11,29 +11,36 @@ c  Output Files:
 c       runlog.vav.ada.aia.oof
 c       
       implicit none
-      integer*4 lunr,luns,lunw,lunc,lunh,
+      integer*4 lunr,lun_qc,lunw,lunc,lunh,
      & ncoml,ncol,mcol,kcol,icol,j,lg,ncoml_head,
-     & lnbc,nrow,li,nco,k,kmax,mpar,kpar,npar,irow,lo,eflag,ii,
-     & nchar,
-     & jj,nflag,ncoml_qc,ncol_qc,nrow_qc
-      parameter (lunr=14,luns=15,lunw=16,lunc=17,lunh=18,mcol=150,
-     & mpar=150)
-      integer*4 flag(mpar),pindex(mcol),kflag(mpar)
-      character header*800,headarr(mcol)*20,parname(mpar)*20,gggdir*80,
-     & inputfile*80,outputfile*80,csvfile*80,version*62,outfmt*240,
-     & ofmt(mpar)*4,temp*20, fmt(mpar)*4,unit(mpar)*6,headout*800,
-     & specname,
-     & ssss*800,sarr(mcol)*20,cc*20
-      real*4 yrow(mcol),dev,dmax,scale(mpar),
-     & vmin(mpar),vmax(mpar)
+     & lnbc,nrow,li,nco,k,kmax,mrow_qc,krow_qc,irow,lof0,lof1,
+     & eflag,wrow_flag,wsp_flag,
+     & nchar,lh,le,klat,klong,kzobs,ncol_written,
+     & jj,nflag,ncoml_qc,ncol_qc,nrow_qc,wcol_flag
+      parameter (lunr=14,lun_qc=15,lunw=16,lunc=17,lunh=18,mcol=150,
+     & mrow_qc=150)
+      integer*4 flag(mrow_qc),pindex(mcol),kflag(mrow_qc)
+      character header*800,headarr(mcol)*20,parname(mrow_qc)*20,
+     & gggdir*80, inputfile*80,outputfile*80,csvfile*80,version*62,
+     & outfmt0*250,outfmt1*250,ofmt(mrow_qc)*4,temp*20, fmt(mrow_qc)*4,
+     & unit(mrow_qc)*6,headout*800,specname*38,sitefile*200,
+     & ssss*800,sarr(mcol)*38,cc*20
+      real*4 yrow(mcol),dev,dmax,scale(mrow_qc),
+     & vmin(mrow_qc),vmax(mrow_qc)
       real*8 wlimit
 
-      data kflag/mpar*0/
+      data kflag/mrow_qc*0/
+      
       version=
-     & ' write_official_output_file   Version 1.1.1   2009-03-04   GCT'
+     & ' write_official_output_file   Version 1.2.2   2009-11-07   GCT'
       write(*,*) version
 
       nchar=0
+      klat=0
+      klong=0
+      kzobs=0
+      wrow_flag=1
+      wsp_flag=1
 
       call getenv('GGGPATH',gggdir)
       lg=lnbc(gggdir)
@@ -47,34 +54,54 @@ c
       csvfile=inputfile(:li)//'.oof.csv'
 
 c  Find length of site_oof_header.dat file
-      open(lunh,
-     & file=gggdir(:lg)//'/tccon/'//inputfile(1:2)//'_oof_header.dat',
-     & status='old')
-      do j=1,999
+      sitefile=gggdir(:lg)//'/tccon/'//inputfile(1:2)//'_oof_header.dat'
+      open(lunh, file=sitefile, status='old')
+      do j=1,9999
          read(lunh,'(a)',end=66),ssss
       end do
 66    ncoml_head=j-1
       close(lunh)
+      write(*,'(a,a,i4,a)') sitefile(:lnbc(sitefile)),
+     & ' contains',ncoml_head,' lines'
 
-c  Open the Quality Control (QC) file and read in the information
+c  Open the Quality Control (QC) file and read in the information,
+c  to find out how many columns there are going to be in the .oof output files
+      open(lun_qc,file=
+     & gggdir(:lg)//'/tccon/'//inputfile(1:2)//'_qc.dat', status='old')
+      read(lun_qc,*)ncoml_qc,ncol_qc,nrow_qc
+      if(nrow_qc.gt.mrow_qc) stop 'nrow_qc > mrow_qc'
+      read(lun_qc,*)wrow_flag   ! 0/1   whether to skip/write the out-of-range data records
+      read(lun_qc,*)wsp_flag    ! 0/1   whether to skip/write the spectrum names (if present in .aia file)
+      do k=4,ncoml_qc
+         read(lun_qc,'(a)') header
+      end do
+      ncol_written=1   ! Always include "flag" in column #1
+      do krow_qc=1,mrow_qc
+         read(lun_qc,*,end=77) temp,wcol_flag
+         ncol_written=ncol_written+wcol_flag
+      end do
+77    close(lun_qc)
+      if(krow_qc-1.ne.nrow_qc)
+     &  stop 'misreading xx_qc.dat file: krow_qc > nrow_qc'
+
+c  Read input file and start writing output files
       open(lunr,file=inputfile, status='old')
       read(lunr,'(i2,i4,i7)') ncoml,ncol,nrow
       if(ncol.gt.mcol) stop 'increase mcol'
       open(lunw,file=outputfile,status='unknown')
       open(lunc,file=csvfile,status='unknown')
-      open(luns,file=gggdir(:lg)//'/tccon/'//inputfile(1:2)//'_qc.dat',
-     & status='old')
-      read(luns,*)ncoml_qc,ncol_qc,nrow_qc
-      write(lunw,*) ncoml_head+ncoml_qc+ncoml+nrow_qc,ncol
-      write(lunc,*) ncoml_head+ncoml_qc+ncoml+nrow_qc,ncol
+      open(lun_qc,file=
+     & gggdir(:lg)//'/tccon/'//inputfile(1:2)//'_qc.dat', status='old')
+      read(lun_qc,*)ncoml_qc,ncol_qc,nrow_qc
+      write(lunw,*) ncoml_head+ncoml_qc-0+ncoml+nrow_qc+4,ncol_written
+      write(lunc,*) ncoml_head+ncoml_qc-0+ncoml+nrow_qc+4,ncol_written
       write(lunw,'(a)') version
       write(lunc,'(a)') version
-      do j=2,ncoml-2
+      do j=2,ncoml-1
          read(lunr,'(a)') header
          write(lunw,'(a)') header(:lnbc(header))
          write(lunc,'(a)') header(:lnbc(header))
       end do
-      read(lunr,'(a)') header ! missing values
       read(lunr,'(a)') header ! column headers
       call substr(header,headarr,mcol,kcol)
       if(kcol.ne.ncol) stop 'ncol/kcol mismatch'
@@ -91,61 +118,76 @@ c  Open the Quality Control (QC) file and read in the information
       close(lunh)
 
       do k=2,ncoml_qc
-         read(luns,'(a)') header
+         read(lun_qc,'(a)') header
+         if(k.eq.ncoml_qc) header=' #'//header
          write(lunw,'(a)') header(:lnbc(header))
          write(lunc,'(a)') header(:lnbc(header))
       end do
 
-      do kpar=1,mpar
-         read(luns,'(a)',end=88) ssss
-         write(lunw,'(a)') ssss(:lnbc(ssss))
-         write(lunc,'(a)') ssss(:lnbc(ssss))
-         read(ssss,*) ii,parname(kpar),flag(kpar),scale(kpar),
-     &   fmt(kpar),unit(kpar),vmin(kpar),vmax(kpar)
-         if(ii.ne.kpar) write(*,*)'Warning: ii.ne.kgas ',ii,kpar
+      do krow_qc=1,nrow_qc
+         read(lun_qc,'(a)') ssss
+         write(lunw,'(i2,a)') krow_qc,ssss(:lnbc(ssss))
+         write(lunc,'(i2,a)') krow_qc,ssss(:lnbc(ssss))
+         read(ssss,*) parname(krow_qc),flag(krow_qc),scale(krow_qc),
+     &   fmt(krow_qc),unit(krow_qc),vmin(krow_qc),vmax(krow_qc)
       end do
-      stop 'increase parameter MGAS'
-88    npar=kpar-1
+      close(lun_qc)
 
 c  Read the header of the .aia file and figure out the
 c  mapping between the gases in the corrections.dat
 c  and those in the .vav file header
       do icol=1,ncol
          pindex(icol)=0
-         do kpar=1,npar
-            temp=headarr(icol)
-            if(temp(1:4).eq.'xao2') temp='x'//temp(3:)
-            if(temp(1:4).eq.'xbo2') temp='x'//temp(3:)
-            if( temp .eq. parname(kpar) ) pindex(icol)=kpar
+         temp=headarr(icol)
+         if(temp(1:4).eq.'xao2') temp='x'//temp(3:)
+         if(temp(1:4).eq.'xbo2') temp='x'//temp(3:)
+         do krow_qc=1,nrow_qc
+            if( temp .eq. parname(krow_qc) ) pindex(icol)=krow_qc
          end do
          if(pindex(icol).eq.0) write(*,*)
      &   ' Parameter missing from QC file: '//headarr(icol)
+         if(headarr(icol).eq.'lat') klat=icol
+         if(headarr(icol).eq.'long') klong=icol
+         if(headarr(icol).eq.'zobs') kzobs=icol
       end do
 
-      headout=' flag'
-      outfmt='(i3'
-      lo=0
+      if(nchar.eq.0  .or. wsp_flag.eq.0) then
+         headout=' flag'
+      else
+         headout=' flag  spectrum'
+      endif
+      outfmt0='(i3'
+      outfmt1='(i3,1x,a38'
+      lof0=0
+      lof1=0
       jj=0
       do icol=1+nchar,ncol
-         kpar=pindex(icol)
-         if(flag(kpar).ge.1) then
-            lo=lnbc(outfmt)
+         krow_qc=pindex(icol)
+         if(flag(krow_qc).ge.1) then
+            lof0=lnbc(outfmt0)
+            lof1=lnbc(outfmt1)
             jj=jj+1
-            ofmt(jj)=fmt(kpar)
-            outfmt=outfmt(:lo)//',1x,'//fmt(kpar)
-            headout=headout(:lnbc(headout))//'  '//
-     &      headarr(icol)(:lnbc(headarr(icol)))//unit(kpar)
+            ofmt(jj)=fmt(krow_qc)
+            outfmt0=outfmt0(:lof0)//',1x,'//fmt(krow_qc)
+            outfmt1=outfmt1(:lof1)//',1x,'//fmt(krow_qc)
+            le=index(headarr(icol),'_error')
+            lh=lnbc(headarr(icol))
+            if(le.eq.0) then
+               headout=headout(:lnbc(headout))//'  '//
+     &         headarr(icol)(:lh)//unit(krow_qc)
+            else
+               headout=headout(:lnbc(headout))//'  '//
+     &         headarr(icol)(:le-1)//
+     &         unit(krow_qc)(:lnbc(unit(krow_qc)))//'_error'
+c     &      headarr(icol)(:lnbc(headarr(icol)))//unit(krow_qc)
+            endif
          endif
       end do
-      outfmt(lo+9:lo+9)=')'
+      outfmt0(lof0+9:lof0+9)=')'
+      outfmt1(lof1+9:lof1+9)=')'
 
-      write(lunw,'(a)') headout(:lnbc(headout))
-      write(lunc,'(a)') headout(:lnbc(headout))
-
-      write(lunw,'(a)') '-----------------------------------------------
-     &-----------------------------------------------------------------'
-      write(lunc,'(a)') '-----------------------------------------------
-     &-----------------------------------------------------------------'
+      write(lunw,'(120a1)') ('-',j=1,120)
+      write(lunc,'(120a1)') ('-',j=1,120)
 c  Read each day of data into memory and multiply XGas values by the
 c  appropriate correction factors.
       nflag=0
@@ -155,21 +197,37 @@ c  appropriate correction factors.
          else
              read(lunr,*,end=99) (yrow(j),j=1,ncol)
          endif
+         if (irow .eq. 1) then
+             write(lunw,'(a)') 'Latitude  Longitude  Altitude  SiteID'
+             write(lunc,'(a)') 'Latitude  Longitude  Altitude  SiteID'
+             write(lunw,'(3f9.3,4x,(a))')
+     &       yrow(klat),yrow(klong),yrow(kzobs),inputfile(1:2)
+             write(lunc,'(3f9.3,4x,(a))')
+     &       yrow(klat),yrow(klong),yrow(kzobs),inputfile(1:2)
+             write(lunw,'(120a1)') ('-',j=1,120)
+             write(lunc,'(120a1)') ('-',j=1,120)
+             write(lunw,'(a)') headout(:lnbc(headout))
+             write(lunc,'(a)') headout(:lnbc(headout))
+         endif
+
+c  Look within each data record to see if any of the data values are
+c  outside their VMIN to VMAX range. If so, set eflag to the index of
+c  the variable that was furthest out of range. Then write out the data.
          nco=0
          eflag=0
          kmax=0
          dmax=0.0
          do icol=1+nchar,ncol
-            kpar=pindex(icol)
-            dev=abs((scale(kpar)*yrow(icol)-vmin(kpar))/
-     &      (vmax(kpar)-vmin(kpar))-0.5)
+            krow_qc=pindex(icol)
+            dev=abs((scale(krow_qc)*yrow(icol)-vmin(krow_qc))/
+     &      (vmax(krow_qc)-vmin(krow_qc))-0.5)
             if(dev.gt.dmax) then
                dmax=dev
-               kmax=kpar
+               kmax=krow_qc
             endif
-            if(flag(kpar).ge.1) then
+            if(flag(krow_qc).ge.1) then
                nco=nco+1
-               yrow(nco)=yrow(icol)*scale(kpar)
+               yrow(nco)=yrow(icol)*scale(krow_qc)
             endif
          end do  ! do icol=1,ncol
          if(dmax.gt.0.5) then
@@ -182,16 +240,35 @@ c         yrow(2)=int(yrow(2))   ! Day
          yrow(1)=nint(yrow(1)-yrow(2)/365.25)   ! Year
          yrow(2)=nint(yrow(2)-yrow(3)/24.0)     ! Day
 
-         write(lunw,outfmt)eflag,(wlimit(dble(yrow(j)),ofmt(j)),j=1,nco)
-         write(ssss,outfmt)eflag,(wlimit(dble(yrow(j)),ofmt(j)),j=1,nco)
+         if(eflag.eq.0.or.wrow_flag.gt.0) then
+            if(nchar.eq.0 .or. wsp_flag.eq.0) then
+                write(lunw,outfmt0)eflag,
+     &          (wlimit(dble(yrow(j)),ofmt(j)),j=1,nco)
+            else
+                write(lunw,outfmt1)eflag,specname,
+     &          (wlimit(dble(yrow(j)),ofmt(j)),j=1,nco)
+            endif
+         endif
+         if(nchar.eq.0 .or. wsp_flag.eq.0) then
+            write(ssss,outfmt0)eflag,
+     &      (wlimit(dble(yrow(j)),ofmt(j)),j=1,nco)
+         else
+            write(ssss,outfmt1)eflag,specname,
+     &      (wlimit(dble(yrow(j)),ofmt(j)),j=1,nco)
+         endif
          call substr(ssss,sarr,mcol,kcol)
-         if(kcol.ne.nco+1) stop 'kcol.ne.nco+1'
+c         if(kcol.ne.nco+wsp_flag+nchar) then
+c            write(*,*)ssss
+c            write(*,*)kcol,nco,wsp_flag,nchar
+c            stop 'kcol.ne.nco+wsp_flag+nchar'
+c         endif
          ssss=sarr(1)
          do k=2,kcol
             cc=sarr(k)
             ssss=ssss(:lnbc(ssss))//','//cc(:lnbc(cc))
          end do
-         write(lunc,'(a)')ssss(:lnbc(ssss))
+         if(eflag.eq.0.or.wrow_flag.gt.0)
+     &   write(lunc,'(a)')ssss(:lnbc(ssss))
       end do         ! do irow=1,9999999
       stop ' irow exceeded 9999999'
 99    close(lunr)
@@ -204,7 +281,7 @@ c         yrow(2)=int(yrow(2))   ! Day
      & the allowed range and the number of such occurrences'
       write(*,*)
       write(*,*)' #   Parameter            N_flag     %'
-      do k=1,npar
+      do k=1,nrow_qc
           if(kflag(k).gt.0) write(*,'(i3,3x,a,i6,f8.1)') k,
      &  parname(k), kflag(k), 100*float(kflag(k))/nrow
       end do

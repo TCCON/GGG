@@ -1,6 +1,6 @@
       subroutine read_sunrun(lun,col1,specname,object,tcorr,oblat,
-     &   oblon,obalt,tins,pins,hins,tout,pout,hout,fvsi,wspd,wdir,
-     &   fmin,fmax,fsf,lasf,wavtkr,aipl,tel_mag,istat)
+     &   oblon,obalt,tins,pins,hins,tout,pout,hout,sia,fvsi,
+     &   wspd,wdir,fmin,fmax,fsf,lasf,wavtkr,aipl,tel_mag,istat)
 c
 c  Reads a single record from a sunrun file, which must already have been opened.
 c  The goal of this subroutine is to hide all the of the code
@@ -38,6 +38,7 @@ c    istat
      & tout,             ! Outside temperature (C)
      & pout,             ! Outside pressure (mbar)
      & hout,             ! Outside humidity (%)
+     & sia,              ! Solar Intensity Average (arbitrary units)
      & fvsi,             ! Fractional Variation in Solar Intensity
      & wspd,             ! Wind speed (m/s)
      & wdir,             ! Wind Direction (deg)
@@ -54,12 +55,12 @@ c    istat
      & specname*(*)      ! spectrum name
 
 1     read(lun,34,end=99) col1,specname,object,tcorr,oblat,oblon,
-     & obalt,tins,pins,hins,tout,pout,hout,fvsi,wspd,wdir,
+     & obalt,tins,pins,hins,tout,pout,hout,sia,fvsi,wspd,wdir,
      & fmin,fmax,fsf,lasf,wavtkr,aipl,tel_mag 
       if( col1.eq.':' .or. col1.eq.';' ) go to 1
 
- 34   format(a1,a35,1x,i2,f8.0,f9.4,f10.4,
-     & f7.3,f6.1,f8.2,f6.1,f6.1,f8.2,f6.1,f6.4,f6.1,f6.0,
+ 34   format(a1,a38,1x,i2,f8.0,f9.4,f10.4,
+     & f7.3,f6.1,f8.2,f6.1,f6.1,f8.2,f6.1,f7.1,f7.4,f6.1,f6.0,
      & 1x,2f7.0,f11.8,f11.3,f7.0,f7.3,f6.2)
       istat=0
       return

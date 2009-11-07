@@ -70,8 +70,8 @@ c  Systematically search over the NPART partitions starting at IPART
            else
              path=partition(ipart)(:lnbc(partition(ipart)))//filnam(:lf)
            endif
-c           write(*,*) path(:lnbc(path))
            inquire(file=path,exist=flexst)
+c           write(*,*) path(:lnbc(path)),lf,flexst
            if(flexst) return              !  success exit  !
            ipart=mod(ipart,npart)+1       ! increment partition index
          end do

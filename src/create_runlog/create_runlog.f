@@ -4,20 +4,21 @@ c
       implicit none
 
       integer*4 bytepw,ifirst,ilast,iy,im,id,jj,jd,i,
-     & lnbc,ispe,ifmin,ifmax,istat,nlhead,ncol,
+     & lnbc,ispe,ifmin,ifmax,istat,nlhead,mcol,ncol,
      & lr,lrt,luns,lunt,possp,doy,one,object
-      parameter (luns=15,lunt=16,one=1)
+      parameter (luns=15,lunt=16,one=1,mcol=40)
 c
       real*8 amal,fovi,fovo,gmt,tins,pins,hins,tout,pout,hout,
      & obalt,asza,azim,snr,wavtkr,zoff,zpoff,oblat,oblon,opd,
-     & lasf,fmin,fmax,fsf,delwav,tcorr,fvsi,wspd,wdir,aipl,
+     & lasf,fmin,fmax,fsf,delwav,tcorr,sia,fvsi,wspd,wdir,aipl,
      & tel_mag,eorv,ervc,osds,tplat,tplon,tpalt,site_solar_noon
 c
 c      logical flexst
       character apf*2,dl*1,ext*3,spfmt*2,logfile*40,outfile*64,
-     & path*128,root*64,dplist*80,specname*35,col1*1,version*52
+     & path*128,root*64,dplist*80,specname*38,col1*1,version*52,
+     & header*512,outarr(mcol)*20
 c
-      version=' CREATE_RUNLOG    Version 8.5.1    05-Feb-2009   GCT'
+      version=' CREATE_RUNLOG    Version 8.6.1    25-Jun-2009   GCT'
       col1=' '
       iy=0
       im=0
@@ -68,21 +69,23 @@ c      write(*,*)root(:lrt)//'sunruns'//dl//ext//dl//logfile
       end do
       outfile=root(:lrt)//'runlogs'//dl//ext//dl//logfile(:lr-2)//'rl'
 c
-      open(lunt,file=outfile,status='unknown')
-      write(lunt,*)3,35
-      write(lunt,'(a)') version
-      write(lunt,'(a)')
-     &  '  Spectrum_File_Name                 Year  Day  Hour'//
-     &  '   oblat    oblon   obalt    ASZA   POFF    AZIM   OSDS'//
+      header=
+     &  '     Spectrum_File_Name                 Year  Day  Hour'//
+     &  '   oblat    oblon   obalt    ASZA    POFF    AZIM   OSDS'//
      &  '    OPD   FOVI  FOVO'//
-     &  '  AMAL  IFIRST   ILAST    DELTA_NU   POINTER  BPW ZOFF SNR'//
+     &  '  AMAL   IFIRST    ILAST    DELTA_NU   POINTER  BPW ZOFF SNR'//
      &  '  APF tins  pins  hins   tout   pout  hout'//
-     &  '  fvsi  wspd  wdir  lasf    wavtkr  aipl'
+     &  '  sia    fvsi   wspd  wdir  lasf    wavtkr  aipl'
+      call substr(header, outarr, mcol, ncol)
+      open(lunt,file=outfile,status='unknown')
+      write(lunt,*)3,ncol
+      write(lunt,'(a)') version
+      write(lunt,'(a)') header(:lnbc(header))
 c
       do ispe=1,9999999  !---------Main loop over spectra----------
          call read_sunrun(luns,col1,specname,object,tcorr,oblat,
-     &   oblon,obalt,tins,pins,hins,tout,pout,hout,fvsi,wspd,wdir,
-     &   fmin,fmax,fsf,lasf,wavtkr,aipl,tel_mag,istat)
+     &   oblon,obalt,tins,pins,hins,tout,pout,hout,sia,fvsi,
+     &   wspd,wdir,fmin,fmax,fsf,lasf,wavtkr,aipl,tel_mag,istat)
          if(istat.ne.0) go to 99
 c
 c  find the spectral file, return the PATH to the spectrum
@@ -93,10 +96,10 @@ c  find the spectral file, return the PATH to the spectrum
             stop
          endif
 
-c         write(*,*)'create_runlog: ',specname,path
          call rdsphead(spfmt,specname,path,ifirst,ilast,possp,
      &   bytepw,apf,delwav,opd,fovi,snr,
      &   iy,im,id,gmt,lasf,wavtkr)
+c         write(*,*)'create_runlog: ',specname,iy,im,id,gmt
 
          fovo=fovi/tel_mag
 c         write(*,*) path,ifirst,ilast,possp,bytepw,apf,delwav
@@ -150,7 +153,7 @@ c
      &   oblon,obalt,asza,zpoff,azim,osds,opd,fovi,fovo,amal,
      &   ifirst,ilast,
      &   delwav,possp,bytepw,zoff,snr,apf,tins,pins,hins,tout,
-     &   pout,hout,fvsi,wspd,wdir,lasf,wavtkr,aipl,istat)
+     &   pout,hout,sia,fvsi,wspd,wdir,lasf,wavtkr,aipl,istat)
          if(mod(ispe,1000).eq.0) write(*,*) ispe
 c
       end do ! -------------Main loop over spectra----------------

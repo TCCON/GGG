@@ -14,7 +14,6 @@ SOURCES := \
   $(TSRC)/compute_vertical_paths.f \
   $(TSRC)/spectrum_loop.f \
   $(TSRC)/do_retrieval.f \
-  $(TSRC)/do_retrieval2.f \
   $(TSRC)/do_retrieval3.f \
   $(TSRC)/subtract_cf.f \
   $(TSRC)/fm.f \
@@ -24,6 +23,7 @@ SOURCES := \
   $(TSRC)/jetspe.f \
   $(TSRC)/write_spt.f \
   $(TSRC)/read_mav.f \
+  $(COMN)/get_ggg_environment.f \
   $(COMN)/abscoi.f \
   $(COMN)/gasdev.f \
   $(COMN)/gct_humlik.f \
@@ -52,8 +52,7 @@ SOURCES := \
   $(COMN)/tlpath.f \
   $(COMN)/vsubs.f \
   $(COMN)/read_isotop.f \
-  $(COMN)/wlimit.f \
-  $(COMN)/zenaz.f
+  $(COMN)/wlimit.f  
 
 OBJECTS := $(patsubst %.f, %.o, $(SOURCES))
 

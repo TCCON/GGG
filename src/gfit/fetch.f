@@ -20,7 +20,7 @@ c  Data is assumed IEEE binary, except bytepw=5,7,9 which is assumed ASCII.
       INTEGER*2 i2dum
       REAL*4 buf(npts),r4dum,freq,tm
       integer*4 iscale    !DG000909
-      real*4 xscale,rdum
+      real*4 xscale
 c
 c  Determine which kind of computer we are running on; big- or little-endian
       call getendian(iend)      !  iend = +1 on SUN; = -1 on PC
@@ -87,7 +87,8 @@ c
             buf(jpts)=buf(jpts)/20000.
          end do
 c
-      elseif(bytepw.eq.7) then    ! its a .spt output file
+c  The spectral signal is in the third column, e.g. an spt output file
+      elseif(bytepw.eq.7) then 
          open(19,file=specpath,status='old')
          read(19,*) nlhead, ncol
          call skiprec(19,nlhead-1+iskip/7)  !  Skip header & unwanted data
@@ -95,12 +96,16 @@ c
             read(19,*)freq,tm,buf(jpts)  ! read wanted data
          end do
 c
-      elseif(bytepw.eq.9) then    ! its a simple xyplot-format frequency-signal.
+c  The spectral signal is in the second column
+      elseif(bytepw.eq.9) then 
          open(19,file=specpath,status='old')
          read(19,*) nlhead, ncol
          call skiprec(19,nlhead-1+iskip/9)  !  Skip header & unwanted data
+c         write(*,*)'iskip=',iskip,iskip/9
          do jpts=1,npts  !
             read(19,*)freq,buf(jpts)  ! read wanted data
+c            if(jpts.eq.1) write(*,*)freq,buf(jpts)
+c            if(jpts.eq.npts) write(*,*)freq,buf(npts)
          end do
       else
          write(*,*)'BYTEPW=',bytepw

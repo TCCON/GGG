@@ -8,7 +8,7 @@ c  Arrays YOBS and YERR are physically 1-D for maximum flexibility,
 c  but conceptually they are effectively 2-D arrays YOBS(nrow,nwin)
 c  and are treated as such in the averaging_with XXX_bias subroutines
       implicit none
-      integer irow,j,jj,k,lnbc,mlabel,mval,navg,iav,
+      integer irow,jj,k,lnbc,mlabel,mval,navg,iav,
      & lr,lunr,lunw,luno,lunt,mwin,nwin,iwin,ngas,kgas,
      & mrow,mauxcol,nauxcol,nlhead,mgas,ncol,jcol,icol,cwas,jav,
      & nrow,nss,locnaux,loc,lwas
@@ -25,12 +25,12 @@ c  and are treated as such in the averaging_with XXX_bias subroutines
 
       integer avindx(mgas+1), naux, nchar
       character
-     & gfit_version*48,gsetup_version*48,
+     & gfit_version*64,gsetup_version*64,
      & collabel*(mlabel),swfile*80,avfile*80,
      & sign(mrow)*1,ftype*1,
      & clab(2*mwin+mauxcol)*17,
-     & collate_version*48,ar_version*62,
-     & spectrum(mrow)*35, 
+     & collate_version*64,ar_version*64,
+     & spectrum(mrow)*38, 
      & avlabel(mgas+1)*8,
      & input_fmt*40, output_fmt*40
 
@@ -44,9 +44,10 @@ c  and are treated as such in the averaging_with XXX_bias subroutines
      & bias(mwin),ebias(mwin)
 
       ar_version=
-     &' average_results              version 1.1.0   2009-03-02   GCT'
+     &' average_results              Version 1.1.2   2009-11-07   GCT'
       write(*,*) ar_version
       nchar=0
+      loc=0
 
       write(*,'(a)')
      & 'Enter name of .?sw file whose contents are to be averaged'
@@ -64,14 +65,14 @@ c  Read the entire contents of the .xsw disk file
       read(lunr,'(a)') collate_version
       read(lunr,'(a)') gfit_version
       read(lunr,'(a)') gsetup_version
-      read(lunr,'(8x,1016(e12.4))') (ymiss,j=1,ncol)
+      read(lunr,*) ymiss
       read(lunr,'(a)') collabel
       if (index(collabel, 'Spectrum') .gt. 0) nchar=1
       naux=nauxcol+nchar         ! ncol includes spectrum name
       nwin=(ncol-naux)/2
 
       if (nchar .eq. 1) then
-         input_fmt='(a1,(a35,1x),f13.8,NNf13.5,800(e12.4))'
+         input_fmt='(a1,(a38,1x),f13.8,NNf13.5,800(e12.4))'
          write(input_fmt(20:21),'(i2.2)') nauxcol-1
       else
          input_fmt='(a1,f13.8,NNf13.5,800(e12.4))'
@@ -80,7 +81,6 @@ c  Read the entire contents of the .xsw disk file
 
       do irow=1,mrow
         if (nchar .eq. 1) then
-c           read(lunr,'(a1,(a35,1x),f13.8,22f13.5,800(e12.4))',end=99)
            read(lunr,input_fmt,end=99)
      $     sign(irow),spectrum(irow),year(irow),
      $     (yaux(k,irow),k=2,nauxcol),
@@ -187,7 +187,7 @@ c
 c
 
       if (nchar .eq. 1) then
-         output_fmt='(a1,(a35,1x),f13.8,NNf13.5,200(1pe12.4))'
+         output_fmt='(a1,(a38,1x),f13.8,NNf13.5,200(1pe12.4))'
          write(output_fmt(20:21),'(i2.2)') nauxcol-1
       else
          output_fmt='(a1,f13.8,NNf13.5,200(1pe12.4))'
@@ -201,14 +201,12 @@ c  Write averaged values to file
       write(lunw,'(a)') collate_version(:lnbc(collate_version))
       write(lunw,'(a)') gfit_version(:lnbc(gfit_version))
       write(lunw,'(a)') gsetup_version(:lnbc(gsetup_version))
-      write(lunw,'(a8,219(1pe12.4))')'MISSING:',
-     &  (ymiss,j=1,naux+2*ngas)
+      write(lunw,'(1pe12.4,a)') ymiss,'   ! missing value'
       write(lunw,'(a,60(a8,2x,a14))') collabel(:locnaux),
      & (avlabel(kgas)(:lnbc(avlabel(kgas))),
      &  avlabel(kgas)(:lnbc(avlabel(kgas)))//'_error',kgas=1,ngas)
       do irow=1,nrow
         if (nchar .eq. 1) then
-c           write(lunw,'(a1,(a35,1x),f13.8,22f13.5,200(1pe12.4))')
            write(lunw,output_fmt)
      &     sign(irow),spectrum(irow),year(irow),
      &     (yaux(k,irow),k=2,nauxcol),

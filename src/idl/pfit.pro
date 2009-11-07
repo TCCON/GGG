@@ -11,7 +11,7 @@ print, 'Display depth = ', depth
 print, 'Color table size = ', !d.table_size
 
 ncol=0
-mss=19   ; Maximum number of sub-strings (Freq, Tm  Tc  + 15 target gases)
+mss=20   ; Maximum number of sub-strings (Freq, Tm  Tc  + 15 target gases)
 xunit=1  ; nm
 xunit=0  ; cm-1
 color=string('t')
@@ -127,13 +127,13 @@ two:
   print,nhl,ncol,path(kspec)
   ntgas=ncol-3  ; the first 3 columns are Freq, Tm, Tc, Other, Solar
   if(ntgas gt 2) then begin
-     readf,unit,format='(2f14.6,i7,3f8.3,f7.4,f7.3,1x,i3,f4.1,1x,i3)',$
+     readf,unit,format='(2f14.6,i7,3f8.3,1x,f7.4,f7.3,1x,i3,f4.1,1x,i3)',$
      fmin,fmax,npoints,asza,zobs,tang,rms,colmant,colexp,errmant,errexp
      expont=max([colexp,errexp])
      burden=colmant*(10^(colexp-expont))
      berr=errmant*(10^(errexp-expont))
   endif else begin
-     readf,unit,format='(2f14.6,i7,3f8.3,f7.4)',$
+     readf,unit,format='(2f14.6,i7,3f8.3,1x,f7.4)',$
      fmin,fmax,npoints,asza,zobs,tang,rms
      burden=0.0
      berr=0.0

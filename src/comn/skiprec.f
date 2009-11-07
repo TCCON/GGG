@@ -1,11 +1,17 @@
       subroutine skiprec(lun,nrec)
-c  Skips NREC records of the already open logical unit number LUN
-c  This avoids having multiple read(lun,*) statements in the main program
-c  or avoids having to set up do loops to perform the multiple reads.
+c  Skips NREC records of the already open logical unit number LUN.
+c  Avoids having multiple read(lun,*) or backspace(lun) statements in
+c  the main program or setting up do-loops containing read/backspaces.
       implicit none
       integer*4 lun,irec,nrec
-      do irec=1,nrec
-         read(lun,*)
-      end do
+      if (nrec.gt.0) then
+         do irec=1,nrec
+            read(lun,*)
+         end do
+      elseif(nrec.lt.0) then
+         do irec=nrec,-1
+            backspace(lun)
+         end do
+      endif
       return
       end

@@ -15,11 +15,14 @@ SOURCES := \
  $(TSRC)/readmenu.f \
  $(TSRC)/readmodFC.f \
  $(TSRC)/readvmrFC.f \
+ $(COMN)/get_ggg_environment.f \
  $(COMN)/fbc.f \
  $(COMN)/fnbc.f \
  $(COMN)/height.f \
  $(COMN)/lnbc.f \
  $(COMN)/vsubs.f \
+ $(COMN)/julian.f \
+ $(COMN)/caldat.f \
  $(COMN)/lowercase.f \
  $(COMN)/read_runlog.f \
  $(COMN)/read_isotop.f \

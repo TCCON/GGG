@@ -20,8 +20,7 @@ c
      & interp,iset,iyr,j,k,w1,w2,le,lg,lc,lnbc,lrt,lunr,lun_ray,lun_ggg,
      & lun_rlg,lun_mul,lun_pp,lun_mav,lun_rpt,lun_mod,lun_vmr,lunz,
      & mlev,nlev,nlhead_rlg,nlhead_ray,nlhead_ggg,
-     & lr,la,mgas,i,ncol,
-c    & platform,
+     & lr,la,mgas,i,ncol,doy,iyyyy,imm,idd,jul,
      & multipath, nspe,possp,rc,istat,lm,lv,gas_in_cell,
      & lmn,lvn,lun_men
       parameter (lun_men=12)     ! for reading the various .men files
@@ -85,6 +84,7 @@ c    & platform,
      & tout,             ! Outside temperature
      & pout,             ! Outside pressure
      & hout,             ! Outside humidity
+     & sia,              ! Solar Intensity Average (arbitrary units)
      & fvsi,             ! Fractional Variation in Solar Intensity
      & wspd,             ! Wind Speed (m/s)
      & wdir,             ! Wind Direction (deg)
@@ -103,6 +103,7 @@ c    & platform,
      & header*92,          ! general purpose character buffer
      & levels*24,          ! name of file containing levels
      & listof*24,          ! the selected list of windows
+     & newmkivname*10,     ! path to new model
      & modname*80,         ! path to new model
      & newmodname*80,      ! path to new model
      & vmrname*80,         ! path to new vmr
@@ -110,43 +111,27 @@ c    & platform,
      & menuinput*80,       ! path to xxx.men file
      & prvwin*14,          ! name of previous window (i.e. GAS_1234)
      & root*64,            ! root directory
-     & specname*35,        ! name of spectrum
+     & specname*38,        ! name of spectrum
      & runlog*40,          ! name of occultation file
      & slk*1,              ! symbol which links gas name and frequency
      & col1,               ! 
      & ccell*1,            ! Character in specname denoting internal cell 
 c     & user*8,             ! investigator
-     & version*46,         ! program version number
+     & version*64,         ! program version number
      & isofile*80,         ! path to "isotopolog.dat"
      & vmrlabel*1000,      ! column labels from vmr file
-     & window*120          ! name of window
+     & window*120         ! name of window
 
-      version= ' GSETUP Version 2.7.5       6 Mar 2009    GCT '
+      version=
+     & ' GSETUP                   Version 2.7.13   03-Oct-2009    GCT '
       modname='                                                '
       vmrname='                                                '
       filnamwas='qwertyuioqwertyuioqwertyuioqwertyuio'
-ccxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-cc     Platform specification:                                                    DG000909
-c      call getenv('LOGNAME',user)
-c      if(user.eq.'        ')then ! It's not a Unix/Linux machine
-c         platform=2               !2=PC-Win32
-c         dl=char(92)              !Back-slash  ('\')
-c         root='g:'//dl            !DG Jan03
-c         user='PC-Win'
-c      else                       ! It's a Unix/Linux machine
-c         platform=0            
-c         dl='/'
-c         call getenv('GGGPATH',root)
-c         root=root(:lnbc(root))//dl
-cc         root='/home/toon/ggg/'
-c      endif
-c      lrt=lnbc(root)       !Length of root
-cxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-      dl='/'
-      call getenv('GGGPATH',root)
-      root=root(:lnbc(root))//dl
-      lrt=lnbc(root)       !Length of root
-c---------------------------------------------------------------------
+
+c     Platform specification:      DG090519
+      call get_ggg_environment(root, dl)
+      lrt=lnbc(root)     !Length of root
+
       slk='_'
       ext(1:3)='   '
       open(lun_rpt,file='gsetup.rpt', status='unknown')
@@ -195,7 +180,11 @@ c  choose which list of windows to analyze
       call readmenu(lun_men,menuinput,listof)
 
 c  read the individual microwindows and create the xxxxxxxx.ggg input files
-      open(lun_mul,file='multiggg.sh',status='unknown')     
+      if(dl.eq.char(92))then  ! Back-Slash (\)
+          open(lun_mul,file='multiggg.bat',status='unknown')
+      else
+          open(lun_mul,file='multiggg.sh',status='unknown')
+      endif
       open(lunr,file=root(:lrt)//'windows'//dl//ext
      $ //dl//listof(:lnbc(listof)),status='old')
       read(lunr,'(a91)') header
@@ -260,8 +249,13 @@ c        write(lun_ggg,'(a)') filnam(lnbc(filnam)-11:lnbc(filnam)-3)//'col'
         write(lun_ggg,'(a)') window
         close(lun_ggg)
 c
-        write(lun_mul,'(a)') root(:lrt)//'bin'//dl//'gfit<'//
-     $  filnam(:lnbc(filnam))//'>/dev/null'
+        if(dl.eq.char(92))then    ! Back-Slash (\)
+          write(lun_mul,'(a)') root(:lrt)//'bin'//dl//'gfit<'//
+     $    filnam(:lnbc(filnam))
+        else
+          write(lun_mul,'(a)') root(:lrt)//'bin'//dl//'gfit<'//
+     $    filnam(:lnbc(filnam))//'>/dev/null'
+        endif
       end do   !  k=1,999999
  103  close(lunr)
       close(lun_mul)
@@ -297,9 +291,9 @@ c  Get the header/runlog information pertaining to RUNLAB
      & oblon,obalt,asza,zenoff,azim,osds,
      & opd,fovi,fovo,amal,ifirst,ilast,
      & graw,possp,bytepw,zoff,snr,apf,tins,pins,hins,
-     & tout,pout,hout,fvsi,wspd,wdir,lasf,wavtkr,aipl,istat)
+     & tout,pout,hout,sia,fvsi,wspd,wdir,lasf,wavtkr,aipl,istat)
        la=lnbc(specname)
-c       write(*,*)istat,la,' '//specname
+c       write(*,*)'read_runlog:',istat,la,' '//specname
        if(istat.ne.0) go to 99   !  EOF
        frqcen=(ifirst+ilast)*graw/2
 c
@@ -312,27 +306,40 @@ c  Fudge to allow nadir viewing (double path)
       endif
       solzen=sngl(asza+zenoff)
       nspe=nspe+1
-      if(mod(nspe,1000).eq.0) write(*,*) nspe,' spectra'
+      if(mod(nspe,1000).eq.0) write(*,*) nspe,' spectra....'
 
 c  Figure out whether the spectrum was through an internal cell.
       p_cell=0.0
       cell_length=0.0
       if(la.ge.20) then
-         ccell=specname(12:12)
-c         if( ccell.eq.'a' .or. ccell.eq.'b' .or. ccell.eq.'c') then
-         if( ccell.ne.'0') then
-            cell_length=0.0001 ! km (10cm)
-            p_cell=5.097       ! mbar ! OCO Brukers have internal cells
-            gas_in_cell=15     ! HCl
-         endif
+         if(specname(1:2).ne.'ss'.and.specname(1:2).ne.'sr') then ! skip ACE spectra
+           ccell=specname(12:12)
+           if( ccell.ne.'0') then
+             cell_length=0.0001 ! km (10cm)
+             p_cell=5.097       ! mbar ! OCO Brukers have internal cells
+             gas_in_cell=15     ! HCl
+           endif
+	   endif
       endif
 c
       if(specname(2:3).eq.'hg' .or. specname(2:3).eq.'in') then
          if(la.lt.8) stop 'la<8'
 c         newmodname=runlog(1:5)//specname(4:8)//'.mod'  ! MkIV
 c         newvmrname=runlog(1:5)//specname(4:8)//'.vmr'  ! MkIV
-         newmodname=ext//specname(4:8)//'.mod'  ! MkIV
-         newvmrname=ext//specname(4:8)//'.vmr'  ! MkIV
+c         newmodname=ext//specname(4:8)//'.mod'  ! MkIV
+c         newvmrname=ext//specname(4:8)//'.vmr'  ! MkIV
+         read(specname(4:8),'(i2,i3)')iyyyy,doy
+c  Convert YYDDD-style date to YYYYMMDD
+         if(iyyyy.lt.80) then
+            iyyyy=iyyyy+2000
+         else
+            iyyyy=iyyyy+1900
+         endif
+         call julian(iyyyy,1,doy,jul)
+         call caldat(jul,iyyyy,imm,idd)
+         write(newmkivname,'(a2,i4,i2.2,i2.2)')runlog(1:2),iyyyy,imm,idd
+         newmodname=newmkivname//'.mod'  ! MkIV
+         newvmrname=newmkivname//'.vmr'  ! MkIV
       elseif(specname(7:9).eq.'R0.') then  ! Kitt Peak
          if(specname(1:1).eq.'7' .or. specname(1:1).eq.'8' .or.
      &   specname(1:1).eq.'9' ) then
@@ -441,7 +448,7 @@ c      write(*,*) specname,newmod,newvmr
          write(lun_mav,'(a)')'Next Spectrum:'//specname
          ppbl_atm=0.0
          ptrop_atm=ptrop/1013.25
-c         write(*,*)modname,h2ovmr(1),h2ovmr(2),h2ovmr(3),h2ovmr(4)
+c         write(*,*)modname,t_cell,p_cell
          call setvmr(vmr,mgas,z,t,p,h2ovmr,co2vmr,nlev,iyr,iset,
      &   zpdtim,oblat,oblon,obalt,tout,pout,hout,ptrop_atm,ppbl_atm)
          call write_mav(z,t,p,d,vmr,nlev,lun_mav,
@@ -492,10 +499,10 @@ c         if(nlev.gt.1) stop 'vmrs dont extend high enough'
          splos(ilev)=splos(ilev)+aipl*(p(ilev-1)-pout/1013.25)/delta_p
        endif
 c
-      write(lun_ray,'(a35,7f10.4,250(1x,f9.4))')specname,obalt,pout,
+      write(lun_ray,'(a38,7f10.4,250(1x,f9.4))')specname,obalt,pout,
      & solzen,bend,fovo,zmin,cell_length,
      & (wlimit(dble(multipath)*splos(j),'f9.4'),j=1,nlev)
-      write(lun_rpt,'(a35,7f10.4)')specname,obalt,pout,solzen,
+      write(lun_rpt,'(a38,7f10.4)')specname,obalt,pout,solzen,
      & bend,fovo,zmin,cell_length 
       go to 1
  99   close(lun_rlg)
@@ -504,42 +511,81 @@ c
       close(lun_rpt)
       if(nspe.le.0)write(6,*)'none of these spectra could be accessed'
       if(nspe.le.0)write(6,*)'or error reading runlog (wrong format?)'
-      write(*,*) nspe,' spectra'
+      write(*,*) nspe,' spectra total'
 
 c  Code to generate post_processing.sh batch file and associated inputs.
 
-      open(lun_pp,file='post_processing.sh',status='unknown')     
+      if(dl.eq.char(92))then ! Back-Slash (\)
+        open(lun_pp,file='post_processing.bat',status='unknown')     
+        write(lun_pp,'(a)')
+     &  root(:lrt)//'bin'//dl//'collate_results<collate.input'
+        open(lunz,file='collate.input', status='unknown')
+        write(lunz,'(a)') og
+        close(lunz)
+        write(lun_pp,'(a)')root(:lrt)//'bin'//dl//'average_results<'//
+     &  'average_results.input'
+        open(lunz,file='average_results.input',status='unknown')
+        write(lunz,'(a)') runlog(:lr-3)//og//'sw'
+        close(lunz)
+        write(lun_pp,'(a)')
+     &   root(:lrt)//'bin'//dl//'apply_airmass_correction<'//
+     &  'apply_airmass_correction.input'
+        open(lunz,file='apply_airmass_correction.input',
+     &  status='unknown')
+        write(lunz,'(a)') runlog(:lr-3)//og//'av'
+        close(lunz)
+        write(lun_pp,'(a)')
+     &  root(:lrt)//'bin'//dl//'apply_insitu_correction<'//
+     &  'apply_insitu_correction.input'
+        open(lunz,file='apply_insitu_correction.input',status='unknown')
+        write(lunz,'(a)') runlog(:lr-3)//og//'av.ada'
+        close(lunz)
+        write(lun_pp,'(a)') 
+     &  root(:lrt)//'bin'//dl//'write_official_output_file<'//
+     &  'write_official_output_file.input'
+        open(lunz,file='write_official_output_file.input',
+     &  status='unknown')
+        write(lunz,'(a)') runlog(:lr-3)//og//'av.ada.aia'
+        close(lunz)
+      else
+        open(lun_pp,file='post_processing.sh',status='unknown')     
 
-      write(lun_pp,'(a)')'~/ggg/bin/collate_results<.collate.input'
-      open(lunz,file='.collate.input', status='unknown')
-      write(lunz,'(a)') og
-      close(lunz)
+        write(lun_pp,'(a)')
+     &  root(:lrt)//'bin/collate_results<.collate.input'
+        open(lunz,file='.collate.input', status='unknown')
+        write(lunz,'(a)') og
+        close(lunz)
 
-      write(lun_pp,'(a)')'~/ggg/bin/average_results<'//
-     &'.average_results.input'
-      open(lunz,file='.average_results.input',status='unknown')
-      write(lunz,'(a)') runlog(:lr-3)//og//'sw'
-      close(lunz)
+        write(lun_pp,'(a)')root(:lrt)//'bin/average_results<'//
+     &  '.average_results.input'
+        open(lunz,file='.average_results.input',status='unknown')
+        write(lunz,'(a)') runlog(:lr-3)//og//'sw'
+        close(lunz)
 
-      write(lun_pp,'(a)') '~/ggg/bin/apply_airmass_correction<'//
-     &'.apply_airmass_correction.input'
-      open(lunz,file='.apply_airmass_correction.input',status='unknown')
-      write(lunz,'(a)') runlog(:lr-3)//og//'av'
-      close(lunz)
+        write(lun_pp,'(a)') 
+     &  root(:lrt)//'bin/apply_airmass_correction<'//
+     &  '.apply_airmass_correction.input'
+        open(lunz,file='.apply_airmass_correction.input',
+     &  status='unknown')
+        write(lunz,'(a)') runlog(:lr-3)//og//'av'
+        close(lunz)
 
-      write(lun_pp,'(a)') '~/ggg/bin/apply_insitu_correction<'//
-     &'.apply_insitu_correction.input'
-      open(lunz,file='.apply_insitu_correction.input',status='unknown')
-      write(lunz,'(a)') runlog(:lr-3)//og//'av.ada'
-      close(lunz)
+        write(lun_pp,'(a)')
+     &   root(:lrt)//'bin/apply_insitu_correction<'//
+     &  '.apply_insitu_correction.input'
+        open(lunz,file='.apply_insitu_correction.input',
+     &  status='unknown')
+        write(lunz,'(a)') runlog(:lr-3)//og//'av.ada'
+        close(lunz)
 
-      write(lun_pp,'(a)') '~/ggg/bin/write_official_output_file<'//
-     &'.write_official_output_file.input'
-      open(lunz,file='.write_official_output_file.input',
-     & status='unknown')
-      write(lunz,'(a)') runlog(:lr-3)//og//'av.ada.aia'
-      close(lunz)
-
+        write(lun_pp,'(a)')
+     &   root(:lrt)//'bin/write_official_output_file<'
+     &  //'.write_official_output_file.input'
+        open(lunz,file='.write_official_output_file.input',
+     &  status='unknown')
+        write(lunz,'(a)') runlog(:lr-3)//og//'av.ada.aia'
+        close(lunz)
+	endif
       close(lun_pp)
       stop
       end

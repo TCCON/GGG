@@ -20,6 +20,7 @@ SOURCES := \
  $(COMN)/fbc.f \
  $(COMN)/rbyte.f \
  $(COMN)/subsolar.f \
+ $(COMN)/substr.f \
  $(COMN)/read_sunrun.f \
  $(COMN)/write_runlog.f \
  $(COMN)/wlimit.f \
