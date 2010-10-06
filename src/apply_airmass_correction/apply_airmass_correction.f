@@ -1,4 +1,4 @@
-c  Program: derive_airmass_dependence.f
+c  Program: apply_airmass_dependence.f
 c
 c  Purpose: To apply the airmass correction to the data in the
 c  selected .vav file
@@ -9,10 +9,12 @@ c  where
 c   yin(i,k) is the column measured for the k'th gas from the i'th spectrum
 c   yout(i,k) is the DMF of the k'th gas from the i'th spectrum
 c   ADCF(j) is the Airmass-Dependent Correction Factor for the k'th gas
+c   SBF(i) is the Symmetric Basis Function (symmetric about solar noon)
 c   SBF(i) = ((SZA(i)+13)/(90+13))**3 - ((45+13)/(90+13))**3
 c   SZA(i) is the Solar Zenith Angle of the i'th spectrum.
-c
-c  SBF is zero at SZA=45 deg, is -0.122 at SZA=0, is 0.875 at SZA=77
+c   SBF is zero at SZA=45 deg, -0.122 at SZA=0, and 0.875 at SZA=77 deg.
+c   Over the range of SZAs (0-80 deg) encounted at a site, SBF changes by ~1,
+c   so ADCF is a good estimate of the size of the airmass correction.
 c
 c
 c  Input Files:
@@ -31,11 +33,11 @@ c
       real*8 yrow(mcol),adcf(mgas),aicf(mgas),cf(mcol),fu,sbf,vc_air
       character specname*38
 
-      integer nchar 
-      nchar=0
+      integer*4 specflag 
+      specflag=0
 
       version=
-     &' apply_airmass_correction     Version 1.1.2   2009-11-07   GCT'
+     &' apply_airmass_correction     Version 1.1.4   2010-12-03   GCT'
       write(*,*) version
       call getenv('GGGPATH',gggdir)
       ko2=0
@@ -65,9 +67,8 @@ c  Factors (AICF) for each gas. Only the former is used by this prog.
       open(lunr,file=inputfile, status='old')
       open(lunw,file=outputfile,status='unknown')
 
-c  Read the header of the .vav file and figure out the
-c  mapping between the gases in the corrections.dat
-c  and those in the .vav file header
+c  Read the header of the .vav file and copy it to the output
+c  file,adding the cirrection coefficients
       read(lunr,'(i2,i4,i7,i4)') ncoml,ncol,nrow,naux
       write(lunw,'(i2,i4,i7,i4)') ncoml+1+ngas+1,ncol,nrow,naux
       write(lunw,'(a)') version
@@ -82,13 +83,16 @@ c  and those in the .vav file header
       end do
       read(lunr,'(a)') header
       call substr(header,headarr,mcol,kcol)
-      if (index(header,'Spectrum') .gt. 0) nchar=1
-      write(*,*) index(header,'Spectrum') 
-      do j=naux+nchar+1,ncol
+      if (index(header,'spectrum') .gt. 0) specflag=1
+c      write(*,*) index(header,'spectrum') 
+      do j=naux+1,ncol
         headarr(j)='x'//headarr(j)
       end do
       write(lunw,'(100a12)') (headarr(j),j=1,ncol)
       if(kcol.ne.ncol ) stop 'ncol/kcol mismatch'
+
+c  Figure out the mapping between the gases in the corrections.dat
+c  and those in the .vav file header
       do jcol=1,ncol
          cf(jcol)=0.0
          do kgas=1,ngas
@@ -98,24 +102,24 @@ c  and those in the .vav file header
          end do
          if(headarr(jcol) .eq. 'xo2') ko2=jcol
          if(headarr(jcol) .eq. 'asza') ksza=jcol
-         if(jcol.gt.naux+nchar) write(*,'(i3,f8.4,2x,a)')
+         if(jcol.gt.naux) write(*,'(i3,f8.4,2x,a)')
      &   jcol,cf(jcol),headarr(jcol)
       end do
 
       if(ko2.eq.0) stop ' o2 column not found'
       if(ksza.eq.0) stop ' asza column not found'
 
-      if (nchar .eq. 1) then
+      if (specflag .eq. 1) then
          output_fmt='(a35,f14.8,NNf13.5,200(1pe12.4))'
-         write(output_fmt(12:13),'(i2.2)') naux-1
+         write(output_fmt(12:13),'(i2.2)') naux-2
       else 
          output_fmt='(f14.8,NNf13.5,200(1pe12.4))'
          write(output_fmt(8:9),'(i2.2)') naux-1
       endif
 c  Read each day of data into memory.
       do irow=1,9999999
-         if (nchar .eq. 1) then 
-             read(lunr,*,end=99) specname, (yrow(j),j=1+nchar,ncol)
+         if (specflag .eq. 1) then 
+             read(lunr,*,end=99) specname, (yrow(j),j=2,ncol)
          else
              read(lunr,*,end=99) (yrow(j),j=1,ncol)
          endif
@@ -125,7 +129,7 @@ c  Read each day of data into memory.
      &     '  (lamp run?)  Your output file will contain Inf'
          endif
          sbf=((yrow(ksza)+13)/(90+13))**3-((45.+13)/(90+13))**3  ! Symmetric Basis Function
-         do k=naux+nchar+1,ncol-1,2
+         do k=naux+1,ncol-1,2
             if(k.eq.ko2) then
               fu=yrow(k+1)/yrow(k)                 ! fractional uncertainty
             else
@@ -134,8 +138,8 @@ c  Read each day of data into memory.
             yrow(k)=yrow(k)/vc_air/(1+cf(k)*sbf)   ! apply airmass correction
             yrow(k+1)=yrow(k)*fu
          end do
-         if (nchar .eq. 1) then
-            write(lunw,output_fmt) specname, (yrow(j),j=1+nchar,ncol)
+         if (specflag .eq. 1) then
+            write(lunw,output_fmt) specname, (yrow(j),j=2,ncol)
          else
             write(lunw,output_fmt) (yrow(j),j=1,ncol)
          endif

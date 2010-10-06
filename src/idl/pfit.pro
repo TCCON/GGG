@@ -31,7 +31,8 @@ xuplim=string("a")
 ylolim=string("a")
 yuplim=string("a")
 same_window=0
-mspec=150000
+npoints=long(0)
+mspec=long(350000)
 path=strarr(mspec)
 termtp=string('xwin')
 xtxt   = fltarr(80)
@@ -45,7 +46,7 @@ psn=1
 idn=0
 ttyp=0
 vbar_was=0.
-version=string('pfit  v.4.5.1    11-Oct-2008    GCT')
+version=string('pfit  v.4.5.1    24-Feb-2010    GCT')
 print,version
 
 disk=getenv('GGGPATH')+'/'
@@ -75,6 +76,7 @@ print,idot+1, strmid(occul,idot+1,1)
 ;
 case strmid(occul,idot+1,1) of
    'g': openr,unit,string(disk,'runlogs/gnd/',occul),/get_lun
+   'a': openr,unit,string(disk,'runlogs/air/',occul),/get_lun
    'b': openr,unit,string(disk,'runlogs/bal/',occul),/get_lun
    'o': openr,unit,string(disk,'runlogs/orb/',occul),/get_lun
    'l': openr,unit,string(disk,'runlogs/lab/',occul),/get_lun
@@ -124,17 +126,19 @@ two:
   openr,unit,path(kspec), /get_lun
   on_ioerror,closeunit
   readf,unit,nhl,ncol
-  print,nhl,ncol,path(kspec)
   ntgas=ncol-3  ; the first 3 columns are Freq, Tm, Tc, Other, Solar
+  print,nhl,ncol,path(kspec),ntgas
   if(ntgas gt 2) then begin
-     readf,unit,format='(2f14.6,i7,3f8.3,1x,f7.4,f7.3,1x,i3,f4.1,1x,i3)',$
-     fmin,fmax,npoints,asza,zobs,tang,rms,colmant,colexp,errmant,errexp
+     readf,unit,format='(2f14.6,i7,3f8.3,1x,2f7.4,f7.3,1x,i3,f4.1,1x,i3)',$
+     fmin,fmax,npoints,asza,zobs,tang,rms,frac,colmant,colexp,errmant,errexp
+     print,fmin,fmax,npoints,asza,zobs,tang,rms,frac
      expont=max([colexp,errexp])
      burden=colmant*(10^(colexp-expont))
      berr=errmant*(10^(errexp-expont))
+     print,burden,berr
   endif else begin
-     readf,unit,format='(2f14.6,i7,3f8.3,1x,f7.4)',$
-     fmin,fmax,npoints,asza,zobs,tang,rms
+     readf,unit,format='(2f14.6,i7,3f8.3,1x,2f7.4)',$
+     fmin,fmax,npoints,asza,zobs,tang,rms,frac
      burden=0.0
      berr=0.0
      expont=0
@@ -155,9 +159,15 @@ two:
   endif
   vbar_was=0.5*(fmin+fmax)
 ;
+;  print,"defining datarray: ",3+ntgas,npoints
+;  datarray=dblarr(3+ntgas,npoints)
+;  readf,unit,datarray
+; Moved these 3 lines May 19, 2010
+closeunit:
+  print,"defining datarray: ",3+ntgas,npoints
   datarray=dblarr(3+ntgas,npoints)
   readf,unit,datarray
-closeunit:
+
   close,unit
   free_lun,unit
   if npoints le 0 then goto,two
@@ -182,7 +192,9 @@ closeunit:
 ;  find the highest and lowest data point for each category
   yloarr=fltarr(ntgas+3)
   yhiarr=fltarr(ntgas+3)
+  print,'npoints,ntgas=',npoints,ntgas
   for tt=0,ntgas+2 do begin
+    print,tt,npoints,datarray(tt,0),datarray(tt,npoints-1)
     yloarr(tt)=min(datarray(tt,0:npoints-1))
     yhiarr(tt)=max(datarray(tt,0:npoints-1))
   endfor

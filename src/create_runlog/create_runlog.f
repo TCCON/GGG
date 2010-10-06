@@ -14,8 +14,8 @@ c
      & tel_mag,eorv,ervc,osds,tplat,tplon,tpalt,site_solar_noon
 c
 c      logical flexst
-      character apf*2,dl*1,ext*3,spfmt*2,logfile*40,outfile*64,
-     & path*128,root*64,dplist*80,specname*38,col1*1,version*52,
+      character apf*2,dl*1,ext*3,spfmt*2,logfile*40,outfile*94,
+     & path*128,root*90,dplist*80,specname*38,col1*1,version*52,
      & header*512,outarr(mcol)*20
 c
       version=' CREATE_RUNLOG    Version 8.6.1    25-Jun-2009   GCT'
@@ -60,7 +60,7 @@ cxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 c
       spfmt=logfile(lr-1:lr)
-c      write(*,*)root(:lrt)//'sunruns'//dl//ext//dl//logfile
+c     write(*,*)root(:lrt)//'sunruns'//dl//ext//dl//logfile
       open(luns,file=root(:lrt)//'sunruns'//dl//ext//dl//logfile,
      $status='old')
       read(luns,*) nlhead, ncol

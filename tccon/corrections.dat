@@ -6,7 +6,8 @@ of the diurnal variation using program derive_daily_airmass_correction.
 The latter (AICF) is determined offline by comparisons with in situ
 profiles  using the program derive_insitu_correction
  Gas      ADCF   AICF
-"xco2"  -0.0075  0.990
-"xch4"  -0.0000  1.000
-"xn2o"  -0.0000  1.000
+"xco2"  -0.0075  1.000
+"xch4"   0.0000  1.000
+"xn2o"   0.0000  1.000
 "xco"   -0.0000  1.000
+"xh2o"  -0.0000  1.000

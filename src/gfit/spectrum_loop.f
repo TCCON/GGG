@@ -48,11 +48,11 @@ c  mode=1    Does full calculation
      & mtg,ntg,jtg,
      & mfp,nfp,
      & jsp,jva,
-     & lc,lr,lrmax,
+     & lc,lr,
      & interp,
      & defapo,apo_c,apo_m,rc,j,
      & mspxv,
-c     & mslpd,
+     & mslpd,
      & iseed,
      & mlev,nlev,ilev,
      & mit,nit,
@@ -62,12 +62,11 @@ c     & mslpd,
      & nsh,nhwmax,
      & lun_col,lun_spt,lun_mav,lun_ray,lun_rlg,mavfound
 
-      parameter (mmp=1250000,mva=80000000,mcp=1240000,
+      parameter (mmp=360000,mva=80000000,mcp=1240000,
      & nscycle=25,
-     & mvmr=28000,mtg=16,mfp=mtg+4,mii=103847,mlev=200,
-c     & mslpd=10*mmp*mtg,
-     & mspxv=5*mcp)
-
+     & mvmr=28000,mtg=25,mfp=mtg+4,mii=103847,mlev=200,
+     & mslpd=10*mmp*mtg,mspxv=5*mcp)
+c 20100907 DW changed mtg from 15 to 25
       parameter (lun_apx=23,lun_sts=24,lun_rlg=25,lun_ak=26,
      & lun_ray=27,lun_mav=28,lun_spt=29)
 
@@ -97,7 +96,7 @@ c     & mslpd=10*mmp*mtg,
      & corrld,           ! Factor=[apodixed resolution]/[spectral point spacing
      & solar_gas_shift,sgshift,
      & zero,unity,fovcf,
-c     & slpd(mslpd),
+     & slpd(mslpd),
      & pd((mmp+mfp)*mfp), spts(mcp),
      & spxv(mspxv),
      & dspdzxv(mspxv),
@@ -166,8 +165,7 @@ c     & slpd(mslpd),
       parameter (zero=0.0,unity=1.0,ckm2cm=1.0E+05,pi=3.14159265,
      & mspectra=999999)
 c
-      save lrmax,ispec,resmax,ncall
-      data lrmax/0/
+      save ispec,resmax,ncall
       data ispec/0/
       data ncall/0/
       data resmax/0.0/
@@ -183,13 +181,6 @@ c  Read max # of SPT files (if a value is provided on the SPT line of the .ggg f
       lf=fbc(sptfile)
       if(lnbc(sptfile).gt.lf) read(sptfile(lf:),*) mspt
 
-      lc=index(winfo,':')
-      call substr(winfo(lc+1:),pars,mtg,ntg)
-      if(ntg.gt.mtg) then
-          write(*,*)' spectrum_loop: Error: NTG > MTG ',ntg,mtg
-          stop 'Increase parameter MTG inspectrum_loop.f '
-      endif
-
       if( index(winfo,'debug') .gt. 0 ) then
          debug=.true.
       else
@@ -203,7 +194,7 @@ c  Read max # of SPT files (if a value is provided on the SPT line of the .ggg f
       read(lun_mav,'(14x,a)')string
       lcolon=index(string,':')
       read(string(lcolon+1:),'(a)')runlabmav
-
+c     write(*,*)'read ',runlabmav
       open(lun_ray,file=rayfile,status='old')
       read(lun_ray,*)nn,ncol
       call skiprec(lun_ray,nn-1)
@@ -213,13 +204,14 @@ c
          write(*,*) 'nlev,mlev=',nlev,mlev
          stop 'Increase parameter MLEV'
       endif
- 
+
       if(nlev*nspexi.gt.mvmr) then
          write(*,*)'nlev*nspexi,mvmr=',nlev*nspexi,mvmr
          stop ' spectrum_loop: Increase parameter mvmr'
       endif
-c
+c     write(*,*)'line 212'
       read(winfo,*) frqcen,width,mit,defapo,interp,freq_flag
+c     write(*,*) frqcen,width,mit,defapo,interp,freq_flag
       grid=0.666666d-06*frqcen
       nus=frqcen-width/2
       nue=frqcen+width/2
@@ -246,7 +238,7 @@ c
          write(6,*)' Increase MSPXV=',mspxv,' to ',ncp*nfp
          stop 'next_spectrum: Increase parameter MSPXV'
       endif
-C
+c  
       avgrms=0.0d0
       tottc=0.0d0
       tottc2=0.0d0
@@ -255,10 +247,11 @@ C
       totit=0
       mavfound=0
       open(lun_rlg,file=runlog,status='unknown')
-      read(lun_rlg,*) nlhead,ncol
+      read(lun_rlg,*,err=888) nlhead,ncol
       do i=2,nlhead
          read(lun_rlg,*)
       end do
+888   continue
       if(debug) write(*,*)' Main loop...',nspectra
       do ispec=1,mspectra         !  Main fitting loop over spectra
 141     call read_runlog(lun_rlg,col1,runlab,iyr,iset,zpdtim,
@@ -275,7 +268,6 @@ c        endif  ! istat.ne.0
 
         lr=lnbc(runlab)
         runlab=runlab(:lr)
-        if(lr.gt.lrmax) lrmax=lr  ! Longest spectrum name
 c
         read(lun_ray,*) specray,rdum,rdum,sza_ray,bend,rdum,zmin,
      &  (splos(j),j=1,nlev)
@@ -318,12 +310,13 @@ c        if(nint((nus-dd)/graw).lt.ifirst .or.
 c     &  nint((nue+dd)/graw).gt.ilast) kspflag=1
 c========================================================================
 c  Read model & vmr information (SUNRUN.MAV)
-c      write(*,*)'runlab, runlabmav=',runlab, runlabmav
+c     write(*,*)'runlab, runlabmav=',runlab, runlabmav
       lr=lnbc(runlab)
       if(ncall.ge.1) then
       if(runlab.eq.runlabmav) then
          call read_mav(lun_mav,mlev,nlev,nspexi,z,t,p,d,vmr)
          read(lun_mav,'(a)',end=66) mavstring
+c        write(*,*)lun_mav,mlev,nlev,nspexi,mavstring,runlab
          if(mavstring(1:14).eq.'Next Spectrum:') then
             read(mavstring(15:),'(a)') runlabmav
          else
@@ -334,6 +327,11 @@ c      write(*,*)'runlab, runlabmav=',runlab, runlabmav
 66       continue
          if(index(winfo,' sa_temp ').gt.0) call vadd(t,1,5.,0,t,1,nlev) 
          if(index(winfo,' sa_pres ').gt.0) call vmul(p,1,.95,0,p,1,nlev)
+         if(index(winfo,' sa_pre1 ').gt.0) call vmul(p,1,.999,0,
+     &   p,1,nlev)
+         if(index(winfo,' sa_tem1 ').gt.0) call vadd(t,1,1.,0,t,1,nlev) 
+c added by DW 090803 to simulate a ~1hPa change (0.001*1013.25 = 1.01325) 
+c and a 1 K change - more realistic for TCCON
 c
 c  Pre-compute absorption coefficient
 c         nva=ncp*nlev*(ntg+1)
@@ -342,7 +340,8 @@ c         write(*,*)' Calling abscoi...'
          call abscoi(nlev,t,p,d,nspexi,targmol,vmr,vpf,
      &   linefiles,parfile,fzero,grid,ncp,vac,vac(nva+1))
 c         write(*,*)' Called abscoi...'
-         write(oformat,'(a5,i2.2,a3)')'(1x,a',lrmax+1,',a)'
+         write(oformat,'(a5,i2.2,a3)')'(1x,a',lr+1,',a)'
+c         write(6,'(1x,a21,a)')runlab(:lr+1),
          write(6,oformat)' Spectrum            ',
      &   'Nit  CL   CT   FS   S-G  ZO   RMS/CL'//
      &   '   Zpres   AM      OVC        VSF   VSF_err'
@@ -372,19 +371,14 @@ c         write(*,*)' Called abscoi...'
          endif
       endif          ! (runlab.eq.runlabmav)
       endif          ! (ncall.ge.1) then
-      if((mit.gt.0.and.kspflag.gt.0).or.(mit.eq.0.and.kspflag.eq.1))then
-         if(debug) then
-         write(*,*)' Requested interval: ',nus,' to ',nue
-         write(*,*)' Required interval: ',nus-dd,' to ',nue+dd
-         write(*,'(a,a,f9.3,a4,f9.3,a5)') runlab,
-     & ' only encompasses',ifirst*graw,' to ',ilast*graw,' cm-1'
-         endif
-         goto 141 ! skip missing/partial spectrum
-      endif
+      if(debug) write(*,*)'mit, kspflag=',mit, kspflag
+      if(mit.gt.0 .and. kspflag.gt.0) goto 141 ! skip missing/partial spectrum
+      if(mit.eq.0 .and. kspflag.eq.1) goto 141 ! skip missing/partial spectrum
 c=========================================================
       resn=0.5d0/opd
 c      if(resn.lt.graw) resn=graw
       if(index(winfo,' sa_fovi ').gt.0) fovi=fovi*1.07
+      if(index(winfo,' sa_amal ').gt.0) amal=amal+0.002 ! added by DW 090804 to change amal
       rect=frqcen*(fovi**2+amal**2)/8  ! old code
       if(ncall.ge.1) then
 c
@@ -422,7 +416,6 @@ c  Select apodization function
 c---------------------------------------------------------
 c  FIND the spectral file, return the PATH to the spectrum
       call vmov(zero,0,obsrvd,1,mmp)
-c      write(*,*)'kspflag=',kspflag
       if(kspflag.eq.0) then
         call jetspe(specpath,opd,graw,ifirst,ilast,possp,bytepw,nus,
      &  nue,apo_m,interp,zero,zero,
@@ -432,7 +425,7 @@ c      write(*,*)'kspflag=',kspflag
            write(6,*)' This error should never happen'
            kspflag=1
         endif
-      endif  ! kspflag.eq.0
+      endif
       if(kspflag.eq.2) then
          startm=nus
          gint=graw/interp
@@ -446,12 +439,22 @@ c      write(*,*)'kspflag=',kspflag
       if(index(winfo,' sa_snr ').gt.0) then  ! Add noise
 c  Add noise and systematic error to OBSRVD (assumes a continuum level of 1.0)
       do imp=1,nmp
-      obsrvd(imp)=obsrvd(imp)+0.0001*gasdev(iseed)*opd ! add 0.25% rms random noise
+      obsrvd(imp)=obsrvd(imp)+0.000004*gasdev(iseed)*opd ! add 0.0002 rms random noise approx for InGaAs absorption
+c      obsrvd(imp)=obsrvd(imp)+0.0001*gasdev(iseed)*opd ! add 0.25% rms random noise-designed for transmittance
 c      obsrvd(imp)=obsrvd(imp)*(1+0.01*4*imp*(nmp-imp)/nmp/nmp)  ! add +- 1% Cont Curv
 c      obsrvd(imp)=obsrvd(imp)*(1+0.005*obsrvd(imp))  !  0.5%  detector non-linearity
       end do
-      endif  !  Add noise
+      endif
       iseed=iseed+1113
+
+      if(index(winfo,' sa_curv ').gt.0) then  ! Add continuum curvature
+c  Add noise and systematic error to OBSRVD (assumes a continuum level of 1.0)
+      do imp=1,nmp
+c      obsrvd(imp)=obsrvd(imp)+0.0001*gasdev(iseed)*opd ! add 0.25% rms random noise
+      obsrvd(imp)=obsrvd(imp)*(1+0.005*4*imp*(nmp-imp)/nmp/nmp)  ! add +- 0.5% Cont Curv
+c      obsrvd(imp)=obsrvd(imp)*(1+0.005*obsrvd(imp))  !  0.5%  detector non-linearity
+      end do
+      endif
 
       nmpfp=nmp+nfp
 c  Pre-compute ILS (oversampled by a factor LDEC) and normalize each
@@ -463,8 +466,8 @@ c  interleaved component to unity.
       resnog=ldec*resn/grid
       rectog=ldec*rect/grid
       call profzl(apo_c,nii,resnog,rectog,0.0d0,slit)
-c      write(*,*)resn, rect, ldec, grid
-c      write(*,*)resnog, rectog, nhw, nii
+c     write(*,*)resn, rect, ldec, grid,rdec
+c     write(*,*)resnog, rectog, nhw, nii
       do j=ldec,1,-1
         call vdot(slit(j),ldec,unity,0,tot,2*nhw)
         call vmul(slit(j),ldec,1.0/tot,0,slit(j),ldec,2*nhw)
@@ -479,7 +482,7 @@ c  Variances must be scaled by CORRLD to ensure that when the same spectrum is
 c  analyzed under different values of APO or INTERP, the same size errors result
       corrld=sqrt(rect**2+((1.+0.4*apo_c)*resn)**2)/gint
       sssss=sngl((startm/grid-kcp1+nsh-1+nhwmax-nhw)/rdec)
-
+c     write(*,*)'sssss=',sssss
 c==========================================================
 c  Compute dSP/dASZA = dSP/dZ * dZ/dASZA
         if(zmin.lt.obalt) then
@@ -652,6 +655,9 @@ c==========================================================================
       if(index(winfo,' cl ').gt.0) then
            cx(n1)=(obsrvd(1)+obsrvd(nmp))/2
            if(cx(n1).lt.1.0) cx(n1)=1.0
+c          write(*,*)'cx(n1),obsrvd(1),observd(nmp)',cx(n1),
+c    &     obsrvd(1),obsrvd(nmp)
+c          write(*,*)'cx=',cx
       else
            apu(n1)=1.
       endif
@@ -664,10 +670,10 @@ c==========================================================================
          call do_retrieval(obsrvd,nmp,apx,apu,slit,nii,
      &    ldec,rdec,spts,spxv,dspdzxv,vac,splos,nlev,ncp,ntg,snr,
      &    corrld,sssss,winfo,debug,mit,nit,calcul,rms,cx,ex,pd,ssnmp)
-c      elseif(ifm.eq.2) then  !  Fast approximate FOV integration
-c         call do_retrieval2(obsrvd,nmp,apx,apu,slit,nii,
-c     &  ldec,rdec,spts,spxv,dspdzxv,vac,splos,nlev,ncp,ntg,snr,
-c     &  corrld,sssss,winfo,debug,mit,nit,calcul,rms,cx,ex,slpd,pd,ssnmp)
+      elseif(ifm.eq.2) then  !  Fast approximate FOV integration
+         call do_retrieval2(obsrvd,nmp,apx,apu,slit,nii,
+     &  ldec,rdec,spts,spxv,dspdzxv,vac,splos,nlev,ncp,ntg,snr,
+     &  corrld,sssss,winfo,debug,mit,nit,calcul,rms,cx,ex,slpd,pd,ssnmp)
       elseif(ifm.eq.3) then  ! Full numerical FOV integration (slow)
          solzen=sngl(asza+zenoff)
          roc=6378.
@@ -706,10 +712,10 @@ c      write(*,*)cx(n1),cx(n2),cx(n3),obsrvd(1),calcul(1),pd(1+n1*nmpfp)
        endif
 
 c  Write the state vector and uncertainties to the .col file
-      call write_col(lun_col,runlab,lrmax,nit,rms,sgshift,gint,
+      call write_col(lun_col,runlab,nit,rms,sgshift,gint,
      & zmin,oloscol,overcol,cx,ex,ntg)
 c  And to the screen
-      call write_col(6,runlab,lrmax,nit,rms,sgshift,gint,
+      call write_col(6,runlab,nit,rms,sgshift,gint,
      & zmin,oloscol,overcol,cx,ex,ntg)
 
       if(debug .and. nit.eq.11) stop 'nit=11' 
@@ -729,8 +735,8 @@ c  Level 1 is the cell, so start ilev at 2.
         endif
 
        totit=totit+nit
-       avgrms=avgrms+1
-       avgcl=avgcl+abs(cx(n1)/rms)
+       avgrms=avgrms+abs(rms)
+       avgcl=avgcl+abs(cx(n1))
        toterr=toterr+1.0/ex(1)**2
        tottc=tottc+cx(1)/ex(1)**2
        tottc2=tottc2+((cx(1)-1)/ex(1))**2

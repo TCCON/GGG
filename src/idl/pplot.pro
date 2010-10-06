@@ -101,7 +101,7 @@ for i=tg2,tg1,-1 do begin
 ;   kcolor=250-180*i/(ntgas-1) ; i=0 red; i=ntgas-1 blue
 ;   kcolor=250*(1.0-0.75*i/(ntgas-1)) ; i=0 red; i=ntgas-1 blue
    kcolor=250*(1.0-0.9*i/ntgas) ; i=0 red; i=ntgas-1 blue
-   kcolor=3*kcolor/4
+;   kcolor=3*kcolor/4
 ;   if kcolor gt 140 then kcolor = kcolor+30 
    print, i,tg1,tg2,kcolor,ntgas
 ;   oplot,freq(0:npoints-1),datarray(3+i,0:npoints-1)*datarray(2+ntgas,0:npoints-1),linestyle=0,color=kcolor

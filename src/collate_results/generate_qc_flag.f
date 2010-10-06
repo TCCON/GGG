@@ -61,7 +61,7 @@ c  in order to read data from appropriate target gas.
       read(lunc,'(a)') gsetup_version
       do k=4,nlhead-1
         read(lunc,'(a)')colabel
-        if(index(colabel,'runlogs').gt.0) runlog=colabel
+        if(index(colabel,'runlogs').gt.0) runlog=colabel(:80)
       end do
       read(colabel,*) fcen, width, mit
       read(lunc,'(a)')colabel

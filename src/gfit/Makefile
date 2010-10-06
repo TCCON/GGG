@@ -14,6 +14,7 @@ SOURCES := \
   $(TSRC)/compute_vertical_paths.f \
   $(TSRC)/spectrum_loop.f \
   $(TSRC)/do_retrieval.f \
+  $(TSRC)/do_retrieval2.f \
   $(TSRC)/do_retrieval3.f \
   $(TSRC)/subtract_cf.f \
   $(TSRC)/fm.f \

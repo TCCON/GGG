@@ -39,10 +39,10 @@ c     spxv(*,n2)  ! Workspace
 c
       implicit none
       integer ncp,nmp,ntg,jtg,nii,ldec,nterm,k,kk,jj,n1,n2,n3,n4,
-     & rc,lun_ak,nlev,ilev,jva,jsp,nfov,ifov,kfov
+     & rc,lun_ak,jmp,nlev,ilev,jva,jsp,nfov,ifov,kfov
       real*4 slit(nii),cx(ntg+4),vac(ncp,nlev,0:ntg),splos(nlev),
      & z(nlev),t(nlev),p(nlev),
-     & spts(ncp),ckm2cm,
+     & spts(ncp),ckm2cm,sum2,
      & zero,unity,rk,calc(nmp),pd(nmp+ntg+4,ntg+4),
      & tcalc(nmp),tpd(nmp+ntg+4,ntg+4),
      & spxv(ncp,0:ntg+2),

@@ -2,6 +2,7 @@ pro readsp,path,nus,nue,opd,ifirst,ilast,graw,possp,bpw,$
 apo,intrp,freq,yobs,nout,iflag
 
 iflag=0
+ccc = string(' ')
 print,'readsp'
 
 ; print,format='("spectrum= ",a30)',path
@@ -53,9 +54,12 @@ for q=long(0),long((nout(0)-1)) do begin
    freq(q)=delwav*(q+m1)
 endfor
 
+ff=0.0
+tm=0.0
+signal=0.0
 openr,unit,path,/get_lun
  iskip=possp+abs(bpw)*(n1-ifirst)
- print,format='("nin:",i8," offset:",i8)',nin,iskip
+ print,format='("nin:",i8," iskip:",i8)',nin,iskip
  getendian,iend
 ; iend=-1
   print,'bpw,iend=',bpw,iend(0)
@@ -69,6 +73,34 @@ openr,unit,path,/get_lun
           image=assoc(unit,fltarr(nin(0)),iskip(0))
           yobs=image(0)
           if bpw*iend(0) lt 0 then byteorder,yobs,/lswap
+        end
+     7: begin
+          readf, unit, nlhead  ;  Skip comment lines
+          for k=1,nlhead-1 do begin
+             readf, unit, ccc
+          endfor
+          for i=long(0),long(n1-ifirst) do  begin
+             readf, unit,ff,tm,signal
+          endfor
+          yobs=fltarr(nin(0))
+          for i=long(0),long(nin(0))-1 do begin
+             readf, unit,ff,tm,signal
+             yobs(i)=signal
+          endfor
+        end
+     9: begin
+          readf, unit, nlhead  ;  Skip comment lines
+          for k=1,nlhead-1 do begin
+             readf, unit, ccc
+          endfor
+          for i=long(0),long(n1-ifirst) do  begin
+             readf, unit,ff,signal
+          endfor
+          yobs=fltarr(nin(0))
+          for i=long(0),long(nin(0))-1 do begin
+             readf, unit,ff,signal
+             yobs(i)=signal
+          endfor
         end
   endcase
   for i=long(0),long(nin-1) do begin

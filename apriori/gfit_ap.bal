@@ -5,4 +5,4 @@ Initial values of the fitted variables and their uncertainties
   0.0   0.008   zo  !  zero offset (0.004 for gnd; 0.008 for balloon)
   1.0   0.1     so  !  solar scaling
   1.0   1.e+6   tg  !  first target gas scaling
-  1.0  10.0     nt  !  other target gas scalings
+  1.0  50.0     nt  !  other target gas scalings

@@ -1,0 +1,27 @@
+ 23 29
+ GFIT                     Version 4.7.0    06-Dec-2010    GCT   
+ GSETUP                   Version 3.1.0    05-Nov-2010    GCT
+17bed3b7ed20ed14a1a6c25829d48c0a  /home/toon/ggg/config/data_part.lst
+df46c8832a8e15e46185f3875bd00554  /home/toon/ggg/apriori/gfit_ap.gnd
+c7e6b77ccee1abf497e6f736abcc0c0f  /home/toon/ggg/runlogs/gnd/pa_ggg_benchmark.grl
+7ff3c96fbfd4e17b9b04e78805c67363  /home/toon/ggg/levels/integral.gnd
+                                  /home/toon/ggg/models/gnd/
+                                  /home/toon/ggg/vmrs/gnd/
+b296aec0fd7ae9eb9cb0c833c9851f10  pa_ggg_benchmark.mav
+f3d27077a323c99391bc1d76449d5869  pa_ggg_benchmark.ray
+345d0954adabaf1ecd5f3e5c6ed4e495  isotopologs_local.dat
+5c42f061b9721dbb3adcf39cda55db13  /home/toon/ggg/windows/gnd/tccon.gnd
+08fbaab715de1f0d96c9307ff450c7cb  /home/toon/ggg/linelist/atm.101
+23aadd6752e2aab1f0285ae9e95e2d24  /home/toon/ggg/linelist/gct.101
+6fd821359b77fa5a0f3bb7608ffa007e  /home/toon/ggg/linelist/fcia.101
+61e34bb86814b4d71a3a74f517412a19  /home/toon/ggg/linelist/scia.101
+c43af6cdbdec0440a3297ab55d7c90d8  /home/toon/ggg/linelist/solar_merged.108
+                                  /home/toon/ggg/ak/k
+                                  /home/toon/ggg/spt/z
+                                  o2_7885.pa_ggg_benchmark.col
+ 7885.00 240.00  15 1 1 0  cl  ct  fs  so    : o2 0o2 h2o hf co2
+  Spectrum            Nit  CL   CT   FS  S-G  ZO    RMS/CL   Zpres  AM_o2     OVC_o2     VSF_o2     VSF_o2_error  AM_0o2    OVC_0o2    VSF_0o2    VSF_0o2_error  AM_h2o    OVC_h2o    VSF_h2o    VSF_h2o_error  AM_hf     OVC_hf     VSF_hf     VSF_hf_error  AM_co2    OVC_co2    VSF_co2    VSF_co2_error
+ pa20040721saaaaa.049  6 0.103 -9.9 -0.1 -0.4 0.000 0.3046   0.472  1.298 4.2322E+24   1.0153 9.2E-03  1.298 4.2322E+24   1.1806 9.4E-03  1.297 1.4839E+23   0.8543 9.2E-03  1.296 1.1109E+15   1.2129 6.5E-01  1.298 7.6956E+21   0.5359 4.7E-01
+ pa20040721saaaaa.125  6 0.100 -9.9 -0.3 -0.3 0.000 0.3769   0.473  2.251 4.2317E+24   1.0141 1.1E-02  2.251 4.2317E+24   1.1245 1.1E-02  2.251 1.4833E+23   0.7436 1.1E-02  2.226 1.1109E+15   1.4084 4.9E-01  2.251 7.6948E+21   0.7399 3.5E-01
+ pa20041222saaaaa.021  6 0.151 -9.9  0.3  0.0 0.000 0.2728   0.478  7.497 4.2966E+24   1.0201 8.2E-03  7.497 4.2966E+24   1.0510 8.2E-03  7.779 5.5517E+21   1.1416 9.4E-03  6.675 1.3621E+15   1.1730 1.2E-01  7.499 7.8439E+21   1.3895 1.0E-01
+ pa20041222saaaaa.022  6 0.152 -9.9  0.3  0.0 0.000 0.2713   0.477  7.151 4.2975E+24   1.0217 8.2E-03  7.151 4.2975E+24   1.0522 8.2E-03  7.396 5.5558E+21   1.1352 9.4E-03  6.428 1.3621E+15   1.2211 1.3E-01  7.153 7.8455E+21   1.4488 1.1E-01

@@ -27,11 +27,11 @@ c
       real*8 yrow(mcol),adcf(mgas),aicf(mgas),cf(mcol)
 
       character output_fmt*32, specname*38
-      integer nchar
-      nchar=0
+      integer specflag
+      specflag=0
 
       version=
-     & ' apply_insitu_correction      Version 1.2.2   2009-11-07   GCT'
+     & ' apply_insitu_correction      Version 1.3.2   2010-12-04   GCT'
 
       call getenv('GGGPATH',gggdir)
 
@@ -78,7 +78,7 @@ c  and those in the .vav file header
 
       read(lunr,'(a)') header
       write(lunw,'(a)') header(:lnbc(header))
-      if (index(header,'Spectrum') .gt. 0) nchar=1
+      if (index(header,'spectrum') .gt. 0) specflag=1
       call substr(header,headarr,mcol,kcol)
       if(kcol.ne.ncol ) stop 'ncol/kcol mismatch'
       do icol=1,ncol
@@ -89,32 +89,32 @@ c         write(*,*)kgas,icol,gasname(kgas),headarr(icol),aicf(kgas),cf(icol)
            if( headarr(icol) .eq. gasname(kgas) ) cf(icol)=aicf(kgas)
            if( headarr(icol) .eq. gaserr        ) cf(icol)=aicf(kgas)
          end do
-         if(icol.gt.naux+nchar) write(*,'(i4,a16,f8.3)')
+         if(icol.gt.naux+specflag) write(*,'(i4,a16,f8.3)')
      &   icol,headarr(icol),cf(icol)
       end do
 
-      if (nchar .eq. 1) then
+      if (specflag .eq. 1) then
          output_fmt='(a35,f14.8,NNf13.5,200(1pe12.4))'
          write(output_fmt(12:13),'(i2.2)') naux-1
       else
          output_fmt='(f14.8,NNf13.5,200(1pe12.4))'
-         write(output_fmt(8:9),'(i2.2)') naux-1
+         write(output_fmt(8:9),'(i2.2)') naux-2
       endif
 
 c  Read each day of data into memory and divide XGas values by the
 c  appropriate correction factors.
       do irow=1,9999999
-         if (nchar .eq. 1) then
-            read(lunr,*,end=99) specname, (yrow(j),j=1+nchar,ncol)
+         if (specflag .eq. 1) then
+            read(lunr,*,end=99) specname, (yrow(j),j=2,ncol)
          else
             read(lunr,*,end=99) (yrow(j),j=1,ncol)
          endif
-         do k=naux+nchar+1,ncol-1,2
+         do k=naux+1,ncol-1,2
               yrow(k)=yrow(k)/cf(k)
               yrow(k+1)=yrow(k+1)/cf(k)
          end do
-         if (nchar .eq. 1) then
-            write(lunw,output_fmt) specname, (yrow(j),j=1+nchar,ncol)
+         if (specflag .eq. 1) then
+            write(lunw,output_fmt) specname, (yrow(j),j=2,ncol)
          else
             write(lunw,output_fmt) (yrow(j),j=1,ncol)
          endif

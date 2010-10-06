@@ -47,7 +47,7 @@ C======================================================================
       implicit none
       character specpath*(*)
 
-      INTEGER*4 apo_m,possp,nmp,npts,STATUS,mii,MMP,
+      INTEGER*4 apo_m,possp,nmp,npts,STATUS,mii,MMP,KINTPC,
      & k1,m1,m2,i1,i2,k,bytepw,IFIRST,ilast,INTERP,iskip,iabpw,
      & nhw,nsf,nii,nele,nscycle,j1,j2,ii
       parameter (mii=50753,nscycle=25)  ! max dimension of slit function 

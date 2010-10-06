@@ -1,21 +1,27 @@
 c  Program VLL (View LineList)
-c  For rapid viewing and subsetting of a HITRAN-format linelist
-c  Assumes a linelist naming convention  xxxxx.nnn
-c  where nnn is the number of characters per line (typically 101 or 162)
+c  For rapid viewing (and subsetting) of a HITRAN-format linelist
+c  Assumes a linelist naming convention  xxxxx.nnn  where nnn is the number of characters per line
+c     nnn = 101 (HITRAN_2000, Unix)
+c     nnn = 102 (HITRAN_2000, DOS)
+c     nnn = 161 (HITRAN_2004, Unix)
+c     nnn = 162 (HITRAN_2004, DOS)
+c  There must be only one period inthe file name.
+
       implicit none
       integer*4 isot,molno,reclen,mgas,kgas,jgas,kiso,jiso,
      & lunr,nlps,jline,kline,lnbc,lloc,nchar,nline,posnall,
-     $ ldot,ierr,file_size,file_size_in_bytes,lr
-      parameter (lunr=14,mgas=64,nlps=18)
+     $ ldot,ierr,fsib,file_size_in_bytes,lr
+      parameter (lunr=14,mgas=68,nlps=18)
       real pbhw,pshift,sbhw,tdpbhw
       real*8 eprime,fpos,freq,stren
-      character  ans*1,ccc*8,quantum*80,llformat*47,linfil*80,
+      character  ans*1,ccc*8,quantum*100,llformat*47,linfil*80,
      $ molnam(mgas)*8,root*48, version*44
 c============================================================
       data linfil/' '/
 
-      version=' VLL    Version 2.1.0    O2-Oct-2009    GCT '
+      version=' VLL    Version 2.1.1    16-Apr-2010    GCT '
       write(*,*) version
+      write(*,*)
 
       llformat=
      $'(i2,i1,f12.6,e10.3,10x,2f5.0,f10.4,f4.2,f8.6,a)'
@@ -30,6 +36,8 @@ c  Read names of gases.
          read(lunr,'(1x,2i2,1x,a8)',iostat=ierr)jgas,jiso,molnam(jgas)
       end do
       close(lunr)
+      write(*,*)' Reading isotopologs.dat which contains ',jgas,' gases'
+      write(*,*)
       if(jgas.ge.mgas) write(*,*) 'Warning: Increase parameter MGAS'
 c
 c Prompt user for name of linelist
@@ -56,23 +64,26 @@ c Prompt user for name of linelist
       linfil=root(:lr)//'/linelist/'//linfil(:lnbc(linfil))
       write(*,*)linfil
 
-c Open the linelist.
-c Determine "reclen" from the filename extension.
-c Determin file_size from subroutine file_size_in_bytes
-c Determine NLINE by dividing file_size by "reclen".
-      ldot=lloc(linfil,'.')
+c Open the linelist and determine:
+c   "reclen" from the filename extension.
+c   "fsib" from subroutine file_size_in_bytes
+c   "nline" by dividing "fsib" by "reclen".
+      ldot=lloc(linfil,'.')   ! look for the period
       read(linfil(ldot+1:),'(i3)') reclen
 c      write(*,*)ldot,linfil(ldot+1:),reclen
-      file_size=file_size_in_bytes(lunr,linfil)
+      fsib=file_size_in_bytes(lunr,linfil)
       open(lunr,file=linfil,access='direct',form='formatted',
      & status='old',recl=reclen)
-      nline=file_size/reclen
-      if(mod(file_size,nline) .ne. 0) then
+      nline=fsib/reclen
+      if(mod(fsib,nline) .ne. 0) then
          write(*,*)' Linelist size not divisible by reclen'
-         write(*,*)linfil,file_size
+         write(*,*)linfil,fsib
          stop
       endif
-      write(*,*)nline
+      write(*,*)' Number of spectral lines       = ',nline
+      write(*,*)' Number of characters per line  = ',reclen
+      write(*,*)' Total number of characters     = ',fsib
+      write(*,*)
 c============================================================
       kgas=0
       kiso=0
@@ -101,9 +112,9 @@ c      do while ( ccc(1:1) .ne. 'q')  ! sun
 c
          write(6,'(a)')
      $   'Gas     ID Iso  Frequency  Strength     E"     ABHW  SBHW'//
-     $   '  TD  Shift  FSW  Refs.'
+     $   '  TD  Shift'
          write(6,'(a)')'--------------------------------------------'//
-     $   '------------------------------------'
+     $   '----------------------------'
          jline=1
          do while (jline.le.nlps .and. kline.lt.nline)
             kline=kline+1
@@ -117,12 +128,13 @@ c
                   jline=jline+1
                   write(6,'(a8,i2,i2,f13.6,1pe10.3,0pf10.4,2(1x,f5.4),
      &            1x,f3.2,2x,f5.3,2x,a)') molnam(molno),molno,
-     &            isot,freq,stren,eprime,pbhw,sbhw,tdpbhw,pshift,quantum
+     &            isot,freq,stren,eprime,pbhw,sbhw,tdpbhw,pshift,
+     &            quantum(:reclen-68)
                endif
             endif
          enddo
          if(kline.eq.nline) write(6,'(a)')' End of File'
          write(6,'(a)')'--------------------------------------------'//
-     $   '------------------------------------'
+     $   '----------------------------'
       end do
       end

@@ -47,5 +47,5 @@ to the #-value of the variable that was furthest out of range.
  "xo2"         0  1.0E+00 "f7.4" "      "   0.20     0.22     0.2095*column_o2/column_o2=0.2095
  "xo2_error"   0  0.2E+00 "f7.4" "      "   0        0.05     one-sigma precision
  "xhcl"        0  1.0E+09 "f7.1" "(ppb) "   0        5        0.2095*column_hcl/column_o2
- "xhcl_error"  0  0.2E+09 "f7.1" "(ppb) "   0        50       one-sigma precision
+ "xhcl_error"  0  0.2E+09 "f7.4" "(ppb) "   0        50       one-sigma precision
  "qcflag"      0  1.0E+00 "f7.1" "      "   2.00     2.00     qcflag

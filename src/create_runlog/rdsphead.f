@@ -459,8 +459,8 @@ c                 write(*,'(a)') hst(10:)
               elseif(hst(:9).eq.'eltim   =') then
                  read(hst(10:),'(2x,f8.3)')dur
               elseif(hst(:9).eq.'apin    =') then
-	         read(hst(10:),'(2x,f4.2)')fovi
-		 fovi=fovi/1000.0
+                 read(hst(10:),'(2x,f4.2)')fovi
+                 fovi=fovi/1000.0
               elseif(hst(:9).eq.'refwavno=') then
                  read(hst(10:),'(3x,f11.6)')lasf
               elseif(hst(:9).eq.'sampfreq=') then
@@ -474,7 +474,7 @@ c                 write(*,'(a)') hst(10:)
               endif
            end do  ! krec=1,100
         end do  ! while iflag eq 0
-	write(*,*) 'Finish reading .hdr file'  !yzh temp
+        write(*,*) 'Finish reading .hdr file'  !yzh temp
         possp=0
         opd=0.5/resn
 c        pout=800.0

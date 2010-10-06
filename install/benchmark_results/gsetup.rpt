@@ -1,0 +1,22 @@
+
+  Spectrum        Zobs   Pobs    ASZA    BEND    FOVO    TANG
+                   km    mbar    deg.    deg.    mrad     km
+ Reading pa20040721.mod for pa20040721saaaaa.049                  
+  Unable to find vmr profiles pa20040721.vmr                                                                  
+ Reading  for pa20040721saaaaa.049                  
+pa20040721saaaaa.049                      0.44200  950.70000   39.68400    0.01375    0.00240    0.47197    0.00010    0.00000
+  Cannot find vmr profile pa20040721.vmr  Will re-use: gnd_summer.vmr
+pa20040721saaaab.049                      0.44200  950.70000   39.68400    0.01384    0.00240    0.47197    0.00010    0.00000
+  Cannot find vmr profile pa20040721.vmr  Will re-use: gnd_summer.vmr
+pa20040721saaaaa.125                      0.44200  950.60000   63.79900    0.03348    0.00240    0.47289    0.00010    0.00000
+  Cannot find vmr profile pa20040721.vmr  Will re-use: gnd_summer.vmr
+pa20040721saaaab.125                      0.44200  950.60000   63.79900    0.03370    0.00240    0.47289    0.00010    0.00000
+ Reading pa20041222.mod for pa20041222saaaaa.021                  
+  Cannot find vmr profile pa20041222.vmr  Will re-use: gnd_summer.vmr
+pa20041222saaaaa.021                      0.44200  965.10000   82.84800    0.13568    0.00240    0.47847    0.00010    0.00000
+  Cannot find vmr profile pa20041222.vmr  Will re-use: gnd_summer.vmr
+pa20041222saaaab.021                      0.44200  965.10000   82.84800    0.13657    0.00240    0.47847    0.00010    0.00000
+  Cannot find vmr profile pa20041222.vmr  Will re-use: gnd_summer.vmr
+pa20041222saaaaa.022                      0.44200  965.30000   82.45200    0.12936    0.00240    0.47695    0.00010    0.00000
+  Cannot find vmr profile pa20041222.vmr  Will re-use: gnd_summer.vmr
+pa20041222saaaab.022                      0.44200  965.30000   82.45200    0.13020    0.00240    0.47695    0.00010    0.00000

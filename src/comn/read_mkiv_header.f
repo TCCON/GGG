@@ -160,7 +160,7 @@ c IALIAS should be a small integer (e.g. 1,2,3,4) unless byte-reversed
         call rbyte(hext,4,1)
         call rbyte(stnr,4,1)
       endif
-      write(*,*)'zpdtim=',strt,alat,alon,soaz,soze,text,pext
+c      write(*,*)'zpdtim=',strt,alat,alon,soaz,soze,text,pext
 
       tout=dble(text)
       pout=dble(pext)

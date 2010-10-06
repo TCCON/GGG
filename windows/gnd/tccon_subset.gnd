@@ -1,7 +1,0 @@
- Center   Width MIT A I F  Parameters to fit       Gases to fit
- 4444.00   0.12   0 1 1 0                    : air
- 4038.95   0.32  15 1 1 0  cl  ct  fs  so    : hf h2o
- 6220.00  80.00  15 1 1 0  cl  ct  fs  so    : co2 h2o hdo ch4
- 6339.50  85.00  15 1 1 0  cl  ct  fs  so    : co2 h2o hdo
- 7885.00 240.00  15 1 1 0  cl  ct  fs  so    : o2 0o2 h2o
-13082.50 225.00  15 1 1 0  cl  ct  fs  so    : ao2

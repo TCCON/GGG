@@ -25,7 +25,7 @@ pro ffile,filenm,partition,ipart,npart,path
 ;     2) Partition names beginning with a ':' are skipped
 ;
 ;
-if strlen(filenm) gt 0 then begin    ; skip empty filenames
+ if strlen(filenm) gt 0 then begin    ; skip empty filenames
 ;
 ; On first call, read file of data partitions to be searched.
    if npart le 0 then begin
@@ -46,6 +46,7 @@ if strlen(filenm) gt 0 then begin    ; skip empty filenames
       for j=0,npart-1 do begin
          repeat  readf,unit,path  until  strmid(path,0,1) ne ':' or EOF(unit)
          partition(j)=path
+         if(strpos(path,'$(GGGPATH)/spectra/') ge 0) then partition(j)=getenv('GGGPATH')+'/spectra/'
       endfor
       close,unit
       free_lun,unit

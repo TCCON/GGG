@@ -5,25 +5,25 @@ c
 c  Description:
 c       Positions in an bounded (i.e. known length) HITRAN-format ascii
 c       linelist to the last line having a frequency <= FPOS.
-c       Could easily be adapted to read binary linelists.
 c
 c  On Input:
-c           unit     = logical unit number of already-opened linelist
-c           fpos     = frequency that you want to position to
-c           nrec     = number of records (lines) in the file
+c           unit  = logical unit number of already-opened linelist
+c           fpos  = frequency (cm-1) that you want to position to
+c           nrec  = number of records (lines) in the file
 c
 c  On Output:
-c        posnall     = record # of last line whose freq < fpos
-c                    = 0 means that all lines exceeded fpos
-c                    = NREC means that no line exceeded fpos
+c        posnall  = record # of last line whose freq < fpos
+c                 = 0 means that all lines exceeded fpos
+c                 = NREC means that no line exceeded fpos
 c
 c  Normal usage:
 c     k1=posnall(lunx,nu1,nrec)
 c     k2=posnall(lunx,nu2,nrec)
 c     nline=k2-k1
-c     do k=1,mnline
-c        read(lunc,llformat,rec=k+k1)
+c     do k=1,nline
+c        read(lunc,llformat,rec=k+k1) igas, iso, freq, strength, ....
 c     end do
+
 
       implicit none
       integer unit,nrec,new,nlo,nhi

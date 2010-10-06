@@ -28,7 +28,7 @@ nocl=1
 ttyp=0
 possp=0l
 ulim=string('f')
-version=string('programme newspect   v.1.8.0    2006-06-08    gct')
+version=string('programme newspect   v.1.8.1    2010-10-01    gct')
 
 !p.charsize=1.5
 !p.thick=3
@@ -87,7 +87,7 @@ readf,unit,names
 print,strpos(names,'Year')
 ll_year=strpos(names,'Year')
 ;rlformat=string('(1x,a',ll_year-2,',42x,f8.3,f7.4,f7.2,3f6.4,2i8,f15.11,i8,i3,39x,f8.2)')
-rlformat=string('(1x,a',ll_year-2,',42x,f8.3,f7.4,f8.3,f7.3,f7.2,3f6.4,2i9,f15.11,i9,i3,39x,f8.2)')
+rlformat=string('(1x,a',ll_year-2,',34x,2f8.3,f7.4,f8.3,f7.3,f7.2,3f6.4,2i9,f15.11,i9,i3,39x,f8.2)')
 print,rlformat
 while(eof(unit) eq 0) do begin
   readf,unit,names
@@ -99,7 +99,7 @@ close,unit
 free_lun,unit
 print,format='($,"spectrum number (-1 to quit)")'
 read,kspec
-print,kspec,nspe
+print,'nspe=',nspe
 if kspec lt 0 or kspec gt nspe-1 then goto,rtn5
 kspec=kspec-1
 kskip=1l
@@ -120,8 +120,9 @@ if kspec gt nspe-1 then begin
    kskip=-1
 endif
 reads,runlogstr(kspec),format=rlformat,$
-spectrum,asza,zenoff,azim,osds,opd,fovi,fovo,amal,ifirst,ilast,graw,possp,bpw,pout
+spectrum,zobs,asza,zenoff,azim,osds,opd,fovi,fovo,amal,ifirst,ilast,graw,possp,bpw,pout
 spectrum=strtrim(spectrum)
+print, spectrum,zobs, asza+zenoff, (3389.5+zobs)*sin(3.14159265*(asza+zenoff)/180)-3389.5
 ;graw=graw*(double(1.)+(fovi^2+amal^2)*6.25e-02)
 if ((round(frqcen-0.5*wid) gt ilast*graw) or $
   (long(frqcen+0.5*wid) lt ifirst*graw)) then begin

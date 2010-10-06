@@ -5,7 +5,8 @@ c
 c  Current version is a simplified version of aker.f.
 c  It was simplified to try to troubleshoot some problems.
 c  This new version no longer has the capability to handle
-c  multiple target gases, used to kluge profile retrievals.
+c  multiple target gases, previously used to kluge profile
+c  retrievals.
 c
 c  The following improvements still need to be made:
 c  1) Augment the A and B matrices in the equation Ax=B
@@ -24,11 +25,11 @@ c
 c  3) A thought:  The subroutine AK.F  and FM.F are very
 c  similar.  If FM were equipped with the option of
 c  calculating the single-level PDs, then we wouldn't need
-c  the AK subroutine at all.
+c  the AK subroutine at all. [Done, 2007]
 c
 c  4) Another thought: It might be more convenient to
 c  implement the averaging kernel calculation inside GFIT,
-c  rather than as a stand-along program. This is because all
+c  rather than as a stand-alone program. This is because all
 c  the a priori information is already there.
 c  I hesitated doing this in the past because it requires
 c  an extra array of dimension (MMP+MFP,MLEV) to hold
@@ -41,17 +42,26 @@ c  layer-by-layer, so that the extra array would be (360000,1).
 c  But this would be much slower.
 c---------------------------------------------------
 c
-c  AVG_KER computes the averaging kernels by solving the matrix equation A.x=b
+c  AVG_KER computes the averaging kernels by solving the matrix equation
+c     A.x=b
+c  using my favorite subroutine HFTI
 c
-c  On input, matrix A(NMP,NFP) contains the PD's of all retrieved quantities
-c  including the partial column PD's of the target gas, total column PD's
-c  of the interfering gases, and the PD's for the CL, CT, FS, etc.
-c  The first NTL-1 rows of A contain the partial column PD's
-c  The next NTG rows of A contain the target gas PD's
-c  The last 3 rows of A contain the CL, CT, and FS PD's
-c  On input, matrix b(NMP,NLEV) holds the single-layer PD's of the target gas.
+c  On input, matrix A(NMP,NFP) contains the PD's of all retrieved
+c  quantities as a function of frequency.  The NFP retrieved parameters
+c  include the VSF of the various target gases and the CL, CT, FS, ZO,
+c  (but not channel fringes).
 c
-c  On output, matrix x(NFP,NLEV) contains the averaging kernel
+c  On input, matrix B(NMP,NLEV) contains the single-level PDs of the
+c  first target gas. So these are the effect on the calculated spectrum
+c  of scaling the vmr at a particular level.  Subroutine HFTI solves
+c  for the multiple right-hand sides (multiple levels) in a single call.
+c
+c  On output, B(NFP,NLEV) contains the impacts on the NFP fitted parameters
+c  of adjusting the first target gas at the NLEV altitude levels.
+c  The averaging kernels of the first target gas are to be found in
+c  the first row of B, i.e. B(1,NLEV), which are then normalized using
+c  the effective pressure thicknesses of the layers.
+
 c  NMP is the number of spectral points in the fitted window
 c  NFP is the number of fitted/retrieved parameters
 c  NLEV is the number of atmospheric levels.
@@ -114,7 +124,7 @@ c  Read single-level partial differentials of first target gas.
       if(nmp.gt.mmp) stop 'increase MMP'
       if(nlev.gt.mlev) stop 'increase MLEV'
       do ilev=1,nlev
-         read(lunr,*) (b(imp,ilev),imp=1,nmp) ! Target PD (single-level)
+         read(lunr,*) (b(imp,ilev),imp=1,nmp) ! Single-Level PDs of First Target gas
       end do
 c
       read(lunr,*) (a(imp,ntg+1),imp=1,nmp)  ! CL partial differential
@@ -148,12 +158,14 @@ c  Solve the equation A.x=b
       if(krank.lt.nfp) write(*,*)' Rank Deficiency: ',krank,nfp
 c
 c  Write out the Averaging Kernels.
+c  Also, calculate the pressure- and density-weighted kernels.
       open(lunw,file=filename(:lf)//'.aks', status='unknown')
       write(lunw,*)3,3
       write(lunw,*) version
       write(lunw,*)  'Level   AK   Pressure_(atm)'
       ak1=b(1,1)*tsc/psc(1)
       ak2=b(1,2)*tsc/psc(2)
+c FIX ME: the following line assumes that Ps lies between p(1) and p(2)
       akwas=(ak1*(ps-pres(2))+ak2*(pres(1)-ps))/(pres(1)-pres(2))
       pwas=ps
       tak=0.0

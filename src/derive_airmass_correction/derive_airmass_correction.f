@@ -72,7 +72,7 @@ c
       real*8 yrow(mcol),pi,d2r,chi2
 
       version=
-     &' derive_airmass_correction        1.1.2     2008-03-04     GCT'
+     &' derive_airmass_correction        1.1.3     2010-11-23     GCT'
       write(*,*) version
 
       pi=4*datan(1.0d0)
@@ -152,8 +152,8 @@ c  which columns contain the values that we need.
 
       outputfile='dac_'//inputfile(:li)//'_'//gas(:lnbc(gas))//'.out'
       open(lunw,file=outputfile,status='unknown')
-      write(lunw,*)2,10
-      write(lunw,*)'   year     doy  nmp     uscale      ybar    '// 
+      write(lunw,'(2i5)')2,10
+      write(lunw,'(a)')'   year     doy  nmp     uscale      ybar    '//
      &' ybar_error    asdc     asdc_error    sdc    sdc_error'
 
 c  Read each day of data into memory.

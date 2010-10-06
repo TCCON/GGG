@@ -15,16 +15,16 @@ c
      & ncoml,ncol,mcol,kcol,icol,j,lg,ncoml_head,
      & lnbc,nrow,li,nco,k,kmax,mrow_qc,krow_qc,irow,lof0,lof1,
      & eflag,wrow_flag,wsp_flag,
-     & nchar,lh,le,klat,klong,kzobs,ncol_written,
+     & spectrum_flag,lh,le,klat,klong,kzobs,ncol_written,
      & jj,nflag,ncoml_qc,ncol_qc,nrow_qc,wcol_flag
       parameter (lunr=14,lun_qc=15,lunw=16,lunc=17,lunh=18,mcol=150,
      & mrow_qc=150)
       integer*4 flag(mrow_qc),pindex(mcol),kflag(mrow_qc)
       character header*800,headarr(mcol)*20,parname(mrow_qc)*20,
      & gggdir*80, inputfile*80,outputfile*80,csvfile*80,version*62,
-     & outfmt0*250,outfmt1*250,ofmt(mrow_qc)*4,temp*20, fmt(mrow_qc)*4,
-     & unit(mrow_qc)*6,headout*800,specname*38,sitefile*200,
-     & ssss*800,sarr(mcol)*38,cc*20
+     & outfmt0*400,outfmt1*400,ofmt(mrow_qc)*4,temp*20, fmt(mrow_qc)*4,
+     & unit(mrow_qc)*6,headout*800,headoutcsv*800,
+     & specname*38,sitefile*200,ssss*800,sarr(mcol)*38,cc*20
       real*4 yrow(mcol),dev,dmax,scale(mrow_qc),
      & vmin(mrow_qc),vmax(mrow_qc)
       real*8 wlimit
@@ -32,10 +32,10 @@ c
       data kflag/mrow_qc*0/
       
       version=
-     & ' write_official_output_file   Version 1.2.2   2009-11-07   GCT'
+     & ' write_official_output_file   Version 1.3.3   2010-12-04   GCT'
       write(*,*) version
 
-      nchar=0
+      spectrum_flag=0    ! initialise to avoid compiler warnings
       klat=0
       klong=0
       kzobs=0
@@ -75,7 +75,7 @@ c  to find out how many columns there are going to be in the .oof output files
       do k=4,ncoml_qc
          read(lun_qc,'(a)') header
       end do
-      ncol_written=1   ! Always include "flag" in column #1
+      ncol_written=1+wsp_flag   ! Always include "flag" in column #1
       do krow_qc=1,mrow_qc
          read(lun_qc,*,end=77) temp,wcol_flag
          ncol_written=ncol_written+wcol_flag
@@ -105,7 +105,7 @@ c  Read input file and start writing output files
       read(lunr,'(a)') header ! column headers
       call substr(header,headarr,mcol,kcol)
       if(kcol.ne.ncol) stop 'ncol/kcol mismatch'
-      if (index(header,'Spectrum') .gt. 0) nchar=1
+      if (index(header,'spectrum') .gt. 0) spectrum_flag=1
 
       open(lunh,
      & file=gggdir(:lg)//'/tccon/'//inputfile(1:2)//'_oof_header.dat',
@@ -144,24 +144,29 @@ c  and those in the .vav file header
          do krow_qc=1,nrow_qc
             if( temp .eq. parname(krow_qc) ) pindex(icol)=krow_qc
          end do
-         if(pindex(icol).eq.0) write(*,*)
-     &   ' Parameter missing from QC file: '//headarr(icol)
+         if(pindex(icol).eq.0) then
+           if(index(headarr(icol),'spectrum').eq.0) then
+           write(*,*) ' Parameter missing from QC file: '//headarr(icol)
+         endif
+         endif
          if(headarr(icol).eq.'lat') klat=icol
          if(headarr(icol).eq.'long') klong=icol
          if(headarr(icol).eq.'zobs') kzobs=icol
       end do
 
-      if(nchar.eq.0  .or. wsp_flag.eq.0) then
+      if(spectrum_flag.eq.0  .or. wsp_flag.eq.0) then
          headout=' flag'
+         headoutcsv=' flag'
       else
          headout=' flag  spectrum'
+         headoutcsv=' flag,spectrum'
       endif
       outfmt0='(i3'
       outfmt1='(i3,1x,a38'
       lof0=0
       lof1=0
       jj=0
-      do icol=1+nchar,ncol
+      do icol=1+spectrum_flag,ncol
          krow_qc=pindex(icol)
          if(flag(krow_qc).ge.1) then
             lof0=lnbc(outfmt0)
@@ -175,8 +180,13 @@ c  and those in the .vav file header
             if(le.eq.0) then
                headout=headout(:lnbc(headout))//'  '//
      &         headarr(icol)(:lh)//unit(krow_qc)
+               headoutcsv=headoutcsv(:lnbc(headoutcsv))//','//
+     &         headarr(icol)(:lh)//unit(krow_qc)
             else
                headout=headout(:lnbc(headout))//'  '//
+     &         headarr(icol)(:le-1)//
+     &         unit(krow_qc)(:lnbc(unit(krow_qc)))//'_error'
+               headoutcsv=headoutcsv(:lnbc(headoutcsv))//','//
      &         headarr(icol)(:le-1)//
      &         unit(krow_qc)(:lnbc(unit(krow_qc)))//'_error'
 c     &      headarr(icol)(:lnbc(headarr(icol)))//unit(krow_qc)
@@ -192,8 +202,8 @@ c  Read each day of data into memory and multiply XGas values by the
 c  appropriate correction factors.
       nflag=0
       do irow=1,9999999
-         if (nchar .eq. 1) then
-             read(lunr,*,end=99) specname, (yrow(j),j=1+nchar,ncol)
+         if (spectrum_flag .eq. 1) then
+             read(lunr,*,end=99) specname, (yrow(j),j=2,ncol)
          else
              read(lunr,*,end=99) (yrow(j),j=1,ncol)
          endif
@@ -207,7 +217,7 @@ c  appropriate correction factors.
              write(lunw,'(120a1)') ('-',j=1,120)
              write(lunc,'(120a1)') ('-',j=1,120)
              write(lunw,'(a)') headout(:lnbc(headout))
-             write(lunc,'(a)') headout(:lnbc(headout))
+             write(lunc,'(a)') headoutcsv(:lnbc(headoutcsv))
          endif
 
 c  Look within each data record to see if any of the data values are
@@ -217,7 +227,7 @@ c  the variable that was furthest out of range. Then write out the data.
          eflag=0
          kmax=0
          dmax=0.0
-         do icol=1+nchar,ncol
+         do icol=1+spectrum_flag,ncol
             krow_qc=pindex(icol)
             dev=abs((scale(krow_qc)*yrow(icol)-vmin(krow_qc))/
      &      (vmax(krow_qc)-vmin(krow_qc))-0.5)
@@ -241,7 +251,7 @@ c         yrow(2)=int(yrow(2))   ! Day
          yrow(2)=nint(yrow(2)-yrow(3)/24.0)     ! Day
 
          if(eflag.eq.0.or.wrow_flag.gt.0) then
-            if(nchar.eq.0 .or. wsp_flag.eq.0) then
+            if(spectrum_flag.eq.0 .or. wsp_flag.eq.0) then
                 write(lunw,outfmt0)eflag,
      &          (wlimit(dble(yrow(j)),ofmt(j)),j=1,nco)
             else
@@ -249,7 +259,7 @@ c         yrow(2)=int(yrow(2))   ! Day
      &          (wlimit(dble(yrow(j)),ofmt(j)),j=1,nco)
             endif
          endif
-         if(nchar.eq.0 .or. wsp_flag.eq.0) then
+         if(spectrum_flag.eq.0 .or. wsp_flag.eq.0) then
             write(ssss,outfmt0)eflag,
      &      (wlimit(dble(yrow(j)),ofmt(j)),j=1,nco)
          else
@@ -257,14 +267,14 @@ c         yrow(2)=int(yrow(2))   ! Day
      &      (wlimit(dble(yrow(j)),ofmt(j)),j=1,nco)
          endif
          call substr(ssss,sarr,mcol,kcol)
-c         if(kcol.ne.nco+wsp_flag+nchar) then
+c         if(kcol.ne.nco+wsp_flag+spectrum_flag) then
 c            write(*,*)ssss
-c            write(*,*)kcol,nco,wsp_flag,nchar
-c            stop 'kcol.ne.nco+wsp_flag+nchar'
+c            write(*,*)kcol,nco,wsp_flag,spectrum_flag
+c            stop 'kcol.ne.nco+wsp_flag+spectrum_flag'
 c         endif
          ssss=sarr(1)
          do k=2,kcol
-            cc=sarr(k)
+            cc=sarr(k)(:20)
             ssss=ssss(:lnbc(ssss))//','//cc(:lnbc(cc))
          end do
          if(eflag.eq.0.or.wrow_flag.gt.0)

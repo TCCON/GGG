@@ -1,0 +1,17 @@
+#!/bin/bash
+
+osname=`uname -s`
+filename=$1
+if [ $osname == "Linux" ]
+then
+	#Nothing to do
+	md5sum $filename
+	
+elif [ $osname == "Darwin" ]
+then
+	#convert the output from md5
+	md5=`md5 $1`
+	md5sum=`echo $md5 | awk '{print $4}'`
+	echo "$md5sum  $filename"
+	
+fi

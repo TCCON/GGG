@@ -184,14 +184,14 @@ pro read2mem,nfile,fname,gmissing,header,ncol,nrow,buf
       ndcol=ndcol+1  ;  IV1 is grouped with the data variables
 ;                       IV2 is a character variable and is skipped
       end
-   (nfmt le 1000): begin    ;  File is in a spreadsheet format
+   else: begin    ;  File is in a spreadsheet format
       ndcol=nfmt
       ztitl = strarr(ndcol)
       zscal = fltarr(ndcol)
-      zmiss = fltarr(ndcol)
+;      zmiss = fltarr(ndcol)
       jj=0
       zscal(*)=1.0       ; default value
-      zmiss(*)=-999.     ; default value
+      zmiss=-999.     ; default value
       for k=2,nlhead do begin
          readf, unit, ccc
          print, ccc
@@ -210,7 +210,6 @@ pro read2mem,nfile,fname,gmissing,header,ncol,nrow,buf
          endfor
       endif
       end
-   else: print,'unrecognized AMES format'
    endcase
 ;
    if (nfmt gt 1000) then begin  ;  Read Ames format comment lines

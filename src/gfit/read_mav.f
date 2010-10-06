@@ -26,9 +26,7 @@ c
            stop ' READ_MAV: mismatch in nlev'
       endif
       if(ncol-4 .ne. nspeci) then
-           write(*,*)'ERROR: ncol-4 nspeci =',ncol-4,nspeci
-           write(*,*)'The number of species in isotopolog.dat differs'
-           write(*,*)'from the number in your .mav file. Re-run GSETUP.'
+           write(*,*)'ncol-4 nspeci =',ncol-4,nspeci
            stop ' READMAV: mismatch in NSPECI'
       endif
       call skiprec(lunm,nlhead-1)  !   Skip header

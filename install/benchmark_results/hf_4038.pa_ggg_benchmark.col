@@ -1,0 +1,27 @@
+ 23 17
+ GFIT                     Version 4.7.0    06-Dec-2010    GCT   
+ GSETUP                   Version 3.1.0    05-Nov-2010    GCT
+17bed3b7ed20ed14a1a6c25829d48c0a  /home/toon/ggg/config/data_part.lst
+df46c8832a8e15e46185f3875bd00554  /home/toon/ggg/apriori/gfit_ap.gnd
+c7e6b77ccee1abf497e6f736abcc0c0f  /home/toon/ggg/runlogs/gnd/pa_ggg_benchmark.grl
+7ff3c96fbfd4e17b9b04e78805c67363  /home/toon/ggg/levels/integral.gnd
+                                  /home/toon/ggg/models/gnd/
+                                  /home/toon/ggg/vmrs/gnd/
+b296aec0fd7ae9eb9cb0c833c9851f10  pa_ggg_benchmark.mav
+f3d27077a323c99391bc1d76449d5869  pa_ggg_benchmark.ray
+345d0954adabaf1ecd5f3e5c6ed4e495  isotopologs_local.dat
+5c42f061b9721dbb3adcf39cda55db13  /home/toon/ggg/windows/gnd/tccon.gnd
+08fbaab715de1f0d96c9307ff450c7cb  /home/toon/ggg/linelist/atm.101
+23aadd6752e2aab1f0285ae9e95e2d24  /home/toon/ggg/linelist/gct.101
+6fd821359b77fa5a0f3bb7608ffa007e  /home/toon/ggg/linelist/fcia.101
+61e34bb86814b4d71a3a74f517412a19  /home/toon/ggg/linelist/scia.101
+c43af6cdbdec0440a3297ab55d7c90d8  /home/toon/ggg/linelist/solar_merged.108
+                                  /home/toon/ggg/ak/k
+                                  /home/toon/ggg/spt/z
+                                  hf_4038.pa_ggg_benchmark.col
+ 4038.95   0.32  15 1 1 0  cl  ct  fs  so    : hf h2o
+  Spectrum            Nit  CL   CT   FS  S-G  ZO    RMS/CL   Zpres  AM_hf     OVC_hf     VSF_hf     VSF_hf_error  AM_h2o    OVC_h2o    VSF_h2o    VSF_h2o_error
+ pa20040721saaaaa.049  7 0.116 -2.2 -0.1  0.2 0.000 0.1753   0.472  1.296 1.1109E+15   1.1689 7.0E-02  1.297 1.4839E+23   0.9356 1.9E-02
+ pa20040721saaaaa.125  9 0.077 -7.1  0.2 -3.5 0.000 0.2142   0.473  2.226 1.1109E+15   1.2267 1.1E-01  2.251 1.4833E+23   0.8536 3.1E-02
+ pa20041222saaaaa.021  6 0.355 -0.4  0.0  0.2 0.000 0.1420   0.478  6.675 1.3621E+15   1.1517 9.5E-03  7.779 5.5517E+21   1.2047 3.8E-02
+ pa20041222saaaaa.022  6 0.358 -0.4  0.2  1.6 0.000 0.1532   0.477  6.428 1.3621E+15   1.1695 1.0E-02  7.396 5.5558E+21   1.1844 4.2E-02

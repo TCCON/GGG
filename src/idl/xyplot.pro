@@ -126,7 +126,7 @@ nrow      =  lonarr(nfile)
 
 print, ' Reading entire contents of data files into memory.....'
 buf = fltarr(10000000)
-mcol=1000
+mcol=1200
 header    =  strarr(nfile,mcol)
 gmissing   =  -999.
 read2mem,nfile,fname,gmissing,header,ncol,nrow,buf

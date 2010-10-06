@@ -8,14 +8,17 @@
 1.0        ! pins
 50.0       ! hins
 20.0       ! tout
-950.0      ! tout
+950.0      ! pout
+0.7        ! pout_corr
 50.0       ! hout
 0.0        ! sia
 0.0        ! fvsi
 -1.0       ! wspd
 -1.0       ! wdir
+3          ! ndet (number of detectors)
 16 16 'a'  4000 11000  ! Nus Nue
 16 16 'b' 11000 15000  ! Nus Nue
+16 16 'c'  1800  6000  ! Nus Nue
 0.99999999 ! FSF
 15798.0138 ! lasf
 9900.      ! wavtkr

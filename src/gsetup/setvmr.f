@@ -1,5 +1,5 @@
-      subroutine setvmr(vmr,mgas,z,t,p,h2ovmr,co2vmr,nlev,iyr,iday,
-     & uttime,oblat,oblon,obalt,tout,pout,hout,ptrop_atm,ppbl_atm)
+      subroutine setvmr(vmr,mgas,z,h2ovmr,co2vmr,nlev,iyr,iday,
+     & uttime,oblat,oblon,obalt,tout,pout,hout,ztrop,zpbl)
 c
 c  Purpose:    Allows a vmr profile to be modified
 c
@@ -17,8 +17,8 @@ c
 
       real*4 
      & vmr(mgas,nlev),   ! buffer for vmr's
-     & p(nlev),          ! pressures of levels (atm.)
-     & t(nlev),          ! temperatures of levels (K)
+c     & p(nlev),          ! pressures of levels (atm.)
+c     & t(nlev),          ! temperatures of levels (K)
      & z(nlev),          ! altitudes of levels (km)
      & h2ovmr(nlev),     ! H2O vmr profile from .mod file
      & co2vmr(nlev)      ! CO2 vmr profile from simulate_co2_vmr
@@ -31,22 +31,22 @@ c
      & tout,             ! Outside temperature (c)
      & pout,             ! Outside pressure (mbar)
      & hout,             ! Outside RH (%)
-     & ptrop_atm,        ! Tropopause pressure (atm)
-     & ppbl_atm          ! PBL pressure (atm)
+     & ztrop,            ! Tropopause  Altitude (km)
+     & zpbl              ! PBL Altitude (km)
 
-      if(1.eq.2) write(*,*)uttime,hout,oblon,obalt,tout,t,z  ! Avoids compiler warning for unused variables
+      if(1.eq.2) write(*,*)uttime,hout,oblon,obalt,tout,z  ! Avoids compiler warning for unused variables
 
 c  Overwrite CO2 profile with simulation
-      if(ptrop_atm.gt.0) then  ! fudge CO2 only if ptrop is non-zero.
+c      write(*,*) 'ztrop=',ztrop
+      if(ztrop.gt.0) then  ! fudge CO2 only if ztrop is non-zero.
           call simulate_co2_vmr(iyr,iday,uttime,oblat,oblon,
-     &    ptrop_atm,ppbl_atm,z,p,co2vmr,nlev)
+     &    ztrop,zpbl,z,co2vmr,nlev)
           do ilev=1,nlev
              vmr(2,ilev)=co2vmr(ilev)
           end do
-      endif  ! if(ptrop_atm.gt.0.0)
+      endif  ! if(ztrop.gt.0.0)
 
-
-c  Substitute NCEP model H2O profile for ground-based observations.
+c  For ground-based observations, over-write apriori H2O vmr with NCEP model.
 c  The factor 0.16*(8.0+log10(h2ovmr(ilev))) represents
 c  the isotopic fractionation of HDO/H2O.
       if(h2ovmr(1).gt.0.0) then ! An H2O profile was found in the .mod file

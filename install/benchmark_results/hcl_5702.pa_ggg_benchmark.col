@@ -1,0 +1,27 @@
+ 23 21
+ GFIT                     Version 4.7.0    06-Dec-2010    GCT   
+ GSETUP                   Version 3.1.0    05-Nov-2010    GCT
+17bed3b7ed20ed14a1a6c25829d48c0a  /home/toon/ggg/config/data_part.lst
+df46c8832a8e15e46185f3875bd00554  /home/toon/ggg/apriori/gfit_ap.gnd
+c7e6b77ccee1abf497e6f736abcc0c0f  /home/toon/ggg/runlogs/gnd/pa_ggg_benchmark.grl
+7ff3c96fbfd4e17b9b04e78805c67363  /home/toon/ggg/levels/integral.gnd
+                                  /home/toon/ggg/models/gnd/
+                                  /home/toon/ggg/vmrs/gnd/
+b296aec0fd7ae9eb9cb0c833c9851f10  pa_ggg_benchmark.mav
+f3d27077a323c99391bc1d76449d5869  pa_ggg_benchmark.ray
+345d0954adabaf1ecd5f3e5c6ed4e495  isotopologs_local.dat
+5c42f061b9721dbb3adcf39cda55db13  /home/toon/ggg/windows/gnd/tccon.gnd
+08fbaab715de1f0d96c9307ff450c7cb  /home/toon/ggg/linelist/atm.101
+23aadd6752e2aab1f0285ae9e95e2d24  /home/toon/ggg/linelist/gct.101
+6fd821359b77fa5a0f3bb7608ffa007e  /home/toon/ggg/linelist/fcia.101
+61e34bb86814b4d71a3a74f517412a19  /home/toon/ggg/linelist/scia.101
+c43af6cdbdec0440a3297ab55d7c90d8  /home/toon/ggg/linelist/solar_merged.108
+                                  /home/toon/ggg/ak/k
+                                  /home/toon/ggg/spt/z
+                                  hcl_5702.pa_ggg_benchmark.col
+ 5702.00   0.70  15 0 1 0 cl  ct  fs  so     : hcl h2o ch4
+  Spectrum            Nit  CL   CT   FS  S-G  ZO    RMS/CL   Zpres  AM_hcl    OVC_hcl    VSF_hcl    VSF_hcl_error  AM_h2o    OVC_h2o    VSF_h2o    VSF_h2o_error  AM_ch4    OVC_ch4    VSF_ch4    VSF_ch4_error
+ pa20040721saaaaa.049  5 0.316 -0.9  0.3 -0.7 0.000 0.1308   0.472335.365 3.6430E+15   1.0484 1.1E-02  1.297 1.4839E+23   2.1170 3.4E-01  1.298 3.6217E+19   1.0324 7.1E-02
+ pa20040721saaaaa.125  6 0.307 -1.3  0.3  0.0 0.000 0.1394   0.473336.304 3.6429E+15   1.0464 1.2E-02  2.251 1.4833E+23   1.8430 2.2E-01  2.252 3.6213E+19   1.0063 4.6E-02
+ pa20041222saaaaa.021  7 0.521 -1.6  0.3  0.9 0.000 0.1938   0.478233.797 5.3959E+15   1.0623 1.7E-02  7.779 5.5517E+21  20.0108 4.8E+00  7.525 3.6461E+19   1.0262 2.5E-02
+ pa20041222saaaaa.022  8 0.521 -1.5  0.3  0.7 0.000 0.1905   0.477233.516 5.3959E+15   1.0730 1.6E-02  7.396 5.5558E+21  20.3398 4.8E+00  7.176 3.6469E+19   1.0273 2.5E-02

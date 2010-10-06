@@ -20,7 +20,7 @@ c  Data is assumed IEEE binary, except bytepw=5,7,9 which is assumed ASCII.
       INTEGER*2 i2dum
       REAL*4 buf(npts),r4dum,freq,tm
       integer*4 iscale    !DG000909
-      real*4 xscale
+      real*4 xscale,rdum
 c
 c  Determine which kind of computer we are running on; big- or little-endian
       call getendian(iend)      !  iend = +1 on SUN; = -1 on PC
@@ -89,11 +89,20 @@ c
 c
 c  The spectral signal is in the third column, e.g. an spt output file
       elseif(bytepw.eq.7) then 
+c        write(*,*)'bytepw.eq.7'
          open(19,file=specpath,status='old')
          read(19,*) nlhead, ncol
+c        write(*,*)nlhead, ncol
+c        write(*,*)'before',nlhead-1+iskip/7
          call skiprec(19,nlhead-1+iskip/7)  !  Skip header & unwanted data
+c        call skiprec(19,nlhead-1+240900)  !  o2 small Skip header & unwanted data
+c        call skiprec(19,23860)  !  co2_6220 Skip header & unwanted data
+c        call skiprec(19,39392)  !  co2_6339 Skip header & unwanted data
+c        call skiprec(19,895)    !  ch4_6076 Skip header & unwanted data
+c        write(*,*)'after skiprec',nlhead-1+iskip/7
          do jpts=1,npts  !
             read(19,*)freq,tm,buf(jpts)  ! read wanted data
+c           write(*,*)jpts
          end do
 c
 c  The spectral signal is in the second column

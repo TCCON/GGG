@@ -20,7 +20,7 @@ c
      & mem,    ! maximum buffer size in bytes
      & i,j,
      & iabpw,  ! absolute values of the bytes per word
-     & lnbc,   ! function Last Non-Black Character
+     & lnbc,   ! function Last Non-Blank Character
      & iend,   ! Endianess of host computer
      & npts,   ! Number of spectral values
      & lr      ! 

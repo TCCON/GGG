@@ -3,7 +3,7 @@ c  Program spectrum_average.f
 c  Averages a series of binary spectra.
 
 c  Works for any binary spectra having a GGG-format runlog,
-c  which is adapted for use as the input file.
+c  which is adapted for use as the input file (including header).
 c
 c  Works transparently for I*2 and R*4 binary data types.
 c
@@ -25,7 +25,6 @@ c
      & mcol, ncol, kcol, ! Number of columns in runlog
      & lnbc,        ! function Last Non-Black Character
      & ntype,jtype, ! Periodicity of spectra to be averaged
-     & irec,nrec,   ! number of records
      & nspe         ! number of single spectra being averaged
 
       parameter (lun_rpt=30,lun_rlg=15,lun_wbs=16,lun_wav=17)
@@ -44,7 +43,7 @@ c
       real*8
      & nus, nue      ! selected frequency range of interest
 
-      version=' spectrum_averaging   Version 0.1.1   30-Oct-2009   GCT '
+      version=' spectrum_averaging   Version 0.1.3   13-Sep-2010   GCT '
       write(6,*) version
 
       write(*,*)'Enter Starting & Ending frequencies (cm-1):'
@@ -63,7 +62,7 @@ c
       call skiprec(lun_rlg,nhl-2)
       read(lun_rlg,'(a)') runlog_header
       call substr(runlog_header, outarr, mcol, kcol)
-      if (kcol.ne.ncol) stop 'mismatch: runlog header'
+      if (kcol.ne.ncol) stop 'SUBSTR mismatch: in runlog header'
 
       open(lun_wav,file='spectrum_averaging.grl',status='unknown')
       write(lun_wav,*)3,ncol
@@ -82,29 +81,37 @@ c  Open a seperate report file for each spectrum type
       do jtype=1,ntype  ! Loop over spectrum types (e.g. HgCd/InSb)
 
 c        Compute average
+c         write(*,*)'calling rravgcom: mode=1'
+         write(*,*)'Reading single spectra...'
          call rravgcom(1,nus,nue,
      &   lun_rlg,lun_wav,lun_rpt,
      &   ntype,jtype,nspe,krec,istat)
+         if(jtype.eq.1 .and. istat.ge.1) exit  ! hit EOF
+c         write(*,*)'called rravgcom 1',istat,krec
 
          call skiprec(lun_rlg,-krec)
 
 c        Compare with average
+         write(*,*) 
+c         write(*,*)'calling rravgcom: mode=2'
          call rravgcom(2,nus,nue,
      &   lun_rlg,lun_wav,lun_rpt,
      &   ntype,jtype,nspe,krec,istat)
+c         write(*,*)'called rravgcom 2',istat
 
          write(*,*)
          if(jtype.lt.ntype) call skiprec(lun_rlg,-krec)
       end do  !  jtype=1,ntype
       end do  !  Loop over average spectra
 
-99    close(lun_rlg)
+      close(lun_rlg)
       close(lun_wav)
       do jtype=1,ntype
         close(lun_rpt+jtype)
       end do
  
 c  Merge multiple .rpt files into one file
+      write(*,*)' Merging .rpt files into single report file'
       open(lun_rpt,file='spectrum_averaging.rpt',status='unknown')
       rptfile='spectrum_averaging.rpt#'
       lr=index(rptfile,'#')
@@ -112,7 +119,7 @@ c  Merge multiple .rpt files into one file
          write(rptfile(lr:lr),'(i1)') jtype
          open(lun_rpt+jtype,file=rptfile,status='unknown')
       end do
-      do irec=1,999999
+      do   ! loop over records
          lst=1
          do jtype=1,ntype
             read(lun_rpt+jtype,'(a)',end=89) stuff(lst:)

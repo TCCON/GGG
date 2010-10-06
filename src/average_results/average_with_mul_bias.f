@@ -43,7 +43,7 @@ c  Minimizes:
 c   CHI2 = Sumi Sumj [(yobs(i,j)-ybar(i)*scal(j))/yerr(i,j)]^2 + ww*Sumj(scal(j)-1)^2
 c
 c  Solution is obtained by differentiating the above equation
-c  with respect to each element of ybar(i) and scal(j) yielding
+c  with respect to each element of ybar(i) and scal(j) yielding:
 c   Sumj scal(j)*(yobs(i,j)-ybar(i)*scal(j))/yerr(i,j)^2 = 0  i=1,nrow
 c   Sumi ybar(i)*(yobs(i,j)-ybar(i)*scal(j))/yerr(i,j)^2 + ww*(1-scal(j) = 0  j=1,ncol
 c
@@ -58,7 +58,7 @@ c
 c  Note that ybar(i) depends on scal(j) and vice versa. So iteration is generally needed. 
 c
 c  The total error weight (TEW) is the square root of:
-c    the CHI2 value divided by the total number of points.
+c  the CHI2 value divided by the total number of points.
 c  If the error estimates (YERR) are consistent with the
 c  scatter of the data values (YOBS), TEW should be ~1.
 c  If TEW>1, the scatter of the data values exceeds the error bars.
@@ -79,14 +79,14 @@ c  1)  For large values of ww, iteration converges very slowly.
       implicit none
       integer*4 nrow,irow,ncol,jcol,mit,jit,
      & nval_irow,nval_jcol,nval
-      parameter (mit=19)
+      parameter (mit=25)
       real*4 ymiss,ww,
      & yobs(nrow,ncol),yerr(nrow,ncol),
      & ybar(nrow),eybar(nrow),
      & scal(ncol),escal(ncol),rew(nrow),cew(ncol),tew,twas
       real*8 num_irow,den_irow,num_jcol,den_jcol,wt,
      & chi2_irow,chi2_jcol,chi2
-      parameter (ww=0.04)   !  inverse a priori uncertainty (variance) on SCAL = 1 +/- 5
+      parameter (ww=0.04)   !  inverse a priori uncertainty (variance) on SCAL = 1 +/-5 
 
 c  Check for illegal NCOL/NROW values.
       if(ncol.le.0) stop 'average_with_mul_bias:  NCOL <=0'
@@ -169,10 +169,10 @@ c  Determine SCAL, ESCAL, and CEW
       tew=sqrt(chi2/nval)
 c      write(*,*)jit,twas,tew
       if( tew .ge. twas ) exit  ! fit failed to improve
+      if(jit.eq.mit) write(*,*)
+     & 'average_with_mul_bias failed to converge',twas,tew
       twas=tew
       end do  !  jit=1,mit
-      if(jit.gt.mit) write(*,*)
-     & 'average_with_mul_bias failed to converge',twas,tew
 c
 c  Scale EYBAR by MAX(1,TEW)
 c  Not scaling EYBAR would imply that the GFIT-supplied error bars are correct

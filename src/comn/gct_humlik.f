@@ -1,10 +1,6 @@
       SUBROUTINE GCT_HUMLIK ( N, X1, DX, Y, K )
 
-c     To calculate the Voigt/Faddeeva function with relative error less than 10^(-4).
-c  Based on the paper:
-c        Rapid approximation to the Voigt/Faddeeva function and its derivatives 
-c        Wells R.J., JQSRT, Volume 62, Number 1, May 1999 , pp. 29-48(20)
-c        with corrections.
+*     To calculate the Faddeeva function with relative error less than 10^(-4).
 
 * Arguments
       implicit none

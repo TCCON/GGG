@@ -1,5 +1,6 @@
-      subroutine readvmrFC(lunr,vmrpath,z,nlev,pabel,vmr,mgas,modname)
-c  Reads and interpolates (possibly with a vertical shift) an initial vmr set
+      subroutine readvmrFC(lunr,vmrpath,z,nlev,pabel,ztrop_mod,
+     & vmr,mgas,modname,vmr_found)
+c  Reads and interpolates (possibly with a vertical stretch) an initial vmr set
 c  (SETNAME) onto the vertical grid defined by Z(NLAY) and places the result
 c  into array VMR.
 
@@ -8,13 +9,16 @@ c     DG Sept00
 
       implicit none
 
-      INTEGER*4 lunr,klev,nlev,jcol,ncol,mgas,ngas,mg,nn,nss,k,pos,
+      INTEGER*4 lunr,klev,nlev,jcol,ncol,mgas,ngas,mg,nlheader,nss,
+     & k,pos,
      &          minlvl, ninlvl, igas, i, ii, lnbc
 c      parameter (mg=134,minlvl=151)    !minlvl <= mg  -DG: not necessary if inlvl and vold not equivalenced.
       parameter (mg=230,minlvl=250)    !DG Jan03
       CHARACTER vmrpath*(*),pabel*(*),dum*16,string*1000,modname*48
+      logical*4 vmr_found
       real*4 z(nlev),zold,znew,vold(mg),vnew(mg),vmr(mgas,nlev),fr,
-     &vshift,inlvl(minlvl),zero
+     &inlvl(minlvl),zero
+      real*8 zeff,ztrop_mod,ztrop_vmr
 c      equivalence (inlvl,vold)
 
       if(mgas.gt.mg) then
@@ -22,7 +26,6 @@ c      equivalence (inlvl,vold)
          write(*,*) 'mg=',mg
          stop 'readvmrFC: increase parameter MG'
       endif
-      vshift=0.0
       zero=0.0
 c==================================================================
 c  Read in names of gases in vmr set
@@ -30,15 +33,16 @@ c      write(6,*)'readvmr: mgas,nlev ',mgas,nlev
       open(lunr,file=vmrpath,status='old')
       read(lunr,'(a)')string
 c
-      if(index(vmrpath,'.vmr').gt.0.or.index(vmrpath,'.set').gt.0)then !DG Jan03
+      if(index(vmrpath,'vmr').gt.0.or.index(vmrpath,'.set').gt.0)then !DG Jan03
 c         GFIT format
           backspace (lunr)
-          read(lunr,*)nn,ncol
+          read(lunr,*)nlheader,ncol
           ngas=ncol-1   ! first column is Z
-          do k=2,nn
+          ztrop_vmr=ztrop_mod  ! km   default tropopause altitude
+          do k=2,nlheader
             read(lunr,'(a)')pabel
-            pos = index(pabel,'VSHIFT:') 
-            if( pos .gt. 0 ) read(pabel(pos+7:),*) vshift
+            pos = index(pabel,'ZTROP:')
+            if( pos .gt. 0 ) read(pabel(pos+6:),*) ztrop_vmr
           end do
 c
 c     Check that the number of column labels (NSS) matches NCOL
@@ -72,14 +76,23 @@ c
              read(string,*)znew,(vnew(jcol),jcol=1,ngas)
           endif
 c
-          if(z(1).lt.zold+vshift) then
+          if(z(1).lt.zold) then
             write(6,*)'Warning: vmrs may not extend low enough'
-            write(*,*) 'z(1), zold, vshift', z(1), zold, vshift
+            write(*,*) 'z(1), zold = ', z(1), zold
           endif
 
           do klev=1,nlev
 c            write(*,*)klev,nlev,z(klev),znew
- 11          if(z(klev).gt.znew+vshift) then
+             if(vmr_found) then
+                zeff=z(klev)
+             elseif(z(klev).lt.ztrop_mod) then
+                zeff=z(klev)*ztrop_vmr/ztrop_mod  ! troposphere
+             else
+                zeff=z(klev)+(ztrop_vmr-ztrop_mod)*
+     &          exp(-(z(klev)-ztrop_mod)/10.0)       ! stratosphere
+             endif
+             if(zeff.gt.z(nlev)) zeff=z(nlev)
+ 11          if(zeff.gt.znew) then
                 zold=znew
                 do jcol=1,ngas
                    vold(jcol)=vnew(jcol)
@@ -93,7 +106,7 @@ c            write(*,*)klev,nlev,z(klev),znew
               read(string,*)znew,(vnew(jcol),jcol=1,ngas)
               go to 11
             else
-              fr=(z(klev)-zold-vshift)/(znew-zold)
+              fr=(zeff-zold)/(znew-zold)
               do jcol=1,ngas
                 vmr(jcol,klev)=fr*vnew(jcol)+(1.-fr)*vold(jcol)
               end do

@@ -1,5 +1,5 @@
       subroutine fm(lun_ak,winfo,slit,nii,ldec,spts,spxv,dspdzxv,
-     & vac,splos,nlev,ncp,rdec,shshs,cx,ntg,calc,pd,nmp)
+     & vac,splos,nlev,ncp,rdec,sssss,cx,ntg,calc,pd,nmp)
 c  Computes the forward model
 c    F(i,x)=X1.[1+X2.R+X4.SIN(CF)].SLIT(X3)*T(k)
 c  and its matrix of partial differentials dF/dX,
@@ -44,7 +44,7 @@ c
      & zero,unity,rk,calc(nmp),pd(nmp+ntg+4,ntg+4),
      & spxv(ncp,0:ntg+2),dspdzxv(ncp,0:ntg+2),d2,d4
 
-      real*8 rdec,sh,shshs
+      real*8 rdec,sh,sssss
       character winfo*(*),ss(4)*4
       parameter (zero=0.0,unity=1.0)
       parameter (ckm2cm=100000.0)
@@ -61,8 +61,8 @@ c      end do
       n2=ntg+2  ! 
       n3=ntg+3  !
       n4=ntg+4  !
-      sh=rdec*(cx(n3)+shshs)
-c      write(*,*)'fm.f: sh=',sh,rdec,cx(n3),shshs
+      sh=rdec*(cx(n3)+sssss)
+c      write(*,*)'fm.f: sh=',sh,rdec,cx(n3),sssss
 c  Compute primitive transmittance spectrum using spxv(1,n3) as work space.
 c  Scale the limb opacities by CX and co-add to produce the total limb opacity
       call vmov(spxv(1,0),1,spxv(1,n1),1,ncp)    ! non-target limb opacity
@@ -111,7 +111,7 @@ c  Compute target gas PD's
          if(lun_ak.gt.0) write(lun_ak,*) (pd(jmp,jtg),jmp=1,nmp)
       end do
 
-c  Calculate & Write single level partial differentials = v . df/dv
+c  Write single level partial differentials = v . df/dv
       if(lun_ak.gt.0) then
          write(lun_ak,*)nmp,nlev-1
          do ilev=2,nlev
@@ -137,23 +137,21 @@ c      if(index(winfo,ss(3)).gt.0) then  !  compute "fs" PD's.
          end do
 c      endif
 c
-cc  Write CT, CT, FS  partial differentials
-c      if(lun_ak.gt.0) then
-c         write(lun_ak,*) (pd(jmp,n1),jmp=1,nmp) ! CL PD
-c         write(lun_ak,*) (pd(jmp,n2),jmp=1,nmp) ! CT PD
-c         write(lun_ak,*) (pd(jmp,n3),jmp=1,nmp) ! FS PD
-c         write(lun_ak,*) (pd(jmp,n4),jmp=1,nmp) ! ZO PD
-c      endif
+c  Write CT, CT, FS  partial differentials
+      if(lun_ak.gt.0) then
+         write(lun_ak,*) (pd(jmp,n1),jmp=1,nmp) ! CL PD
+         write(lun_ak,*) (pd(jmp,n2),jmp=1,nmp) ! CT PD
+         write(lun_ak,*) (pd(jmp,n3),jmp=1,nmp) ! FS PD
+      endif
 c
 c  Zero out the last NTG+4 elements of each column of the PD Array (a priori).
-c  If the parameter is not fitted, zero out the whole column.
+c  If the gas is not fitted, zero out the whole column.
       do kk=1,4
         if(index(winfo,ss(kk)).gt.0) then
           call vmov(zero,0,pd(nmp+1,ntg+kk),1,ntg+4) ! Zero last NTG+4 elements
         else
           call vmov(zero,0,pd(1,ntg+kk),1,nmp+ntg+4) ! Zero whole column
         endif
-        if(lun_ak.gt.0) write(lun_ak,*) (pd(jmp,ntg+kk),jmp=1,nmp)   ! CL, CT, FS, ZO Jacobians
       end do
       return
       end

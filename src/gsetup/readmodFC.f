@@ -1,5 +1,5 @@
       subroutine readmodFC
-     & (lun_mod,modname,z,t,p,d,h2ovmr,w,roc,nlev,ptrop)
+     & (lun_mod,modname,z,t,p,d,h2ovmr,w,roc,nlev,ztrop_ncep,ztrop_gct)
 c
 c  Reads a model (P,T) from file MODNAME at arbitrary vertical levels and then
 c  uses the hydrostatic equation together with the mean molecular weights W to
@@ -30,25 +30,25 @@ c
       character modname*(*),string*100,dummy*20
       integer lun_mod,nlev,i,k,nlhead,ncol,ninlvl,minlvl,ii,nss
       real*4 gas,radius,ecc2,tlat,gs,gravity,pfact,zero,h2ox,
-     & h2ovmr(nlev),h2oold,h2onew,inheight,inmw,
-     & pold,zold,hold,told,pnew,hk,x,hnew,tnew,avagadro,log1pxox
+     & h2ovmr(nlev),h2oold,h2onew,inmw,
+     & pold,zold,hold,told,pnew,hk,x,znew,hnew,tnew,avagadro,log1pxox
       parameter (gas=8.31432,avagadro=6.02217e+23,zero=0.0)
       parameter (minlvl=4000)
       real*4 z(nlev),t(nlev),p(nlev),d(nlev),w(nlev),roc
       real*4 inlvl(minlvl),inpress(minlvl),intemp(minlvl),
-     & inh2ovmr(minlvl) !temp storage
-      real*8 ptrop
+     & inh2ovmr(minlvl),inheight(minlvl) !temp storage
+      real*8 ztrop_ncep,ptrop_ncep,fr,ztrop_gct,lr,lrwas,zlr,zlrwas
 c
 c      write(*,'(a,a)')' readmodFC: modname = ',modname
-      radius=6378.00
+      radius=6378.137  ! Equatorial radius (km)
       ecc2=6.0e-5
       tlat=-34.0
       gs=9.81
       zold=0.0
       pfact=1.0
-      ptrop=200.0 ! mbar
+      ptrop_ncep=200.0d0  ! mbar  Default value in case missing from .mod file
 c
-      if(index(modname,'.mod').gt.0)then           !DG Jan03
+      if(index(modname,'mod').gt.0)then           !DG Jan03
 c        Read in input levels, pressures and temperatures
          open(unit=lun_mod,file=modname,status='old')
          read(lun_mod,*)nlhead,ncol
@@ -58,9 +58,9 @@ c        GFIT format model, listed bottom-up
          call substr(string,dummy,1,nss)  ! nss = number of sub-strings
          if(nss.eq.6) then
             read(string,*)radius,ecc2,tlat,gs,zold,pfact
-            ptrop=0.0d0
+            ptrop_ncep=0.0d0
          elseif(nss.eq.7) then
-            read(string,*)radius,ecc2,tlat,gs,zold,pfact,ptrop
+            read(string,*)radius,ecc2,tlat,gs,zold,pfact,ptrop_ncep
          else
             write(*,*) 'nss=',nss
             write(*,*) string
@@ -75,17 +75,18 @@ c        GFIT format model, listed bottom-up
             read(lun_mod,'(a)',end=10) string
             call substr(string,dummy,1,nss)  ! nss = number of sub-strings
             if(nss.eq.5) then
-               read(string,*,end=10)inpress(i),intemp(i),inheight,inmw,
+             read(string,*,end=10)inpress(i),intemp(i),inheight(i),inmw,
      &         inh2ovmr(i)
             elseif(nss.eq.4) then
-               read(string,*,end=10)inpress(i),intemp(i),inheight,inmw
+              read(string,*,end=10)inpress(i),intemp(i),inheight(i),inmw
                inh2ovmr(i)=0.0
             elseif(nss.eq.3) then
-               read(string,*,end=10)inpress(i),intemp(i),inheight
+               read(string,*,end=10)inpress(i),intemp(i),inheight(i)
                inh2ovmr(i)=0.0
             elseif(nss.eq.2) then
                read(string,*,end=10)inpress(i),intemp(i)
                inh2ovmr(i)=0.0
+               inheight(i)=i
             else
                write(*,*)'READMODFC: Unknown model format: ',modname,nss
                write(*,*)'READMODFC: Last line read: ',string
@@ -154,18 +155,24 @@ c      read(lun_mod,*)pold,told
 c      read(lun_mod,*,end=3)pnew,tnew     
       pold=inpress(1)
       told=intemp(1)
+      zold=inheight(1)
       h2oold=inh2ovmr(1)
 
       if(nlev.gt.1) then
          pnew=inpress(2)
          tnew=intemp(2)
+         znew=inheight(2)
          h2onew=inh2ovmr(2)
+         lr=-5.0
+         zlr=0.0
          ii=2
       else
          hnew=1.E+36
          tnew=told
+         znew=zold
          h2onew=h2oold
       endif
+      ztrop_gct=0.0
 c
 c      write(*,*)hold,pold,told
       x=tnew/told-1
@@ -179,13 +186,30 @@ c     &   write(6,*)' Warning! Levels may not extend low enough'
  4      if(hk.gt.hnew) then      ! hold & hnew are both below hk; read another record
           pold=pnew
           told=tnew
+          zold=znew
           hold=hnew
+          lrwas=lr
+          zlrwas=zlr
           h2oold=h2onew 
 c          read(lun_mod,*,end=3)pnew,tnew
           ii=ii+1
-          if(ii.gt.ninlvl)goto 3
+          if(ii.gt.ninlvl) goto 3
           pnew=inpress(ii)
           tnew=intemp(ii)
+          znew=inheight(ii)
+c
+c  Compute tropopause altitude
+          lr=(tnew-told)/(znew-zold) ! Lapse Rate
+          zlr=0.5*(zold+znew)        ! Altitude at which lapse rate = lr
+c      Find first instance of lapse-rate exceeding -2K/km
+          if(abs(radius-6378).lt.50) then     ! Earth
+c             write(*,*) k, zold, told, zlr, lr
+             if(ztrop_gct.eq.0.0 .and. zold.gt.5 .and. lr.gt.-2.0) then
+                ztrop_gct=zlrwas+(zlr-zlrwas)*(-2-lrwas)/(lr-lrwas)
+             endif
+          else                        ! Mars
+             ztrop_gct=0.0            ! Mars
+          endif
 c          
           if(tnew.lt.0.0) then 
              write(*,*) modname
@@ -208,6 +232,19 @@ c      write(*,*)hnew,hnew/(1-hnew/radius),pnew,tnew
         endif
 c       write(*,*)zold,pold,told,z(k),t(k),p(k),h2ovmr(k)
       end do
+
+c  Convert NCEP tropopause pressure to altitude
+      if(ptrop_ncep.gt.0 .and. nlev.gt.1) then
+         do k=2,nlev                ! loop over levels
+           if(p(k).lt.ptrop_ncep/pfact) exit
+         end do
+         fr=log(ptrop_ncep/pfact/p(k))/log(p(k-1)/p(k))
+         ztrop_ncep=fr*z(k-1)+(1-fr)*z(k)
+      endif
+      write(*,'(a40,2f9.2)')modname(:40),ztrop_ncep,ztrop_gct
+c      write(51,'(a40,3f9.2)')modname(:40),
+c     & ptrop_ncep,ztrop_ncep,ztrop_gct
+
       return
 c
 3     write(*,*)'ii, ninlvl, modname z(k) zold znew = ',ii,ninlvl,

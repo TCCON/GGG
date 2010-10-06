@@ -17,7 +17,7 @@ c          PATH = ' '  (lnbc(path)=0)  if FILNAM was not found
 c
 c  Assumptions:
 c       1)    LUN 19 is available at time of call
-c       3)    Partition names are 32 characters or less.
+c       3)    Partition names are 80 characters or less.
 c       4)    Partition names beginning with a ':' are skipped
 c       5)    There are no more than MPART (=50) uncommented partitions
 c
@@ -26,7 +26,7 @@ c
      $ lf,       ! length of filnam string
      & fq, lq,   ! Positions of first and last ? in partition
      $ lnbc,     ! external function (Last Non Blank Character)
-     $ lloc,   ! external function (Reverse-Index)
+     $ lloc,     ! external function (Reverse-Index)
      $ lunr,     ! logical unit number of M4 partition list
      $ j,        ! dummy partition index
      $ ipart,    ! partition index
@@ -34,7 +34,7 @@ c
      $ mpart     ! maximum supported number of partitions
       parameter (lunr=19,mpart=50)
       character dplist*(*),filnam*(*),path*(*),partition(mpart)*80,
-     & homepath*20
+     & root*40
       logical*4 flexst
       save ipart,npart,partition
       data ipart,npart/1,0/
@@ -45,14 +45,14 @@ c
 c
 c  If first call, read file containing list of data partitions to be searched.
          if(npart.lt.1) then
-         call getenv('HOME',homepath)
+         call getenv('GGGPATH',root)
 c            write(*,*)dplist
             open(lunr,file=dplist,status='old')
             do j=1,mpart
  1             read(lunr,'(a)',end=88) partition(j)
                if(partition(j)(1:1).eq.':') go to 1
-               if(partition(j)(1:1).eq.'~') partition(j)=
-     &           homepath(:lnbc(homepath))//partition(j)(2:)
+               if(partition(j)(1:10).eq.'$(GGGPATH)') partition(j)=
+     &           root(:lnbc(root))//partition(j)(11:)
             end do
             write(*,*)'FINDFILE warning: Increase MPART=',mpart
 88          npart=j-1

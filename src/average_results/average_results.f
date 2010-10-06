@@ -23,7 +23,7 @@ c  and are treated as such in the averaging_with XXX_bias subroutines
       parameter (mauxcol=25)   ! Number of auxiliary parameters/columns
       parameter (mlabel=18000) ! Max Number of column lable characters
 
-      integer avindx(mgas+1), naux, nchar
+      integer avindx(mgas+1), spectrum_flag
       character
      & gfit_version*64,gsetup_version*64,
      & collabel*(mlabel),swfile*80,avfile*80,
@@ -44,9 +44,9 @@ c  and are treated as such in the averaging_with XXX_bias subroutines
      & bias(mwin),ebias(mwin)
 
       ar_version=
-     &' average_results              Version 1.1.2   2009-11-07   GCT'
+     &' average_results              Version 1.1.4   2010-12-04   GCT'
       write(*,*) ar_version
-      nchar=0
+      spectrum_flag=0
       loc=0
 
       write(*,'(a)')
@@ -67,23 +67,22 @@ c  Read the entire contents of the .xsw disk file
       read(lunr,'(a)') gsetup_version
       read(lunr,*) ymiss
       read(lunr,'(a)') collabel
-      if (index(collabel, 'Spectrum') .gt. 0) nchar=1
-      naux=nauxcol+nchar         ! ncol includes spectrum name
-      nwin=(ncol-naux)/2
+      if (index(collabel, 'spectrum') .gt. 0) spectrum_flag=1
+      nwin=(ncol-nauxcol)/2
 
-      if (nchar .eq. 1) then
+      if (spectrum_flag .eq. 1) then
          input_fmt='(a1,(a38,1x),f13.8,NNf13.5,800(e12.4))'
-         write(input_fmt(20:21),'(i2.2)') nauxcol-1
+         write(input_fmt(20:21),'(i2.2)') nauxcol-2
       else
          input_fmt='(a1,f13.8,NNf13.5,800(e12.4))'
          write(input_fmt(11:12),'(i2.2)') nauxcol-1
       endif
 
       do irow=1,mrow
-        if (nchar .eq. 1) then
+        if (spectrum_flag .eq. 1) then
            read(lunr,input_fmt,end=99)
      $     sign(irow),spectrum(irow),year(irow),
-     $     (yaux(k,irow),k=2,nauxcol),
+     $     (yaux(k,irow),k=3,nauxcol),
      $     (yobs(irow+nrow*(k-1)),yerr(irow+nrow*(k-1)),k=1,nwin)
         else
            read(lunr,input_fmt,end=99)
@@ -103,10 +102,10 @@ c
       call substr(collabel,clab,2*mwin+mauxcol,nss)
       if(nss.ne.ncol) stop 'NSS .NE. NCOL'
       write(*,*)nrow,nwin,nss
-      locnaux=index(clab(naux+1),'_')
-      locnaux=index(collabel,clab(naux+1)(:locnaux-1))-1
-      cwas=naux-1
-      icol=naux+1
+      locnaux=index(clab(nauxcol+1),'_')
+      locnaux=index(collabel,clab(nauxcol+1)(:locnaux-1))-1
+      cwas=nauxcol-1
+      icol=nauxcol+1
       lwas=1
       kgas=1
       do iwin=1,nwin
@@ -143,7 +142,7 @@ c              write(*,*)irow,ybar(irow),eybar(irow),rew(irow)
                 if(abs(error_sigma).gt.5.) 
      &          write(luno,'(a12,f9.5,a22,i6,a11,a10)')
      &          ' Deviation =', error_sigma,' sigma for spectrum # ',
-     &          nint(yaux(4,irow)),' in window ',clab(naux+2*jcol-1)
+     &          nint(yaux(4,irow)),' in window ',clab(nauxcol+2*jcol-1)
                 endif
                 jcol=jcol+1
               end do
@@ -160,7 +159,7 @@ c              write(*,*)irow,ybar(irow),eybar(irow),rew(irow)
                 if(abs(error_sigma).gt.5.) 
      &          write(luno,'(a12,f9.5,a22,i6,a11,a10)')
      &          ' Deviation =', error_sigma,' sigma for spectrum # ',
-     &          nint(yaux(4,irow)),' in window ',clab(naux+2*jcol-1)
+     &          nint(yaux(4,irow)),' in window ',clab(nauxcol+2*jcol-1)
                 endif
                 jcol=jcol+1
              end do
@@ -176,7 +175,7 @@ c
          if(navg.gt.1) then
          do iav=1,navg
             write(lunt,'(a10,3f10.5)')
-     &      clab(naux+2*(avindx(kgas)+iav-1)-1),
+     &      clab(nauxcol+2*(avindx(kgas)+iav-1)-1),
      &      bias(iav),ebias(iav),cew(iav)
          end do
          write(lunt,*)
@@ -186,9 +185,9 @@ c
 
 c
 
-      if (nchar .eq. 1) then
+      if (spectrum_flag .eq. 1) then
          output_fmt='(a1,(a38,1x),f13.8,NNf13.5,200(1pe12.4))'
-         write(output_fmt(20:21),'(i2.2)') nauxcol-1
+         write(output_fmt(20:21),'(i2.2)') nauxcol-2
       else
          output_fmt='(a1,f13.8,NNf13.5,200(1pe12.4))'
          write(output_fmt(11:12),'(i2.2)') nauxcol-1
@@ -196,7 +195,7 @@ c
 c
 c  Write averaged values to file
       open (lunw,file=avfile,status='unknown')
-      write(lunw,'(i2,i4,i7,i4)') nlhead+1,naux+2*ngas,nrow,nauxcol
+      write(lunw,'(i2,i4,i7,i4)') nlhead+1,nauxcol+2*ngas,nrow,nauxcol
       write(lunw,'(a)') ar_version(:lnbc(ar_version))
       write(lunw,'(a)') collate_version(:lnbc(collate_version))
       write(lunw,'(a)') gfit_version(:lnbc(gfit_version))
@@ -206,10 +205,10 @@ c  Write averaged values to file
      & (avlabel(kgas)(:lnbc(avlabel(kgas))),
      &  avlabel(kgas)(:lnbc(avlabel(kgas)))//'_error',kgas=1,ngas)
       do irow=1,nrow
-        if (nchar .eq. 1) then
+        if (spectrum_flag .eq. 1) then   ! Spectrum names are included
            write(lunw,output_fmt)
      &     sign(irow),spectrum(irow),year(irow),
-     &     (yaux(k,irow),k=2,nauxcol),
+     &     (yaux(k,irow),k=3,nauxcol),
      &     (yobs(irow+nrow*(k-1)),yerr(irow+nrow*(k-1)),k=1,ngas)
         else
 c           write(lunw,'(a1,f13.8,22f13.5,200(1pe12.4))')

@@ -1,4 +1,4 @@
-      Subroutine do_retrieval(obsrvd,nmp,apx,apu,slit,nii,
+      subroutine do_retrieval(obsrvd,nmp,apx,apu,slit,nii,
      & ldec,rdec,spts,spxv,dspdzxv,vac,splos,nlev,ncp,ntg,snr,
      & corrld,sssss,winfo,debug,mit,nit,calcul,rms,cx,ex,pd,ssnmp)
 
@@ -53,13 +53,13 @@ c     pd(nmp,ntg)   R*4  Individual gas transmittance spectra
      & krank,
      & ierr,
      & nlev,
-     & mmp,nmp,nii,ldec,nmpfp,
-     & mtg,ntg,jtg,
-     & mfp,nfp,kfp,jfp,i,j,
+     & mmp,nmp,imp,nii,ldec,nmpfp,
+     & mfp,ntg,jtg,
+     & nfp,kfp,jfp,i,j,
      & mit,nit,
      & jva,jpd,kn2
 
-      parameter (mmp=1250000,mtg=16,mfp=mtg+4)
+      parameter (mmp=360000,mfp=25) ! 20100907 DW changed from 16 to 25 
 
       real*4
      & slit(nii),
@@ -127,8 +127,8 @@ c  Check that static array dimensions are adequate
       do nit=0,mit     ! Spectral fitting iteration loop
 
 c  Limit frequency shift to 0.8*GINT
-         if(abs(cx(n3)) .gt. 1.8) then
-            cx(n3)=sign(1.8,cx(n3))
+         if(abs(cx(n3)) .gt. 0.8) then
+            cx(n3)=sign(0.8,cx(n3))
 c            write(6,*)' Warning: Limiting Frequency shift'
          endif
 c  Limit TILT if it exceeds 1.0
@@ -271,7 +271,7 @@ c  Place them in PD, which just so happens to be exactly the right size.
       jpd=1
       kn2=1+ncp*(n1) ! Start address of workspace
       sh=rdec*(cx(n3)+sssss)
-c      write(*,*)'do_retrieval: sh=',sh,rdec,cx(n3),sssss
+c     write(*,*)'do_retrieval: sh=',sh,rdec,cx(n3),sssss
       do jtg=0,ntg
          if(jtg.eq.0) then ! non-target gases
             call vexp(spxv(jva),1,spxv(kn2),1,ncp)
@@ -279,6 +279,7 @@ c      write(*,*)'do_retrieval: sh=',sh,rdec,cx(n3),sssss
             call vmul(spxv(jva),1,cx(jtg),0,spxv(kn2),1,ncp)
             call vexp(spxv(kn2),1,spxv(kn2),1,ncp)
          endif
+c         write(*,*)'sh=',sh
          call newdec(spxv(kn2),ncp,slit,nii,ldec,rdec,sh,pd(jpd),nmp)
 c
 c  Compute saturation error (ESAT)
@@ -293,6 +294,7 @@ c  Compute saturation error (ESAT)
       end do
 
 c  Do the solar spectrum too.
+c      write(*,*)'sh solar=',sh
       call newdec(spts,ncp,slit,nii,ldec,rdec,sh,ssnmp,nmp)
 
 c  Determine the average optical depth of the first target gas

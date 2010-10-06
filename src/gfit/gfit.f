@@ -1,4 +1,4 @@
-C  Program GFIT
+c  Program GFIT
 c  See ggg.history for description of latest changes
 
       implicit none
@@ -13,7 +13,7 @@ c
      & mspeci,nspeci,jspeci ! number of different species listed in PARFILE
 c
       parameter (lun_col=14,lun_cs=16,lun_iso=18,
-     & mspeci=141,mtg=16,mmode=30)
+     & mspeci=230,mtg=25,mmode=30)
 
       integer*4
      & targmol(mspeci), ! Group assignment for each specie.
@@ -33,16 +33,19 @@ c
 c     & llsize*80,        ! path to llsize.dat file
      & linefiles*400,    ! paths to linelists
      & solarll*80,       ! solar linelist
-     & gfit_version*64,  ! gfit version number
+     & gfit_version*62,  ! gfit version number
      & gsversion*64,     ! GSETUP version number
      & dplist*80,        ! Data Partition List (e.g. m4part.lst)
      & runlog*80,        ! name of occultation file
      & gasname*8,        ! names of species in PARFILE
 c     & tname*8,  ! names of species in PARFILE prefixed by "t"
 c     & fullname*10,! full names of species in PARFILE
-     & winfo*160,         !  window information (command line)
+     & winfo*128,         !  window information (command line)
      & pars(mtg)*9,     ! parameters to fit
      & linelists(9)*80,     ! linelists
+c     & fdate*26,         ! current date
+c     & getlog*8,         ! investigator
+c     & hostnam*12,       ! computer hostname
      & checksum*32,      ! md5sum checksum value
      & csfilename*32,    ! file containing checksums
      & levfile*80,       ! name of file containing fitting levels
@@ -61,8 +64,7 @@ c
 
       data speci/mtg*0/
       
-      gfit_version=
-     & ' GFIT                     Version 4.4.10   07-Nov-2009    GCT '
+      gfit_version =' GFIT   Version 4.4.3   30-Jun-2009    GCT '
       write(6,*)
       write(6,'(a)')gfit_version
 
@@ -98,10 +100,7 @@ c      read(5,'(a)')llsize
       write(6,'(a)')winfo(:lp)
       call lowercase(winfo)
       call substr(winfo(lc+1:),pars,mtg,ntg)
-      if(ntg.gt.mtg) then
-          write(*,*)' gfit: Error: NTG > MTG ',ntg,mtg
-          stop 'Increase parameter MTG in gfit.f'
-      endif
+      if(ntg.gt.mtg) write(*,*)' Warning: Increase MTG to',ntg
       if( index(winfo,' cf ').gt.0)write(*,*)'Fitting channel fringes'
 c
 c  Read in names of isotopomers
@@ -123,7 +122,7 @@ c  Read in names of isotopomers
          end do
       end do
       read(lun_iso,*,end=77)
-      stop ' GFIT: Number of species listed in PARFILE exceeds MSPECI'
+      stop ' The number of species listed in PARFILE exceeds MSPECI'
 77    close(lun_iso)
       nspeci=jspeci-1
 c

@@ -54,13 +54,13 @@ c     pd(nmp,ntg)   R*4  Individual gas transmittance spectra
      & krank,
      & ierr,
      & nlev,
-     & mmp,nmp,nii,ldec,nmpfp,
-     & mtg,ntg,jtg,
-     & mfp,nfp,kfp,jfp,i,j,
+     & mmp,nmp,imp,nii,ldec,nmpfp,
+     & mfp,ntg,jtg,
+     & nfp,kfp,jfp,i,j,
      & mit,nit,
      & jva,jpd,kn2
 
-      parameter (mmp=360000,mtg=16,mfp=mtg+4)
+      parameter (mmp=360000,mfp=25) ! 20100907 DW changed mfp from 16 to 25
 
       real*4
      & solzen,roc,fbar,

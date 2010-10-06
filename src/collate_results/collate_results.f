@@ -25,7 +25,7 @@ c     runlog.xsw   Spreadsheet of individual window values for each spectrum
       parameter (lun_xsw=15)       ! output file (.xsw)
       parameter (lun_rpt=16)       ! .rpt file
       parameter (lun_nts=17)       ! .nts file (negative time step)
-      parameter (mcol=600)      ! Total number of columns/windows
+      parameter (mcol=444)      ! Total number of columns/windows
       parameter (mrow=240000)   ! Max number of output records/spectra
       parameter (mval=12000000) ! Max number of values (NROW * NCOL)
       parameter (mauxcol=25)    ! Number of auxiliary parameters/columns
@@ -35,7 +35,7 @@ c     runlog.xsw   Spreadsheet of individual window values for each spectrum
      & gfit_version*80,gsetup_version*80,col_string*500,
      & csformat*90,collabel*(mlabel),auxcol*200,outfile*80,col1*1,
      & specname_grl*38,specname_col*38,runlog*80,sign(mrow)*1,
-     & spectrum(mrow)*38,tabel*80,
+     & spectrum(mrow)*38,tabel*90,
      & output_fmt*40,
      & colfile*40,collate_version*64,window(mcol)*10,specname_gwas*38
 
@@ -58,11 +58,12 @@ c     runlog.xsw   Spreadsheet of individual window values for each spectrum
       logical append_spectrum_name
 
       append_qcflag=.false.
-      append_spectrum_name=.true.
+
       append_spectrum_name=.false.
+      append_spectrum_name=.true.
     
       collate_version=
-     &' collate_results              Version 1.2.1   2009-11-07   GCT'
+     &' collate_results              Version 1.3.2   2010-12-03   GCT'
       write(6,*) collate_version
       lr=0
 
@@ -103,7 +104,7 @@ c  Read in the retrieved absorber amounts (YOBS+-YERR)
 135     read(lun_mul,'(a)') tabel
         if(tabel(1:1).eq.':') go to 135
         colfile=tabel(index(tabel,'<')+1:index(tabel,'.ggg'))//'col'
-        write(*,*) colfile
+        write(*,*) 'Opening '//colfile
         open(lun_col,file=colfile,status='old') ! .col file
         idot=index(colfile,'.')
         i1=index(colfile(:idot),'_')
@@ -120,20 +121,25 @@ c  in order to read data from appropriate target gas.
         read(lun_col,'(a)') gfit_version
         read(lun_col,'(a)') gsetup_version
         do k=4,nlhead-2
-           if(nlhead.eq.23) read(lun_col,'(34x,a)')colabel
+           if(nlhead.ge.23) read(lun_col,'(34x,a)')colabel
+           if(nlhead.eq.20) read(lun_col,'(34x,a)')colabel
            if(nlhead.eq.21) read(lun_col,'(a)')colabel
-           if(k.eq.6) runlog=colabel    ! GCT 2009-03-04
-           if(index(colabel,'runlogs').gt.0) runlog=colabel
+           if(k.eq.6) runlog=colabel(:80)    ! GCT 2009-03-04
+           if(index(colabel,'runlogs').gt.0) runlog=colabel(:80)
         end do
-c        write(*,*) runlog
         read(lun_col,'(a)') colabel
+c        write(*,*) colabel
         read(colabel,*) fcen, width, mit
         read(lun_col,'(a)')colabel
+c        write(*,*) colabel
+c        write(*,*) colfile(:i1-1)
         ktg=1+index(colabel,' OVC_'//colfile(:i1-1))
+c        write(*,*)'ktg=',ktg
         if ( ktg .gt. 1) then
           call substr(colabel(:ktg-1),cdum,1,nss)
           ktg=(nss-4)/4
         endif
+c        write(*,*)'ktg=',ktg
         iyrwas=-99999
         doywas=-99999
         zpdwas=-99999.9d0
@@ -151,15 +157,17 @@ c        write(*,*) runlog
         endif
 c
 c  Read auxilliary measurements from runlog
+c        write(*,*) runlog
         open(lun_rlg,file=runlog, status='old')   !DG000906
         read(lun_rlg,*) nlhead,nn
         do i=2,nlhead
-          read(lun_rlg,*)
+           read(lun_rlg,*)
         end do
         r8was=-9999999.9d0
         do while (irow.lt.mrow)   !  Loop over runlog records with different times
            specname_col='='
            read(lun_col,'(a)',end=24) col_string
+           if ( lnbc(col_string) .le. 2 ) go to 24  ! skip blank line at EOF
 c           write(*,'(a)')col_string(:lnbc(col_string))
            l2=fbc(col_string(2:))+1       ! First space following spectrum name
            l3=fnbc(col_string(l2:))+l2-1  ! First character of NIT
@@ -177,11 +185,14 @@ c           write(*,*)l2,l3,l4
 c           write(*,*) csformat
            read(col_string,csformat) specname_col,nit,cl,tilt,fqshift,
      &     sg,zlo,rmsfit,zmin,(airmass,ovcol,vsf,vsf_err,jtg=1,ktg)
+c           write(*,*) specname_col,nit,cl,tilt,fqshift,
+c     &     sg,zlo,rmsfit,zmin,airmass,ovcol,vsf,vsf_err
            totnit=totnit+nit
            if(nit.lt.mit) ntc=ntc+1  ! Number of Times Converged
            if(rmsfit.le.0.0) then
-              write(*,*) 'rmsfit <= 0', colfile,irow
+              write(*,*) 'rmsfit <= 0  ',colfile,irow
               write(*,*)specname_col,nit,cl,tilt,fqshift,sg,zlo,rmsfit
+              rmsfit=0.0001
 c              stop 'rmsfit <= 0'   ! Commented 2009-03-18
            endif
            if(rmsfit.gt.rmax) rmax=rmsfit
@@ -212,11 +223,35 @@ c
 c  The following if-statement shouldn't be necessary. But occasionally
 c  you get simultaneous InGaAs/Si scans with very different ZPD times.
 c  You don't want them to have separate entries in the .vsw file. So....
-c                 write(*,*)specname_grl
-c                 write(*,*)specname_gwas
+c                 write(*,*)specname_grl,specname_gwas
                  if(specname_grl(4:ldot-2).ne.specname_gwas(4:ldot-2)
-     &        .or.  specname_grl(ldot:).ne.specname_gwas(ldot:)) then
+     &           .or.  specname_grl(ldot:).ne.specname_gwas(ldot:)) then
                     irow=irow+1
+                    sign(irow)=col1
+                    spectrum(irow)=specname_grl
+                    r8year=iyr+(doy+zpdtim/24.0d0)/366.0d0
+                    yaux(2,irow)=doy+zpdtim/24.0d0
+                    yaux(3,irow)=zpdtim
+                    yaux(4,irow)=irow
+                    yaux(5,irow)=obslat
+                    yaux(6,irow)=obslon
+                    yaux(7,irow)=zobs
+                    yaux(8,irow)=zmin
+                    yaux(9,irow)=asza+zenoff
+                    yaux(10,irow)=azim
+                    yaux(11,irow)=osds
+                    yaux(12,irow)=opd
+                    yaux(13,irow)=sqrt(fovi**2+amal**2)
+                    yaux(14,irow)=graw
+                    yaux(15,irow)=tins
+                    yaux(16,irow)=pins
+                    yaux(17,irow)=tout
+                    yaux(18,irow)=pout
+                    yaux(19,irow)=hout
+                    yaux(20,irow)=sia
+                    yaux(21,irow)=fvsi
+                    yaux(22,irow)=wspd
+                    yaux(23,irow)=wdir
                     jval=jval+ncol   !  jval=icol+ncol*(irow-1)
                     yobs(jval)=ymiss
                     yerr(jval)=ymiss
@@ -341,19 +376,19 @@ c====================================================================
       endif
 
       if (append_spectrum_name) then
-         output_fmt='(a1,(a38,1x),f13.8,NNf13.5,800(1pe12.4))'
+         output_fmt='(a1,(a38,1x),f13.8,NNf13.5,888(1pe12.4))'
          write(output_fmt(20:21),'(i2.2)') nauxcol-1
       else
-         output_fmt='(a1,f13.8,NNf13.5,800(1pe12.4))'
+         output_fmt='(a1,f13.8,NNf13.5,888(1pe12.4))'
          write(output_fmt(11:12),'(i2.2)') nauxcol-1
       endif
 
 c  Write out all analyzed abundances to the .?sw disk file.
       open(lun_xsw,file=outfile,status='unknown')
       if (append_spectrum_name) then
-         write(lun_xsw,'(i2,i4,i7,i4)') 6,nauxcol+2*ncol+1,nrow,nauxcol
+         write(lun_xsw,'(i2,i4,i7,i4)')6,nauxcol+2*ncol+1,nrow,nauxcol+1
       else
-         write(lun_xsw,'(i2,i4,i7,i4)') 6,nauxcol+2*ncol,nrow,nauxcol
+         write(lun_xsw,'(i2,i4,i7,i4)')6,nauxcol+2*ncol,nrow,nauxcol
       endif
       write(lun_xsw,'(a)') collate_version(:lnbc(collate_version))
       write(lun_xsw,'(a)') gfit_version(:lnbc(gfit_version))
@@ -361,7 +396,7 @@ c  Write out all analyzed abundances to the .?sw disk file.
 c      write(lun_xsw,'(a8,<nauxcol+2*ncol>(1pe12.4))') 'MISSING:',
       write(lun_xsw,'(1pe12.4,2x,a)') ymiss,'   ! missing value'
       if (append_spectrum_name) then
-         write(lun_xsw,'(a)') '  Spectrum'//auxcol(:lnbc(auxcol))//
+         write(lun_xsw,'(a)') '  spectrum'//auxcol(:lnbc(auxcol))//
      &   collabel(:lnbc(collabel)+1)
       else
          write(lun_xsw,'(a)') auxcol(:lnbc(auxcol))//

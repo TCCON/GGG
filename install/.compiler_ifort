@@ -1,3 +1,0 @@
-FC = ifort
-CFLAGS = -c -assume byterecl
-LDFLAGS = 
