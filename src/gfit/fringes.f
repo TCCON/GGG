@@ -11,7 +11,7 @@ c  On Output:
 c      CFAMP     R*4  Amplitude of dominant cosine
 c      CFFREQ    R*4  Frequency of dominant cosine
 c      CFPHASE   R*4  Phase of dominant cosine
-c      RESID     R*4  contains the pure cosing wave
+c      RESID     R*4  contains the pure cosine wave
 c
 c  Notes:
 c      1) The data originally in RESID will be destroyed
@@ -53,7 +53,8 @@ c  Search for point IMAX having the peak amp (ignoring DC and Nyquist terms)
       amax=0.0
       am=abs(ybuf(1))
       aa=cabs(cmplx(ybuf(3),ybuf(4)))
-      do i=3,nfft/2
+c      do i=3,nfft/2
+      do i=3,(nfft/2) * 3/4   ! 75% of Nyquist  GCT 2010-07-22
         ap=cabs(cmplx(ybuf(2*i-1),ybuf(2*i)))
         if(aa.ge.amax) then
         if(aa.ge.am .and. aa.ge.ap) then
@@ -102,7 +103,8 @@ c  Interpolate peak amp and phase to channel fringe frequency.
       cfphase=phasi+xi*((0.5+xi)*(phasp-phasi)+(0.5-xi)*(phasi-phasm))
 c      cfphase=(phasm*am+phasi*amax+phasp*ap)/(am+amax+ap) ! old method
       cfamp=(2*amax+xi*(dp-dm))/nmp
-c      write(*,'(4f12.4)')xi,cfamp,cffreq,cfphase
+c      write(*,'(a8,2i6,4f12.4)')'fringes:',nfft,imax,xi,
+c     & cfamp,cffreq,cfphase
       return
       end
 

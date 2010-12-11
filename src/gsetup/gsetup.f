@@ -45,7 +45,7 @@ c
       parameter (nlhead_ggg=18)  ! Number of header lines in .ggg file.
       real*4 erroff
       parameter (erroff=0.004,apo=2,interp=1)
-      logical*4 newmod,newvmr,vmr_found
+      logical*4 newmod,newvmr
 
       integer*4
      & gas_in_cell(ncell)
@@ -120,7 +120,7 @@ c     & og*1,               ! observation geometry
      & prvwin*14,          ! name of previous window (i.e. GAS_1234)
      & root*64,            ! root directory
      & specname*38,        ! name of spectrum
-     & runlog*60,          ! name of occultation file
+     & runlog*40,          ! name of occultation file
      & slk*1,              ! symbol which links gas name and frequency
      & col1,               ! 
      & ccell*1,            ! Character in specname denoting internal cell 
@@ -137,7 +137,6 @@ c     & user*8,             ! investigator
       modname='                                                '
       vmrname='                                                '
       filnamwas='qwertyuioqwertyuioqwertyuioqwertyuio'
-      vmr_found=.false.
 
 c     Platform specification:      DG090519
       call get_ggg_environment(root, dl)
@@ -259,7 +258,7 @@ c        write(lun_ggg,'(a)')      ! llsize
      &  root(:lrt)//'linelist'//dl//'fcia.101 '//
      &  root(:lrt)//'linelist'//dl//'scia.101'
         write(lun_ggg,'(a)')
-     &  root(:lrt)//'linelist'//dl//'solar_dc.101'
+     &  root(:lrt)//'linelist'//dl//'solar_merged.108'
 
 c  write location of .ak files (averaging kernels)
         write(lun_ggg,'(a)') root(:lrt)//'ak'//dl//'k'
@@ -497,7 +496,6 @@ c         write(6,*) ' Searching for vmr profiles ',newvmrname
             vmrname=newvmrname
             lvn=lnbc(vmrname)
             write(lun_rpt,*)'Reading ',vmrname(:lvn),' for ',specname
-            vmr_found=.true.
 c            call readvmrFC(lun_vmr,
 c     &      root(:lrt)//'vmrs'//dl//ext//dl//vmrname,z,nlev,vmrlabel,
 c     &      ztrop,apvmr,mgas,root(:lrt)//'models'//dl//ext//dl//modname)
@@ -511,17 +509,14 @@ c            call readvmrFC(lun_vmr,
 c     &      root(:lrt)//'vmrs'//dl//ext//dl//vmrname,z,nlev,vmrlabel,
 c     &      ztrop,apvmr,mgas,root(:lrt)//'models'//dl//ext//dl//modname)
             newvmr=.true.
-            vmr_found=.false.
          else
             write(lun_rpt,*) ' Cannot find vmr profile '//
      &      newvmrname(:lnbc(newvmrname))//
      &      '  Will re-use: '//vmrname(:lvn)
-            vmr_found=.false.
          endif
          call readvmrFC(lun_vmr,
      &   root(:lrt)//'vmrs'//dl//ext//dl//vmrname,z,nlev,vmrlabel,
-     &  ztrop_gct,apvmr,mgas,root(:lrt)//'models'//dl//ext//dl//modname,
-     &  vmr_found)
+     &  ztrop_gct,apvmr,mgas,root(:lrt)//'models'//dl//ext//dl//modname)
       endif   !  if(newvmrname.ne.vmrname) then
 c
 c  Output model information (SUNRUN.MAV)
@@ -532,14 +527,8 @@ c  Output model information (SUNRUN.MAV)
          write(lun_mav,'(a,2f9.3)') 'Tropopause Altitudes (NCEP/GCT):',
      &    ztrop_ncep,ztrop_gct
          zpbl=0.0
-         if (vmr_found) then
-c             Do nothing when the vmr file is found.
-c             write(*,*)'vmr_found, ',vmr_found,vmrname(:lvn)
-c             write(71,*)apvmr
-         else
          call setvmr(apvmr,mgas,z,h2ovmr,co2vmr,nlev,iyr,idoy,
      &   zpdtim,oblat,oblon,obalt,tout,pout,hout,ztrop_gct,zpbl)
-         endif
          call write_mav(z,t,p,d,apvmr,nlev,lun_mav,ncell,
      &   t_cell,p_cell,vmr_cell,gas_in_cell,vmrlabel,isofile,mgas)
       endif

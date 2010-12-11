@@ -1,6 +1,6 @@
       subroutine jetspe(specpath,opd,graw,ifirst,ilast,possp,bytepw,
      & nus,nue,apo_m,interp,foff,res,
-     & yobs,mmp,nmp,nustrt,delwav,status)
+     & yobs,mip,nip,nustrt,delwav,status)
 c  Reads a portion of spectrum from disk, apodizes, interpolates, and resamples
 c  the spectrum as requested, then places the result at the beginning of YOBS.
 c  Note that YOBS is also used as workspace and so the elements of YOBS above
@@ -47,15 +47,15 @@ C======================================================================
       implicit none
       character specpath*(*)
 
-      INTEGER*4 apo_m,possp,nmp,npts,STATUS,mii,MMP,KINTPC,
-     & k1,m1,m2,i1,i2,k,bytepw,IFIRST,ilast,INTERP,iskip,iabpw,
+      INTEGER*4 apo_m,possp,nip,nmp,STATUS,mii,mip,
+     & k1,m1,m2,i1,i2,k,bytepw,ifirst,ilast,interp,iskip,iabpw,
      & nhw,nsf,nii,nele,nscycle,j1,j2,ii
       parameter (mii=50753,nscycle=25)  ! max dimension of slit function 
 c
-      REAL*8 dzero,fr,resnog,resn,rect,opd,vbar,hwid,dd
+      REAL*8 dzero,fr,resnog,resn,rect,opd,vbar,hwid,dd,sh
       REAL*8 nus,nue,graw,delwav,nustrt
 c
-      REAL*4 slit(mii),yobs(mmp),foff,res,unity,tot,dum
+      REAL*4 slit(mii),yobs(mip),foff,res,unity,tot,dum
       parameter (dzero=0.0d0,unity=1.0)
 c
       if(nus.ge.nue) stop 'NUS >= NUE'
@@ -97,10 +97,10 @@ c         write(*,*) 'Upper window limit > disk file:',nue+dd,vbar+hwid
          status=-1
          return
       endif 
-      npts=M2-M1+nsf  ! number of points to be read from disk
+      nmp=m2-m1+nsf  ! number of measured points to be read from disk
 c-------------------------------------------------------------------------
 c  Check that MPTS > 0 to avoid attempting a zero length read
-      if(npts .le. 0) then
+      if(nmp .le. 0) then
          status=-2                  ! zero length read attempted
          write(*,89)specpath,vbar-hwid,vbar+hwid
 89       format(a48,' only encompasses',f9.3,' to ',f9.3,' cm-1')
@@ -108,22 +108,22 @@ c  Check that MPTS > 0 to avoid attempting a zero length read
       endif
 c-------------------------------------------------------------------------
 c  Check that MPTS > NS to avoid a futile read
-      if(npts .lt. nsf) then
+      if(nmp .lt. nsf) then
          write(*,*)' Insufficient overlap to fill ILS'
          status=-3                  ! attempted read will not even fill ILS
          return
       endif
 c-------------------------------------------------------------------------
 c  Check that original spectra values will not overflow YOBS(MMP)
-      if( npts .gt. mmp ) then
-         write(*,*)'JETSPE warning: increase MMP to',npts
+      if( nmp .gt. mip ) then
+         write(*,*)'JETSPE warning: increase MMP to',nmp
          status=-4
          return
       endif
 c-------------------------------------------------------------------------
 c  Check that interpolated values will not overflow YOBS(MMP)
-      if( 1+interp*(npts-nsf) .gt. mmp ) then
-      write(*,*)'JETSPE warning: increase MMP to',1+interp*(npts-nsf)
+      if( 1+interp*(nmp-nsf) .gt. mip ) then
+      write(*,*)'JETSPE warning: increase MMP to',1+interp*(nmp-nsf)
          status=-5
          return
       endif
@@ -132,17 +132,17 @@ c  Fetch the raw spectral points from disk file. Note that if INTERP > 1
 c  the raw spectral values are not placed at the beginning of YOBS. 
 c  Instead they fill addresses starting at K1. This allows the convolution
 c  to be performed "in place" without prematurely overwriting any points.
-      k1=1+(interp-1)*(npts-nsf)
+      k1=1+(interp-1)*(nmp-nsf)
       iabpw=iabs(bytepw)
       if(iabpw.eq.3) iabpw=4
       iskip=possp+iabpw*(m1-iabs(nhw)-ifirst)
-c      write(*,*)'m1, nhw, ifirst=',iabpw, m1, nhw, ifirst, npts
-      call fetch(specpath,bytepw,iskip,yobs(k1),npts)
+c      write(*,*)'m1, nhw, ifirst=',iabpw, m1, nhw, ifirst, nmp
+      call fetch(specpath,bytepw,iskip,yobs(k1),nmp)
       if(graw.lt.0.0) then
-c       call vswap(yobs(k1),1,yobs(k1+npts-1),-1,npts/2)
+c       call vswap(yobs(k1),1,yobs(k1+nmp-1),-1,nmp/2)
         j1=k1
-        j2=k1+npts-1
-        do ii=1,npts/2
+        j2=k1+nmp-1
+        do ii=1,nmp/2
             dum=yobs(j1)
             yobs(j1)=yobs(j2)
             yobs(j2)=dum
@@ -151,13 +151,22 @@ c       call vswap(yobs(k1),1,yobs(k1+npts-1),-1,npts/2)
         end do
       endif
 c-------------------------------------------------------------------------
-      i1=1+int(interp*nus/dabs(graw))
-      i2=int(interp*nue/dabs(graw))
-      nmp=i2+1-i1
-c      write(*,*)graw,delwav
-c      write(*,*)nus,nue,i1,i2,m1,m2
+c  i1/i2 are the interpolated spectrum starting/ending indice
       delwav=dabs(graw)/interp
+      i1=1+int(nus/delwav)
+      i2=int(nue/delwav)
+      nip=i2+1-i1       !  number of interpolated spectral po
       nustrt=i1*delwav
+c      write(*,*)nus,nue
+c      write(*,*)i1,i2,nip,delwav,i1*delwav,i2*delwav
+
+c      i1=1+int(interp*nus/dabs(graw))
+c      i2=int(interp*nue/dabs(graw))
+c      nip=i2+1-i1   ! Number of Interpolated Points
+cc      write(*,*)graw,delwav
+cc      write(*,*)nus,nue,i1,i2,m1,m2
+c      delwav=dabs(graw)/interp
+c      nustrt=i1*delwav
 c-------------------------------------------------------------------------
 c  Calculate slit function and normalize each subset to unity independently
 c  RECTOG is zero since we are dealing with measured spectra.
@@ -178,13 +187,19 @@ c  RECTOG is zero since we are dealing with measured spectra.
 c
 C  Perform the convolution that does the shifting, interpolation & apodization
 c  Convolve spectral values with pre-normalized operator A (sinc function)
-c      write(*,*)'JETSPE NEWDEC..',apo_m,resnog,npts,nmp,nhw,nii,k1
+c      write(*,*)'JETSPE NEWDEC..',apo_m,resnog,nmp,nip,nhw,nii,k1
 c      write(*,*) (slit(k),k=1,nii)
 c      if(apo_m.gt.0) then
-         call newdec(yobs(k1),npts,slit,nii,interp,1.d0/interp,0.0d0,
-     &   yobs,nmp)
+       if(m1.gt.0) then
+         sh=dfloat(i1-interp*m1)/interp
+       else
+         sh=dfloat(i1+interp*m2)/interp
+       endif
+c         write(*,*)i1,m1,m2,interp,sh
+         call newdec(yobs(k1),nmp,slit,nii,interp,1.d0/interp,sh,
+     &   yobs,nip)
 c      else
-c         call vmov(yobs(k1+nhw),1,yobs,1,nmp)
+c         call vmov(yobs(k1+nhw),1,yobs,1,nip)
 c      endif
       return
       end

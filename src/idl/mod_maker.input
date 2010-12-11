@@ -1,139 +1,45 @@
-db                ;  Site abbreviation
- -12.425 130.891  ;  Latitude/Longitude
-air.2006.darwin.nc
-hgt.2006.darwin.nc
-pres.tropp.2006.darwin.nc
-shum.2006.darwin.nc
-
-air.2010.nc
-hgt.2010.nc
-pres.tropp.2010.nc
-shum.2010.nc
-ac                ;  Site abbreviation
-  30.816   57.215 ;  Latitude/Longitude
-ka                ;  Site abbreviation
-   49.102   8.44  ;  Latitude/Longitude
-iz                ;  Site abbreviation
-   28.298 -16.478 ;  Latitude/Longitude
-br                ;  Site abbreviation
-   53.104   8.85  ;  Latitude/Longitude
-bi                ;  Site abbreviation
-   53.23   23.025 ;  Latitude/Longitude
-ac                ;  Site abbreviation
-  32.142   57.855 ;  Latitude/Longitude
-rv                ;  Site abbreviation
-  38.504 -115.69  ;  Latitude/Longitude
-ar                ;  Site abbreviation
-  60.000 -100.00  ;  Latitude/Longitude
-ar                ;  Site abbreviation
-  60.000 -97.49   ;  Latitude/Longitude
-jf                ;  Site abbreviation
-  34.202 -118.175 ;  Latitude/Longitude
-co                ;  Site abbreviation
-   40.500 -104.00 ;  Latitude/Longitude
-oc                ;  Site abbreviation
-  36.60   -97.49  ;  Latitude/Longitude
-pa                ;  Site abbreviation
-  45.93  -90.27   ;  Latitude/Longitude
-ps                ;  Site abbreviation
-  37.252 -107.088 ;  Latitude/Longitude
-eu                ;  Site abbreviation
-  80.05   -86.42  ;  Latitude/Longitude
-wg                ;  Site abbreviation
- -34.41   150.879 ;  Latitude/Longitude
-tj                ;  Site abbreviation
-   36.05  140.121 ;  Latitude/Longitude
-db                ;  Site abbreviation
- -12.425 130.891  ;  Latitude/Longitude
-bi                ;  Site abbreviation
-   53.23   23.025 ;  Latitude/Longitude
-or                ;  Site abbreviation
-   47.97    2.113 ;  Latitude/Longitude
-gm                ;  Site abbreviation
-   47.476  11.063 ;  Latitude/Longitude
-pa                ;  Site abbreviation
-  45.93  -90.27   ;  Latitude/Longitude
-lh                ;  Site abbreviation
-  -45.05  169.68  ;  Latitude/Longitude
-so                ;  Site abbreviation
-   67.367  26.631 ;  Latitude/Longitude
-air.2009.nc
-hgt.2009.nc
-pres.tropp.2009.nc
-shum.2009.nc
-
-oc                ;  Site abbreviation
-  36.60   -97.49  ;  Latitude/Longitude
-air.2010.nc
-hgt.2010.nc
-pres.tropp.2010.nc
-shum.2010.nc
-db                ;  Site abbreviation
- -12.425 130.891  ;  Latitude/Longitude
-air.2009.nc
-hgt.2009.nc
-pres.tropp.2009.nc
-shum.2009.nc
-jc                ;  Site abbreviation
-  34.20  -118.18  ;  Latitude/Longitude
-air.2008.nc
-hgt.2008.nc
-pres.tropp.2008.nc
-shum.2008.nc
-fs                ;  Site abbreviation
-  34.47  -104.25  ;  Latitude/Longitude
-NCEP_ft_sumner_AT.nc
-NCEP_ft_sumner_GH.nc
-NCEP_ft_sumner_TP.nc
-NCEP_ft_sumner_SH.nc
-oc                ;  Site abbreviation
-  36.60   -97.49  ;  Latitude/Longitude
-air.2009.nc
-hgt.2009.nc
-pres.tropp.2009.nc
-shum.2009.nc
-tj                ;  Site abbreviation
-   36.05  140.12  ;  Latitude/Longitude
-lh                ;  Site abbreviation
-  -45.05  169.68  ;  Latitude/Longitude
-pa                ;  Site abbreviation
-  45.93  -90.27   ;  Latitude/Longitude
-la                ;  Site abbreviation
-  -45.05  169.68  ;  Latitude/Longitude
-oc                ;  Site abbreviation
-  36.60   -97.49  ;  Latitude/Longitude
-oc_30N_40N_200E_300E_2009_01_01_2009_7_12_AT.nc
-oc_30N_40N_200E_300E_2009_01_01_2009_7_12_GH.nc
-oc_30N_40N_200E_300E_2009_01_01_2009_7_12_TP.nc
-oc_30N_40N_200E_300E_2009_01_01_2009_7_12_SH.nc
-oc                ;  Site abbreviation
-  36.60   -97.49  ;  Latitude/Longitude
-jc                ;  Site abbreviation
-  34.20  -118.18  ;  Latitude/Longitude
-su                ;  Site abbreviation
-  5.83    -55.17  ;  Latitude/Longitude
-pa                ;  Site abbreviation
-  45.93  -90.27   ;  Latitude/Longitude
-db                ;  Site abbreviation
- -12.425 130.891  ;  Latitude/Longitude
-oc                ;  Site abbreviation
-  36.60   -97.49  ;  Latitude/Longitude
-NCEP_Lamont_30N_40N_260E_265E_20090101_20090205_6hourly_AT.nc
-NCEP_Lamont_30N_40N_260E_265E_20090101_20090205_6hourly_GH.nc
-NCEP_Lamont_30N_40N_260E_265E_20090101_20090205_6hourly_TP.nc
-NCEP_Lamont_30N_40N_260E_265E_20090101_20090205_6hourly_SH.nc
-jc                ;  Site abbreviation
-  34.20  -118.18  ;  Latitude/Longitude
-NCEP_JPL_30N_35N_240E_245E_20080101_20080126_6hourly_AT.nc
-NCEP_JPL_30N_35N_240E_245E_20080101_20080126_6hourly_GH.nc
-NCEP_JPL_30N_35N_240E_245E_20080101_20080126_6hourly_TP.nc
-NCEP_JPL_30N_35N_240E_245E_20080101_20080126_6hourly_SH.nc
+mc      	; Site abbreviation
+-77.85 +166.73	; Latitude/Longitude
+NCEP_mc_80S_75S_165E_170E_19860901_19861031_6hourly_AT.nc
+NCEP_mc_80S_75S_165E_170E_19860901_19861031_6hourly_GH.nc
+NCEP_mc_80S_75S_165E_170E_19860901_19861031_6hourly_TP.nc
+NCEP_mc_80S_75S_165E_170E_19860901_19861031_6hourly_SH.nc
+jp	; Site abbreviation
+34.2 -118.17	; Latitude/Longitude
+NCEP_jp_30N_35N_120W_115W_20100101_20100722_6hourly_AT.nc
+NCEP_jp_30N_35N_120W_115W_20100101_20100722_6hourly_GP.nc
+NCEP_jp_30N_35N_120W_115W_20100101_20100722_6hourly_TP.nc
+NCEP_jp_30N_35N_120W_115W_20100101_20100722_6hourly_SH.nc
+mb	; Site abbreviation
+37.584 241.765	; Latitude/Longitude
+NCEP_mb_35N_40N_240E_245E_20020101_20021231_6hourly_AT.nc
+NCEP_mb_35N_40N_240E_245E_20020101_20021231_6hourly_GP.nc
+NCEP_mb_35N_40N_240E_245E_20020101_20021231_6hourly_TP.nc
+NCEP_mb_35N_40N_240E_245E_20020101_20021231_6hourly_SH.nc
+tm                ; Site Abbreviation
+ 34.382  -117.677 ; Latitude/Longitude
+NCEP_TMF_30N_40N_240E_245E_20091001_20091031_6hourly_AT.nc
+NCEP_TMF_30N_40N_240E_245E_20091001_20091031_6hourly_GH.nc
+NCEP_TMF_30N_40N_240E_245E_20091001_20091031_6hourly_TP.nc
+NCEP_TMF_30N_40N_240E_245E_20091001_20091031_6hourly_SH.nc
 pa                ;  Site abbreviation
   45.93  -90.27   ;  Latitude/Longitude
 NCEP_ParkFalls_40N_50N_265E_275E_20040501_20061130_6hourly_AT.nc
 NCEP_ParkFalls_40N_50N_265E_275E_20040501_20061130_6hourly_GH.nc
 NCEP_ParkFalls_40N_50N_265E_275E_20040501_20061130_6hourly_TP.nc
 NCEP_ParkFalls_40N_50N_265E_275E_20040501_20061130_6hourly_SH.nc
+jc                ;  Site abbreviation
+  34.20  -118.18  ;  Latitude/Longitude
+air.2008.nc
+hgt.2008.nc
+pres.tropp.2008.nc
+shum.2008.nc
+jc                ;  Site abbreviation
+  34.20  -118.18  ;  Latitude/Longitude
+NCEP_JPL_30N_35N_240E_245E_20080101_20080126_6hourly_AT.nc
+NCEP_JPL_30N_35N_240E_245E_20080101_20080126_6hourly_GH.nc
+NCEP_JPL_30N_35N_240E_245E_20080101_20080126_6hourly_TP.nc
+NCEP_JPL_30N_35N_240E_245E_20080101_20080126_6hourly_SH.nc
 db                ;  Site abbreviation
  -12.425 130.891  ;  Latitude/Longitude
 NCEP_Darwin_10S_15S_125E_135E_20050828_20070101_6hourly_AT.nc

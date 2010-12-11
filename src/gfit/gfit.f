@@ -1,4 +1,4 @@
-c  Program GFIT
+C  Program GFIT
 c  See ggg.history for description of latest changes
 
       implicit none
@@ -10,10 +10,10 @@ c
      & nlhead_ggg,          ! number of header lines in .ggg file
      & kgas,kiso,
      & mtg, ntg, jtg,       ! number of target molecules
-     & mspeci,nspeci,jspeci ! number of different species listed in PARFILE
+     & mspeci,nspeci,jspeci ! number of different species listed in ISOTOPOLOG.DAT
 c
       parameter (lun_col=14,lun_cs=16,lun_iso=18,
-     & mspeci=230,mtg=25,mmode=30)
+     & mspeci=150,mtg=16,mmode=30)
 
       integer*4
      & targmol(mspeci), ! Group assignment for each specie.
@@ -33,19 +33,16 @@ c
 c     & llsize*80,        ! path to llsize.dat file
      & linefiles*400,    ! paths to linelists
      & solarll*80,       ! solar linelist
-     & gfit_version*62,  ! gfit version number
+     & gfit_version*64,  ! gfit version number
      & gsversion*64,     ! GSETUP version number
      & dplist*80,        ! Data Partition List (e.g. m4part.lst)
      & runlog*80,        ! name of occultation file
-     & gasname*8,        ! names of species in PARFILE
-c     & tname*8,  ! names of species in PARFILE prefixed by "t"
-c     & fullname*10,! full names of species in PARFILE
-     & winfo*128,         !  window information (command line)
+     & gasname*8,        ! names of species in ISOTOPOLOG.DAT
+c     & tname*8,  ! names of species in ISOTOPOLOG.DAT prefixed by "t"
+c     & fullname*10,! full names of species in ISOTOPOLOG.DAT
+     & winfo*160,         !  window information (command line)
      & pars(mtg)*9,     ! parameters to fit
      & linelists(9)*80,     ! linelists
-c     & fdate*26,         ! current date
-c     & getlog*8,         ! investigator
-c     & hostnam*12,       ! computer hostname
      & checksum*32,      ! md5sum checksum value
      & csfilename*32,    ! file containing checksums
      & levfile*80,       ! name of file containing fitting levels
@@ -62,9 +59,13 @@ c
      &   speci_id*24,
      &   root*128, dl*1
 
+      character*24 md5sum
+      parameter(md5sum = "$GGGPATH/bin/gfit_md5sum")
+
       data speci/mtg*0/
       
-      gfit_version =' GFIT   Version 4.4.3   30-Jun-2009    GCT '
+      gfit_version=
+     & ' GFIT                     Version 4.7.0    06-Dec-2010    GCT '
       write(6,*)
       write(6,'(a)')gfit_version
 
@@ -100,7 +101,10 @@ c      read(5,'(a)')llsize
       write(6,'(a)')winfo(:lp)
       call lowercase(winfo)
       call substr(winfo(lc+1:),pars,mtg,ntg)
-      if(ntg.gt.mtg) write(*,*)' Warning: Increase MTG to',ntg
+      if(ntg.gt.mtg) then
+          write(*,*)' gfit: Error: NTG > MTG ',ntg,mtg
+          stop 'Increase parameter MTG in gfit.f'
+      endif
       if( index(winfo,' cf ').gt.0)write(*,*)'Fitting channel fringes'
 c
 c  Read in names of isotopomers
@@ -122,12 +126,12 @@ c  Read in names of isotopomers
          end do
       end do
       read(lun_iso,*,end=77)
-      stop ' The number of species listed in PARFILE exceeds MSPECI'
+      stop ' GFIT: Number of species in ISOTOPOLOG.DAT exceeds MSPECI'
 77    close(lun_iso)
       nspeci=jspeci-1
 c
       do jspeci=nspeci,1,-1
-           if(targmol(jspeci).gt.0) speci(targmol(jspeci))=jspeci
+         if(targmol(jspeci).gt.0) speci(targmol(jspeci))=jspeci
       end do
 c
 c========================================================================
@@ -144,19 +148,31 @@ c Compute md5sum checksums of input files and write to "check_md5sums_012345.tmp
       if(dl.eq.'/')then
           write(csfilename,'(a14,i6.6,a4)') 'check_md5sums_',getpid(),
      &    '.tmp'
-          istat=system('md5sum '//dplist//' > '//csfilename)
-          istat=system('md5sum '//apvalerr//' >> '//csfilename)
-          istat=system('md5sum '//runlog//' >> '//csfilename)
-          istat=system('md5sum '//levfile//' >> '//csfilename)
-          istat=system('md5sum '//mavfile//' >> '//csfilename)
-          istat=system('md5sum '//rayfile//' >> '//csfilename)
-          istat=system('md5sum '//parfile//' >> '//csfilename)
-          istat=system('md5sum '//window//' >> '//csfilename)
+c          istat=system('md5sum '//dplist//' > '//csfilename)
+c          istat=system('md5sum '//apvalerr//' >> '//csfilename)
+c          istat=system('md5sum '//runlog//' >> '//csfilename)
+c          istat=system('md5sum '//levfile//' >> '//csfilename)
+c          istat=system('md5sum '//mavfile//' >> '//csfilename)
+c          istat=system('md5sum '//rayfile//' >> '//csfilename)
+c          istat=system('md5sum '//parfile//' >> '//csfilename)
+c          istat=system('md5sum '//window//' >> '//csfilename)
+           istat=system(md5sum//' '//dplist//' > '//csfilename)
+           istat=system(md5sum//' '//apvalerr//' >> '//csfilename)
+           istat=system(md5sum//' '//runlog//' >> '//csfilename)
+           istat=system(md5sum//' '//levfile//' >> '//csfilename)
+           istat=system(md5sum//' '//mavfile//' >> '//csfilename)
+           istat=system(md5sum//' '//rayfile//' >> '//csfilename)
+           istat=system(md5sum//' '//parfile//' >> '//csfilename)
+           istat=system(md5sum//' '//window//' >> '//csfilename)
+
           call substr(linefiles,linelists,9,nss)
           do i=1,nss
-              istat=system('md5sum '//linelists(i)//' >> '//csfilename)
+c              istat=system('md5sum '//linelists(i)//' >> '//csfilename)
+              istat=
+     &        system(md5sum//' '//linelists(i)//' >> '//csfilename)
           end do
-          istat=system('md5sum '//solarll//' >> '//csfilename)
+c          istat=system('md5sum '//solarll//' >> '//csfilename)
+           istat=system(md5sum//' '//solarll//' >> '//csfilename)
 
           open(lun_cs, file=csfilename,status='old')
           open(lun_col,file=colfile,status='unknown')
@@ -193,7 +209,7 @@ c Compute md5sum checksums of input files and write to "check_md5sums_012345.tmp
           write(lun_col,'(34x,a)') colfile(:lnbc(colfile))
           write(lun_col,'(a)') winfo(:lp)
           close(lun_cs,status='delete')
-	else
+        else
           call substr(linefiles,linelists,9,nss)
           open(lun_col,file=colfile,status='unknown')
           write(lun_col,'(2i3)')  nlhead_ggg+1+nss,9+4*ntg
@@ -217,8 +233,7 @@ c Compute md5sum checksums of input files and write to "check_md5sums_012345.tmp
           write(lun_col,'(a)') sptfile(:lnbc(sptfile))
           write(lun_col,'(a)') colfile(:lnbc(colfile))
           write(lun_col,'(a)') winfo(:lp)
-
-	endif
+        endif
 c
 c Do the real spectral fitting.
       call spectrum_loop(apvalerr,winfo,lun_col,runlog,

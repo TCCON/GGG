@@ -1,11 +1,11 @@
-      subroutine write_col(lun_col,runlab,nit,rms,sgshift,gint,
+      subroutine write_col(lun_col,runlab,lrmax,nit,rms,sgshift,gint,
      & zmin,oloscol,overcol,cx,ex,ntg)
 c  Writes one line to the already-opened .col file.
 
       implicit none
-      integer*4 lun_col,nit,ntg,n1,n2,n3,n4,lr,lnbc,jtg,ktg
+      integer*4 lun_col,nit,ntg,n1,n2,n3,n4,jtg,ktg,lrmax
       character runlab*(*)
-      real*4 rms,sgshift,zmin,wcl,
+      real*4 rms,sgshift,zmin,
      & oloscol(ntg),overcol(ntg),cx(ntg+4),ex(ntg+4)
       real*8 gint,wlimit
 
@@ -13,14 +13,13 @@ c  Writes one line to the already-opened .col file.
       n2=ntg+2
       n3=ntg+3
       n4=ntg+4
-      lr=lnbc(runlab)
       if(lun_col.eq.6) then
          ktg=min0(1,ntg) ! only first target gas
       else
          ktg=ntg         ! all target gases
       endif
 
-       write(lun_col,76)runlab(:lr),nit,
+       write(lun_col,76)runlab(:lrmax),nit,
      & wlimit(dble(cx(n1)),'f5.3'),
      & wlimit(100*dble(cx(n2)),'f4.1'),
      & wlimit(1000*gint*dble(cx(n3)),'f4.1'),

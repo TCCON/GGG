@@ -29,8 +29,10 @@ c     CALCUL = a.exp(-c.x')
 c  Therefore
 c     OBSRVD/CALCUL = exp(-c.(x-x'))
 c     LOGe[OBSRVD/CALCUL] = -c.(x-x')
-c  So   x = x' - LOGe[OBSRVD/CALCUL]/c 
+c  So   x - x' = LOGe[OBSRVD/CALCUL]/c 
 c  So the update to x' is proportional to LOGe[OBSRVD/CALCUL]
+c  Hence the problem is much more linear if the residuals are
+c  computed as LOGe[OBSRVD/CALCUL] rather than [OBSRVD-CALCUL]
 c
 c  The problem with so-called logarithmic residuals is that
 c  the LOG function has a nasty habit of returning NAN's if,
@@ -57,7 +59,7 @@ c This means that if the spectral fits are good, it makes no
 c difference whether we use arithmetic or logarithmic residuals 
 c They are the same thing.
 c
-c  To avoid this problem we don't actually use the LOGe function.
+c  To avoid the NaN problem we don't actually use the LOGe function.
 c  Instead we approximate LOGe(1+del)= del - del^2/2 + del^3/3
 c  LOGe(1+del)= del*(1-0.5*del*(1+0.6666*del) 
 c  CALCUL*LOGe(1+del)= RES*(1-0.5*(RES/CALCUL)*(1+0.666*RES/CALCUL)) 

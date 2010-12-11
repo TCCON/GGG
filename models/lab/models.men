@@ -1,3 +1,7 @@
 Model         Comments
 lh20080123.mod  Lab Model (single-level)
-oc20110208.mod
+oco_ils_fts.mod
+cm031031014r.mod
+hno3_pnnl.mod
+ral_c2h6.mod    Five ethane spectra at 300, 270, 250 215, & 195K.
+md_co2.mod      malathi-Devi CO2 15 micron spectrum

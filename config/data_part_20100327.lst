@@ -20,10 +20,6 @@ $(GGGPATH)/spectra/
 /net/ccycle/spectra1/tccon/lamont_ifs3/
 /net/ccycle/spectra2/tccon/darwin_ifs2/
 /net/ccycle/spectra1/tccon/lamont_ifs3/lamp/
-/net/ccycle/spectra2/tccon/lauder_ifs120hr/
-/net/ccycle/spectra2/tccon/tsukuba/
-/net/ccycle/data3/dwunch/wollongong/wg20091115/spectra/
-/net/ccycle/spectra2/tccon/wollongong_ifs6/
 /net/nicolet/raid1/spectra/kitt_peak/
 /net/nicolet/raid1/spectra/izana/
 /net/nicolet/raid1/spectra/lauder/

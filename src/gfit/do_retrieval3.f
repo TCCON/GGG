@@ -54,13 +54,13 @@ c     pd(nmp,ntg)   R*4  Individual gas transmittance spectra
      & krank,
      & ierr,
      & nlev,
-     & mmp,nmp,imp,nii,ldec,nmpfp,
-     & mfp,ntg,jtg,
-     & nfp,kfp,jfp,i,j,
+     & mmp,nmp,nii,ldec,nmpfp,
+     & mtg,ntg,jtg,
+     & mfp,nfp,kfp,jfp,i,j,
      & mit,nit,
      & jva,jpd,kn2
 
-      parameter (mmp=360000,mfp=25) ! 20100907 DW changed mfp from 16 to 25
+      parameter (mmp=360000,mtg=16,mfp=mtg+4)
 
       real*4
      & solzen,roc,fbar,
@@ -76,7 +76,7 @@ c     pd(nmp,ntg)   R*4  Individual gas transmittance spectra
      & tau,
      & corrld,
      & var,
-     & zero,unity,
+     & zero,
      & z(nlev),t(nlev),p(nlev),
      & vac(ncp,nlev,0:ntg),splos(nlev),ssnmp(nmp),
      & pd((mmp+mfp)*mfp),
@@ -98,7 +98,7 @@ c     pd(nmp,ntg)   R*4  Individual gas transmittance spectra
      & ip(mfp)
 
       character winfo*(*)
-      parameter (zero=0.0,unity=1.0,tiny=1.0e-36,tau=6.e-06,big=1.0E+18,
+      parameter (zero=0.0,tiny=1.0e-36,tau=6.e-06,big=1.0E+18,
      & eps=0.01)
 c
       n1=ntg+1
@@ -145,7 +145,7 @@ c          cx(n2)=sign(1.0,cx(n2))
 c        endif
 
 c  Calculate spectrum & PD's
-         write(*,*)'do_retrieval3 calling fm: cx=',cx
+c         write(*,*)'do_retrieval3 calling fm: cx=',cx
          call fm3(0,winfo,slit,nii,ldec,spts,spxv,dspdzxv,
      &   z,t,p,solzen,fovo,roc,obalt,wavtkr,fbar,
      &   vac,splos,nlev,ncp,rdec,sssss,cx,ntg,calcul,pd,
@@ -238,7 +238,7 @@ c       call vadd(cx,1,dx,1,cx,1,nfp)
          fr=1.0
          do jfp=1,nfp
             dxlimit=0.2+abs(cx(jfp))
-            xfr=abs(dxlimit/abs(dx(jfp)))
+            xfr=abs(dxlimit/(tiny+abs(dx(jfp))))
             if(xfr.lt.fr) then
                fr=xfr
                kfp=jfp

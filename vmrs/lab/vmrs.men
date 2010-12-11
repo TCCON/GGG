@@ -1,2 +1,6 @@
 Vmrset          Description
-gnd_summer.vmr
+lh20080123.vmr  Lab vmrs (one-level)
+oco_ils_fts.vmr
+cm031031014r.vmr
+ral_c2h6.vmr    5-level vmr file
+md_co2.vmr      1-level vmr file (Malathi-Devi CO2)

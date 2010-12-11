@@ -35,7 +35,7 @@ c     runlog.xsw   Spreadsheet of individual window values for each spectrum
      & gfit_version*80,gsetup_version*80,col_string*500,
      & csformat*90,collabel*(mlabel),auxcol*200,outfile*80,col1*1,
      & specname_grl*38,specname_col*38,runlog*80,sign(mrow)*1,
-     & spectrum(mrow)*38,tabel*90,
+     & spectrum(mrow)*38,tabel*80,
      & output_fmt*40,
      & colfile*40,collate_version*64,window(mcol)*10,specname_gwas*38
 

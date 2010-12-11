@@ -14,11 +14,9 @@ SOURCES := \
   $(TSRC)/compute_vertical_paths.f \
   $(TSRC)/spectrum_loop.f \
   $(TSRC)/do_retrieval.f \
-  $(TSRC)/do_retrieval2.f \
   $(TSRC)/do_retrieval3.f \
   $(TSRC)/subtract_cf.f \
   $(TSRC)/fm.f \
-  $(TSRC)/fm2.f \
   $(TSRC)/fm3.f \
   $(TSRC)/fringes.f \
   $(TSRC)/jetspe.f \
@@ -27,7 +25,7 @@ SOURCES := \
   $(COMN)/get_ggg_environment.f \
   $(COMN)/abscoi.f \
   $(COMN)/gasdev.f \
-  $(COMN)/gct_humlik.f \
+  $(COMN)/gct2_humlik.f \
   $(COMN)/getendian.f \
   $(COMN)/gindfile.f \
   $(COMN)/file_size_in_bytes.f \
@@ -48,6 +46,7 @@ SOURCES := \
   $(COMN)/read_runlog.f \
   $(COMN)/skiprec.f \
   $(COMN)/solar_pseudo_trans_spec.f \
+  $(COMN)/solar_pts.f \
   $(COMN)/subsolar.f \
   $(COMN)/substr.f \
   $(COMN)/tlpath.f \

@@ -10,7 +10,7 @@ c  INPUT Parameters:
 c    nlev             I*4   Number of atmospheric levels.
 c    T(nlev)          R*4   Temperature Profile (Kelvin)
 c    P(nlev)          R*4   Pressure Profile (Atmospheres)
-c    D(nlev)          R*4   Number Density Profile (molec.cm-2.km-1)
+c    D(nlev)          R*4   Number Density Profile (molec.cm-3)
 c    nspeci           I*4   Number of different species/isotopomers in PARFILE
 c    targmol(nspeci)  I*4   Group to which absorption of each specie belongs.
 c    vmr(nspeci,nlev) R*4   Array of vmr profiles for each gas (initially)
@@ -37,10 +37,12 @@ c
       implicit none
       integer*4
      &   kline1,kline2,jline,nlev,ncp,is,lnbc,lloc,llf,
+c     &   jtg, jcp,
      &   nltnu,    ! total number of lines exceeding TNULST
      &   lun_ll,   ! parfile & linelists
      &   lun_iso,  ! isotopologs
      &   lunw,     ! 'abscof.rpt'
+     &   lun_vac,  ! 'vac_ilev01.out'
      &   kv1, kv2, ! limits of line profile calculation
      &   nv,jv,    ! number of Voigt point = kv2 - kv1 +1
      &   jspeci,   ! Indexes the different isotopomers
@@ -48,21 +50,21 @@ c
      &   nspeci,   ! Number of different species/isotopomers in PARFILE
      &   mspeci,   ! Maximum possible number of species/isotopomers
      &   nvmode,   ! Number of different vibrational modes (ie 3N-6) of each gas
-     &   mmode,    ! Maximum possible value of NMODE
-     &   mgas,ngas,kgas,    ! Number of different gases found in MOLPAR
+     &   mvmode,    ! Maximum possible value of NMODE
+     &   mgas,ngas,kgas,  ! Number of different gases found in MOLPAR
 c     &   cnss, jss,  ! number of sub-strings
      &   mlev,idot,
      &   mlf,nlf,  ! maximum & actual number of linefiles
      &   posnall,mm,reclen,nlines,kiso,i,k,
      &   lmax,lfile,ilev,istat,fsib,file_size_in_bytes
 c
-      parameter (mlev=175,mgas=68,mlf=10,mmode=30,lun_ll=21,lun_iso=22,
-     & lunw=23, mspeci=230)
+      parameter (mlev=175,mgas=68,mlf=10,mvmode=30,lun_ll=21,lun_iso=22,
+     & lunw=23, lun_vac=24, mspeci=230)
       integer*4
      &   targmol(nspeci),
-     &   specindex(mgas+1), ! index of species
+     &   specindex(mgas+1), ! specindex(kgas)+kiso  is the specie number/identifier
      &   maxlev(mspeci),    ! level at which each species has its max density
-     &   dgen(mmode),       ! degeneracy of vibrational modes
+     &   dgen(mvmode),       ! degeneracy of vibrational modes
      &   molewt(mspeci)     ! Molecular Weight
 c
       real*8
@@ -74,7 +76,8 @@ c
      &   nu1,nu2,      ! start & end frequencies (cm-1) for linelist search
      &   grid,         ! primitive point spacing (cm-1)
      &   freq,         ! line center frequency (cm-1)
-     &   fprev(mspeci),! line center frequency of previous line of JGAS
+     &   delpl(mspeci),! frequency spacing of consecutive pseudo-lines
+     &   fprev(mspeci),! line center frequency of previous line of JSPECI
      &   vcent,        ! line center position in primitive grid points
      &   cen,          ! central frequency of window (cm-1)
      &   x1,           ! start frequency  (for Voigt evaluation)
@@ -101,23 +104,23 @@ c
      &   stimem(mlev), ! stimem(k)=(1.-exp(sf*trat(k)))/(1.-exp(sf))
      &   tdrpf(mspeci),! T-Dependence of Rotational Partition Function
      &   tdpbhw,       ! T-Dependence of Pressure-Broadened Half-Width
-     &   vibfrq(mmode),! Array of vibrational frequencies
+     &   vibfrq(mvmode),! Array of vibrational frequencies
      &   conx,         ! conx=-1.43881d0/296  ( = hc/kT;  T=296)
      &   dopphwem,     ! Exact HWEM Doppler width
+     &   sublor,       ! line width after which sub-Loerntzian wings kicks in
      &   alor,         ! actual Lorentz width (cm-1). Pressure * PBHW
      &   frac,
      &   vibpf,        ! Vibrational Partition Function.
-     &   ss,
      &   sf,           ! scratch variable used in computation of STIMEM
      &   sxcgs,        ! scratch variable used to save STREN*CGS
-     &   sxcgsopidw,   ! scratch variable multiplying VOIGT in innermost loop
      &   sxcgsorpidw,  ! scratch variable multiplying VOIGT in innermost loop
      &   v296,         ! 296 K vibrational partition function
-     &   vmr(nspeci,nlev),vpf(nspeci,nlev),
+     &   vmr(nspeci,nlev),vpf(nspeci,nlev),vmax,
      &   vac(ncp,nlev,0:*),t(nlev),p(nlev),d(nlev)
       parameter (pi=3.1415927,conx=-(1.43881/296))
 c
       character
+c     &   vacfile*48,
      &   llformat*49,      ! FORMAT statement for linelist
      &   quantum*34,       ! transition quantum numbers
      &   gasname*8,        ! Gas name
@@ -132,7 +135,7 @@ c====================================================================
 c      write(*,*)'abscog '
       if(nlev.gt.mlev) then
          write(*,*)'nlev,mlev=',nlev,mlev
-         stop 'ABOCO: Increase parameter MLEV'
+         stop 'ABSCO: Increase parameter MLEV'
       endif
       if(nspeci.gt.mspeci) stop 'ABOCOF: Increase parameter MSPECI'
       fmax=fzero+ncp*grid
@@ -146,29 +149,30 @@ c   SET PARAMETERS FOR TRANSMISSION CALCULATION
       hw=grid*(ncp-1)/2
       cen=fzero+grid+hw
       frac=5.0E-06   !  capture 99.9975% of line absorption
-      nuoff=10.D0*dsqrt(2+dble(grid)*ncp*dble(p(2)))   ! see 1992 Toon MEMO
+      nuoff=10.D0*dsqrt(2+dble(grid)*ncp*dble(vmax(p,1,nlev)))
+c      write(*,*)'pmax=',vmax(p,1,nlev)
+c      write(*,*)'nuoff=',nuoff,grid*ncp
       
       nu1=fzero+grid-nuoff
       nu2=fmax+nuoff
       write(lunw,*)'NU1 =',nu1,'    NU2 =',nu2,'    NUOFF = ',nuoff 
-c     write(42,*) 'kgas,kiso,freq,t(i),p(i),sxcgsorpidw,dopphwem,pbhw'
 c
 c  PRE-CALCULATE TRAT, TFAC, & STIMULATED EMISSION TERM FOR EACH LAYER
 c  Assume that the central window wavenumber CEN is close to the line.
       sf=conx*sngl(cen)
       do k=1,nlev
-        trat(k)=296./t(k)
-        tfac(k)=conx*(trat(k)-1.0)
-        stimem(k)=(1.-exp(sf*trat(k)))/(1.-exp(sf))
+         trat(k)=296./t(k)
+         tfac(k)=conx*(trat(k)-1.0)
+         stimem(k)=(1.-exp(sf*trat(k)))/(1.-exp(sf))
       end do
 c-------------------------------------------------------------------
-c  CALCULATE THE VIBRATION PARTITION FUNCTIONS
+c  CALCULATE THE VIBRATION PARTITION FUNCTIONS (VPF)
       open(unit=lun_iso,file=parfile,status='old')
 c      open(unit=lun_iso,file=parfile(:lnbc(parfile)),status='old')
       do jspeci=1,nspeci
          call read_isotop(lun_iso,kgas,kiso,gasname,speci_id(jspeci),
      &   fia,delta,epsilon,molewt(jspeci),tdrpf(jspeci),
-     &   vibfrq,dgen,nvmode,mmode,istat)
+     &   vibfrq,dgen,nvmode,mvmode,istat)
          if(istat.ne.0) stop 'READ_ISOTOP: ISTAT.NE.0'
          if(kgas.lt.0) stop 'KGAS<0'
          if(kiso.lt.0) stop 'KISO<0'
@@ -178,30 +182,11 @@ c      open(unit=lun_iso,file=parfile(:lnbc(parfile)),status='old')
             stop 'specindex < 0'
          endif
 
-
-c         call lowercase(gasname)
-c         targmol(jspeci)=0
-c         do jss=1,nss
-c            if(gasname//' '.eq.pars(jss)) targmol(jspeci)=jss
-c            if(char(kiso+48)//gasname.eq.pars(jss)) targmol(jspeci)=jss
-c            if('t'//gasname.eq.pars(jss)) targmol(jspeci)=jss
-c         end do
-c
 c  CALCULATE VPF AT 296K
-c        v296=1.0
-c        do j=1,nvmode
-c          vibfrq(j)=conx*vibfrq(j)
-c          v296=v296*(1.-exp(vibfrq(j)))**dgen(j)
-c        end do
         v296=vibpf(296.0,vibfrq,dgen,nvmode)  ! VPF at 296 K
 c
 c  CALCULATE VPFs AT nlev OTHER TEMPERATURES AND DIVIDE BY v296
         do k=1,nlev
-c          vpf(jspeci,k)=1.0/v296
-c          do j=1,nvmode
-c            vpf(jspeci,k)=vpf(jspeci,k)*
-c     &      (1.-exp(vibfrq(j)*trat(k)))**dgen(j)
-c          end do
           vpf(jspeci,k)=vibpf(t(k),vibfrq,dgen,nvmode)/v296  ! VPF(T)/VPF(296)
         end do
       end do  ! jspeci=1,nspeci
@@ -258,7 +243,6 @@ c         write(*,*) ispeci,lmax,nlev,cgsmax,vmr(ispeci,lmax)
       end do  ! ispeci=1,nspeci
 c---------------------------------------------------------------
 c
-c      tnulst=1.0e-12*sqrt(p(2))
       tnulst=1.0e-13
 c  HITRAN
 c      llformat='(i2,i1,f12.6,e10.3,10x,f5.0,f5.4,f10.4,f4.2,f8.6,a24)'
@@ -284,13 +268,15 @@ c  before crashing on a subsequent linelist).
          close(lun_ll)
       end do !  lfile=1,nlf
 c
-c  HERE STARTS A LOOP ON THE LINE parameter file.....
+c  HERE STARTS THE MAIN LOOP ON THE LINE parameter file.....
       nltnu=0
       do lfile=1,nlf  
          do jspeci=1,nspeci
             fprev(jspeci)=nu1-1.0
+            delpl(jspeci)=0.001
          end do
 c
+c  Set logical variables depending on what kinds of linelists we have
          scia=.false.
          if(index(linfil(lfile),'scia').gt.0) scia=.true.
          fcia=.false.
@@ -298,6 +284,7 @@ c
          hitran=.false.
          if(index(linfil(lfile),'hitran').gt.0) hitran=.true.
 
+c  Determine number of records and record length in each linelist
          idot=lloc(linfil(lfile),'.')
          read(linfil(lfile)(idot+1:),'(i3)') reclen
          fsib=file_size_in_bytes(lun_ll,linfil(lfile))
@@ -305,16 +292,16 @@ c
      &   form='formatted',status='old',recl=reclen)
          nlines=fsib/reclen
          llf=lnbc(linfil(lfile))
-c         write(*,'(i2,i7,1x,a)')lfile,nlines,linfil(lfile)(:llf)
           
-         kline1=posnall(lun_ll,nu1,nlines)  ! index of the last line with v < NU1
-         kline2=posnall(lun_ll,nu2,nlines)  ! index of the last line with v < NU2
+c  Find record index of first and last lines of relevance.
+         kline1=posnall(lun_ll,nu1,nlines) ! index of the last line with v < NU1
+         kline2=posnall(lun_ll,nu2,nlines) ! index of the last line with v < NU2
 c         write(*,*)' Line1,Line2,NLINES =',kline1,kline2,nlines
          write(lunw,*)' Line1,Line2,NLINES =',kline1,kline2,nlines
          write(lunw,*)       '    Freq    G  I  S   Stren      E"'
      &   //'   PBHW   Isotopomer         E-wid  Lay  Line#  TG'
 c
-         do 7749 jline=kline1+1,kline2
+         do jline=kline1+1,kline2
             read(lun_ll,llformat,rec=jline)
      &      kgas,kiso,freq,stren,abhw,sbhw,eprime,tdpbhw,pshift,quantum
 c            write(*,*)jline,kline1,kline2,kgas,kiso,freq
@@ -322,38 +309,22 @@ c            pshift=0.0    ! disable pressure shifts
             if(index(linfil(lfile),'hitran').gt.0) then ! Re-map HITRAN gas numbers to the ATMOS 
                call hitran_to_atmos_gas_numbering(kgas,kiso)
             endif
+            if(abhw.le.0.0) abhw=0.1
+            if(sbhw.le.0.0) sbhw=abhw
 
-          if(kgas.eq.10) then  ! Set NO2 widths to Dana (JQSRT 57, 445-457, 97)
-            tdpbhw=.75
-c            read(quantum,'(15x,i2)')nprime2
-c            abhw=0.001*( 84.1 - .753*nprime2 + .0059*nprime2**2)
-          endif
-
-c          if(kgas.eq.30) abhw=0.8*abhw   ! Reduce CH3Cl widths (GCT 20081011)
-    
 c  Check that all linelist gases/species are in isotopomers.dat file
           if(kgas.le.0 .or. kgas.gt.ngas) then
-             Write(*,*)'ABSCOG: Warning: unknown gas in linelist:',
-     &       kgas
-             go to 7749
+c          write(*,*)'ABSCOI: Warning: unknown gas in linelist:', kgas
+c          write(*,*)'Linelist contains unrecognized gases (NO+, HOBr)'
+             cycle
           endif
 
           ispeci=specindex(kgas)+kiso
 
-c  20100908 DW - the following if statement added because a new, 4th isotopolog
-c  of CH4 was added to the HITRAN 2008 line list, which is not in my isotopologs.dat
-c  file. This statement is a kludge to allow me to use the latest linelist
-c  (atm20100725.101)
-          if(kgas.eq.6 .and. kiso.eq.4) then
-c            write(*,*)'ABSCOI: Warning: 4th isotopolog of CH4:',
-c    &       kgas,kiso
-             go to 7749
-          endif
-
           if(ispeci.gt.specindex(kgas+1)) then
-             Write(*,*)'ABSCOG: Warning: unknown speci:',kgas,kiso,
+             Write(*,*)'ABSCOI: Warning: unknown speci:',kgas,kiso,
      &       ' on line ',jline,' of ',linfil(lfile)
-             go to 7749
+             cycle
           endif
 c
           lmax=maxlev(ispeci)
@@ -368,113 +339,129 @@ c          linwid=2*sqrt(alor**2+dopphwem**2) ! FWHM (assumes Doppler width = gr
 c  If line is centered outside window adjust its TNU
           del=sngl(dabs(cen-freq)-hw) ! distance beyond edge of window
           if(del.gt.linwid) tnu=tnu*(linwid/del)**2
-          if(abs(tnu).lt.tnulst) go to 7748
-          nltnu=nltnu+1
-c
-          if(abs(tnu).ge.2.e-10) then
-            write(lunw,7764)freq,kgas,kiso,ispeci,stren,eprime,abhw,
-     &      speci_id(ispeci),2000*1.0e+05*tnu,lmax,jline,targmol(ispeci)
+
+          if(kiso.eq.0) then
+             delpl(ispeci)=freq-fprev(ispeci)
+             fprev(ispeci)=freq
           endif
 
- 7764   format(f10.3,i3,2i3,1pe10.2,0pf8.1,1x,f4.3,2x,a18,f7.1,i4,i8,i4)
+          if(abs(tnu).lt.tnulst) cycle   ! skip the really weak lines
+          nltnu=nltnu+1                  ! count the used lines
 c
-          if(kiso.gt.0 .and. eprime.lt.0.0d0) eprime=999.    ! CH4 lines with E"=-1 are common
+c  Write out the details of lines of discernable strength.
+          if(abs(tnu).ge.1.e-11) then
+             write(lunw,7764)freq,kgas,kiso,ispeci,stren,eprime,abhw,
+     &       speci_id(ispeci),2.0e+08*tnu,lmax,jline,targmol(ispeci)
+ 7764        format(f10.3,3i3,1pe10.2,0pf8.1,f5.3,2x,a18,f7.1,i4,i8,i4)
+          endif
+
+c  Some linelists use E"=-1 to denote no info. Set to large value
+          if(kiso.gt.0 .and. eprime.lt.0.0d0) eprime=999. 
+
           mm=targmol(ispeci)  ! =1 for 1'st target gas etc.
-c          if(kgas.eq.2 .or. kgas.eq.6 .or. kgas.eq.7) abhw=1.02*abhw   ! fudge
+
+c  Fudge the CH4 P-branch lines of the 2nu3 band.
           if(kgas.eq.6 .and. abs(freq-5900).lt.100 )
      &     abhw=abhw-0.002-0.01*(eprime/800)**2   ! fudge 20080724
+
+c  Check that pseudolines (kiso=0) are nicely spaced.
           if(kiso.eq.0) then
-             if(freq-fprev(ispeci).le.0) then
+             if(delpl(ispeci).le.0) then
 c                write(*,*)kgas,kiso,freq,fprev(ispeci)
                 stop 'multiple pseudo-lines at same frequency'
              endif
           endif
 c
+c  Loop over atmospheric levels
           do i=1,nlev
-            vcent=(freq-fzero+dble(pshift*p(i)))/grid
-c            vcent=(freq-fzero+dble(pshift*p(i)*trat(i)**0.75))/grid  ! 05-12-26
-            if(kiso.eq.0) then
-              dopphwem=sngl(freq-fprev(ispeci)) !set DOPPHWEM to line spacing
-            else
-              dopphwem=4.3e-7*sngl(freq)*sqrt(t(i)/molewt(ispeci))
-            endif
-            if(abhw.le.0.0) abhw=0.1
-            if(sbhw.le.0.0) sbhw=abhw
-c            pbhw=abhw*(1.-vmr(ispeci,i))) + sbhw*vv
-            if(kgas.eq.7) then
-               pbhw=abhw+(vmr(ispeci,i)-0.21)*(sbhw-abhw)/(1-0.21)
-               pbhw=pbhw*1.00
-            elseif(kgas.eq.41) then
-               pbhw=abhw+(vmr(ispeci,i)-0.79)*(sbhw-abhw)/(1-0.79)
-            else
-               pbhw=abhw+vmr(ispeci,i)*(sbhw-abhw)
-            endif
+             vcent=(freq-fzero+dble(pshift*p(i)))/grid
+c             vcent=(freq-fzero+dble(pshift*p(i)*trat(i)**0.75))/grid  ! 05-12-26
+             if(kiso.eq.0) then
+               dopphwem=sngl(delpl(ispeci)) !set DOPPHWEM to line spacing
+             else
+               dopphwem=4.3014e-7*sngl(freq)*sqrt(t(i)/molewt(ispeci))
+             endif
+c             if(abhw.le.0.0) abhw=0.1
+c             if(sbhw.le.0.0) sbhw=abhw
+c  pbhw = abhw*(1.-vmr) + sbhw*vrm
+             if(kgas.eq.7) then
+                pbhw=abhw+(vmr(ispeci,i)-0.21)*(sbhw-abhw)/(1-0.21)
+                pbhw=pbhw*1.00
+             elseif(kgas.eq.41) then
+                pbhw=abhw+(vmr(ispeci,i)-0.79)*(sbhw-abhw)/(1-0.79)
+             else
+                pbhw=abhw+vmr(ispeci,i)*(sbhw-abhw)
+             endif
 
-c  Add H2O-broadening, assumed to be 1.35 times the air-broadening
-            if(kgas.ne.1 .and. kgas.ne.49) pbhw=pbhw+0.35*abhw*vmr(1,i)
+c  Add H2O-broadening, assumed to be 1.35 times the air-broadening.
+c  This 1.35 factor has been determined empirically by minimizing
+c  the sensitivity of TCCOB xCO2 to retrieved H2O.
+c  According to Hartmann, 1.80 would be more realistic.
+             if(kgas.ne.1 .and. kgas.ne.49) pbhw=pbhw+
+     &         0.35*abhw*vmr(specindex(1)+1,i)
 
 c  Add CO2-broadening, assumed to be 1.15 times the air-broadening
 c  This is only important for Venus and Mars
-            if(kgas.ne.2) pbhw=pbhw+0.15*abhw*vmr(2,i)
+             if(kgas.ne.2) pbhw=pbhw+0.15*abhw*vmr(specindex(2)+1,i)
 
-c  Fudge widths of first target gas.
-c            if(targmol(ispeci).eq.1) pbhw=pbhw*0.95
-
-            y=pbhw*p(i)*trat(i)**tdpbhw/dopphwem
-            sxcgs=stren*d(i)*vmr(ispeci,i)*vpf(ispeci,i)
-            if(scia) sxcgs=sxcgs*d(i)*vmr(ispeci,i)
-            if(fcia) sxcgs=sxcgs*d(i)*(1-vmr(ispeci,i))
-c	    if(kiso.eq.0) then  !  O2 and N2 Collision Induced Absorption (CIA)
-c                if(kgas.eq.7 .or. kgas.eq.41) sxcgs=sxcgs*p(i)
-c            endif
-            sxcgsopidw=sxcgs*exp(eprime*tfac(i))/dopphwem/pi
-            godw=grid/dopphwem
-            flinwid=dble((3+amin1(y/frac,
-     &      sqrt(abs(y*sxcgsopidw/tnulst))))/godw)
-            if(kgas.eq.2) flinwid=dmin1(flinwid,21950.d0)  ! Sub-Lorentzian CO2
-            kv1=max0(1,1+int(vcent-flinwid))
-            kv2=min0(int(vcent+flinwid),ncp)
-            nv=kv2-kv1+1
-            if(nv.gt.0) then
-              x1=godw*(dble(kv1)-vcent)  ! start
-              call gct_humlik(nv,x1,godw,y,vv(kv1))
-              sxcgsorpidw=sxcgsopidw*srpi
-              ss=sxcgsorpidw
-              do jv=kv1,kv2
-c                 if(eta.ne.2.0) then
-c                    xx=(jv-vcent)*godw/(y+0.01)
-c                    ss=sxcgsorpidw*(1.0+xx**2)**(1.0-eta/2)
-c                 endif
-c                 dx=-0.0006*(jv-vcent)
-c                 vac(jv,i,mm)=vac(jv,i,mm)-
-c     &           ss*vv(jv)*(1.+dx/(1+sqrt(1+dx**2)))
-                 vac(jv,i,mm)=vac(jv,i,mm)-ss*vv(jv)
-              end do
-c              call vsma(vv(kv1),1,-sxcgsorpidw,vac(kv1,i,mm),1,
-c     &        vac(kv1,i,mm),1,nv)
-            endif   ! nv.gt.0
-c           write(42,*) kgas,kiso,freq,t(i),p(i),sxcgsorpidw,
-c    &                  dopphwem,pbhw
-          end do  ! i=1,nlev
- 7748     continue
-          if(kiso.eq.0) fprev(ispeci)=freq
- 7749   continue
+c Now compute the absorption cross-section of this particular line.
+             y=pbhw*p(i)*trat(i)**tdpbhw/dopphwem  ! Pressure broadending (in DW)
+             sxcgs=stren*d(i)*vmr(ispeci,i)*vpf(ispeci,i)
+             if(scia) sxcgs=sxcgs*d(i)*vmr(ispeci,i)
+             if(fcia) sxcgs=sxcgs*d(i)*(1-vmr(ispeci,i))
+             sxcgsorpidw=sxcgs*exp(eprime*tfac(i))/dopphwem/srpi
+             godw=grid/dopphwem   ! primative grid point spacing (Doppler widths)
+             flinwid=dble((3+amin1(y/frac,
+     &       sqrt(abs(y*sxcgsorpidw/srpi/tnulst))))/godw)
+c             if(kgas.eq.2) flinwid=dmin1(flinwid,21950.d0) ! Sub-Lorentzian CO2
+             kv1=max0(1,1+int(vcent-flinwid)) ! Start index (primative grid points)
+             kv2=min0(int(vcent+flinwid),ncp) ! End index (primative grid points)
+             nv=kv2-kv1+1    ! Number of primative grid points encompassed by line
+             if(nv.gt.0) then
+                x1=godw*(dble(kv1)-vcent)  ! starting point (doppler widths)
+c                if(i.eq.3) write(*,*) freq,stren,x1,y,godw
+                if(kgas.eq.2) then
+                     sublor=10.5/dopphwem
+                else
+                     sublor=100.0/dopphwem
+                endif
+                call gct2_humlik(nv,x1,godw,y,sublor,vv(kv1))
+                do jv=kv1,kv2  ! Innermost loop over line profile
+                   vac(jv,i,mm)=vac(jv,i,mm)-sxcgsorpidw*vv(jv)
+                end do
+             endif   ! nv.gt.0
+          end do     ! i=1,nlev
+        end do       !  do jline=kline1+1,kline2
         close(lun_ll)
-      end do     ! end of loop on line files
+      end do         ! end of loop on line files
+
       write(lunw,*)nltnu,' lines (all linelists) with S > TNULST'
       close(lunw)
 
-c      write(25,*) 2,2
-c      write(25,*) 'f a'
-c      do j=1,ncp
-c         write(25,*) fzero+j*grid,-vac(j,1,1)
+cc  Code to write out monochromatic volume absorption coefficients (if necessary)
+c      do jtg=1,9   ! Loop over target gases
+c      do ispeci=1,nspeci
+c         if(targmol(ispeci).eq.jtg) go to 177
 c      end do
-c       write(42,*) kgas,kiso,freq,sxcgsorpidw,dopphwem,pbhw
+c      return
+c177   vacfile='vac_tgxx.out'
+c      write(vacfile(7:8),'(i2.2)') jtg
+c      open(lun_vac,file=vacfile,status='unknown')
+c      write(lun_vac,*)2,nlev
+c      write(lun_vac,'(a6,80i12)')' Freq ',(ilev-1,ilev=2,nlev)
+c      write(*,*) jtg,ispeci,nlev,ncp
+c      do jcp=1,ncp   !  Loop over frequencies
+c         write(lun_vac,'(f14.6,8e12.5)')fzero+jcp*grid,
+c     &   (-vac(jcp,ilev,jtg)/vmr(ispeci,ilev)/d(ilev),ilev=2,nlev)
+c      end do
+c      close(lun_vac)
+c      end do   !  Loop over target gases
+
       return
       end
 
       function vibpf(temp,vibfrq,dgen,nvmode)
-c Calculates the vibrational partition function
+c Calculates the vibrational partition function:
 c the fraction of molecules that are in the vibrational ground state.
       integer*4 imode,nvmode,dgen(nvmode)
       real*4 temp,vibfrq(nvmode),vibpf

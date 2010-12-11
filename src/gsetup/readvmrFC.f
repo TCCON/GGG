@@ -1,5 +1,5 @@
       subroutine readvmrFC(lunr,vmrpath,z,nlev,pabel,ztrop_mod,
-     & vmr,mgas,modname,vmr_found)
+     & vmr,mgas,modname)
 c  Reads and interpolates (possibly with a vertical stretch) an initial vmr set
 c  (SETNAME) onto the vertical grid defined by Z(NLAY) and places the result
 c  into array VMR.
@@ -15,7 +15,6 @@ c     DG Sept00
 c      parameter (mg=134,minlvl=151)    !minlvl <= mg  -DG: not necessary if inlvl and vold not equivalenced.
       parameter (mg=230,minlvl=250)    !DG Jan03
       CHARACTER vmrpath*(*),pabel*(*),dum*16,string*1000,modname*48
-      logical*4 vmr_found
       real*4 z(nlev),zold,znew,vold(mg),vnew(mg),vmr(mgas,nlev),fr,
      &inlvl(minlvl),zero
       real*8 zeff,ztrop_mod,ztrop_vmr
@@ -83,9 +82,7 @@ c
 
           do klev=1,nlev
 c            write(*,*)klev,nlev,z(klev),znew
-             if(vmr_found) then
-                zeff=z(klev)
-             elseif(z(klev).lt.ztrop_mod) then
+             if(z(klev).lt.ztrop_mod) then
                 zeff=z(klev)*ztrop_vmr/ztrop_mod  ! troposphere
              else
                 zeff=z(klev)+(ztrop_vmr-ztrop_mod)*

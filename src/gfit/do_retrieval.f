@@ -15,7 +15,7 @@ c   Inputs:
 c     obsrvd(nmp)   R*4  Measured spectrum (y)
 c     nmp           I*4  Number of measured points (in spectrum)
 c     apx(nfp)      R*4  A priori state vector (xa)
-c     apu(nfp)      R*4  A priori state vector uncertainties (Sa)
+c     apu(nfp)      R*4  A priori state vector uncertainties (=SQRT[diag{Sa}])
 c     slit(nii)     R*4  The ILS (slit function) needed by FM
 c     nii           I*4  length of the SLIT vector
 c     ldec          I*4  Decimation of SLIT vector
@@ -44,7 +44,7 @@ c     pd(nmp,ntg)   R*4  Individual gas transmittance spectra
 
       logical
      & debug,    !  activates debug write-statements when .true.
-     & cf        !  Fits chennel fringes when .true.
+     & cf        !  Fits channel fringes when .true.
 
       integer*4
      & n1,n2,n3,n4,
@@ -53,22 +53,24 @@ c     pd(nmp,ntg)   R*4  Individual gas transmittance spectra
      & krank,
      & ierr,
      & nlev,
-     & mmp,nmp,imp,nii,ldec,nmpfp,
-     & mfp,ntg,jtg,
-     & nfp,kfp,jfp,i,j,
+     & mmp,nmp,nii,ldec,nmpfp,
+     & mtg,ntg,jtg,
+     & mfp,nfp,kfp,jfp,i,j,
      & mit,nit,
      & jva,jpd,kn2
 
-      parameter (mmp=360000,mfp=25) ! 20100907 DW changed from 16 to 25 
+      parameter (mmp=1250000,mtg=16,mfp=mtg+4)
 
       real*4
      & slit(nii),
      & cx(ntg+4),dx(mfp),ex(ntg+4),
      & obsrvd(nmp),calcul(nmp),resids(mmp+ntg+4),
+c     & wf(mmp),  ! Justus Notholt
      & apx(ntg+4),apu(ntg+4),
      & wk(mfp),
      & rms, rwas,
      & thresh,
+     & ti,cc,oc,sum_oc,sum_toc,sum_cc,sum_tcc,sum_ttcc,denom,
      & ynoise,
      & tau,
      & corrld,
@@ -101,8 +103,8 @@ c
       nfp=ntg+4
       nmpfp=nmp+nfp
 
-c      call vdot(obsrvd,1,obsrvd,1,sumr2,nmp)
-c      if(debug) write(*,*)'obsrvd=',sqrt(sumr2/nmp)
+      call vdot(obsrvd,1,obsrvd,1,sumr2,nmp)
+      if(debug) write(*,*)' rms obsrvd=',sqrt(sumr2/nmp)
 
 c  Check that static array dimensions are adequate
       if(nfp.gt.mfp) then
@@ -121,14 +123,19 @@ c  Check that static array dimensions are adequate
          nconv=2
          cf=.false.
       endif
+c
+c  Initialize Weighting Function vector (WF) ! Justus Notholt
+c      do i=1,nmp
+c        wf(i)=???
+c      end do
 
       rwas=big
       kconv=nconv
       do nit=0,mit     ! Spectral fitting iteration loop
 
 c  Limit frequency shift to 0.8*GINT
-         if(abs(cx(n3)) .gt. 0.8) then
-            cx(n3)=sign(0.8,cx(n3))
+         if(abs(cx(n3)) .gt. 1.8) then
+            cx(n3)=sign(1.8,cx(n3))
 c            write(6,*)' Warning: Limiting Frequency shift'
          endif
 c  Limit TILT if it exceeds 1.0
@@ -141,8 +148,42 @@ c  Calculate spectrum & PD's
          if(debug) write(*,*)'do_retrieval calling fm: cx=',cx
          call fm(0,winfo,slit,nii,ldec,spts,spxv,dspdzxv,
      &   vac,splos,nlev,ncp,rdec,sssss,cx,ntg,calcul,pd,nmp)
-         call vdot(calcul,1,calcul,1,sumr2,nmp)
-         if(debug) write(*,*)'calcul=',sqrt(sumr2/nmp)
+         if(index(winfo,' cl ').gt.0) then  ! Estimate CL and CT
+         if (nit.eq.0) then
+            sum_oc=eps
+            sum_cc=eps
+            sum_toc=eps
+            sum_tcc=eps
+            sum_ttcc=eps
+            do i=1,nmp
+               ti=float(i-1)/(nmp-1)-0.5
+               cc=calcul(i)*calcul(i)
+               oc=obsrvd(i)*calcul(i)
+               sum_oc=sum_oc+oc
+               sum_toc=sum_toc+oc*ti
+               sum_cc=sum_cc+cc
+               sum_tcc=sum_tcc+cc*ti
+               sum_ttcc=sum_ttcc+cc*ti**2
+            end do
+            denom=sum_tcc**2-sum_cc*sum_ttcc
+            if(index(winfo,' ct ').gt.0 .and. denom.ne.0.0) then
+               cx(n1)=(sum_tcc*sum_toc-sum_oc*sum_ttcc)/denom
+               cx(n2)=(sum_tcc*sum_oc-sum_cc*sum_toc)/denom/cx(n1)
+            else
+               cx(n1)=sum_oc/sum_cc
+               cx(n2)=0.0
+            endif
+c
+c  Apply the derived CL and CT to the calculated spectra and PD's
+            do i=1,nmp
+               ti=float(i-1)/(nmp-1)-0.5
+               calcul(i)=calcul(i)*cx(n1)*(1+cx(n2)*ti)
+            end do
+c            call vmul(calcul,1,cx(n1),0,calcul,1,nmp)
+            call vmul(pd,1,cx(n1),0,pd,1,nfp*(nmp+nfp))
+         endif    !  (nit.eq.0)
+         endif    !  (index(winfo,' cl ').gt.0)
+         if(debug) write(*,*)'rms calcul=',sqrt(sumr2/nmp)
 
 c  Calculate residuals
 c         if(kconv.eq.nconv) then ! use logarithmic residuals 1'st convergence
@@ -158,6 +199,7 @@ c         else  !                 use linear residuals for subsequent convergenc
 c            call vsub(obsrvd,1,calcul,1,resids,1,nmp) ! residuals
 c         endif   !  kconv.eq.nconv
          call compute_residual(kconv,obsrvd,calcul,resids,nmp)
+c         call vmul(resids,1,wf,1,resids,1,nmp)  ! Justus Notholt
 
 c Calculate RMS fit
          call vdot(resids,1,resids,1,sumr2,nmp)
@@ -177,6 +219,7 @@ c Calculate RMS fit
                if(kconv.ge.1) then
                   if(cf) call subtract_cf(obsrvd,calcul,resids,nmp,mmp)
                   call vsub(obsrvd,1,calcul,1,resids,1,nmp) ! residuals
+c         call vmul(resids,1,wf,1,resids,1,nmp)  ! Justus Notholt
                endif
             endif ! abs(rms-rwas).lt.thresh .or. nit+2*kconv-1.gt.mit
 
@@ -189,8 +232,8 @@ c   while  PD(nmp+i,i) holds RAE(i)*YNOISE, the other elements being zero.
             call vmul(wk,1,pd(nmp+1),nmpfp+1,resids(nmp+1),1,nfp)
             if(debug) then
                write(*,122)'apx=',(apx(j),j=n1,n4),(apx(j),j=1,ntg)
-               write(*,122)'cx=',(cx(j),j=n1,n4),(cx(j),j=1,ntg)
-122            format(a3,7f11.5)
+               write(*,122)'cx =',(cx(j),j=n1,n4),(cx(j),j=1,ntg)
+122            format(a4,20f10.5)
             endif
 c  Solve matrix equation PD.dx=resids
             call vmov(zero,0,wk,1,nfp)
@@ -201,7 +244,7 @@ c            write(*,*)'called shfti...',(ip(j),j=1,nfp)
 
             call vmov(resids,1,dx,1,nfp)
             if(debug) then
-               write(*,122)'dx=',(dx(jtg),jtg=n1,n4),(dx(jtg),jtg=1,ntg)
+              write(*,122)'dx =',(dx(jtg),jtg=n1,n4),(dx(jtg),jtg=1,ntg)
                if(krank.lt.nfp) then
                   write(6,*)'Rank Deficient:',krank,'  /',nfp
                else
@@ -229,17 +272,19 @@ c       call vadd(cx,1,dx,1,cx,1,nfp)
          fr=1.0
          do jfp=1,nfp
             dxlimit=0.2+abs(cx(jfp))
-            xfr=abs(dxlimit/abs(dx(jfp)))
+            xfr=abs(dxlimit/(tiny+abs(dx(jfp))))
             if(xfr.lt.fr) then
                fr=xfr
                kfp=jfp
             endif
          end do
+         if(nit.eq.0) fr=min(fr,0.3)
+         if(nit.eq.1) fr=min(fr,0.6)
          if(debug .and. fr.lt.1.)
      &   write(*,*)'Limited step size: kfp,fr=',kfp,fr
          call vsma(dx,1,fr,cx,1,cx,1,nfp)
          rwas=rms
-      end do
+      end do   ! do nit=0,mit     ! Spectral fitting iteration loop
 
 c  Compute upper-triangle of covariance matrix & move diagonal elements into EX
 63    var=(rms*corrld)**2/(1.-float(nfp)/(float(nmp)+0.1))
@@ -271,7 +316,7 @@ c  Place them in PD, which just so happens to be exactly the right size.
       jpd=1
       kn2=1+ncp*(n1) ! Start address of workspace
       sh=rdec*(cx(n3)+sssss)
-c     write(*,*)'do_retrieval: sh=',sh,rdec,cx(n3),sssss
+c      write(*,*)'do_retrieval: sh=',sh,rdec,cx(n3),sssss
       do jtg=0,ntg
          if(jtg.eq.0) then ! non-target gases
             call vexp(spxv(jva),1,spxv(kn2),1,ncp)
@@ -279,7 +324,6 @@ c     write(*,*)'do_retrieval: sh=',sh,rdec,cx(n3),sssss
             call vmul(spxv(jva),1,cx(jtg),0,spxv(kn2),1,ncp)
             call vexp(spxv(kn2),1,spxv(kn2),1,ncp)
          endif
-c         write(*,*)'sh=',sh
          call newdec(spxv(kn2),ncp,slit,nii,ldec,rdec,sh,pd(jpd),nmp)
 c
 c  Compute saturation error (ESAT)
@@ -294,7 +338,6 @@ c  Compute saturation error (ESAT)
       end do
 
 c  Do the solar spectrum too.
-c      write(*,*)'sh solar=',sh
       call newdec(spts,ncp,slit,nii,ldec,rdec,sh,ssnmp,nmp)
 
 c  Determine the average optical depth of the first target gas
