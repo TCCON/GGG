@@ -19,34 +19,48 @@ c  Output Files:
 c       runlog.vav.ada.aia
 c       
       implicit none
-      integer*4 lunr,luns,lunw,ncoml,ncol,mcol,kcol,icol,j,
-     & kgas,lnbc,irow,naux,mgas,ngas,nrow,li,k
-      parameter (lunr=14,luns=15,lunw=16,mcol=150,mgas=9)
-      character header*800,headarr(mcol)*20,gasname(mgas)*20,
-     & gggdir*80,inputfile*40,outputfile*40, version*62,gaserr*32
-      real*8 yrow(mcol),adcf(mgas),aicf(mgas),cf(mcol)
+      include "../ggg_int_params.f"
 
-      character output_fmt*32, specname*38
+      integer*4 lunr,luns,lunw,ncoml,ncolvav,kcolvav,icol,j,
+     & kgas,lnbc,irow,naux,mgas,ngas,nrow,li,k,ncolcorr
+      parameter (lunr=14,luns=15,lunw=16,mgas=9)
+      real*8 yrow(mcolvav),adcf(mgas),adcf_err(mgas),ymiss,
+     & aicf(mgas),aicf_err(mgas),cf(mcolvav)
+
+      character header*800,headarr(mcolvav)*40,gasname(mgas)*20,dl*1,
+     & gggdir*(mpath),inputfile*40,outputfile*40, version*62,gaserr*32
+      character output_fmt*40, input_fmt*40, specname*(nchar), c1*1
+      
       integer specflag
       specflag=0
 
       version=
-     & ' apply_insitu_correction      Version 1.3.2   2010-12-04   GCT'
+     & ' apply_insitu_correction      Version 1.3.4   2011-11-05   GCT'
 
-      call getenv('GGGPATH',gggdir)
+      call get_ggg_environment(gggdir, dl)
 
 c  Open the corrections.dat file and read in the Airmass-Dependent
 c  Correction Factors (ADCF) and the Airmass-Independent Correction
 c  Factors (AICF) for each gas. Only the former is used by this prog.
-      open(luns,file=gggdir(:lnbc(gggdir))//'/tccon/corrections.dat',
-     & status='old')
-      read(luns,*)ncoml,ncol
+      open(luns,file=gggdir(:lnbc(gggdir))//'tccon'//dl
+     & //'corrections.dat', status='old')
+      read(luns,*)ncoml,ncolcorr
       do k=2,ncoml
          read(luns,*)
       end do
-      do k=1,mgas
-         read(luns,*,end=88) gasname(k),adcf(k),aicf(k)
-      end do
+      if(ncolcorr.eq.3) then
+         do k=1,mgas
+            read(luns,*,end=88) gasname(k),adcf(k),aicf(k)
+         end do
+      elseif(ncolcorr.eq.5) then
+         do k=1,mgas
+            read(luns,*,end=88) gasname(k),
+     &      adcf(k),adcf_err(k),aicf(k),aicf_err(k)
+         end do
+      else
+         write(*,*)'ncol=',ncolcorr
+         stop 'Unrecognized NCOLCORR value'
+      endif
       stop 'increase parameter MGAS'
 88    ngas=k-1
 
@@ -61,27 +75,33 @@ c  Factors (AICF) for each gas. Only the former is used by this prog.
 
 c  Read the header of the .ada file and figure out the
 c  mapping between the gases in the corrections.dat
-c  and those in the .vav file header
-      read(lunr,'(i2,i4,i7,i4)') ncoml,ncol,nrow,naux
-      write(lunw,'(i2,i4,i7,i4)') ncoml+1+ngas+1,ncol,nrow,naux
+c  and those in the .vav.ada file header
+      read(lunr,'(i2,i4,i7,i4)') ncoml,ncolvav,nrow,naux
+      write(lunw,'(i2,i4,i7,i4)') ncoml+1+ngas+1,ncolvav,nrow,naux
       write(lunw,'(a)') version
-      if(ncol.gt.mcol) stop 'increase mcol'
-      do j=2,ncoml-1
+      if(ncolvav.gt.mcolvav) stop 'increase mcolvav'
+      do j=2,ncoml-3
          read(lunr,'(a)') header
          write(lunw,'(a)') header(:lnbc(header))
       end do
       
       write(lunw,'(a)')'Airmass-Independent/In-Situ Correction Factors:'
       do k=1,ngas
-         write(lunw,'(a,f9.4)') gasname(k),aicf(k)
+         if(ncolcorr.eq.3) write(lunw,'(a,f9.4)') gasname(k),aicf(k)
+         if(ncolcorr.eq.5) write(lunw,'(a,2f9.4)') gasname(k),aicf(k),
+     &   aicf_err(k)
       end do
 
+      read(lunr,*) ymiss
+      write(lunw,*) ymiss
+      read(lunr,'(a)') input_fmt
+      write(lunw,'(a)') input_fmt
       read(lunr,'(a)') header
       write(lunw,'(a)') header(:lnbc(header))
       if (index(header,'spectrum') .gt. 0) specflag=1
-      call substr(header,headarr,mcol,kcol)
-      if(kcol.ne.ncol ) stop 'ncol/kcol mismatch'
-      do icol=1,ncol
+      call substr(header,headarr,mcolvav,kcolvav)
+      if(kcolvav.ne.ncolvav ) stop 'ncolvav/kcolvav mismatch'
+      do icol=1,ncolvav
          cf(icol)=1.0
          do kgas=1,ngas
 c         write(*,*)kgas,icol,gasname(kgas),headarr(icol),aicf(kgas),cf(icol)
@@ -93,30 +113,33 @@ c         write(*,*)kgas,icol,gasname(kgas),headarr(icol),aicf(kgas),cf(icol)
      &   icol,headarr(icol),cf(icol)
       end do
 
-      if (specflag .eq. 1) then
-         output_fmt='(a35,f14.8,NNf13.5,200(1pe12.4))'
-         write(output_fmt(12:13),'(i2.2)') naux-1
-      else
-         output_fmt='(f14.8,NNf13.5,200(1pe12.4))'
-         write(output_fmt(8:9),'(i2.2)') naux-2
-      endif
+c      if (specflag .eq. 1) then
+c         output_fmt='(a35,f14.8,NNf13.5,200(1pe12.4))'
+c         write(output_fmt(12:13),'(i2.2)') naux-1
+c      else
+c         output_fmt='(f14.8,NNf13.5,200(1pe12.4))'
+c         write(output_fmt(8:9),'(i2.2)') naux-2
+c      endif
+      output_fmt=input_fmt
 
 c  Read each day of data into memory and divide XGas values by the
 c  appropriate correction factors.
       do irow=1,9999999
          if (specflag .eq. 1) then
-            read(lunr,*,end=99) specname, (yrow(j),j=2,ncol)
+            read(lunr,input_fmt,end=99) specname, (yrow(j),j=2,ncolvav)
          else
-            read(lunr,*,end=99) (yrow(j),j=1,ncol)
+            read(lunr,input_fmt,end=99) c1,(yrow(j),j=1,ncolvav)
          endif
-         do k=naux+1,ncol-1,2
-              yrow(k)=yrow(k)/cf(k)
-              yrow(k+1)=yrow(k+1)/cf(k)
+         do k=naux+1,ncolvav-1,2
+              if(yrow(k).lt.ymiss) then  ! Dont correct missing values
+                 yrow(k)=yrow(k)/cf(k)
+                 yrow(k+1)=yrow(k+1)/cf(k)
+              endif  !  (yrow(k).lt.ymiss) then
          end do
          if (specflag .eq. 1) then
-            write(lunw,output_fmt) specname, (yrow(j),j=2,ncol)
+            write(lunw,output_fmt) specname,(yrow(j),j=2,ncolvav)
          else
-            write(lunw,output_fmt) (yrow(j),j=1,ncol)
+            write(lunw,output_fmt) c1,(yrow(j),j=1,ncolvav)
          endif
       end do         ! do irow=1,9999999
       stop ' irow exceeded 9999999'

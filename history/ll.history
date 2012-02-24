@@ -1,12 +1,95 @@
 GGG spectral linelists documentation.
  
+solar_merged_20120210.108
+  Redid the following 3 regions
+  2200-2250 cm-1
+  2410-2720 cm-1
+  3080-3420 cm-1
+
+solar_merged_20120124.108
+  Added over 400 solar lines to the 11,000 to 12700 cm-1 region.
+Some of the previously missing lines had depths of up to 4%.
+And some H2O lines had been mis-identified as solar lines.
+This region now has a solar transmittance error that is better than
+1% absolute or 3% of the solar line depths.
+
+atm_20111027.101
+  Replaced the previous H2CO linelist, which contained 2702 lines covering
+0-100 cm-1, 2700 - 3000 cm-1
+with the linelist from HITRAN 2008 which contains 37,050 lines covering
+0-100, 1620 - 1840, and 2600 - 3100 cm-1
+The new list contains the strongest IR band of H2CO centered at 1745 cm-1.
+
+gct_20110810.101
+ Generated pseudo-linelists for cirrus6 and cirrus15, representing
+6 micron and 15 micron ice particle extinction. Each linelist covers
+500 to 30000 cm-1 at 5 cm-1 intervals (5901 lines).
+
+gct_20110808.101
+ Extended the dust_m (gas 54) linelist from 500 cm-1 down to 100 cm-1
+ to help with Mars thermal emission calculations.
+
+gct_20110730.101
+ Fixed a problem with the COFCl linelist which had narrow "gaps"
+ in the absorption spectrum every 4-5 cm-1. Don't know what caused these
+ missing lines. So I simply stripped out the old linelist
+ and merged the leftovers with cofcl_agnes_perrin_20100930.101
+
+gct_20110509.101
+  Added a pseudo-linelist of CH3COOH (Acetic Acid) containing 118868 lines
+covering all important absorption bands in the 551-3623 cm-1 range.
+Based on PNNL spectra at 298 and 343K.
+
+gct_20110422.101
+  Added a pseudo-linelist for CHF3 extending from 1100-1240 cm-1 at a
+point spacing of 0.01 cm-1.  Thus this linelist contains 14,001 lines.
+It was derived from the 24 spectra acquired by Chung (2005), which were
+re-acaled by Jeremy Harrison at U York, England. Three PNNL spectra were
+also used to provide a check on the absolute band intensities, which were
+not very reliable in the Chung spectra.
+
+This repeats what I did back in late 2009, but somehow the CHF3 went
+AWOL (must have had two gct linelists in use at the same time and
+inadvertantly added it to the older one)
+
+gct_20110413.101
+ Added a kludged HNO3 linelist covering the 2nu2 band from
+ 3377 to 3424 cm-1 region with 9407 lines. For more info,
+ see report titled: HNO3_2nu2_3404.pdf
+
+solar_merged_20101003.108
+ Refitted the O2 A-band and B-band regions, using GFIT_LM
+ to prevent the neglect of line mixing from distorting the
+ solar lines in the vicinity of strong O2 lines in ground-
+ based spectra.
+
+atm_20110307.101
+ Replaced the 59 lines of the O2 A-band hot band with a new
+ calculation from Iouli Gordon covering 12847-13011 cm-1.
+ This change slightly improves A-band fits.
+
+ Replace the O2 linelist for frequencies > 14000 cm-1 with
+ Iouli Gordon's new list covering 14284-15928 cm-1 and
+ containing the O2 B-band and Gamma band. The old list
+ contained 328 lines. The new list contains 483 lines
+ and represents a huge improvement.
+
+ Added 111 CO2 lines of the 
+       2 1 1 01       0 0 0 01
+ band of 13CO2 covering 3369-3494 cm-1.
+
+ Fixed a bunch of CH4 lines in the 4060 cm-1 region which
+ seemed to have the wrongpositions of strengths or E".
+ Some of theselines had E"=555.5555, meaning that they
+ are unassigned.
+
 atm_20101209.101
 Added two missing O2 lines to the Gamma band (from Iouli Gordon).
  7115927.701191 7.022E-27 1.943E-09.0441.0432  438.44140.71-.008000  7  1         R17Q18  d00423 4 2
  7115927.805868 9.911E-27 1.731E-09.0458.0449  343.74810.71-.008000  7  1         R15Q16  d00423 4 2
 
 atm_20100908.101
-  SMade some minor changes in the mid-IR linelist based on fits
+  Made some minor changes in the mid-IR linelist based on fits
   to ground-based and balloon borne MkIV spectra.
  - Added pressures shifts to several CO2 lines in the 720-850 cm-1 region
    that were missing them (it was 0.0).
@@ -31,8 +114,8 @@ Previous list included:
  nu1 band of the 35Cl isotopolog(1850.0-1907.9 cm-1, 2036 lines; E"=345 cm-1)
 
 New linelist includes both the 35Cl and 37Cl isotopologs and covers:
-  nu1 band: PQR  1805 - 1913 cm-1  67797 lines
-  nu2 band: PQR  1049 - 1136 cm-1  70125 lines
+  nu1 band: PQR  1805 - 1913 cm-1  84959 lines
+  nu2 band: PQR  1049 - 1136 cm-1  74824 lines
   nu3 band: PQR   735 -  796 cm-1  55856 lines
 
 gct_20100730.101
@@ -198,9 +281,10 @@ gct_20091223.101
 point spacing of 0.01 cm-1.  Thus this linelist contains 14,001 lines. 
 It was derived from the 24 spectra acquired by Chung (2005), which were
 re-acaled by Jeremy Harrison at U York, England. Three PNNL spectra were
-also used.o
+also used to provide a check on the absolute band intensities, which were
+not very reliable in the Chung spectra.
 
-Also extended the CHClF2 linelist (gas #42) from 1150 to 1151 cm-1 to make
+Also extended the CHClF2 linelist (gas #42) from 1150 to 1153 cm-1 to make
 the discontinuity at the edge of the band less abrupt.
 
 atm_20091209.101
@@ -904,23 +988,6 @@ it into agreement with lab (and atmospheric measurements)
  11 5706.105730 1.130E-26 1.245E-06.0200.1310 1789.0428 .49-.013000  6  1 9 9 0    8 8 1     TOTH03
 
 2006-12-02:   GCT
-Found that the following 7 H2O lines have ABHW=0
- 1 1 4589.85488  8  8  0   7  3  5  1.53E-09  816.69423 .0000 .300  .00000
- 1 1 4946.48260  4  1  4   5  2  3  3.00E-07 2053.96866 .0000 .400  .00000
- 0 0 6590.76500  0  0  0   0  0  0  1.03E-06     .00000 .0000 .000  .00000
- 1 1 6710.52653  3  2  1   4  1  4  1.65E-06 1821.59680 .0000 .004  .00000
- 0 0 6835.65583  0  0  0   0  0  0  1.27E-06     .00000 .0000 .400  .00000
- 0 0 6969.93140  0  0  0   0  0  0  6.42E-07     .00000 .0000 .400  .00000
-
-Also reduced the strength of the following h2o line:
- 11 4831.686010 1.319E-24 1.822E-07.0930.4310   95.1759 .77 .001000  6  1 3 2 2    2 1 1     TOTH03
-from 1.319 to 1.200, where the latter is the measured lab value
-This greatly improved the spectral residuals around the line.
-
-Reduced the strength of the folowing line by a factor 2.8 to bring
-it into agreement with lab (and atmospheric measurements)
- 11 5706.105730 1.130E-26 1.245E-06.0200.1310 1789.0428 .49-.013000  6  1 9 9 0    8 8 1     TOTH03
-
 
 2006-12-02:   GCT
 Found that the following 7 H2O lines have ABHW=0
@@ -941,6 +1008,15 @@ widths of these lines so he set them to zero.  I changed them to:
  0 0 6835.65583  0  0  0   0  0  0  1.27E-06  555.00000 .0800 .400  .00000
  0 0 6969.93140  0  0  0   0  0  0  6.42E-07  555.00000 .0800 .400  .00000
  0 0 7293.37590  0  0  0   0  0  0  7.55E-06  555.00000 .0800 .400  .00000
+
+Also reduced the strength of the following h2o line:
+ 11 4831.686010 1.319E-24 1.822E-07.0930.4310   95.1759 .77 .001000  6  1 3 2 2    2 1 1     TOTH03
+from 1.319 to 1.200, where the latter is the measured lab value
+This greatly improved the spectral residuals around the line.
+
+Reduced the strength of the folowing line by a factor 2.8 to bring
+it into agreement with lab (and atmospheric measurements)
+ 11 5706.105730 1.130E-26 1.245E-06.0200.1310 1789.0428 .49-.013000  6  1 9 9 0    8 8 1     TOTH03
 
 2006-12-01:   GCT
    Discovered that the CH4 line at 4576.668 cm-1 had a -ve
@@ -1235,11 +1311,11 @@ If there are no other gases present, VO2+VN2=1, and so
                   CIA = D^2.(a.VO2^2+b.VO2.(1-VO2))
                   CIA = D^2.((a-b).VO2^2+b.VO2)
 
-Note that the first term that is linear in VO2 and that the
-second term that is quadratic in VO2. Well, to cut a long
+Note that the first term that is quadratic in VO2 and that the
+second term that is linear in VO2. Well, to cut a long
 story short, I now believe that Smith and Newnham [2000]
-denoted the former ((a-b).VO2) as "monomer" absorption and
-the latter (b.VO2) as "binary" absorption. Don't ask why
+denoted the former ((a-b).VO2^2) as "binary" absorption and
+the latter (b.VO2) as "monomer" absorption. Don't ask why
 they did this -- I think that S&N were very confused when
 they wrote their paper.  But this interpretation makes
 sense because all the S&N spectra were at constant

@@ -7,8 +7,8 @@ COMN = $(GGGPATH)/src/comn
 
 SOURCES := \
   $(TSRC)/$(TARGET).f \
-  $(TSRC)/read_mav.f \
   $(TSRC)/read_mav_head.f \
+  $(TSRC)/read_mav_aux.f \
   $(COMN)/lnbc.f \
   $(COMN)/skiprec.f
 
@@ -21,4 +21,10 @@ OBJECTS := $(patsubst %.f, %.o, $(SOURCES))
 #  Link the object files to create the executable
 $(TARGET) : $(OBJECTS)
 	$(FC) $(LDFLAGS) -o $(GGGPATH)/bin/$@ $^
+
+#  Add dependencies to object files
+$(TSRC)/write_aux.o:  $(GGGPATH)/src/ggg_int_params.f
+
+clean:
+	rm -f $(OBJECTS) $(GGGPATH)/bin/$(TARGET)
 

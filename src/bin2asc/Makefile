@@ -14,7 +14,8 @@ SOURCES := \
   $(COMN)/getendian.f \
   $(COMN)/write_runlog.f \
   $(COMN)/wlimit.f \
-  $(COMN)/read_runlog.f
+  $(COMN)/read_runlog.f \
+  $(COMN)/get_ggg_environment.f
 
 OBJECTS := $(patsubst %.f, %.o, $(SOURCES))
 
@@ -25,3 +26,11 @@ OBJECTS := $(patsubst %.f, %.o, $(SOURCES))
 #  Link the object files to create the executable
 $(TARGET) : $(OBJECTS)
 	$(FC) $(LDFLAGS) -o $(GGGPATH)/bin/$@ $^
+
+#  Add dependencies to object files
+$(TSRC)/bin2asc.o:  $(GGGPATH)/src/ggg_int_params.f
+$(COMN)/gindfile.o: $(GGGPATH)/src/ggg_int_params.f
+
+clean:
+	rm -f $(OBJECTS) $(GGGPATH)/bin/$(TARGET)
+

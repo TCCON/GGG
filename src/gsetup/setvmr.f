@@ -21,7 +21,8 @@ c     & p(nlev),          ! pressures of levels (atm.)
 c     & t(nlev),          ! temperatures of levels (K)
      & z(nlev),          ! altitudes of levels (km)
      & h2ovmr(nlev),     ! H2O vmr profile from .mod file
-     & co2vmr(nlev)      ! CO2 vmr profile from simulate_co2_vmr
+     & co2vmr(nlev),     ! CO2 vmr profile from simulate_co2_vmr
+     & co_vmr_max        ! maximum allowed CO vmr
 
       real*8 
      & uttime,           ! UT Time (hours)
@@ -47,8 +48,11 @@ c      write(*,*) 'ztrop=',ztrop
       endif  ! if(ztrop.gt.0.0)
 
 c  For ground-based observations, over-write apriori H2O vmr with NCEP model.
-c  The factor 0.16*(8.0+log10(h2ovmr(ilev))) represents
-c  the isotopic fractionation of HDO/H2O.
+c  For HDO, the factor 0.15*(8.0+log10(h2ovmr(ilev))) adjusts for the effects
+c  of isotopic fractionation.
+c  For H2O = 0.03,  HDO=0.975*H2O (sea-level in tropics)
+c  For H2O = 0.01,  HDO=0.900*H2O (sea-level at mid-latitude)
+c  For H2O = 3E-06, HDO=0.375*H2O (tropopause)
       if(h2ovmr(1).gt.0.0) then ! An H2O profile was found in the .mod file
          if ( pout.gt.600.0 ) then ! ground-based observations
 c            write(*,*) 'Replacing H2O & HDO vmrs with NCEP profiles'
@@ -58,6 +62,14 @@ c            write(*,*) 'Replacing H2O & HDO vmrs with NCEP profiles'
             end do
          endif
       endif
+
+c Limit tropospheric CO vmr to ~50 ppb in Southern hemisphere
+c to 90 ppb in the tropics, and to 130 ppb in the northern hemisphere.
+      co_vmr_max = 1.0E-09*(90 + 40*oblat/sqrt(200.0+oblat**2))
+      do ilev=1,nlev
+         if(z(ilev) .ge. ztrop) exit
+         if(vmr(5,ilev).gt.co_vmr_max) vmr(5,ilev)=co_vmr_max
+      end do
 
       return
       end

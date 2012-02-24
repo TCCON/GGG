@@ -74,9 +74,10 @@ c  Known Problems:
 c  1)  For large values of ww, iteration converges very slowly.
 
       implicit none
-      integer*4 nrow,irow,ncol,jcol,mit,jit,
+      include "params.f"
+
+      integer*4 nrow,irow,ncol,jcol,jit,
      & nval_irow,nval_jcol,nval
-      parameter (mit=19)
       real*4 ymiss,ww,
      & yobs(nrow,ncol),yerr(nrow,ncol),
      & ybar(nrow),eybar(nrow),

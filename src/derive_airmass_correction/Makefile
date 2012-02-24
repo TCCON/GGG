@@ -13,6 +13,7 @@ SOURCES := \
   $(COMN)/fnbc.f \
   $(COMN)/fbc.f \
   $(COMN)/lloc.f \
+  $(COMN)/lowercase.f \
   $(COMN)/substr.f
 
 OBJECTS := $(patsubst %.f, %.o, $(SOURCES))
@@ -24,4 +25,10 @@ OBJECTS := $(patsubst %.f, %.o, $(SOURCES))
 #  Link the object files to create the executable
 $(TARGET) : $(OBJECTS)
 	$(FC) $(LDFLAGS) -o $(GGGPATH)/bin/$@ $^
+
+#  Add dependencies to object files
+$(TSRC)/derive_airmass_correction.o: $(GGGPATH)/src/ggg_int_params.f $(GGGPATH)/src/ggg_const_params.f
+
+clean:
+	rm -f $(OBJECTS) $(GGGPATH)/bin/$(TARGET)
 

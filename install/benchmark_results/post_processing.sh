@@ -1,9 +1,10 @@
-/home/toon/ggg/bin/collate_results<.collate_t.input
-/home/toon/ggg/bin/collate_results<.collate_v.input
-/home/toon/ggg/bin/average_results<.average_results_t.input
-/home/toon/ggg/bin/average_results<.average_results_v.input
-/home/toon/ggg/bin/apply_airmass_correction<.apply_airmass_correction.input
-/home/toon/ggg/bin/apply_insitu_correction<.apply_insitu_correction.input
-/home/toon/ggg/bin/write_official_output_file<.write_official_output_file.input
-/home/toon/ggg/bin/write_eof<.write_eof.input
-/home/toon/ggg/bin/write_aux<.write_aux.input
+/net/nicolet/raid1/dwunch/ggg_devel/ggg_working/bin/collate_results < collate_t.input
+/net/nicolet/raid1/dwunch/ggg_devel/ggg_working/bin/collate_results < collate_v.input
+/net/nicolet/raid1/dwunch/ggg_devel/ggg_working/bin/average_results < average_results_t.input
+/net/nicolet/raid1/dwunch/ggg_devel/ggg_working/bin/average_results < average_results_v.input
+/net/nicolet/raid1/dwunch/ggg_devel/ggg_working/bin/apply_airmass_correction < apply_airmass_correction.input
+/net/nicolet/raid1/dwunch/ggg_devel/ggg_working/bin/apply_insitu_correction < apply_insitu_correction.input
+/net/nicolet/raid1/dwunch/ggg_devel/ggg_working/bin/apply_ghost_correction < apply_ghost_correction.input
+/net/nicolet/raid1/dwunch/ggg_devel/ggg_working/bin/write_official_output_file < write_official_output_file.input
+/net/nicolet/raid1/dwunch/ggg_devel/ggg_working/bin/write_eof < write_eof.input
+/net/nicolet/raid1/dwunch/ggg_devel/ggg_working/bin/write_aux < write_aux.input

@@ -2,18 +2,21 @@ c  write_aux.f
 c  Writes out a nice version of the mav file for data users. 
 
       implicit none
-      integer*4 lun_mav,lun_out,mlev,nlev,nspeci,mvmr,lr,lnbc,lcolon,i,
+      include "../ggg_int_params.f"
+
+      integer*4 lun_mav,lun_out,nlev,nspeci,mvmr,lr,lnbc,lcolon,i,
      & j,ii,lspace,ii1,jj,ico2,ico,ich4,in2o,ih2o,ihdo,flag,nlhead
       parameter (lun_mav=12)      ! input file (.mav)
       parameter (lun_out=14)      ! output file (.map)
-      parameter (mlev=200,mvmr=28000)
+      parameter (mvmr=28000)
       real*4 z(mlev),t(mlev),p(mlev),d(mlev),vmr(mvmr)
-      character wa_version*62,mavfile*80,outfile*80,mavstring*64,
-     & runlabmav*38,string*48,head*1800,hdr(mlev)*(11),string1*25
+      character version*62,mavfile*80,outfile*80,mavstring*64,
+     & runlabmav*57,string*48,head*1800,hdr(mlev)*(11),string1*25,
+     & mav_version*64
 
-      wa_version=
-     &' write_aux              version 0.0.2   2010-03-22   DW'
-      write(*,*) wa_version
+      version=
+     &' write_aux              version 1.0.0   2012-01-10   DW'
+      write(*,*) version
 
       write(*,'(a)')
      & 'Enter name of .mav file'
@@ -22,19 +25,25 @@ c     lr=lnbc(mavfile)
 
 c  Read the entire contents of the .mav file
       open(lun_mav,file=mavfile,status='old')
-      read(lun_mav,*)
+      read(lun_mav,'(a)')mav_version
       read(lun_mav,'(14x,a)')string
       lcolon=index(string,':')
       read(string(lcolon+1:),'(a)')runlabmav
 
       do i=1,9999
           call read_mav_head(lun_mav,nlev,nspeci,nlhead)
-          call read_mav(lun_mav,nlhead,nlev,nspeci,z,t,p,d,vmr,head)
+          call read_mav_aux(lun_mav,nlhead,nlev,nspeci,z,t,p,d,vmr,head)
 c         write(*,*)runlabmav
 c         write(*,*)head
+c         write(*,*)mav_version
 c         outfile=runlabmav(:lr-13)//'.map'
-          lr=lnbc(runlabmav)
-          outfile=runlabmav(:lr-10)//'.map'
+c         lr=lnbc(runlabmav)
+
+c  Figure out where the date ends (usually has an 's' for TCCON spectrum names).
+          lr=index(runlabmav,'s')
+          if (lr.eq.0) lr=11
+c         write(*,*)lr
+          outfile=runlabmav(:lr-1)//'.map'
 
 c  Figure out what is in the mav file and select out the appropriate columns
           ii1=1
@@ -112,7 +121,8 @@ c         write(*,*)string1
 c Write new .map file
           open(lun_out,file=outfile,status='unknown')
           write(lun_out,'(1x,a)')outfile
-          write(lun_out,'(a)')wa_version
+          write(lun_out,'(a)')mav_version
+          write(lun_out,'(a)')version
           write(lun_out,'(1x,a,a)')'Height,Temp,Pressure,Density,',
      & string1
 

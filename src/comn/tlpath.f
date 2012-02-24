@@ -37,16 +37,18 @@ c      ifail=6  tlpath called with NLEV=1
 c      subroutine tlpath(nlev,z,t,p,asza_in,fovr,roc,zobs,wavtkr,
 c     & wavmic,zmin,bend,sp,ifail)
       implicit none
-      integer*4 maxiter,ifail,lev1,lev2,nlev,it,iter,k,l,jt,mlev
-      parameter (mlev=250)
+      include "../ggg_const_params.f"
+      include "../ggg_int_params.f"
+
+      integer*4 maxiter,ifail,lev1,lev2,nlev,it,iter,k,l,jt
       real*4 z(nlev),p(nlev),t(nlev),sp(nlev),spg(mlev),asza_in,
      & asza,fovr,
      & zobs,wavtkr,wavmic,zmin,zmin0,bend,bend0,bendx,rsza,del_zlev,
      & pobs,tobs,con,ztan,ptan,ttan,prdiff,
      & del_ztan,del_rsza,dum,xsza,weight,rpsh,xx,dbdt,b,roc
-      real*8 opcon_tkr,opcon_mic,calc_opcon,pi,d2r,ri,rizobs,riztan,
+      real*8 opcon_tkr,opcon_mic,calc_opcon,d2r,ri,rizobs,riztan,
      & droc,rtnt
-      parameter (pi=3.1415926536d0,d2r=pi/180.d0,maxiter=22)
+      parameter (d2r=dpi/180.d0,maxiter=22)
       ifail=0
       if(nlev.eq.1) then
         write(*,*) 'TLPATH exiting due to NLEV<=1'
@@ -186,17 +188,18 @@ c  ray was deviated by refraction. this permits getsp to be put into an
 c  iteration loop tp find the angle ths which gives rise to a particular
 c  astronomical solar zenith angle.
       implicit none
+      include "../ggg_const_params.f"
+
       integer*4 ifail,lev1,lev2,nlev,k,maxstep
       real*4 z(nlev),p(nlev),t(nlev),spg(nlev),zobs,zmin,bend,ths,
      & ztoa,zhp,del_zlev,pres,temp,x1,x2,a1,a2,con,roc
-      real*8 opcon,ds,dx,dz,dt,dphi,phi,th,thp,zh,rpsh,rp,grad,d2r,pi,
+      real*8 opcon,ds,dx,dz,dt,dphi,phi,th,thp,zh,rpsh,rp,grad,d2r,
      & piby2,droc
       parameter (maxstep=6400)
 c
       droc=dble(roc)
-      piby2=dacos(0.0d0)
-      pi=2*piby2
-      d2r=pi/180.0d0
+      piby2=dpi/2.d0
+      d2r=dpi/180.0d0
 c
       do k=1,nlev
          spg(k)=0.0
@@ -218,7 +221,7 @@ c          write(*,*)ths,th,dsin(th),zobs,ztoa,zmin
               ifail=2  !  ray did not enter atmosphere
               return
           endif
-          th=pi-dasin(dsin(th)*(droc+zobs)/(droc+zh))
+          th=dpi-dasin(dsin(th)*(droc+zobs)/(droc+zh))
           phi=ths*d2r-th
       else
           zh=dble(zobs)

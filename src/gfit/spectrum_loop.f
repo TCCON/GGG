@@ -1,9 +1,11 @@
-      subroutine spectrum_loop(ap_file,winfo,lun_col,
+      subroutine spectrum_loop(ap_file,winfo,
+     & lun_col,lcl,colabel,colfile_format,
      & runlog,akfile,rayfile,mavfile,targmol,linefiles,
      & parfile,dplist,ntg,speci,nspexi,solarll,pars,sptfile)
 c
 c   Inputs:
 c     nmp           I*4  Number of measured points (in spectrum)
+c     ntg           I*4  number of target gases
 c     nfp           I*4  number of fitted parameters (in state vector)
 c     obsrvd(nmp)   R*4  Measured spectrum (y)
 c     apx(nfp)      R*4  A priori state vector (xa)
@@ -20,15 +22,21 @@ c            a lot of time on doing the VAC calculation.
 c  mode=1    Does full calculation
 
       implicit none
+      include "../ggg_const_params.f"
+      include "../ggg_int_params.f"
+      include "const_params.f"
+      include "int_params.f"
 
       logical
      & debug
 
       integer*4 i,nlhead,lf,fbc,reclen_solarll,
+     & lso,lsos,
+     & lsn,lsnd,
      & ncall,           ! counts the number of times that subroutine is called
      & lcolon,
      & totit,nn,ncol,nspectra,mspectra,
-     & n1,n2,n3,n4,
+     & n1,n2,n3,n4,n5,
      & mcp,ncp,
      & mva,nva,         ! The number of precomputed anscoption coefficients
      & mvmr,
@@ -42,19 +50,19 @@ c  mode=1    Does full calculation
      & lun_apx,         ! A priori state vector file
      & lnbc,
      & nspexi,jspeci,
-     & mmp,nmp,imp,
+     & nmp,imp,
      & nhw,ldec,nmpfp,
      & mii, nii,            ! Dimension of interpolated (by factor LDEC) ILS
-     & mtg,ntg,jtg,
-     & mfp,nfp,
+     & ntg,jtg,
+     & nfp,ifp,
      & jsp,jva,
-     & lc,lr,lrmax,
+     & lcl,lc,lr,lrmax,
      & interp,
      & defapo,apo_c,apo_m,rc,j,
      & mspxv,
 c     & mslpd,
-     & iseed,ncell,
-     & mlev,nlev,ilev,
+     & iseed,
+     & nlev,ilev,
      & mit,nit,
      & iyr,iset,
      & kspflag,ifirst,ilast,bytepw,possp,
@@ -62,9 +70,8 @@ c     & mslpd,
      & nsh,nhwmax,
      & lun_col,lun_spt,lun_mav,lun_ray,lun_rlg,mavfound
 
-      parameter (mmp=1250000,mva=160000000,mcp=1240000,
-     & nscycle=25,ncell=2,
-     & mvmr=28000,mtg=16,mfp=mtg+4,mii=103847,mlev=200,
+      parameter (mva=160000000,mcp=1440000,
+     & nscycle=25,mvmr=28000,mii=103847,
 c     & mslpd=10*mmp*mtg,
      & mspxv=5*mcp)
 
@@ -78,29 +85,30 @@ c     & mslpd=10*mmp*mtg,
       real*4
      & vac(mva),
      & ssnmp(mmp),
-     & slit(mii),cx(ntg+4),ex(ntg+4),
+     & slit(mii),cx(ntg+5),ex(ntg+5),
      & obsrvd(mmp),calcul(mmp),
      & overcol(mtg),oloscol(mtg),
      & zmin,zminwas,
-     & ckm2cm,
+     & fsn,ffr,
      & gasdev,  ! random number generator
-     & apx(ntg+4),apu(ntg+4),
+     & apx(ntg+5),apu(ntg+5),
+     & ynoise,
      & rms, 
      & dd,
      & sza_ray,sza_raywas,bend,
-     & tprange,zfov,
      & tot,
      & vmr(mvmr),
      & vpf(mvmr),
-     & spver(mlev),splos(mlev),dspdz(mlev),dsplo,dsphi,cp(mlev),
+     & spver(mlev),splos(mlev),
+     & cp(mlev),
      & z(mlev),t(mlev),p(mlev),d(mlev),
      & corrld,           ! Factor=[apodixed resolution]/[spectral point spacing
      & solar_gas_shift,sgshift,
-     & zero,unity,fovcf,
+c     & fovcf,
+     & tbar, rnoise,detnoise,sphnoise,
 c     & slpd(mslpd),
      & pd((mmp+mfp)*mfp), spts(mcp),
      & spxv(mspxv),
-     & dspdzxv(mspxv),
      & solzen,roc,fbar,
      & rdum
 
@@ -156,15 +164,15 @@ c     & slpd(mslpd),
      & wavtkr,           ! suntracker operating frequency (e.g. 9900 cm-1)
      & opd               ! Optical path difference (cm) of interferogram
 
-      character winfo*(*),ap_file*(*),runlab*38,pars(ntg)*(*),
-     & sptfile*(*),akpath*128,akfile*(*),specpath*128,sptpath*128,
-     & solarll*(*),runlabmav*38,oformat*10,colabel*600,
+      character winfo*(*),ap_file*(*),specname*(nchar),pars(ntg)*(*),
+     & sptfile*(*),akpath*(mfilepath),akfile*(*),specpath*(mfilepath),
+     & sptpath*(mfilepath),
+     & solarll*(*),runlabmav*(nchar),oformat*10,colabel*(*),
      & mavstring*64,linefiles*(*),parfile*(*),dplist*(*),
-     & col1*1,apf*2,rayfile*(*),specray*38,runlog*(*),mavfile*(*),
-     & string*48
+     & col1*1,apf*2,rayfile*(*),specray*(nchar),runlog*(*),mavfile*(*),
+     & string*80,colfile_format*(*)
 
-      parameter (zero=0.0,unity=1.0,ckm2cm=1.0E+05,
-     & mspectra=999999,resmax=0.5d0)
+      parameter (mspectra=999999,resmax=0.375d0)
 c
       save lrmax,ispec,ncall
       data lrmax/0/
@@ -175,10 +183,11 @@ c
       n2=ntg+2
       n3=ntg+3
       n4=ntg+4
-      nfp=ntg+4
+      n5=ntg+5
+      nfp=ntg+5
 
 c  Read max # of SPT files (if a value is provided on the SPT line of the .ggg file)
-      mspt=2000  ! default value
+      mspt=1200  ! default value
       lf=fbc(sptfile)
       if(lnbc(sptfile).gt.lf) read(sptfile(lf:),*) mspt
 
@@ -201,7 +210,7 @@ c  Read max # of SPT files (if a value is provided on the SPT line of the .ggg f
       read(lun_mav,*)
       read(lun_mav,'(14x,a)')string
       lcolon=index(string,':')
-      read(string(lcolon+1:),'(a)')runlabmav
+      read(string(lcolon+1:),'(a)') runlabmav
 
       open(lun_ray,file=rayfile,status='old')
       read(lun_ray,*)nn,ncol
@@ -260,39 +269,40 @@ c      write(*,*) 'runlog=',runlog
          read(lun_rlg,*)
       end do
 888   continue  !  Continue to support old format runlogs
-      if(debug) write(*,*)' Main loop...',nspectra
+      if(debug) write(*,*)' Main loop...',nspectra,mspectra
       do ispec=1,mspectra         !  Main fitting loop over spectra
-141     call read_runlog(lun_rlg,col1,runlab,iyr,iset,zpdtim,
+141     call read_runlog(lun_rlg,col1,specname,iyr,iset,zpdtim,
      &  oblat,oblon,obalt,asza,zenoff,azim,osds,
      &  opd,fovi,fovo,amal,ifirst,ilast,graw,possp,bytepw,zoff,snr,apf,
      &  tins,pins,hins,tout,pout,hout,
      &  sia,fvsi,wspd,wdir,lasf,wavtkr,aipl,istat)
-        if(debug) write(*,*) runlab, istat
+        if(debug) write(*,*) 'runlab, istat=',specname, istat
         if(istat.ne.0) exit
         if(col1.eq.':') cycle
 
-        lr=lnbc(runlab)
-        runlab=runlab(:lr)
+        lr=lnbc(specname)
+        specname=specname(:lr)
         if(lr.gt.lrmax) lrmax=lr  ! Longest spectrum name
 c
-        read(lun_ray,*) specray,rdum,rdum,sza_ray,bend,rdum,zmin,
-     &  (splos(j),j=1,nlev)
+        read(lun_ray,'(a,200f11.5)') specray,rdum,rdum,sza_ray,bend,
+     &  rdum,zmin,(splos(j),j=1,nlev)
 c        write(37,*)zmin,zminwas,sza_ray,sza_raywas,
 c     &  (zmin-zminwas)/(sza_ray-sza_raywas)
         zminwas=zmin
         sza_raywas=sza_ray
         specray=specray(:lr)
-        if(specray.ne.runlab) then
-           write(6,*) specray,runlab
+        if(specray.ne.specname) then
+           write(6,'(a,2x,a)') specray,specname
            stop 'spectrum mismatch 2'
         endif
 
 c  If MIT > 0, check that requested spectrum is on disk,
 c  and that it covers the specified spectral interval.
         kspflag=0
-        call gindfile(dplist,runlab,specpath)
+        call gindfile(dplist,specname,specpath)
         if(lnbc(specpath).eq.0) kspflag=2
-        if(debug) write(*,*)kspflag,'  '//runlab,specpath
+        if(debug) write(*,*)' kspflag = ',
+     &     kspflag,'  '//specname,specpath
 c
 c  Apply air-to-vacuum  & FOV corrections
         if(kspflag.lt.2) graw=graw*riair(lasf,tins,pins,hins)/
@@ -301,10 +311,13 @@ c        graw=graw*(1.D0+(amal**2+fovi**2)/16)  ! FOV correction
 
         resn=0.5d0/opd
         if(resn.gt.resmax) then
-           write(*,*) 'Warning: increase parameter resmax: ',runlab
+           write(*,*) 'Warning: increase parameter resmax: ',specname
            resn=resmax
         endif
-c        if(resn.lt.graw) resn=graw
+        if(1.0001*resn.lt.graw) then
+           write(*,*) 'resn,graw=',resn,graw
+           stop ' resn < graw'
+        endif
 c  Measured spectrum must be wider than fitting interval to
 c  allow convolution with apodizing/interpolating ILS
         dd=nscycle*resn ! half-width of the slit function in cm-1 (always +ve)
@@ -319,11 +332,11 @@ c        if(nint((nus-dd)/graw).lt.ifirst .or.
 c     &  nint((nue+dd)/graw).gt.ilast) kspflag=1
 c========================================================================
 c  Read model & vmr information (SUNRUN.MAV)
-c      write(*,*)'runlab, runlabmav=',runlab, runlabmav
-      lr=lnbc(runlab)
+c      write(*,*)'specname, runlabmav=',specname, runlabmav
+      lr=lnbc(specname)
       if(ncall.ge.1) then
-      if(runlab.eq.runlabmav) then
-         call read_mav(lun_mav,mlev,nlev,nspexi,z,t,p,d,vmr)
+      if(specname.eq.runlabmav) then
+         call read_mavfile_body(lun_mav,nlev,nspexi,z,t,p,d,vmr)
          read(lun_mav,'(a)',end=66) mavstring
          if(mavstring(1:14).eq.'Next Spectrum:') then
             read(mavstring(15:),'(a)') runlabmav
@@ -339,26 +352,23 @@ c      write(*,*)'runlab, runlabmav=',runlab, runlabmav
 c  Pre-compute absorption coefficient
 c         nva=ncp*nlev*(ntg+1)
          call vmov(zero,0,vac,1,nva)
-c         write(*,*)' Calling abscoi...', kspflag
-         call abscoi(nlev,t,p,d,nspexi,targmol,vmr,vpf,
+c         write(*,*)' Calling abscoj...', kspflag
+         call abscoj(specname,nlev,t,p,d,nspexi,targmol,vmr,vpf,
      &   linefiles,parfile,fzero,grid,ncp,vac,vac(nva+1))
-c         write(*,*)' Called abscoi...'
+c         write(*,*)' Called abscoj...'
 
          write(oformat,'(a5,i2.2,a3)')'(1x,a',lrmax+1,',a)'
          write(6,oformat)' Spectrum            ',
-     &   'Nit  CL   CT   FS   S-G  ZO   RMS/CL'//
-     &   '   Zpres   AM      OVC        VSF   VSF_err'
+     &   colabel(:lcl)//'   AM      OVC        VSF   VSF_err'
          if(mavfound.eq.0) then
-            colabel='Nit  CL   CT   FS  S-G  ZO    RMS/CL   Zpres'
             do jtg=1,ntg
                if(speci(jtg).eq.0) then
-                  write(*,*) jtg,pars(jtg),'unrecognized or duplicated'
-                  stop
+                 write(*,*) jtg,pars(jtg),'unrecognized or duplicated'
+                 stop
                else
-                  lc=lnbc(colabel)
-                  colabel=colabel(:lc)//'  AM_'//pars(jtg)(:6)
-     &            //' OVC_'//pars(jtg)(:6)//' VSF_'//pars(jtg)(:6)
-     &            //' VSF_'//pars(jtg)(:lnbc(pars(jtg)))//'_error'
+                 colabel=colabel(:lnbc(colabel))//'  AM_'//pars(jtg)(:6)
+     &           //' OVC_'//pars(jtg)(:6)//' VSF_'//pars(jtg)(:6)
+     &           //' VSF_'//pars(jtg)(:lnbc(pars(jtg)))//'_error'
                endif
             end do
             write(lun_col,oformat)' Spectrum            ',
@@ -367,18 +377,18 @@ c         write(*,*)' Called abscoi...'
          mavfound=mavfound+1
       else
          if(mavfound .eq. 0) then
-            write(*,*) 'Mavfile data-block is missing: '
-            write(*,*) 'Current Spectrum:',runlab
-            write(*,*) 'Current Mavfile:',runlabmav
+            write(*,'(a)') 'Mavfile data-block is missing: '
+            write(*,'(a)') 'Current Spectrum:',specname
+            write(*,'(a)') 'Current  Mavfile:',runlabmav
             stop
          endif
-      endif          ! (runlab.eq.runlabmav)
+      endif          ! (specname.eq.runlabmav)
       endif          ! (ncall.ge.1) then
       if((mit.gt.0.and.kspflag.gt.0).or.(mit.eq.0.and.kspflag.eq.1))then
          if(debug) then
          write(*,*)' Requested interval: ',nus,' to ',nue
          write(*,*)' Required interval: ',nus-dd,' to ',nue+dd
-         write(*,'(a,a,f9.3,a4,f9.3,a5)') runlab,
+         write(*,'(a,a,f9.3,a4,f9.3,a5)') specname,
      & ' only encompasses',ifirst*graw,' to ',ilast*graw,' cm-1'
          endif
          goto 141 ! skip missing/partial spectrum
@@ -416,7 +426,7 @@ c  Select apodization function
              apo_c=4
            else 
              write(6,'(a21,1x,a2,1x,a)')
-     &       runlab,apf,' ???  Unknown apodization function'
+     &       specname,apf,' ???  Unknown apodization function'
              stop
            endif
         endif
@@ -431,7 +441,7 @@ c      write(*,*)'kspflag=',kspflag
      &  obsrvd,mmp,nmp,startm,gint,rc)
 c        write(*,*)'obsrvd=',obsrvd(1),obsrvd(2),obsrvd(3)
         if(rc.ne.0) then
-           write(6,*)' Error in JETSPE. Spectrum ',runlab,rc,nmp
+           write(6,*)' Error in JETSPE. Spectrum ',specname,rc,nmp
            write(6,*)' This error should never happen'
            kspflag=1
         endif
@@ -446,15 +456,47 @@ c        write(*,*)'obsrvd=',obsrvd(1),obsrvd(2),obsrvd(3)
         stop 'Increase parameter MMP'
       endif
 
-      if(index(winfo,' sa_snr ').gt.0) then  ! Add noise
+      lsn=index(winfo,' sa_snr ')
+      lsnd=index(winfo,' sa_snr/')
+      if(lsn.gt.0 .or. lsnd.gt.0) then  ! Add noise
 c  Add noise and systematic error to OBSRVD (assumes a continuum level of 1.0)
+      call vdot(obsrvd,1,unity,0,tot,nmp)
+      tbar=tot/nmp
+      
+      detnoise=0.0010 ! MATMOS detector noise
+      sphnoise=0.0025 ! MATMOS source photon noise
+
+      if(lsnd.gt.0) then
+        read(winfo(lsnd+8:),*) fsn ! =5 for NOMAD
+        detnoise=detnoise/fsn  !  detnoise=0.0002 ! NOMAD detector noise
+        sphnoise=sphnoise/fsn  !  sphnoise=0.0005 ! NOMAD source photon noise
+      endif
+
+c  Add detector noise and source photon noise in quadrature
+      rnoise=SQRT(tbar*sphnoise**2+detnoise**2)
+      write(*,*)'tbar,rnoise,SNR =',tbar,rnoise,tbar/rnoise
       do imp=1,nmp
-      obsrvd(imp)=obsrvd(imp)+0.0001*gasdev(iseed)*opd ! add 0.25% rms random noise
+        obsrvd(imp)=obsrvd(imp)+rnoise*gasdev(iseed) ! Add random noise
+c      obsrvd(imp)=obsrvd(imp)+0.00012*gasdev(iseed)*opd ! add 0.4% rms random noise (iATMOS SNR=250)
+c      obsrvd(imp)=obsrvd(imp)+0.0002*gasdev(iseed)*opd ! add 0.5% rms random noise
+c      obsrvd(imp)=obsrvd(imp)+0.0001*gasdev(iseed)*opd ! add 0.25% rms random noise (MATMOS SNR=400)
 c      obsrvd(imp)=obsrvd(imp)*(1+0.01*4*imp*(nmp-imp)/nmp/nmp)  ! add +- 1% Cont Curv
 c      obsrvd(imp)=obsrvd(imp)*(1+0.005*obsrvd(imp))  !  0.5%  detector non-linearity
       end do
       endif  !  Add noise
       iseed=iseed+1113
+
+      if(index(winfo,' sa_cf ').gt.0) then  ! Add channeling
+c  Add noise and systematic error to OBSRVD (assumes a continuum level of 1.0)
+      call vdot(obsrvd,1,unity,0,tot,nmp)
+      tbar=tot/nmp
+c  Assume channeling amplitude is 0.05% of the continuum level 
+c  Assume two different frequencies (0.41 cm-1 & 1.01 cm-1)
+      do imp=1,nmp
+       obsrvd(imp)=obsrvd(imp)+0.001*tbar*cos(2*dpi*imp*gint/0.41)
+       obsrvd(imp)=obsrvd(imp)+0.001*tbar*cos(2*dpi*imp*gint/1.01)
+      end do
+      endif  !  Add channelling
 
       nmpfp=nmp+nfp
 c  Pre-compute ILS (oversampled by a factor LDEC) and normalize each
@@ -466,7 +508,7 @@ c  interleaved component to unity.
       resnog=ldec*resn/grid
       rectog=ldec*rect/grid
       call profzl(apo_c,nii,resnog,rectog,0.0d0,slit)
-c      write(*,*)resn, rect, ldec, grid
+c      write(*,*)'apo_c=',apo_c,apo_m,resn, rect, ldec, grid
 c      write(*,*)resnog, rectog, nhw, nii
       do j=ldec,1,-1
         call vdot(slit(j),ldec,unity,0,tot,2*nhw)
@@ -474,10 +516,14 @@ c      write(*,*)resnog, rectog, nhw, nii
       end do
       slit(nii)=slit(nii)/tot
 
-cc Write out ILS
+c Write out ILS
+c      open(56, file='fort.56')
+c      write(56,*) 2,2
+c      write(56,*)' v s'
 c      do j=1,nii,ldec
 c         write(56,*)grid*(j-float(nii+1)/2)/ldec,slit(j)
 c      end do
+c      close(56)
 c===================================================================
 c  Error estimation naively assumes spectral points are linearly independent.
 c  CORRLD is an estimate of how dependent neighbouring points really are.
@@ -487,42 +533,6 @@ c  analyzed under different values of APO or INTERP, the same size errors result
       corrld=sqrt(rect**2+((1.+0.4*apo_c)*resn)**2)/gint
       sssss=sngl((startm/grid-kcp1+nsh-1+nhwmax-nhw)/rdec)
 
-c==========================================================
-c  Compute dSP/dASZA = dSP/dZ * dZ/dASZA
-        if(zmin.lt.obalt) then
-           tprange=sqrt((obalt-zmin)*(2*6378.0+obalt+zmin))
-        else
-           tprange=0.0
-        endif
-c        write(*,*)obalt,zmin,tprange,sza_ray,bend
-        fovcf=0.0   !  FOV correction factor (0 disables FOV integration)
-        zfov=fovcf*fovo*tprange  ! Empirical image compression
-c        dsplo=(splos(3)-splos(2))/(z(3)-z(2))
-c        do j=3,nlev-2
-c           dsphi=(splos(j+1)-splos(j))/(z(j+1)-z(j))
-c           dspdz(j)=0.5*zfov*(dsplo+dsphi)/2
-c           dsplo=dsphi
-c        end do
-c        dspdz(2)=0.0
-c        dspdz(nlev-1)=0.0
-c        dspdz(nlev)=0.0
-c
-        dsplo=(splos(ncell+2)-splos(ncell+1))/(z(ncell+2)-z(ncell+1))
-        do j=ncell+2,nlev-2
-           dsphi=(splos(j+1)-splos(j))/(z(j+1)-z(j))
-           dspdz(j)=0.5*zfov*(dsplo+dsphi)/2
-           dsplo=dsphi
-        end do
-        do j=1,ncell+1
-           dspdz(j)=0.0
-        end do
-        dspdz(nlev-1)=0.0
-        dspdz(nlev)=0.0
-
-c        write(37,*)obalt,zmin,sza_ray,zfov,tprange
-c        do j=2,nlev
-c           write(37,*)j,z(j),splos(j),dspdz(j)
-c        end do
 c========================================================
 c  Compute SPXV
 c  The first column of SPXV contains the non-target VACS
@@ -535,24 +545,21 @@ c  even though the absorber amounts are being iterated.
       jsp=1
       do jtg=0,ntg
          call vmov(zero,0,spxv(jsp),1,ncp)
-         call vmov(zero,0,dspdzxv(jsp),1,ncp)
          do ilev=1,nlev
             call vsma(vac(jva),1,ckm2cm*splos(ilev),spxv(jsp),1,
      &      spxv(jsp),1,ncp)
-            call vsma(vac(jva),1,ckm2cm*dspdz(ilev),dspdzxv(jsp),1,
-     &      dspdzxv(jsp),1,ncp)
             jva=jva+ncp
          end do
 c         if(jtg.eq.1) write(44,'(3f8.3,1p7e10.2)')zmin,sza_ray,bend,
 c     &   (-spxv(jsp+jj),jj=0,ncp-1,ncp/6-1)
-c         if(jtg.eq.1) write(45,'(3f8.3,1p7e10.2)')zmin,sza_ray,bend,
-c     &   (-dspdzxv(jsp+jj),jj=0,ncp-1,ncp/6-1)
          jsp=jsp+ncp
       end do
 
 c   Add solar optical thickness spectrum to non-target ones in SPXV(JSP)
 c   Use SPXV(JSP+NCP) as work space for Voigt functions.
-      if( index(winfo,' so ') .gt. 0) then
+      lso=index(winfo,' so ')
+      lsos=index(winfo,' so/')
+      if( lso .gt. 0 .or. lsos .gt. 0) then
          frac=fovo/9.2e-3  ! the sun is 9.2 mrad in diameter on average
          if(index(winfo,' sa_osds ').gt.0) osds=osds-1.0  ! Add 1ppm
          lr=lnbc(solarll)
@@ -564,15 +571,22 @@ c   Use SPXV(JSP+NCP) as work space for Voigt functions.
            call solar_pts(lun_sts,solarll,
      &     fzero*(1.d0+osds*1.E-6),grid*(1.d0+osds*1.E-6),frac,spts,ncp)
          endif
+         if(lsos.gt.0) then
+           read(winfo(lsos+4:),*) ffr  ! absorption reduction factor
+           write(*,*)'Reducing solar absorption depths by factor',ffr
+           do i=1,ncp
+             spts(i)=1.0-(1.0-spts(i))/ffr
+           end do
+         endif
       else
          osds=0.0d0
          call vmov(unity,0,spts,1,ncp)
-      endif  ! index(winfo,' so ') .gt. 0
-      if(index(winfo,' sa_zoff ').gt.0) zoff=zoff+0.002
+      endif  ! lso .gt. 0
+      if(index(winfo,' sa_zoff ').gt.0) zoff=zoff+0.005
 
 c===================================================================
 c  Compute the vertical slant path distances
-      if (nlev.le.2) then
+      if (nlev.le.ncell+1) then
          spver(1)=splos(1)
          spver(nlev)=splos(nlev)
       else
@@ -603,21 +617,23 @@ c  a priori variances.
       read(lun_apx,*)
       read(lun_apx,*) apx(n1),apu(n1)   ! Continuum Level
       read(lun_apx,*) apx(n2),apu(n2)   ! Continuum Tilt
-      read(lun_apx,*) apx(n3),apu(n3)   ! Frequency Shift
-      read(lun_apx,*) apx(n4),apu(n4)   ! Zero Offset
+      read(lun_apx,*) apx(n3),apu(n3)   ! Continuum Curvature
+      read(lun_apx,*) apx(n4),apu(n4)   ! Frequency Shift
+      read(lun_apx,*) apx(n5),apu(n5)   ! Zero Offset
       read(lun_apx,*)
       if(ntg.ge.1) read(lun_apx,*) apx(1),apu(1)
       if(ntg.ge.2) read(lun_apx,*) apx(2),apu(2)
       close(lun_apx)
       call vmov(apx(2),0,apx(3),1,ntg-2) ! absorber amount
-      apx(n4)=apx(n4)+sngl(zoff)
+      apx(n5)=apx(n5)+sngl(zoff)
       call vmov(apu(2),0,apu(3),1,ntg-2)  ! vmr of non-target gases
-      apu(n3)=apu(n3)*sngl(1.d0+rdec) ! shift   up from 0.5 4-DEC-98 gct
+      apu(n4)=apu(n4)*sngl(1.d0+rdec) ! shift   up from 0.5 4-DEC-98 gct
 c==========================================================================
 c      write(*,*)' ntg=',ntg
 c      write(*,*)'sl: apx(n2)=',n2,apx(n2)
       call vmov(apx,1,cx,1,nfp) ! Initialize to A PRIORI each spectrum
-      if(debug) write(6,*)  'It   CL        CT    FS    ZOFF  RMS/CL'//
+      if(debug)
+     &  write(6,*)  'It   CL       CT    CC    FS    ZOFF  RMS/CL'//
      &'  Vfact1  Vfact2  Vfact3  Vfact4  Vfact5  Vfact6'
 
       ifm=1
@@ -626,11 +642,11 @@ c      write(*,*)'sl: apx(n2)=',n2,apx(n2)
       if(index(winfo,'nfov=').gt.0) ifm=3
       if(ifm.eq.1) then   ! FOV center ray only
          call do_retrieval(obsrvd,nmp,apx,apu,slit,nii,
-     &    ldec,rdec,spts,spxv,dspdzxv,vac,splos,nlev,ncp,ntg,snr,
+     &    ldec,rdec,spts,spxv,vac,splos,nlev,ncp,ntg,nfp,snr,
      &    corrld,sssss,winfo,debug,mit,nit,calcul,rms,cx,ex,pd,ssnmp)
 c      elseif(ifm.eq.2) then  !  Fast approximate FOV integration
 c         call do_retrieval2(obsrvd,nmp,apx,apu,slit,nii,
-c     &  ldec,rdec,spts,spxv,dspdzxv,vac,splos,nlev,ncp,ntg,snr,
+c     &  ldec,rdec,spts,spxv,vac,splos,nlev,ncp,ntg,snr,
 c     &  corrld,sssss,winfo,debug,mit,nit,calcul,rms,cx,ex,slpd,pd,ssnmp)
       elseif(ifm.eq.3) then  ! Full numerical FOV integration (slow)
          solzen=sngl(asza+zenoff)
@@ -638,7 +654,7 @@ c     &  corrld,sssss,winfo,debug,mit,nit,calcul,rms,cx,ex,slpd,pd,ssnmp)
          fbar=(ifirst+ilast)*graw/2
          call do_retrieval3(obsrvd,nmp,apx,apu,slit,nii,
      &    z,t,p,solzen,fovo,roc,obalt,wavtkr,fbar,
-     &    ldec,rdec,spts,spxv,dspdzxv,vac,splos,nlev,ncp,ntg,snr,
+     &    ldec,rdec,spts,spxv,vac,splos,nlev,ncp,ntg,nfp,snr,
      &    corrld,sssss,winfo,debug,mit,nit,calcul,rms,cx,ex,pd,ssnmp)
       endif
 
@@ -648,56 +664,58 @@ c  dominate the CO2/Air ratio uncertainties.
 
 c  Write .spt file for the first MSPT spectral fits
 c       write(*,*)'sptpath=',sptpath, ispec,mspt,100*rms/cl
-       if(ispec .le. mspt) then
-          sptpath=sptfile(:lf-1)//runlab
-          call write_spt(lun_spt,winfo,sptpath,
-     &    obsrvd,calcul,cx,ex,startm+gint*(cx(n3)),
-     &    osds*1.0E-06*freq_flag,gint,overcol,pars,asza+zenoff,obalt,
-     &    zmin,abs(100*rms/cx(n1)),frac,pd,ssnmp,nmp,nmpfp,ntg)
-       endif
+      if(ispec .le. mspt) then
+         sptpath=sptfile(:lf-1)//specname
+         call write_spt(lun_spt,winfo,sptpath,
+     &   obsrvd,calcul,cx,ex,startm+gint*(cx(n4)),
+     &   osds*1.0E-06*freq_flag,gint,overcol,pars,asza+zenoff,obalt,
+     &   zmin,abs(100*rms/cx(n1)),frac,pd,ssnmp,nmp,nmpfp,ntg,nfp)
+      endif
 
 c  Solar_Gas_shift is the difference of the solar shift and the gas shift
 c  expressed in terms of the observed spectral point spacing
 c  Multiply by GINT to convert to cm-1.
 c  Divide by frequency to normalize to a dimensionless stretch which
 c  should then  be the same for all windows. Multiply by 10^6 for ppm.
-       if(index(winfo,' so ').gt.0) then
+      if(index(winfo,' so ').gt.0) then
          sgshift=1E6*2*gint/frqcen*
      &   solar_gas_shift(cx(n1),cx(n2),obsrvd,calcul,ssnmp,nmp)
-c      write(*,*)cx(n1),cx(n2),cx(n3),obsrvd(1),calcul(1),pd(1+n1*nmpfp)
+c      write(*,*)cx(n1),cx(n2),cx(n4),obsrvd(1),calcul(1),pd(1+n1*nmpfp)
       else
          sgshift=0.0
-       endif
+      endif
 
 c  Write the state vector and uncertainties to the .col file
-      call write_col(lun_col,runlab,lrmax,nit,rms,sgshift,gint,
-     & zmin,oloscol,overcol,cx,ex,ntg)
+      call write_col(lun_col,colfile_format,specname,lrmax,nit,rms,
+     & sgshift,gint,zmin,oloscol,overcol,cx,ex,ntg,nfp)
 c  And to the screen
-      call write_col(6,runlab,lrmax,nit,rms,sgshift,gint,
-     & zmin,oloscol,overcol,cx,ex,ntg)
+      call write_col(6,colfile_format,specname,lrmax,nit,rms,
+     & sgshift,gint,zmin,oloscol,overcol,cx,ex,ntg,nfp)
 
-      if(debug .and. nit.eq.11) stop 'nit=11' 
+      if(debug .and. nit.eq.mit+1) stop 'nit=mit+1' 
 c  Output PD's (weighting functions), for subsequent use
 c  in deriving averaging kernels.
-        if( index(winfo,' ak ') .gt. 0) then
-           akpath=akfile(:lnbc(akfile))//runlab
+         if( index(winfo,' ak ') .gt. 0) then
+           akpath=akfile(:lnbc(akfile))//specname
            open(lun_ak,file=akpath,status='unknown')
-           call fm(lun_ak,winfo,slit,nii,ldec,spts,spxv,dspdzxv,
-     &     vac,splos,nlev,ncp,rdec,sssss,cx,ntg,calcul,pd,nmp)
-
+           call fm(lun_ak,winfo,slit,nii,ldec,spts,spxv,
+     &     vac,splos,nlev,ncp,rdec,sssss,cx,ntg,nfp,calcul,pd,nmp)
+           ynoise=2.5*cx(n1)*corrld/sngl(0.1d0+snr)
 c  Skip levels representing the cells, so start ilev at ncell+1.
            write(lun_ak,*)(splos(ilev)*cp(ilev),ilev=ncell+1,nlev)
            write(lun_ak,*) pout/1013.25
            write(lun_ak,*)(p(ilev),ilev=ncell+1,nlev)
+           write(lun_ak,*)(ynoise/apu(ifp),ifp=1,nfp)
+           write(lun_ak,*)((apx(ifp)-cx(ifp))*ynoise/apu(ifp),ifp=1,nfp)
            close(lun_ak)
-        endif
+         endif
 
-       totit=totit+nit
-       avgrms=avgrms+1
-       avgcl=avgcl+abs(cx(n1)/rms)
-       toterr=toterr+1.0/ex(1)**2
-       tottc=tottc+cx(1)/ex(1)**2
-       tottc2=tottc2+((cx(1)-1)/ex(1))**2
+      totit=totit+nit
+      avgrms=avgrms+1
+      avgcl=avgcl+abs(cx(n1)/rms)
+      toterr=toterr+1.0/ex(1)**2
+      tottc=tottc+cx(1)/ex(1)**2
+      tottc2=tottc2+((cx(1)-1)/ex(1))**2
 
       endif        !  (ncall.ge.1) then
       end do   !  ispec=1,mspectra     Main fitting loop over spectra
@@ -709,7 +727,6 @@ c  Skip levels representing the cells, so start ilev at ncell+1.
          write(6,*)' Total number of spectra fitted  =',nspectra
          write(6,*)' Total number of mavblocks found =',mavfound
          write(6,*)' Average % RMS fit =',100*avgrms/avgcl
-         write(*,*)' FOV correction factor=',fovcf
          avgtc=tottc/toterr
          rmstc=sqrt(abs(tottc2/toterr-(avgtc-1.)**2))
          write(6,*)' Average Totcon =',avgtc,' +- ',rmstc

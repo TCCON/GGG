@@ -13,12 +13,13 @@ c     FRAC     R*8   Fraction of the solar diameter viewed
 c     NCP      I*4   Number of points to be calculated
 c
 c OUTPUTS:
-c     SPTS(NCP) R*4   Solar Transmittance Spectrum
+c     SPTS(NCP) R*4   Solar Pseudo-Transmittance Spectrum
 c
 c
 c DESCRIPTION:
-c  Calculates the solar Pseudo-Transmittance Spectrum (SPTS) at frequencies
-c       Vi = fzero + i * grid       i = 1,NCP
+c  Calculates the solar Pseudo-Transmittance Spectrum (SPTS) at
+c  frequencies
+c       V(i) = fzero + i * grid       i = 1,NCP
 c  where fzero and grid are specified by the user in the calling program.
 c
 c  It is recommended that the spectral point spacing not exceed
@@ -27,14 +28,15 @@ c  For solar CO, these widths are about 0.02 cm-1 at 2100 cm-1
 c  and 0.04 cm-1 at 4200 cm-1. Typically, a much-narrower spectral
 c  point spacing is used to adequately sample telluric absorptions.
 c
-c  This spectrum is computed as it would be observed at infinite spectral
-c  resolution and must therefore eventually be convolved with an ILS.
+c  The solar spectrum is computed as it would be observed at infinite
+c  spectral resolution and must therefore eventually be convolved
+c  with an ILS.
 c
 c
 c BASIS FOR LINESHAPE FORMULATION
 c  Molecular absorptions (e.g. CO, OH, NH, CN) tend to have narrow,
 c  Doppler lineshapes because they are confined to a relatively
-c  narrow layer in the cooler, upper, part of the solar atmosphere.
+c  narrow layer in the cooler, upper, part of the solar photosphere.
 c  In the hotter depths molecules are dissociated.
 c
 c  Atoms, on the other hand, are stable to much higher temperatures.
@@ -83,9 +85,9 @@ c
       real*4 spts(ncp),zero
       real*8 fzero,grid,flinwid,srot,frac,xx,x2,d4,y2,margin,
      & sdc,sdi,wdc,wdi,ddc,ddi,
-     & fzmf,rr,ff,pi,acc,freq,w_wid,stren,d_wid
+     & fzmf,rr,ff,acc,freq,w_wid,stren,d_wid
       character llformat*16,solarll*(*)
-      parameter (pi=3.14159265d0,acc=0.00001d0,margin=90.)
+      parameter (acc=0.00001d0,margin=90.)
       llformat='(i3,f13.6,6f9.5)'
 c
 c      write(*,*)'SOLAR_SPEC',grid,fzero,ncp
@@ -155,6 +157,7 @@ c  and then apply Minnaert correction (not currently enabled).
       freq=fzero
       do i=1,ncp
         freq=freq+grid
+c        spts(i)=exp(-spts(i)/50)
         spts(i)=exp(-spts(i))
 c        rc=0.70138-3.8252d-5*freq
 c        spts(i)=rc+(1.-rc)*spts(i)

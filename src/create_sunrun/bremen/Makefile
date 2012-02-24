@@ -1,0 +1,55 @@
+BINDIR = $(GGGPATH)/bin
+CSRC = $(GGGPATH)/src/comn
+TSRC = $(GGGPATH)/src/create_sunrun/bremen
+
+#sun solaris f77, compiler flags, linker flags
+#FC = f77
+#FFLAGS = -c -Nl50 -O
+#LDFLAGS =
+
+#linux gnu g77, compiler flags, linker flags
+FC = g77
+FFLAGS = -c -O -fbounds-check -Wunused -Wuninitialized -W -Wall
+LDFLAGS =
+
+#linux absoft f95, compiler flags, linker flags
+#FC = f95
+#FFLAGS = -c -ea -en -g -g77
+#LDFLAGS = -g -g77 -lU77
+
+SRCS = \
+	$(TSRC)/create_sunrun_from_bremen.f
+
+CSRCS = \
+	$(CSRC)/getopusparval.f \
+	$(CSRC)/getendian.f \
+	$(CSRC)/gindfile.f \
+	$(CSRC)/lnbc.f \
+	$(CSRC)/lloc.f \
+	$(CSRC)/fnbc.f \
+	$(CSRC)/fbc.f \
+	$(CSRC)/rbyte.f \
+	$(CSRC)/write_sunrun.f \
+        $(CSRC)/read_opus_header.f
+
+OBJS = $(SRCS:.f=.o)
+COBJS = $(CSRCS:.f=.o)
+
+.SUFFIXES : .f
+.f.o :
+	$(FC) $(FFLAGS) $<
+
+create_sunrun_from_bremen : $(OBJS) comn_objs
+	$(FC) $(LDFLAGS) -o $(BINDIR)/$@ $(OBJS) $(COBJS)
+
+comn_objs :
+	cd $(CSRC); make create_sunrun
+
+#  Add dependencies to object files
+$(TSRC)/create_sunrun_from_bremen.o:  $(GGGPATH)/src/ggg_int_params.f $(TSRC)/../params.f
+$(CSRC)/gindfile.o:           $(GGGPATH)/src/ggg_int_params.f
+$(CSRC)/write_sunrun.o:       $(GGGPATH)/src/ggg_int_params.f
+
+clean :
+	/bin/rm -f $(OBJS) $(COBJS)
+

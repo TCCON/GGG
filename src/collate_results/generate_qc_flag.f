@@ -1,6 +1,7 @@
       subroutine generate_qc_flag(nrow,spectrum,qc)
 
       implicit none
+      include "params.f"
 
       integer*4 nrow                ! # spectra (runlog)    intent in
       real*4 qc(nrow)               ! qc flag            intent inout
@@ -13,11 +14,9 @@
       parameter (lunc=14)      ! .col file
       parameter (mcol=50)      ! max number of microwindows  
 
-      character colabel*500,
-     & gfit_version*80,gsetup_version*80,col_string*500,
-     & csformat*90, cdum*20,
-     & specname_col*38,runlog*80,tabel*80,
-     & colfile*40,window(mcol)*10
+      character
+cc    & rlgfile*80,
+     & windows(mcol)*10
 
       real*8 airmass,cl,tilt,zlo,fcen,width,fqshift,
      & ovcol,rmsfit,sg,zmin, cl_arr(nrow)
@@ -44,8 +43,8 @@ c Find the o2_7885 col file in multiggg.sh
         i1=index(colfile(:idot),'_')
         if(i1.eq.0) i1=index(colfile(:idot),'^')   !  new format
         if(i1.eq.0) i1=index(colfile(:idot),'-')   !  old format
-        window(icol)=colfile(:idot-1)
-        if (index(window(icol),"o2_7885") .gt. 0) then
+        windows(icol)=colfile(:idot-1)
+        if (index(windows(icol),"o2_7885") .gt. 0) then
            exit 
         endif
       enddo
@@ -61,7 +60,7 @@ c  in order to read data from appropriate target gas.
       read(lunc,'(a)') gsetup_version
       do k=4,nlhead-1
         read(lunc,'(a)')colabel
-        if(index(colabel,'runlogs').gt.0) runlog=colabel(:80)
+c       if(index(colabel,'runlogs').gt.0) rlgfile=colabel(:80)
       end do
       read(colabel,*) fcen, width, mit
       read(lunc,'(a)')colabel

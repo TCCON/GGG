@@ -75,8 +75,9 @@ endelse
 !y.style=1
 !y.minor=0
 !ytitle='!6Transmittance'
-plot,freq,meas,psym=4,symsize=0.5
-oplot,freq,calc,linestyle=0
+plot,freq,calc,linestyle=0
+;plot,freq,calc/(datarray(1+ntgas,0:npoints-1)*datarray(3,0:npoints-1)),linestyle=0
+oplot,freq,meas,psym=4,symsize=0.5
 !p.psym=0
 if targ ge ntgas then begin
    tg2=ntgas-1
@@ -85,7 +86,6 @@ endif else begin
    tg2=targ
    tg1=max([tg2,0])
 endelse
-print,ntgas
 print,text
 xyouts,0.51,0.92,text(ntgas),/normal,alignment=0.5
 for i=tg2,tg1,-1 do begin
@@ -125,7 +125,8 @@ if nbox ge 2 then begin
    !x.tickname=[' ',' ',' ',' ',' ',' ',' ',' ',' ',' ']
    !x.ticklen=0.10
    !y.minor=-1
-   !ytitle='!6% Residual'
+;   !ytitle='!6% Residual'
+   !ytitle=''
    !y.range=[-rmax,rmax]
    plot,freq,100*residual,linestyle=0
    oplot,freq,(freq*0),linestyle=0

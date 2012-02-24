@@ -13,6 +13,8 @@ c
 c  ASCII output spectra are created in the local directory.
 c
       implicit none
+      include "../ggg_int_params.f"
+
       integer*4
      & lunr,   ! LUN to read input runlogs from
      & luns,   ! LUN to read binary spectras from
@@ -32,7 +34,14 @@ c
       byte bbuf(mem)
 
       character 
-     & runlog*120,inpath*80,chead*1
+     & fullrlgfile*120,   ! runlog file name with absolute path
+     & inpath*80,chead*1,
+     & col1,
+     & apf,
+     & dl*1,
+     & gggdir*(mpath),
+     & specname*(nchar),
+     & version*64
 
       integer*4
      & istat,        ! status flag (0=success, 1=EOF)
@@ -75,13 +84,6 @@ c
      & wavtkr,       ! suntracker frequency (active tracking)
      & nus, nue      ! selected frequency range of interest
 
-      character
-     & col1*1,       ! first column of runlog record
-     & specname*38,  ! spectrum name
-     & version*62,   ! Version number
-     & root*80,      ! path to the ggg directories
-     & apf*2         ! apodization function (e.g. BX N2, etc)
-c
       equivalence (bbuf,bufi2,bufr4)
 
       write(6,*)
@@ -90,8 +92,8 @@ c
       call getendian(iend)  ! Find endian-ness of host computer
 
       write(*,*)'Enter path to input file/runlog:'
-      read(*,'(a)') runlog
-      open(lunr,file=runlog,status='old')
+      read(*,'(a)') fullrlgfile
+      open(lunr,file=fullrlgfile,status='old')
       read(lunr,*) nlhead         ! Skip header line of runlog
       do i=2,nlhead
          read(lunr,*)
@@ -103,8 +105,8 @@ c
 
 c  Interrogate environmental variable GGGPATH to find location
 c  of root partition (e.g. "/home/toon/ggg/" ).
-      call getenv('GGGPATH',root) 
-      lr=lnbc(root)     ! length of root string (e.g. 14)
+      call get_ggg_environment(gggdir, dl)
+      lr=lnbc(gggdir)     ! length of root string (e.g. 14)
 c
       istat=0
       do while (istat.eq.0)     ! Main loop over spectra
@@ -128,8 +130,8 @@ c  Check that buffer will be large enough
          if(npts.lt.1) go to 1
 
 c  Search for binary spectrum "specname"
-         call gindfile(root(:lr)//'/config/data_part.lst',specname,
-     &   inpath)
+         call gindfile(gggdir(:lr)//'config'//dl//'data_part.lst',
+     &     specname, inpath)
          if(lnbc(inpath).eq.0) then
             write(*,*) specname, ' Cant find input spectrum'
             go to 1

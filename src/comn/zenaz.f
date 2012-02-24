@@ -24,6 +24,8 @@ c     tplon    R*8  Tangent Point Longitude (deg.)
 c     tpalt    R*8  Tangent Point Altitude (km)
 
       implicit none
+      include "../ggg_const_params.f"
+
       integer*4  object,iy,im,id
 
       real*8
@@ -42,7 +44,7 @@ c     tpalt    R*8  Tangent Point Altitude (km)
      & pllx(2),!  Parallax: Earth-Radius/Earth-Object distance
      & ervc,   !  Earth Rotational Velocity Component (m/s)
      & eorv    !  Earth-Object Radial Velocity (m/s)
-      parameter (d2r=3.14159265d0/180.0d0)
+      parameter (d2r=dpi/180.0d0)
       data pllx/.0166,.000043/  ! Earth Radius / Earth-Object distance
 c
 c      write(*,*) 'in zenaz',object,oblat,oblon,obalt,iy,im,id,frd

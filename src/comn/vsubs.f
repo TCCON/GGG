@@ -156,7 +156,7 @@ c
       end
 c=====================================================================
 c  VRAMP:  Generates a ramp or arithmetic progression of floating point
-c  values whose extrema differ by 1.0 and in which point (NMP+1)/2 is zero
+c  values whose extrema differ by 1.0 and whose sum is 0.0
 c 
 c     input parameters:
 c     nele : number of elements on which to perform the operation
@@ -168,14 +168,19 @@ c     vec(i)=-0.5+float(i-1)/(nele-1) for i=1,nele
 c
       subroutine vramp(vec,inc,nele)
       implicit none
-      integer i,k,nele,nop,inc
-      real*4 vec(1+inc*(nele-1))
-      nop=(nele+1)/2
-      k=1
-      do 100 i=1,nele
-        vec(k)=+float(i-nop)/((nele-1)+1.e-37) ! adding 1e+38 stops NaN when nele=1
-        k=k+inc
-100   continue
+      integer i,k,nele,inc
+      real*4 vec(1+inc*(nele-1)),ibar
+
+      if(nele.gt.1) then
+         ibar=float(nele+1)/2
+         k=1
+         do i=1,nele
+           vec(k)=+(float(i)-ibar)/(nele-1) 
+           k=k+inc
+         end do
+      else
+         stop 'Calling vsubs.f/vramp with NELE < 2'
+      endif
       return
       end
 c===========================================================

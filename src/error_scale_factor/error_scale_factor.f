@@ -26,17 +26,16 @@ c  a Lorentzian with a 5 minute half-width.
 c
       implicit none
       integer*4 lunr,luns,ncoml,ncol,mcol,kcol,j,
-     & lnbc,irow,naux,nrow,li,k, nchar
+     & lnbc,irow,naux,nrow,li,k, mchar
       parameter (lunr=14,luns=15,mcol=150)
-      character header*800,headarr(mcol)*20,gggdir*80,specname*35,
+      character header*800,headarr(mcol)*20,specname*57,
      & inputfile*40,version*62
       real*8 yrow(mcol),ywas(mcol),dt,wt,twt,tot(mcol)
 
       version=
      &' error_scale_factor           Version 1.1.2   2009-03-03   GCT'
 
-      nchar=0
-      call getenv('GGGPATH',gggdir)
+      mchar=0
 
       write(*,*)'Enter name of input file (e.g. paIn_1.0lm.vav):'
       read(*,'(a)') inputfile
@@ -50,7 +49,7 @@ c  Read the header of the .ada file and figure out the
          read(lunr,'(a)') header
       end do
       call substr(header,headarr,mcol,kcol)
-      if (index(header,'Spectrum') .gt. 0) nchar=1
+      if (index(header,'Spectrum') .gt. 0) mchar=1
       if(kcol.ne.ncol ) stop 'ncol/kcol mismatch'
 
 c  Read each day of data into memory and divide XGas values by the
@@ -60,25 +59,25 @@ c  appropriate correction factors.
       do k=1,ncol
          tot(k)=0.0
       end do
-      if (nchar .eq. 1) then
-         read(lunr,*) specname, (ywas(j),j=1+nchar,ncol)
+      if (mchar .eq. 1) then
+         read(lunr,*) specname, (ywas(j),j=1+mchar,ncol)
       else
          read(lunr,*) (ywas(j),j=1,ncol)
       endif
       do irow=1,9999999
-         if (nchar .eq. 1) then
-            read(lunr,*,end=99) specname, (yrow(j),j=1+nchar,ncol)
+         if (mchar .eq. 1) then
+            read(lunr,*,end=99) specname, (yrow(j),j=1+mchar,ncol)
          else
             read(lunr,*,end=99) (yrow(j),j=1,ncol)
          endif
 
-         wt=1/(1+((yrow(1+nchar)-ywas(1+nchar))/dt)**2)  ! Lorentzian Weighting
+         wt=1/(1+((yrow(1+mchar)-ywas(1+mchar))/dt)**2)  ! Lorentzian Weighting
          twt=twt+wt
-         do k=naux+nchar+1,ncol-1,2
+         do k=naux+mchar+1,ncol-1,2
             tot(k)=tot(k)+wt*(yrow(k)-ywas(k))**2/
      &      (yrow(k+1)**2+ywas(k+1)**2)
          end do
-         do k=1+nchar,ncol
+         do k=1+mchar,ncol
             ywas(k)=yrow(k)
          end do
       end do         ! do irow=1,9999999
@@ -86,7 +85,7 @@ c  appropriate correction factors.
 99    close(lunr)
 
 c  Output results to the screen.
-      do k=naux+nchar+1,ncol-1,2
+      do k=naux+mchar+1,ncol-1,2
          write(*,'(i4,2x,a,f9.3)') k,headarr(k),sqrt(tot(k)/twt)
       end do
 

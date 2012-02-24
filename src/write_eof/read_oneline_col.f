@@ -11,9 +11,10 @@ c
       subroutine read_oneline_col(output_string,luns, ncol, noc,
      & grl_array_size, specname_grl_array, iyr_array, doy_array,
      & delta_t_array, zpdtim_array, grl_array_counter,gfit_version,
-     & gsetup_version)
+     & gsetup_version, atmsum, gctsum, fciasum, sciasum, solarsum)
       implicit none
       include "params.f"
+
       integer irow,jtg,lnbc,fnbc,fbc,
      & npp,ldot,l2,l3,l4,totnit,ntc,mlabel,jval,
      & ncol,icol,mval,
@@ -24,17 +25,24 @@ c
       parameter (mval=mrow*mcol) ! Max number of values (NROW * NCOL)
       parameter (mlabel=16000)  ! Max # of characters in column labels
 
-      character apf*2,
-     & gfit_version*80,col_string*500,gsetup_version*80,
-     & csformat*90,collabel*(mlabel),col1*1,
-     & specname_grl*38,specname_col*38,
+      character
+     & apf*2,
+     & col1*1,
      & colfile*40,
+     & csformat*90,
+     & col_string*500,
+     & collabel*(mlabel),
+     & specname_grl*57,
+     & specname_col*57,
 c     & collate_version*64,
-     & specname_gwas*38,
-     & out_string*8000,output_string*8000,varr(5)*16,
-     & gfit_version_number*10,gsetup_version_number*10
+     & specname_gwas*57,
+     & out_string*8000,
+     & output_string*10000,
+     & varr(5)*16,
+     & gfit_version_number*10,
+     & gsetup_version_number*10
 
-      real*8 airmass(mval),asza,cl,tilt,zlo,zobs,rmin,rmax,
+      real*8 airmass(mval),asza,cl,tilt,cc,zlo,zobs,rmin,rmax,
      & fqshift,graw,obslat,obslon,opd,ovcol(mval),rmsfit,
      & trms,lasf,wavtkr,aipl,sia,fvsi,azim,wspd,wdir,osds
 
@@ -50,7 +58,7 @@ c     & collate_version*64,
       logical append_spectrum_name
 
       integer grl_array_size
-      character specname_grl_array(grl_array_size)*38
+      character specname_grl_array(grl_array_size)*57
       integer iyr_array(grl_array_size), doy_array(grl_array_size)
       integer delta_t_array(grl_array_size)
       integer zpdtim_array(grl_array_size)
@@ -95,17 +103,29 @@ c too much code.
         l3=fnbc(col_string(l2:))+l2-1 ! First character of NIT
         l4=fbc(col_string(l3:))+l3-1 ! First space following NIT
 
+c       write(*,*)'gfit_version: ',gfit_version
         if (index(gfit_version,'2.40.2') .ne. 0) then !  old col file format 
            csformat='(1x,a21,i2,1x,f5.3,3(1x,f4.1),1x,f5.3,'
      &          //'1x,f6.4,f7.3,1x,9(0pf7.3,1pe10.3,0pf9.4,1pe8.1))'
-        else                    ! assume new col file format 
+        elseif (index(gfit_version,'4.8.') .ne. 0) then ! assume new col file format 
+           write(csformat,'(a,i2.2,a)')'(1x,a',l4-5,
+     &         ',i3,f6.3,4f5.1,f6.3,f7.4,f8.3,15(f7.3,e11.4,f9.4,e8.1))'
+        else ! assume previous col file format
            write(csformat,'(a,i2.2,a)')'(1x,a',l4-5,
      &         ',i3,f6.3,3f5.1,f6.3,f7.4,f8.3,15(f7.3,e11.4,f9.4,e8.1))'
         endif
 
-           read(col_string,csformat) specname_col,nit,cl,tilt,fqshift,
+        if (index(gfit_version,'4.8.') .ne. 0) then ! assume new col file format 
+           read(col_string,csformat) specname_col,nit,cl,tilt,cc,
+     &     fqshift,
      &     sg,zlo,rmsfit,zmin,
      &     (airmass(jtg),ovcol(jtg),vsf(jtg),vsf_err(jtg),jtg=1,noc)
+        else ! assume previous col file format
+           read(col_string,csformat) specname_col,nit,cl,tilt,
+     &     fqshift,
+     &     sg,zlo,rmsfit,zmin,
+     &     (airmass(jtg),ovcol(jtg),vsf(jtg),vsf_err(jtg),jtg=1,noc)
+        endif
            totnit=totnit+nit
            if(nit.lt.mit) ntc=ntc+1  ! Number of Times Converged
            if(rmsfit.le.0.0) then
@@ -232,5 +252,7 @@ c Write output to a string to pass along
       write(output_string,*) out_string(:lnbc(out_string))
      & //' '//gfit_version_number(:lnbc(gfit_version_number))
      & //' '//gsetup_version_number(:lnbc(gsetup_version_number))
+     & //' '//atmsum//' '//gctsum//' '//fciasum//' '//sciasum
+     & //' '//solarsum
  
       end

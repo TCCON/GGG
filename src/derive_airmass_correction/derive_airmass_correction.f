@@ -59,28 +59,30 @@ c  Output Files:
 c       runlog.vav_ddac.out
 c       
       implicit none
+      include "../ggg_const_params.f"
+      include "../ggg_int_params.f"
+
       integer*4 lunr,luns,lunw,ncoml,ncol,mcol,kcol,icol,j,kgas,ko2,
      & lnbc,mrow,nmp,imp,ntot,mfp,nfp,
      & iyear,iywas,idoy,idwas,li,
-     & kfvsi,kyear,kdoy,klat,klon,ksza, kqcflag, nchar
+     & kfvsi,kyear,kdoy,klat,klon,ksza, kqcflag, mchar
       parameter (lunr=14,luns=15,lunw=16,mcol=50,mrow=1000,mfp=3)
       character header*800,headarr(mcol)*20,gas*20,
-     & inputfile*40,outputfile*40,version*62, specname*35
+     & inputfile*40,outputfile*40,version*62, specname*(nchar)
       real*4 yy(mrow),uy(mrow),bf(mrow,mfp),apx(mfp),apu(mfp),
      & rnorm, uscale,
      & fugas,fuo2,solar_noon,b,eot,diff, qc_threshold
-      real*8 yrow(mcol),pi,d2r,chi2
+      real*8 yrow(mcol),d2r,chi2
 
       version=
      &' derive_airmass_correction        1.1.3     2010-11-23     GCT'
       write(*,*) version
 
-      pi=4*datan(1.0d0)
-      d2r=pi/180
+      d2r=dpi/180.d0
       nfp=3
 
       qc_threshold=2.
-      nchar=0
+      mchar=0
 
       kgas=0
       ko2=0
@@ -136,7 +138,8 @@ c  which columns contain the values that we need.
       end do
       read(lunr,'(a)')header
       call substr(header,headarr,mcol,kcol)
-      if (index(header,'Spectrum') .gt. 0) nchar=1
+      call lowercase(header)
+      if (index(header,'spectrum') .gt. 0) mchar=1
       if(kcol.ne.ncol ) stop 'ncol/kcol mismatch'
       do icol=1,ncol
          if(headarr(icol) .eq. gas) kgas=icol
@@ -164,15 +167,15 @@ c  Read each day of data into memory.
       imp=1
       do while (imp.lt.mrow-nfp)
          yrow(kyear)=0
-         if (nchar .eq. 1) then
-             read(lunr,*,end=88) specname, (yrow(j),j=1+nchar,ncol)
+         if (mchar .eq. 1) then
+             read(lunr,*,end=88) specname, (yrow(j),j=1+mchar,ncol)
          else
              read(lunr,*,end=88) (yrow(j),j=1,ncol)
          endif
          if (kqcflag .ne. 0) then
             if( yrow(kqcflag) .lt. qc_threshold) cycle
          endif
-         b=2*pi*(yrow(kdoy)-81.0)/364             ! From Wikipedia (364 ???)
+         b=2*dpi*(yrow(kdoy)-81.0)/364             ! From Wikipedia (364 ???)
          eot=9.87*sin(2*b)-7.53*cos(b)-1.5*sin(b) ! Equation of Time (minutes)
          solar_noon=0.5-yrow(klon)/360-eot/60/24  ! solar noontime (days)
          diff=yrow(kdoy)-solar_noon               ! time wrt solar noon (days)
@@ -202,7 +205,7 @@ c  Read each day of data into memory.
 c   Divide measurements (YY) and basis functions (BF) by uncertainties (UY)
          yy(imp)=yy(imp)/uy(imp)
          bf(imp,1)=1.0/uy(imp)
-         bf(imp,2)=sin(2*pi*diff)/uy(imp)
+         bf(imp,2)=sin(2*dpi*diff)/uy(imp)
          bf(imp,3)=(((yrow(ksza)+13)/(90+13))**3-((45.0+13)/(90+13))**3)
      &   /uy(imp)
          iywas=iyear

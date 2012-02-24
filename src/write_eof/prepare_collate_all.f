@@ -11,9 +11,11 @@ c
       subroutine prepare_collate_all(header,luns, ncol, noc,
      & grl_array_size, specname_grl_array, iyr_array, doy_array,
      & delta_t_array, zpdtim_array, grl_array_counter, gfit_version,
-     & gsetup_version)
+     & gsetup_version,atmsum,gctsum,fciasum,sciasum,solarsum)
       implicit none
+      include "../ggg_int_params.f"
       include "params.f"
+
       integer i1,idot,irow,k,ktg,lnbc,nn,
      & mlabel,mval,
      & lr,ncol,icol,
@@ -24,16 +26,19 @@ c
       parameter (mlabel=16000)  ! Max # of characters in column labels
 
       integer*4 luns(mluns), temp_lun
-      character cdum*20,colabel*15000,
-     & gfit_version*80,gsetup_version*80,
-     & collabel*(mlabel),
-     & specname_grl*38,runlog*80,
-     & tabel*80,
-     & header*20000,
+      character
+     & rlgfile*(mfilepath),
      & colfile*40,
+     & cdum*20,
+     & colabel*15000,
+     & collabel*(mlabel),
+     & specname_grl*(nchar),
+     & tabel*500,
 c     & collate_version*64,
-     & window(mcol)*10,specname_gwas*38,
-     & hdri(mval)*(26)
+     & windows(mcol)*10,
+     & specname_gwas*(nchar),
+     & hdri(mval)*(26),
+     & cksum*32
 
       real*8 fcen,width,rmin,rmax,
      & r8was,trms
@@ -44,7 +49,7 @@ c     & collate_version*64,
       logical append_spectrum_name
 
       integer grl_array_size
-      character specname_grl_array(grl_array_size)*38
+      character specname_grl_array(grl_array_size)*57
       integer iyr_array(grl_array_size), doy_array(grl_array_size)
       integer delta_t_array(grl_array_size)
       integer zpdtim_array(grl_array_size)
@@ -69,6 +74,12 @@ c      collate_version=
 c     &' collate_all_results          Version 1.3.0   2010-06-24   GCT'
 c      write(6,*) collate_version
       lr=0
+c initialize the checksum values to zero, in case the linelists aren't found
+      atmsum  ='00000000000000000000000000000000'
+      gctsum  ='00000000000000000000000000000000'
+      fciasum ='00000000000000000000000000000000'
+      sciasum ='00000000000000000000000000000000'
+      solarsum='00000000000000000000000000000000'
 
 c  Initialize character arrays (Necessary for the G77 compiler).
       do i=1,mlabel
@@ -118,7 +129,7 @@ c  Read in the retrieved absorber amounts (YOBS+-YERR)
         if(i1.eq.0) i1=index(colfile(:idot),'-')   !  old format
         collabel=collabel(:lnbc(collabel)+2)//colfile(:idot-1)//' '//
      $  colfile(:idot-1)//'_error'
-        window(icol)=colfile(:idot-1)
+        windows(icol)=colfile(:idot-1)
 c
 c  Read header lines of .col file and locate column containing "OVC_gas".
 c  in order to read data from appropriate target gas.
@@ -126,11 +137,30 @@ c  in order to read data from appropriate target gas.
         read(lun_col,'(a)') gfit_version
         read(lun_col,'(a)') gsetup_version
         do k=4,nlhead-2
-           if(nlhead.ge.23) read(lun_col,'(34x,a)')colabel
-           if(nlhead.eq.20) read(lun_col,'(34x,a)')colabel
+           if(nlhead.ge.23) read(lun_col,'(a32,2x,a)')cksum,colabel
+c          if(nlhead.ge.23) read(lun_col,'(34x,a)')colabel
+           if(nlhead.eq.20) read(lun_col,'(a32,2x,a)')cksum,colabel
+c          if(nlhead.eq.20) read(lun_col,'(34x,a)')colabel
            if(nlhead.eq.21) read(lun_col,'(a)')colabel
-           if(k.eq.6) runlog=colabel    ! GCT 2009-03-04
-           if(index(colabel,'runlogs').gt.0) runlog=colabel
+           if(k.eq.6) rlgfile=colabel    ! GCT 2009-03-04
+           if(index(colabel,'runlogs').gt.0) rlgfile=colabel
+           if(index(colabel,'atm.101').gt.0) then
+              if(index(cksum,'  ').eq.0) atmsum=cksum
+           endif
+           if(index(colabel,'gct.101').gt.0) then
+              if(index(cksum,'  ').eq.0) gctsum=cksum
+           endif
+           if(index(colabel,'fcia.101').gt.0) then
+              if(index(cksum,'  ').eq.0) fciasum=cksum
+           endif
+           if(index(colabel,'scia.101').gt.0) then
+              if(index(cksum,'  ').eq.0) sciasum=cksum
+           endif
+           if(index(colabel,'solar_merged.108').gt.0) then
+              if(index(cksum,'  ').eq.0) solarsum=cksum
+           endif
+c          if(index(colabel,'solar_dc.101').gt.0)solarsum=cksum
+c          if(index(colabel,'solar_di.101').gt.0)solarsum=cksum
         end do
 
         read(lun_col,'(a)') colabel
@@ -147,7 +177,7 @@ c  in order to read data from appropriate target gas.
 !if I find the end of the line, then set flag=1
 !this is used to end the loop later
                if(index(colabel(k:),' ')+k.ge.lnbc(colabel)) then
-                   hdri(jj)=window(icol)(:lnbc(window(icol)))
+                   hdri(jj)=windows(icol)(:lnbc(windows(icol)))
      &                     //'_'//colabel(k:lnbc(colabel))
                    flag=1
                    jj=jj+1
@@ -156,7 +186,7 @@ c  in order to read data from appropriate target gas.
 !the window name to the column headers
                    if (index(colabel(k:lspace),'Spectrum').ge.1) then
                    else
-                   hdri(jj)=window(icol)(:lnbc(window(icol)))
+                   hdri(jj)=windows(icol)(:lnbc(windows(icol)))
      &                     //'_'//colabel(k:lspace)
                    jj=jj+1
                    endif
@@ -186,8 +216,8 @@ c  in order to read data from appropriate target gas.
         specname_grl=' '
         specname_gwas='x'
 
-        lr=lnbc(runlog)
-        if(runlog(lr-2:lr-2).eq.'o') then
+        lr=lnbc(rlgfile)
+        if(rlgfile(lr-2:lr-2).eq.'o') then
            max_delta_t=0.0004  ! 1.44s (ACE)
         else
            max_delta_t=0.0025  ! 9.0s (ground-based TCCON)
@@ -195,7 +225,7 @@ c  in order to read data from appropriate target gas.
       end do
 c
 c  Read auxilliary measurements from runlog
-        open(lun_rlg,file=runlog(:lnbc(runlog)), status='old')   !DG000906
+        open(lun_rlg,file=rlgfile(:lnbc(rlgfile)), status='old')   !DG000906
         read(lun_rlg,*) nlhead,nn
         do i=2,nlhead
            read(lun_rlg,*)
@@ -207,5 +237,7 @@ c  Read auxilliary measurements from runlog
 c Write header to a string to pass along
       write(header,*) (hdri(k)(:lnbc(hdri(k))+1),k=1,jj-1)
       header=header(:lnbc(header))//' GFIT_Version GSETUP_Version'
+     & //' ATM_checksum GCT_checksum FCIA_checksum SCIA_checksum'
+     & //' SOLAR_checksum'
 
       end

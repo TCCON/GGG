@@ -20,10 +20,14 @@ c      3) Returns CFAMP, CFPHASE, CFFREQ all = 0.0 if fringe
 c         characteristics could not be unambiguously determined.
 c
       implicit none
+      include "../ggg_const_params.f"
+
       integer*4 nfft,nmp,mmp,i,imax
-      real*4 ybuf(mmp),cfamp,cffreq,cfphase,zero,tiny,aa,
-     & xi,am,dm,amax,ap,dp,phasm,phasi,phasp,pi,denom
-      parameter (zero=0.0,tiny=0.e-18,pi=3.14159265)
+      real*4 ybuf(mmp),cfamp,cffreq,cfphase,
+     * tiny,aa,
+     & xi,am,dm,amax,ap,dp,phasm,phasi,phasp,
+     & denom
+      parameter (tiny=0.e-18)    ! do not use local params file !
 c
       cfamp=0.0
       cffreq=0.0
@@ -54,7 +58,7 @@ c  Search for point IMAX having the peak amp (ignoring DC and Nyquist terms)
       am=abs(ybuf(1))
       aa=cabs(cmplx(ybuf(3),ybuf(4)))
 c      do i=3,nfft/2
-      do i=3,(nfft/2) * 3/4   ! 75% of Nyquist  GCT 2010-07-22
+      do i=3,(nfft/2) * 2/3   ! 75% of Nyquist  GCT 2010-07-22
         ap=cabs(cmplx(ybuf(2*i-1),ybuf(2*i)))
         if(aa.ge.amax) then
         if(aa.ge.am .and. aa.ge.ap) then
@@ -77,11 +81,11 @@ c  fractional frequency point having the peak amp.
       phasm=atan2(-(ybuf(2*(imax-1))/am),ybuf(2*(imax-1)-1)/am)
       phasi=atan2(-(ybuf(2*(imax+0))/amax),ybuf(2*(imax+0)-1)/amax)
       phasp=atan2(-(ybuf(2*(imax+1))/ap),ybuf(2*(imax+1)-1)/ap)
-      if(abs(phasi-phasm).gt. pi) phasm=phasm+sign(2*pi,phasi-phasm)
-      if(abs(phasi-phasp).gt. pi) phasp=phasp+sign(2*pi,phasi-phasp)
+      if(abs(phasi-phasm).gt. spi) phasm=phasm+sign(2*spi,phasi-phasm)
+      if(abs(phasi-phasp).gt. spi) phasp=phasp+sign(2*spi,phasi-phasp)
       dp=ap
       dm=am
-      if( abs(2*phasi-phasp-phasm) .gt. pi/2 ) then
+      if( abs(2*phasi-phasp-phasm) .gt. spi/2 ) then
       if( ap*abs(phasi-phasm) .gt. am*abs(phasi-phasp)) then
         phasm=atan2(ybuf(2*(imax-1))/am,-(ybuf(2*(imax-1)-1)/am))
         dm=-(4*am)
@@ -90,14 +94,14 @@ c  fractional frequency point having the peak amp.
         dp=-(4*ap)
       endif
       endif
-      if(abs(phasi-phasm).gt. pi) phasm=phasm+sign(2*pi,phasi-phasm)
-      if(abs(phasi-phasp).gt. pi) phasp=phasp+sign(2*pi,phasi-phasp)
+      if(abs(phasi-phasm).gt. spi) phasm=phasm+sign(2*spi,phasi-phasm)
+      if(abs(phasi-phasp).gt. spi) phasp=phasp+sign(2*spi,phasi-phasp)
 c
 c  Determine frequency of predominant channel fringe.
       denom=2*amax-dp-dm
       if(denom.eq.0.0) return
       xi=0.5*(dp-dm)/denom
-      cffreq=2*pi*float(nmp-1)*(xi+imax-1)/nfft
+      cffreq=2*spi*float(nmp-1)*(xi+imax-1)/nfft
 c
 c  Interpolate peak amp and phase to channel fringe frequency.
       cfphase=phasi+xi*((0.5+xi)*(phasp-phasi)+(0.5-xi)*(phasi-phasm))

@@ -59,7 +59,7 @@ c    istat
      & fmin,fmax,fsf,lasf,wavtkr,aipl,tel_mag 
       if( col1.eq.':' .or. col1.eq.';' ) go to 1
 
- 34   format(a1,a38,1x,i2,f8.0,f9.4,f10.4,
+ 34   format(a1,a57,1x,i2,f8.0,f9.4,f10.4,
      & f7.3,f6.1,f8.2,f6.1,f6.1,f8.2,f6.1,f7.1,f7.4,f6.1,f6.0,
      & 1x,2f7.0,f11.8,f11.3,f7.0,f7.3,f6.2)
       istat=0

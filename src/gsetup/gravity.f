@@ -25,12 +25,14 @@ c  variation coming entirely from the variation of surface r with latitude.
 c
 
       implicit none
+      include "../ggg_const_params.f"
+
       real*4  d2r,gm,omega,con,shc,eqrad,gdlat,altit,
      & gclat,         ! geocentric latitude (radians)
      & radius,        ! radial distance (metres)
      & ff,hh,ge       ! scratch variables
       parameter(
-     & d2r=3.14159265/180,! Conversion from degrees to radians
+     & d2r=spi/180,       ! Conversion from degrees to radians
      & gm=3.9862216e+14,  ! Gravitational constant times Earth's Mass (m3/s2)
      & omega=7.292116E-05,! Earth's angular rotational velocity (radians/s)
      & con=.006738,       ! (a/b)**2-1 where a & b are equatorial & polar radii

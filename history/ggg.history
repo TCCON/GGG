@@ -1,5 +1,231 @@
   GGG spectral fitting program.
 
+compute_lm_absco     V1.0.2    GCT  2012-02-22
+  Created a new program (based on the work of Hartmann and Tran) to compute
+  absorptions coefficients for CO2, O2, and CH4, with and without line mixing.
+  This is done off-line before running GFIT and the results saved to file.
+  The LM differences are then added to the absorption coefficients calculated
+  by GFIT (abscoj.f). This also necessitated changes to abscoj.f to read in the
+  binary files containing the LM coefficients.
+
+GFIT                     Version 4.8.3     9-Jan-2012    GCT
+  Added a new spectral formal option: BPW=10 to denote a two-column
+  ascii file without any header.  This distinguishes it from the
+  existing BPW=9 case, which denotes a two column file with a header.
+  This required modifying fetch.f.
+
+GFIT                     Version 4.8.1     1-Nov-2011    GCT
+  Modified the spectrum_loop.f to allow the " so/NN " option to the command
+line of the ggg file.  This allows calculation of a solar spectrum, with
+absorption depths reduced by a factor NN. This is useful for sensitivity
+analyses in which we might want to invoke a small residual solar spectrum,
+to represent imperfect ratioing of the solar features.
+
+ GFIT                     Version 4.8.0    28-Oct-2011    GCT 
+  Writes the retrieved cc value to the .col files.
+Requires corresponding change to collate results to read cc value,
+and to write it (option "n") into the .nsw file.
+
+ GFIT
+Added the "cc" option (continuum curvature) to the fitting variables.
+The continuum is now represented by the function
+    cl.[1+ct.(i-ibar)+cc.(i-i1).(i-i2)i+cf....]  i=1,N
+where
+N is the number of measured spectral points across the window
+ibar = 0.5*(N+1) 
+i1=ibar-del
+i2=ibar+del
+del=SQRT((N^2-1)/12)
+This definition is chosen so that (for a uniform weighting across the window)
+the cl, ct, and cc terms are orthogonal, in the sense that:
+Sum[(i-ibar)]=0
+Sum[(i-i1).(i-i2)]=0
+Sum[(i-ibar).(i-i1).(i-i2)]=0
+
+The cc option is not intended for general use. Its purpose is to evaluate
+the sensitivity of results to any continuum curvature. It is therefore not
+implemented in the averaging kernel calculation.
+
+ GFIT                     Version 4.7.5    18-Sep-2011    GCT '
+Removed the variables dspdz and the array dspdzxv from:
+spectrum_ loop.f
+do_retrieval.f
+do_retrieval2.f
+do_retrieval3.f
+fm.f
+fm2.f
+fm3.f
+dspdz/dspdzxv were a failed attempt at a fast approximation to the finite FOV integration.  This change makes no difference to the results.
+
+ GSETUP                   Version 3.5.0    13-Sep-2011    GCT
+Changed mod_maker8.pro so that it does not convert the NCEP geopotential 
+altitudes into geometric altitudes. This was wasting memory.  Instead,
+the conversion is done in read_model_fc.f.  In fact, this only affects
+the tropopause altitude whose computation is the only use for the
+altitudes in the .mod file.
+
+Also, I resolved a small earth radius discrepancy in mod_maker8.pro.
+In the write_mod.pro subroutine, 6378.00 was used, whereas in the main
+program 6378.137 km was used.
+
+Finally changed the parameterization of the stratospheric H2O in
+mod_maker8.pro. The new equation depends on the tropopause pressure
+(the old one didn't).
+
+ GSETUP                   Version 3.4.2    24-Aug-2011    GCT
+Various changes to handle the lastest ACE spectrum name convention 
+which has names like:
+FTS-TRANSMITTANCE-NA-NA-1205247752.082.adf
+Also, since the new spectrum names don't contain the occultation number,
+the default .mod and .vmr files have to be generated from the runlog name,
+not the spectrum name.
+
+changed variable la to lspn
+
+ rarl.f   Version 3.0.2   2011 Aug 22   GCT
+Added RARL (read ACE runLog) to repository. Now writes runlog files
+directly to $GGGAPTH/runlogs/orb/ instead of to local directory.
+
+All
+Added two extra atmospheric constituents (cirrus6 and cirrus 15)
+
+ GSETUP                   Version 3.4.1     5-Aug-2011    GCT
+Changed gsetup.f and read_vmrs_fc.f to ignore all the gsetup stretching,
+co2 replacement, etc. when a named vmr file exists for the particular day.
+This involved adding a new logical variable vmr_found that is used in
+gsetup.f and read_vmrs_fc.f to determine whether the file exists.
+
+ GSETUP                   Version 3.4.0     4-Aug-2011    GCT
+Patch to reenable the analysis of lab spectra through gsetup and gfit.
+Used iztrop to define whether the tropopause altitude had been detected yet,
+instead of ztrop_gct, which may not have a value for lab spectra (or otheri
+planet). Changed spectrum_loop.f to use ncell to determine whether to set
+spver (the vertical column) to splos (the slant column).
+
+
+average_results              Version 1.1.7   2011-07-09   GCT
+ Multiplied the EBIAS by SQRT(NROW) when it is written to the .cew file.
+This converts the standard error into a standard deviation.
+
+ GFIT                     Version 4.8.0    04-Apr-2011    GCT 
+ Adding the line mixing capability.  line mixing absorption
+ coefficient corrections are computed off line by running:
+ compute_hartmann_lm_absco runlog.ggg
+ This creates files in the local directory named
+ spectrum(:10)_gas_freq1_freq2_lm.dat
+ e.g., pa20050308_co2_04795_04905_lm.dat
+ 
+abscoj.f now looks for such files and if found, the corrections
+found therein are added to the absorption coeffs computed by GFIT.
+Works only for CO2, O2 and CH4.
+
+ apply_airmass_correction     Version 1.1.5   2011-02-28   GCT
+ apply_insitu_correction      Version 1.3.3   2011-02-28   GCT
+ Applied patches supplied by Vanessa to allow the corrections.dat
+ file to contain uncertainty estimates on the coefficients.
+ Also added  if(yrow(k).lt.ymiss)  statements to prevent the
+ corrections from changing a missing value to a non-missing value.
+
+ GFIT                     Version 4.7.2    25-Jan-2011    GCT
+ The format of the write statement use to write the data into
+ the .col file is now written into the header of the .col file.
+ The makes it possible (in the future) for the programs that
+ read the .col files don't need to know the format ahead of
+ opening the file. This will eliminate statements such as the
+ following in collate_results.f:
+          if (index(gfit_version,'2.40.2') .ne. 0) then !  old col file format
+               csformat='(1x,a21,i2,1x,f5.3,3(1x,f4.1),1x,f5.3,'
+     &         //'1x,f6.4,f7.3,1x,9(0pf7.3,1pe10.3,0pf9.4,1pe8.1))'
+           else                                  ! assume new col file format
+               write(csformat,'(a,i2.2,a)')'(1x,a',l4-5,
+     &     ',i3,f6.3,3f5.1,f6.3,f7.4,f8.3,15(f7.3,e11.4,f9.4,e8.1))'
+           endif
+
+The .col file data format is now specified in gfit.f and is passed through
+spectrumloop.f and into write_col.f.
+
+
+' GSETUP                   Version 3.3.0    14-Jan-2011    GCT '
+Some tweaks to the a priori vmr profiles to better match in situ observations
+in the southern hemisphere.
+
+In setvmr.f, added the following code:
+c Limit tropospheric CO vmr to ~50 ppb in Southern hemisphere
+c to 90 ppb in the tropics, and to 130 ppb in the northern hemisphere.
+      co_vmr_max = 1.0E-09*(90 + 40*oblat/sqrt(200.0+oblat**2))
+      do ilev=1,nlev
+         if(z(ilev) .ge. ztrop) exit
+         if(vmr(5,ilev).gt.co_vmr_max) vmr(5,ilev)=co_vmr_max
+      end do
+This change won't have any effect northward of 25.56N since the current
+gnd_summer.vmr has a maximum CO vmr of 125 ppb
+
+
+ GFIT                     Version 4.7.1    26-Dec-2010    GCT
+ Changed the name of read_mav.f to read_mavfile_body.f
+ Removed the argument MLEV which wasn't being used for anything
+ except dimensioning arrays, for which purpose NLEV works fine.
+
+ Changed the read_mavfile_body.f file so that it does a free-format read,
+ rather than a formatted read. This provides more flexibility in
+ the format of the mav file.
+
+ Also, moved read_mavfile_body.f from ggg/src/gfit to ggg/src/comn,
+ Modified ~/ggg/src/gfit/Makefile accordingly.
+
+
+ write_aux              version 0.0.3   2010-12-26   DW
+ Renamed 
+  ~/ggg/src/write_aux/write_mav.f
+to
+  ~/ggg/src/write_aux/write_mav_aux.f
+ since we don't want separate/different subroutines with the same name.
+ Modified ~/ggg/src/write_aux/Makefile accordingly.
+
+
+ CREATE_RUNLOG    Version 8.7.0    24-Dec-2010   GCT
+  Three separate problems were encountered when trying to run
+create_runlog on some old (pre-2001) Spitsbergen spectra.
+
+1) The format of DAT in the OPUS header was shorter than
+  ever previously encountered. This was fixed by editing
+  read_opus_header.f, replacing
+             if(rs.ge.6) then
+                 ms=0
+                 read(cval,'(i2,1x,i2,1x,i2)')hh,mm,ss
+by
+             elseif(rs.ge.5) then
+                 ms=0
+                 read(cval,'(i2,1x,i2,1x,i2)')hh,mm,ss
+             else
+                 write(*,*) cval
+                 stop 'Unrecognised time format'
+             endif
+
+2) The number of interferogram points (NIP) was missing from some
+  of the spectrum headers. So create_runlog used the equation
+         nip=2*0.9*(hfl-lfl)*(1/res+1/phr)
+  but this equation is wrong in the event that the igrams are
+  recorded with a non-unity DFR (Digital Filter Reduction),
+  a combination of circumstances (NIP=0; DFR>1) that I had
+  never previously encounted.  The correct equation is:
+         nip=2*0.9*(hfl-lfl)*(1/res+1/phr)/dfr
+  So this was a bug that hadn't previously been exposed.
+  I also modified the subroutine read_opus_header.f so that
+  the default value of DFR is now 1 (not zero) so that when
+  DFR is missing from the header, create_runlog doesn't crash.
+
+3) There were spectra with GFW=0 and GBW=0. So create_runlog
+  couldn't tell whether these were FWD or REV scans, so it
+  estimated the ZPD time to be in the middle of the scan,
+  which is wrong.  So I added code that uses the ZPD locations
+  to determine the scan direction:
+        if(gfw.eq.0 .and. gbw.eq.0) then
+          if(pkl.gt.prl) gfw=1
+          if(pkl.le.prl) gbw=1
+        endif
+
+
  GFIT                     Version 4.7.0    06-Dec-2010    GCT 
  In spectrum_loop.f, replaced
         if(resn.gt.resmax) then
@@ -198,8 +424,8 @@ For some reason, this would make things worse, with the
 result that the final fit would have a very high-frequency
 sine wave in the residuals.
 
-Fixed this by limiting the search for the frequency peak to
-75% of Nyquist.
+Fixed this by limiting the search for the frequency peak
+(in fringes.f) to 66.6% of Nyquist.
 
 
 Various

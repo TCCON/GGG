@@ -9,12 +9,17 @@ SOURCES := \
  $(TSRC)/$(TARGET).f \
  $(TSRC)/clistindex.f \
  $(TSRC)/write_mav.f \
- $(TSRC)/setvmr.f \
- $(TSRC)/simulate_co2_vmr.f \
+ $(TSRC)/compute_seasonal_cycle.f \
+ $(TSRC)/apply_vmr_latitude_gradients.f \
+ $(TSRC)/apply_secular_trends.f \
+ $(TSRC)/apply_vmr_latitude_gradients.f \
+ $(TSRC)/resample_vmrs_at_effective_altitudes.f \
+ $(TSRC)/calc_aoa.f \
  $(TSRC)/gravity.f \
  $(TSRC)/readmenu.f \
- $(TSRC)/readmodFC.f \
- $(TSRC)/readvmrFC.f \
+ $(TSRC)/read_model_fc.f \
+ $(TSRC)/read_refvmrs.f \
+ $(TSRC)/write_postprocessfile.f \
  $(COMN)/get_ggg_environment.f \
  $(COMN)/fbc.f \
  $(COMN)/fnbc.f \
@@ -37,6 +42,21 @@ OBJECTS := $(patsubst %.f, %.o, $(SOURCES))
 .f.o:
 	$(FC)  $(CFLAGS) -o $@ $<
 
-#          #  Link the object files to create the executable
+#  Link the object files to create the executable
 $(TARGET) : $(OBJECTS)
 	$(FC) $(LDFLAGS) -o $(GGGPATH)/bin/$@ $^
+
+#  Add dependencies to object files
+$(TSRC)/gravity.o:                $(GGGPATH)/src/ggg_const_params.f
+$(TSRC)/gsetup.o:                 $(GGGPATH)/src/ggg_const_params.f \
+                                  $(GGGPATH)/src/ggg_int_params.f $(TSRC)/int_params.f
+$(TSRC)/read_model_fc.o:          $(GGGPATH)/src/ggg_const_params.f $(TSRC)/const_params.f
+$(TSRC)/write_mav.o:              $(GGGPATH)/src/ggg_const_params.f \
+                                  $(GGGPATH)/src/ggg_int_params.f 
+$(TSRC)/write_postprocessfile.o:  $(GGGPATH)/src/ggg_int_params.f 
+$(COMN)/tlpath.o:                 $(GGGPATH)/src/ggg_const_params.f \
+                                  $(GGGPATH)/src/ggg_int_params.f
+
+clean:
+	rm -f $(OBJECTS) $(GGGPATH)/bin/$(TARGET)
+

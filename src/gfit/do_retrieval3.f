@@ -1,6 +1,6 @@
       subroutine do_retrieval3(obsrvd,nmp,apx,apu,slit,nii,
      & z,t,p,solzen,fovo,roc,obalt,wavtkr,fbar,
-     & ldec,rdec,spts,spxv,dspdzxv,vac,splos,nlev,ncp,ntg,snr,
+     & ldec,rdec,spts,spxv,vac,splos,nlev,ncp,ntg,nfp,snr,
      & corrld,sssss,winfo,debug,mit,nit,calcul,rms,cx,ex,pd,ssnmp)
 
 c  Adjusts the state vector (cx) to get the best fit to measured spectrum (y).
@@ -22,9 +22,9 @@ c     nii           I*4  length of the SLIT vector
 c     ldec          I*4  Decimation of SLIT vector
 c     rdec          R*8  Ratio:  GINT/GRID (used by FM)
 c     spxv(ncp,ntg) R*4  Extinction: VAC integrated along slant path
-c  dspdzxv(ncp,ntg) R*4  Extinction: VAC integrated along slant path
 c     ncp           I*4  Number of primative spectral points (FM)
 c     ntg           I*4  Number of target gases
+c     nfp           I*4  Number of fitted parameters
 c     snr           R*8  Nominal signal-to-noise ratio of OBSRVD
 c     corrld        R*4  
 c     ssssss        R*8  Offset from start of primitive spectrum
@@ -42,33 +42,34 @@ c     pd(nmp,ntg)   R*4  Individual gas transmittance spectra
 
 
       implicit none
+      include "../ggg_const_params.f"
+      include "const_params.f"
+      include "int_params.f"
 
       logical
      & debug,    !  activates debug write-statements when .true.
      & cf        !  Fits chennel fringes when .true.
 
       integer*4
-     & n1,n2,n3,n4,
+     & n1,n2,n3,n4,n5,
      & nconv,kconv, ! Number of convergences
      & ncp,         ! Number of precomputed absorption frequencies in SPXV
      & krank,
      & ierr,
      & nlev,
-     & mmp,nmp,nii,ldec,nmpfp,
-     & mtg,ntg,jtg,
-     & mfp,nfp,kfp,jfp,i,j,
+     & nmp,nii,ldec,nmpfp,
+     & ntg,jtg,
+     & nfp,kfp,jfp,i,j,
      & mit,nit,
      & jva,jpd,kn2
-
-      parameter (mmp=360000,mtg=16,mfp=mtg+4)
 
       real*4
      & solzen,roc,fbar,
      & slit(nii),
-     & cx(ntg+4),dx(mfp),ex(ntg+4),
-     & obsrvd(nmp),calcul(nmp),resids(mmp+ntg+4),
+     & cx(nfp),dx(mfp),ex(nfp),
+     & obsrvd(nmp),calcul(nmp),resids(mmp+nfp),
      & tcalc(mmp),
-     & apx(ntg+4),apu(ntg+4),
+     & apx(nfp),apu(nfp),
      & wk(mfp),
      & rms, rwas,
      & thresh,
@@ -76,14 +77,12 @@ c     pd(nmp,ntg)   R*4  Individual gas transmittance spectra
      & tau,
      & corrld,
      & var,
-     & zero,
      & z(nlev),t(nlev),p(nlev),
      & vac(ncp,nlev,0:ntg),splos(nlev),ssnmp(nmp),
      & pd((mmp+mfp)*mfp),
      & tpd((mmp+mfp)*mfp),
      & spts(ncp),
-     & spxv(ncp*(ntg+3)), dspdzxv(ncp*(ntg+3)),
-     & tiny,big,
+     & spxv(ncp*(ntg+3)), 
      & fs,fr,tt,eps,esat(0:mfp),
      & rdum,
      & dxlimit,xfr,
@@ -98,14 +97,14 @@ c     pd(nmp,ntg)   R*4  Individual gas transmittance spectra
      & ip(mfp)
 
       character winfo*(*)
-      parameter (zero=0.0,tiny=1.0e-36,tau=6.e-06,big=1.0E+18,
-     & eps=0.01)
+      parameter (tau=6.e-06,eps=0.01)
 c
       n1=ntg+1
       n2=ntg+2
       n3=ntg+3
       n4=ntg+4
-      nfp=ntg+4
+      n5=ntg+5
+c      nfp=ntg+4
       nmpfp=nmp+nfp
 
 c      call vdot(obsrvd,1,obsrvd,1,sumr2,nmp)
@@ -146,9 +145,9 @@ c        endif
 
 c  Calculate spectrum & PD's
 c         write(*,*)'do_retrieval3 calling fm: cx=',cx
-         call fm3(0,winfo,slit,nii,ldec,spts,spxv,dspdzxv,
+         call fm3(0,winfo,slit,nii,ldec,spts,spxv,
      &   z,t,p,solzen,fovo,roc,obalt,wavtkr,fbar,
-     &   vac,splos,nlev,ncp,rdec,sssss,cx,ntg,calcul,pd,
+     &   vac,splos,nlev,ncp,rdec,sssss,cx,ntg,nfp,calcul,pd,
      &   tcalc,tpd,nmp)
          call vdot(calcul,1,calcul,1,sumr2,nmp)
          if(debug) write(*,*)'calcul=',sqrt(sumr2/nmp)

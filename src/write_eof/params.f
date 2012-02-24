@@ -1,11 +1,21 @@
-      integer*4 lunr, lun_qc, lunw, lunc, lunh, mcol, mrow_qc, mrow,
-     & mluns
 
-      integer*4 lun_mul, lun_rlg, lun_xsw
+      integer*4 lun_qc, mcol, mrow, mluns
+      integer*4 lun_mul, lun_rlg
+
       parameter (lun_mul=21)       ! multiggg.sh 
       parameter (lun_rlg=22)       ! runlog
-      parameter (lun_xsw=25)       ! output file (.xsw)
+      parameter (lun_qc=26)
+      parameter (mcol=150)
+      parameter (mrow=9999)
+      parameter (mluns=100)
 
+      character
+     & gfit_version*80,
+     & gsetup_version*80,
+     & atmsum*32,
+     & gctsum*32,
+     & fciasum*32,
+     & sciasum*32,
+     & solarsum*32,
+     & header*20000
 
-      parameter (lunr=21,lun_qc=22,lunw=23,lunc=24,lunh=25,mcol=150,
-     & mrow_qc=150,mrow=9999,mluns=100)

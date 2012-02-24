@@ -20,12 +20,12 @@ c  Data is assumed IEEE binary, except bytepw=5,7,9 which is assumed ASCII.
       INTEGER*2 i2dum
       REAL*4 buf(npts),r4dum,freq,tm
       integer*4 iscale    !DG000909
-      real*4 xscale
+      real*4 xscale,simag
 c
 c  Determine which kind of computer we are running on; big- or little-endian
       call getendian(iend)      !  iend = +1 on SUN; = -1 on PC
       kk=bytepw*iend            !  kk = +bytepw on Sun; = -bytepw on PC
-c
+C
 c     Note:                              DG000901
 c     Sun and Digital compilers default to form='unformatted' for direct access files
 c     Sun compiler functions OK with this default
@@ -87,6 +87,13 @@ c
             buf(jpts)=buf(jpts)/20000.
          end do
 c
+c  ACE binary spectra (.adf) containing interleaved R*4 [Real,Imag]
+      elseif(iabs(bytepw).eq.+6) then         !  R*4
+         open(19,file=specpath,access='direct',status='old',
+     &   recl=iskip+8*npts,form=rformat)
+         read(19,rec=1) (bb,j=1,iskip),(buf(j),simag,j=1,npts)
+         if(kk.lt.0) call rbyte(buf,4,npts)
+c
 c  The spectral signal is in the third column, e.g. an spt output file
       elseif(bytepw.eq.7) then 
          open(19,file=specpath,status='old')
@@ -96,14 +103,24 @@ c  The spectral signal is in the third column, e.g. an spt output file
             read(19,*)freq,tm,buf(jpts)  ! read wanted data
          end do
 c
-c  The spectral signal is in the second column
+c  The spectral signal is in the second column and there's a header
       elseif(bytepw.eq.9) then 
          open(19,file=specpath,status='old')
          read(19,*) nlhead, ncol
          call skiprec(19,nlhead-1+iskip/9)  !  Skip header & unwanted data
-c         write(*,*)'iskip=',iskip,iskip/9
          do jpts=1,npts  !
             read(19,*)freq,buf(jpts)  ! read wanted data
+         end do
+c
+c  The spectral signal is in the second column but there's no header
+      elseif(bytepw.eq.10) then 
+         nlhead=0
+         open(19,file=specpath,status='old')
+c         read(19,*) nlhead, ncol
+         call skiprec(19,nlhead-1+iskip/9)  !  Skip header & unwanted data
+         do jpts=1,npts  !
+            read(19,*)freq,buf(jpts)  ! read wanted data
+c            write(*,*) freq,buf(jpts)
 c            if(jpts.eq.1) write(*,*)freq,buf(jpts)
 c            if(jpts.eq.npts) write(*,*)freq,buf(npts)
 c             buf(jpts)=buf(jpts)*1.e+06

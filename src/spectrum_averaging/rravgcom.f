@@ -4,11 +4,13 @@
 c  Reads the runlog-format input file from the current position down
 c  to the next "average" marker.
 c  Mode 0: Does nothing functional (testing only). Simply reads runlog. 
-c  Mode 1: Averages the spectrum and header values, writes averages. 
-c  Mode 2: Compares individual spectra with the average, writing
-c          intensity scale factors and their rms deviations.
+c  Mode 1: Averages the spectral data and header values, writes averages. 
+c  Mode 2: Compares individual spectra with the average, computes
+c          spectral intensity scale factors and their rms deviations.
 
       implicit none
+      include "../ggg_const_params.f"
+      include "../ggg_int_params.f"
 
 c----------------------------------------------------------
 c  The following are the MkIV spectral header parameters
@@ -46,6 +48,7 @@ c----------------------------------------------------------
      & la,ls,lr,    ! string lengths
      & header_length_mkiv, ! MkIV header length
      & hedlen,
+     & lext,        ! length of spectrum name extension (=3,4)
      & i,j      ! 
 
       parameter (lun_rbs=19,lun_wbs=20,nmax=4*1024*2048,
@@ -71,7 +74,7 @@ c----------------------------------------------------------
      & possp,        ! Length of attached header in bytes
      & bytepw        ! Bytes per data word, usually 2 (I*2) or 4 (R*4)
 
-      real*8 tiyrrl,tidoy,tbytepw,taa,tad,tdd,del,pi,d2r,
+      real*8 tiyrrl,tidoy,tbytepw,taa,tad,tdd,del,d2r,
      & ttotp, taltd, tpout, ttout, thout, tpott, tsoze, tsfct,
      & tspwn, tpspv, tfovr, tzpdtim, talat, talon, tstnr, trzero,
      & toblat, oblat,        ! observation latitude (deg).
@@ -89,30 +92,31 @@ c----------------------------------------------------------
      & tamal,  amal,         ! angular misalignment of interferometer (radians)
      & tzoff,  zoff,         ! Zero level offset (dimensionless fraction)
      & tsnr,   snr,          ! Signal-to-Noise Ratio (dimensionless)
-     & tr8tins,  r8tins,         ! Inside temperature
-     & tr8pins,  r8pins,         ! Inside pressure
-     & tr8hins,  r8hins,         ! Inside humidity
-     & tr8tout,  r8tout,         ! Outside temperature
-     & tr8pout,  r8pout,         ! Outside pressure
-     & tr8hout,  r8hout,         ! Outside humidity
+     & tr8tins, r8tins,      ! Inside temperature
+     & tr8pins, r8pins,      ! Inside pressure
+     & tr8hins, r8hins,      ! Inside humidity
+     & tr8tout, r8tout,      ! Outside temperature
+     & tr8pout, r8pout,      ! Outside pressure
+     & tr8hout, r8hout,      ! Outside humidity
      & tsia,   sia,          ! Solar Intensity (Average)
      & tfvsi,  fvsi,         ! Solar Intensity (SD)
-     & r8wspd,         ! Wind Speed (m/s)
-     & r8wdir,         ! Wind Direction (deg.)
+     & r8wspd,               ! Wind Speed (m/s)
+     & r8wdir,               ! Wind Direction (deg.)
      & twe,    twn,          ! Wind vectors (East & North)
      & taipl,  aipl,         ! Airmass-Independent Path Length (km)
-     & tlaserf,  laserf,         ! Laser Frequency (e.g. 15798 cm-1)
+     & tlaserf,  laserf,     ! Laser Frequency (e.g. 15798 cm-1)
      & twavtkr,wavtkr,       ! suntracker frequency (active tracking)
-     & nus, nue      ! selected frequency range of interest
+     & nus, nue              ! selected frequency range of interest
 
       character
-     & col1*1,       ! first column of runlog record
-     & specname*38,  ! spectrum name
-     & avgspecname*38,  ! average spectrum name
+     & col1*1,         ! first column of runlog record
+     & specname*(nchar),    ! spectrum name
+     & avgspecname*(nchar), ! average spectrum name
      & last_valid*38,  ! last valid spectrum name
-     & root*80,      ! path to the ggg directories
-     & dplist*80,    ! Data Partition list (~/ggg/config/data_part.lst)
-     & apf*2         ! apodization function (e.g. BX N2, etc)
+     & gggdir*(mpath), ! path to the ggg directories
+     & dl*1,
+     & dplist*80,      ! Data Partition list (~/ggg/config/data_part.lst)
+     & apf*2           ! apodization function (e.g. BX N2, etc)
 
       equivalence (bbuf,bufi2,bufi4,bufr4)
 
@@ -122,12 +126,11 @@ c----------------------------------------------------------
 
 c  Interrogate environmental variable GGGPATH to find location
 c  of root partition (e.g. "/home/toon/ggg/" ).
-      call getenv('GGGPATH',root)
-      lr=lnbc(root)     ! length of root string (e.g. 14)
-      dplist=root(:lr)//'/config/data_part.lst'
+      call get_ggg_environment(gggdir, dl)
+      lr=lnbc(gggdir)     ! length of root string (e.g. 14)
+      dplist=gggdir(:lr)//'config'//dl//'data_part.lst'
 
-      pi=4*datan(1.0d0)
-      d2r=pi/180
+      d2r=dpi/180
 
       if (mode.eq.1) then
          do j=1,nmax/4
@@ -207,7 +210,10 @@ c         write(*,*)'strl=',strl(:22)
      &      r8wspd,r8wdir,laserf,wavtkr,aipl,irr)
             if(irr.ne.0) stop 'Error reading runlog (wrong format)'
             if(col1.eq.':') cycle
-            if(nspe.eq.0) avgspecname=specname
+            if(nspe.eq.0) then
+               avgspecname=specname
+               lext=lnbc(avgspecname)-index(avgspecname,'.')
+            endif
 
 Check that buffer will be large enough
             iabpw=iabs(bytepw)
@@ -357,7 +363,7 @@ c MkIV header parameters
 
       if(mode.eq.1 .and. nspe.gt.0) then
          la=lnbc(avgspecname)
-         avgspecname=avgspecname(:la)//'_'//last_valid(la-2:la)
+         avgspecname=avgspecname(:la)//'_'//last_valid(la-lext+1:la)
          write(*,*)'Computing average of these ',nspe,' spectra'
          write(lun_rpt+jtype,*) '    average: '//avgspecname
 c Divide by nspe to compute average values

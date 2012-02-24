@@ -15,15 +15,17 @@ c
      & outfmt1, oof_flag, irow,
      & vmin, vmax, pindex,
      & nflag, eflag, kflag, flag,
-     & nrow, ncol, nchar, scale, ofmt
+     & nrow, ncol, mchar, scale, ofmt,gaa_naux,yrow1
      & )
 
       
 
       implicit none
+      include "../ggg_int_params.f"
       include "params.f"
-      integer*4 ncol, nrow, irow
-      integer*4 nflag, eflag, inputlun, nchar, lnbc
+
+      integer*4 ncol, nrow, irow, gaa_naux
+      integer*4 nflag, eflag, inputlun, mchar, lnbc
       integer*4 oof_flag(mrow)
       real*4 vmin(mrow_qc), vmax(mrow_qc)
       integer*4 kflag(mrow_qc), flag(mrow_qc)
@@ -35,22 +37,26 @@ c
       real*4 scale(mrow_qc)
 
       !local
-      character*38 specname,cc
+      character*57 specname,cc
       character*800 ssss
       integer*4 kmax, krow_qc, nco
-      integer*4 j,k, kcol, icol
-      real*4 yrow(mcol)
-      character sarr(mcol)*38
+      integer*4 j,jj,k, kcol, icol
+      real*4 yrow(mcol),yrow1(mcol)
+      character sarr(mcol)*57
       real*8 wlimit
       real*4 dmax, dev
       
 
-         if (nchar .eq. 1) then
-             read(inputlun,*) specname, (yrow(j),j=1+nchar,ncol)
+         if (mchar .eq. 1) then
+             read(inputlun,*) specname, (yrow(j),j=1+mchar,ncol)
          else
              read(inputlun,*) (yrow(j),j=1,ncol)
          endif
 
+         do j=1,ncol
+            jj=j*2-1
+            yrow1(j) = yrow(jj+gaa_naux)
+         enddo
 c  Look within each data record to see if any of the data values are
 c  outside their VMIN to VMAX range. If so, set eflag to the index of
 c  the variable that was furthest out of range. Then write out the data.
@@ -58,7 +64,7 @@ c  the variable that was furthest out of range. Then write out the data.
          eflag=0
          kmax=0
          dmax=0.0
-         do icol=1+nchar,ncol
+         do icol=1+mchar,ncol
             krow_qc=pindex(icol)
             dev=abs((scale(krow_qc)*yrow(icol)-vmin(krow_qc))/
      &      (vmax(krow_qc)-vmin(krow_qc))-0.5)

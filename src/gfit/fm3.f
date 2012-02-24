@@ -1,6 +1,6 @@
-      subroutine fm3(lun_ak,winfo,slit,nii,ldec,spts,spxv,dspdzxv,
-     & z,t,p,solzen,fovo,roc,obalt,wavtkr,fbar,
-     & vac,splos,nlev,ncp,rdec,sssss,cx,ntg,calc,pd,tcalc,tpd,nmp)
+      subroutine fm3(lun_ak,winfo,slit,nii,ldec,spts,spxv,
+     & z,t,p,solzen,fovo,roc,obalt,wavtkr,fbar,vac,
+     & splos,nlev,ncp,rdec,sssss,cx,ntg,nfp,calc,pd,tcalc,tpd,nmp)
 c  Computes the forward model
 c    F(i,x)=X1.[1+X2.R+X4.SIN(CF)].SLIT(X3)*T(k)
 c  and its matrix of partial differentials dF/dX,
@@ -38,42 +38,42 @@ c     spxv(*,n1)  ! Workspace
 c     spxv(*,n2)  ! Workspace
 c
       implicit none
-      integer ncp,nmp,ntg,jtg,nii,ldec,nterm,k,kk,jj,n1,n2,n3,n4,
+      include "../ggg_const_params.f"
+      include "const_params.f"
+      
+      integer ncp,nmp,ntg,jtg,nfp,nii,ldec,nterm,k,kk,jj,
+     & n1,n2,n3,n4,n5,
      & rc,lun_ak,nlev,ilev,jva,jsp,nfov,ifov,kfov
-      real*4 slit(nii),cx(ntg+4),vac(ncp,nlev,0:ntg),splos(nlev),
+      real*4 slit(nii),cx(nfp),vac(ncp,nlev,0:ntg),splos(nlev),
      & z(nlev),t(nlev),p(nlev),
-     & spts(ncp),ckm2cm,
-     & zero,rk,calc(nmp),pd(nmp+ntg+4,ntg+4),
-     & tcalc(nmp),tpd(nmp+ntg+4,ntg+4),
+     & spts(ncp),
+     & rk,calc(nmp),pd(nmp+nfp,nfp),
+     & tcalc(nmp),tpd(nmp+nfp,nfp),
      & spxv(ncp,0:ntg+2),
-     & dspdzxv(ncp,0:ntg+2),
      & solzen,fovr,roc,fbar,zmin,bend,bend0,frangl,wt,twt,sza
 
       real*8 rdec,sh,sssss,fovo,wavtkr,obalt
       character winfo*(*),ss(4)*4
-      parameter (zero=0.0)
-      parameter (ckm2cm=100000.0)
       data ss/' cl ',' ct ',' fs ',' zo '/
 
 c      do jtg=0,ntg+2
 c      call vdot(spxv(1,jtg),1,spxv(1,jtg),1,sum2,ncp)
 c      write(*,*)'FM: sum SPXV:',jtg,sqrt(sum2/ncp)
-c      call vdot(dspdzxv(1,jtg),1,dspdzxv(1,jtg),1,sum2,ncp)
-c      write(*,*)'FM: sum dSPdzXV:',jtg,sqrt(sum2/ncp)
 c      end do
 
       n1=ntg+1  ! 
       n2=ntg+2  ! 
       n3=ntg+3  !
       n4=ntg+4  !
+      n5=ntg+5  !
       sh=rdec*(cx(n3)+sssss)
 
       call vmov(zero,0,tcalc,1,nmp)
-      do jtg=1,ntg+4
-      call vmov(zero,0,tpd(1,jtg),1,nmp+ntg+4)
+      do jtg=1,nfp
+      call vmov(zero,0,tpd(1,jtg),1,nmp+nfp)
       end do
 
-      fovr=90.*sngl(fovo)/3.14159265 ! convert radians diameter to deg radius
+      fovr=90.*sngl(fovo)/spi ! convert radians diameter to deg radius
       twt=0.0
       nfov=1
       kfov=index(winfo,'nfov=')
@@ -130,11 +130,11 @@ c  Compute target gas PD's
          call vmul(spxv(1,n1),1,spxv(1,jtg),1,spxv(1,n2),1,ncp)
          call newdec(spxv(1,n2),ncp,slit,nii,ldec,rdec,sh,pd(1,jtg),nmp)
          call vmul(pd(1,jtg),1,pd(1,n3),1,pd(1,jtg),1,nmp)
-         call vmov(zero,0,pd(nmp+1,jtg),1,ntg+4)  ! zero unused part of PD array
+         call vmov(zero,0,pd(nmp+1,jtg),1,nfp)  ! zero unused part of PD array
       end do
 c
 c      if(index(winfo,ss(3)).gt.0) then  !  compute "fs" PD's.
-         call vmov(zero,0,pd(1,n3),1,nmp+ntg+4)
+         call vmov(zero,0,pd(1,n3),1,nmp+nfp)
          nterm=min0(4,nmp/2-1)
          do k=1,nterm     !  Apply triangular apodization to sinx/x operator
             jj=nmp-2*k
@@ -146,14 +146,14 @@ c      endif
 c
       twt=twt+wt
       call vsma(calc,1,wt,tcalc,1,tcalc,1,nmp)
-      do jtg=1,ntg+4
+      do jtg=1,nfp
          call vsma(pd(1,jtg),1,wt,tpd(1,jtg),1,tpd(1,jtg),1,nmp)
       end do
 
       end do  !  ifov=-nfov,nfov
 c
       call vdiv(tcalc,1,twt,0,calc,1,nmp)
-      do jtg=1,ntg+4
+      do jtg=1,nfp
       call vdiv(tpd(1,jtg),1,twt,0,pd(1,jtg),1,nmp)
       end do
 
@@ -161,9 +161,9 @@ c  Zero out the last NTG+4 elements of each column of the PD Array (a priori).
 c  If the gas is not fitted, zero out the whole column.
       do kk=1,4
         if(index(winfo,ss(kk)).gt.0) then
-          call vmov(zero,0,pd(nmp+1,ntg+kk),1,ntg+4) ! Zero last NTG+4 elements
+          call vmov(zero,0,pd(nmp+1,ntg+kk),1,nfp) ! Zero last NTG+4 elements
         else
-          call vmov(zero,0,pd(1,ntg+kk),1,nmp+ntg+4) ! Zero whole column
+          call vmov(zero,0,pd(1,ntg+kk),1,nmp+nfp) ! Zero whole column
         endif
       end do
       return

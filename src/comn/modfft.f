@@ -68,7 +68,7 @@ c  in-place reordering and the trig functions are computed as needed.
       real*4 pii, p7, p7two, c22, s22, pi2
       common /con/ pii, p7, p7two, c22, s22, pi2
 
-      pii = real(4.d0*datan(1.d0))
+      pii = 2*acos(0.0)
       pi8 = pii/8.
       p7 = 1./sqrt(2.)
       p7two = 2.*p7
@@ -87,7 +87,13 @@ c  in-place reordering and the trig functions are computed as needed.
   20  n8pow = m/3
 
 c  do a radix 2 or radix 4 iteration first if one is required
-      if (m-n8pow*3-1) 50, 40, 30
+      if ((m-n8pow*3-1) <0) then
+         goto 50
+      elseif ((m-n8pow*3-1) ==0) then
+         goto 40
+      elseif ((m-n8pow*3-1) >0) then
+         goto 30
+      endif
   30  nn = 4
       int = n/nn
       call r4tr (int, b(1), b(int+1), b(2*int+1), b(3*int+1))
@@ -219,7 +225,13 @@ c  of the imaginary part of the intermediate results.
 
       l(1) = nn/8
       do 40 k=2,24
-        if (l(k-1)-2) 10, 20, 30
+        if ((l(k-1)-2) <0) then
+           goto 10
+        elseif ((l(k-1)-2) ==0) then
+           goto 20
+        elseif ((l(k-1)-2) >0) then
+           goto 30
+        endif
   10    l(k-1) = 2
   20    l(k) = 2
         go to 40
@@ -424,12 +436,20 @@ c-----------------------------------------------------------------------
       kl = 2
       n = 2**m
       do 40 j=4,n,2
-        if (k-j) 20, 20, 10
+        if ((k-j) >0) then
+           goto 10
+        else
+           goto 20
+        endif
   10    t = b(j)
         b(j) = b(k)
         b(k) = t
   20    k = k - 2
-        if (k-kl) 30, 30, 40
+        if ((k-kl) >0) then
+           goto 40
+        else
+           goto 30
+        endif
   30    k = 2*j
         kl = j
   40  continue
@@ -514,7 +534,11 @@ c-----------------------------------------------------------------------
       do 40 j22=j21,l22,l21
       do 40 j23=j22,l23,l22
       do 40 ji=j23,l24,l23
-        if (ij-ji) 30, 40, 40
+        if ((ij-ji) <0) then
+           goto 30
+        else
+           goto 40
+        endif
   30    t = b(ij-1)
         b(ij-1) = b(ji-1)
         b(ji-1) = t
@@ -597,7 +621,13 @@ c            write (*,'(a1,i1,$)') '^H',it
       end if
 
 c do a radix 2 or radix 4 iteration if one is required
-      if (m-n8pow*3-1) 90, 80, 70
+      if ((m-n8pow*3-1) <0) then
+         goto 90
+      elseif ((m-n8pow*3-1) ==0) then
+         goto 80
+      elseif ((m-n8pow*3-1) >0) then
+         goto 70
+      endif
   70  int = n/4
       call r4syn(int, b(1), b(int+1), b(2*int+1), b(3*int+1))
       go to 90
@@ -666,7 +696,13 @@ c-----------------------------------------------------------------------
 
       l(1) = nn/8
       do 40 k=2,24
-        if (l(k-1)-2) 10, 20, 30
+        if ((l(k-1)-2) <0) then
+           goto 10
+        elseif ((l(k-1)-2) ==0) then
+           goto 20
+        elseif ((l(k-1)-2) >0) then
+           goto 30
+        endif
   10    l(k-1) = 2
   20    l(k) = 2
         go to 40
@@ -702,7 +738,11 @@ c-----------------------------------------------------------------------
       do 120 j23=j22,l23,l22
       do 120 jthet=j23,l24,l23
         th2 = jthet - 2
-        if (th2) 50, 50, 90
+        if (th2 >0) then
+           goto 90
+        else
+           goto 50
+        endif
   50    do 60 k=1,int
           t0 = br0(k) + br1(k)
           t1 = br0(k) - br1(k)
@@ -731,7 +771,11 @@ c-----------------------------------------------------------------------
           br6(k) = t2 - t6
           br7(k) = t3 - t7
   60    continue
-        if (nn-8) 120, 120, 70
+        if ((nn-8) >0) then
+           goto 70
+        else
+           goto 120
+        endif
   70    k0 = int*8 + 1
         kl = k0 + int - 1
         do 80 k=k0,kl
@@ -837,7 +881,11 @@ c-----------------------------------------------------------------------
  100    continue
         jr = jr + 2
         ji = ji - 2
-        if (ji-jl) 110, 110, 120
+        if ((ji-jl) >0) then
+           goto 120
+        else
+           goto 110
+        endif
  110    ji = 2*jr - 1
         jl = jr
  120  continue

@@ -37,6 +37,7 @@ c  of CO2 is not sinusoidal. The drawdown happens very quickly over about
 c  8 weeks in early summer. This modifies the sinudoidal variation of sdma.
 
       implicit none
+      include "../ggg_const_params.f"
 
       integer*4
      & nlev, ilev, ! Number of atmospheric levels (70?)
@@ -48,30 +49,30 @@ c  8 weeks in early summer. This modifies the sinudoidal variation of sdma.
 c     & p(nlev),        ! pressures of levels (atm.)
      & z(nlev)         ! Altitudes of levels
 
-      real*8 pi,sslat,
+      real*8 
+     & sslat,
      & uttime,           ! UT Time (hours)
      & oblat,            ! Observation Latitude (deg)
      & oblon,            ! Observation Longitude (deg)
      & ztrop,            ! Tropopause Altitude (km)
      & zpbl              ! PBL Altitude (km)
 
-      pi=2*dacos(0.0d0)
       roi=0.005   ! rate of increase of CO2 (=0.5%/year)
       vco2ref=0.000380*(1+roi*(iyr+iday/365.25-2005.0))
 
 c  If no PBL altitude supplied, assume that the daytime high-latitude
 c  PBL varies from 850 mbar in winter to 650 mbar in summer.
 c  PBL varies from 1.5 km in winter to 3.5 km in summer.
-c      if(zpbl.le.0.0) ppbl_atm=(0.70-0.15*cos(4*pi*oblat/360)
-c     & -0.10*sin(2*pi*oblat/360)*sin(2*pi*(iday-110)/365.25))
-      if(zpbl.le.0.0) zpbl=(2.5+1.0*cos(4*pi*oblat/360)
-     & +1.0*sin(2*pi*oblat/360)*sin(2*pi*(iday-110)/365.25))
+c      if(zpbl.le.0.0) ppbl_atm=(0.70-0.15*cos(4*dpi*oblat/360)
+c     & -0.10*sin(2*dpi*oblat/360)*sin(2*dpi*(iday-110)/365.25))
+      if(zpbl.le.0.0) zpbl=(2.5+1.0*cos(4*dpi*oblat/360)
+     & +1.0*sin(2*dpi*oblat/360)*sin(2*dpi*(iday-110)/365.25))
 c
 c  If no topopause pressure supplied, assume that it varies
 c  from 90 mbar in the tropics to 280 mbar at high latitudes
 c  from 16km in the tropics to 9km at high latitudes
       if(ztrop.le.0.0) then
-          sslat=12*sin(2*pi*(iday-120)/365.25)
+          sslat=12*sin(2*dpi*(iday-120)/365.25)
 c          ptrop_atm=0.28-0.19*exp(-((oblat-sslat)/35)**2)
           ztrop=9.0+7.0*exp(-((oblat-sslat)/35)**2)
       endif
@@ -82,7 +83,7 @@ c  Calculate age of air for each atmospheric level.
       atoa=5.5  ! Age of air in the upper strat (years)
 c
 c  fasc = Fractional Amplitude of Seasonal Cycle (at surface)
-      fasc=0.01*sin(2.0*oblat*(1-oblat/720)*pi/180)*exp(oblat/45)
+      fasc=0.01*sin(2.0*oblat*(1-oblat/720)*dpi/180)*exp(oblat/45)
 c
       do ilev=1,nlev
          if(z(ilev).lt.zpbl) then  ! below the PBL
@@ -96,7 +97,7 @@ c            age=atoa-(atoa-atrop)*sqrt(p(ilev)/ptrop_atm)
          endif
          vmr0=vco2ref*(1-roi*age) ! assume CO2 increases at 0.5%/year
 c  sdma = 
-         sdma=sin(2*pi*(float(iday+75)/365.25-age))    
+         sdma=sin(2*dpi*(float(iday+75)/365.25-age))    
          sdma=(1.45-exp(-(1.11*sdma)))       
          co2vmr(ilev)=vmr0*(1+fasc*exp(-(age/0.25))*sdma)
          if(z(ilev).gt.90) then

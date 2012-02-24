@@ -1,6 +1,7 @@
 c  avg_ker.f   GCT 2005-03-03
 c  Program to compute averaging kernels from the zXXXXXXX
-c  output files written by the ak.f subroutine called by GFIT.
+c  output files written by the fm.f and do_retrieval.f
+c  x subroutine called by GFIT.
 c
 c  Current version is a simplified version of aker.f.
 c  It was simplified to try to troubleshoot some problems.
@@ -10,17 +11,15 @@ c  retrievals.
 c
 c  The following improvements still need to be made:
 c  1) Augment the A and B matrices in the equation Ax=B
-c   to include the a priori information. This will require
-c   expanding the first dimensions of arrays A and B from
-c   MMP to MMP+MFP. Since the constraint on the VF of the
-c   first target gas is extremely weak, I don't expect that
-c   this will make much difference, which is why I haven't
-c   been motivated to fix it.
+c  to include the a priori information. This will require
+c  expanding the first dimensions of arrays A and B from
+c  MMP to MMP+MFP. Since the constraint on the VF of the
+c  first target gas is extremely weak, I don't expect that
+c  this will make much difference, which is why I haven't
+c  been motivated to fix it.
 c
-c  2) This routine currently assumes that the CL, CT and FS
-c   are always fitted. But this may not be true. And if ZO
-c   is retrieved, this case needs to be handled. So we
-c   need a more flexible way of handling CL, CT, FS, & ZO.
+c  2) This routine currently assumes that the CL, CT, CC, FS, and ZO
+c  are always fitted. But this may not be true.
 c
 c  3) A thought:  The subroutine AK.F  and FM.F are very
 c  similar.  If FM were equipped with the option of
@@ -71,10 +70,12 @@ c  This option required corresponding changes to the GFIT code, and so is not
 c  backward-compatible.
 c
       implicit none
-      integer*4 lunr,luns,lunw,mmp,nmp,imp,mfp,
-     & ntg,itg,mlev,nlev,ilev,nfp,fbc,fnbc,lnbc,lf,i,ispe,nlhead
-      parameter (lunr=12,luns=13,lunw=14,mmp=32000,mfp=8,
-     & mlev=100)
+      include "../ggg_int_params.f"
+      
+      integer*4 lunr,luns,lunw,mmp,nmp,imp,mfp,nntgfp,j,
+     & ntg,itg,nlev,ilev,nfp,fbc,fnbc,lnbc,lf,i,ispe,nlhead
+      parameter (lunr=12,luns=13,lunw=14,mmp=32000,mfp=10,
+     & nntgfp=5)
       integer*4 krank,ip(mfp)
       real*4 a(mmp,mfp),b(mmp,mlev),work(mfp),rnorm(mlev),
      & tau,psc(mlev),pres(mlev),ps,pwas,tsc,
@@ -82,19 +83,20 @@ c
       character colfile*128,filename*128,akpath*128,spectrum*80,
      & version*60
 
-      version=' avg_ker   Version 1.2.0    2009-08-31   GCT'
+      version=' avg_ker   Version 1.2.1    2011-01-05   GCT'
 
       tau=1.e-7
 
 c  Find out what window the AK's are to be calculated for.
+      write(*,*) version
       write(*,*)'Enter name of most recent .col file'
       read(*,'(a)') colfile
       open(luns,file=colfile,status='old')
       read(luns,*) nlhead
-      do i=2,nlhead-4
+      do i=2,nlhead-5
          read(luns,'(34x,a)') akpath
       end do
-      do i=nlhead-3,nlhead
+      do i=nlhead-4,nlhead
          read(luns,*)
       end do
 
@@ -113,7 +115,7 @@ c  Read total column partial differentials
          write(*,*)'NMP, MMP = ',nmp,mmp
          stop 'increase MMP'
       endif
-      nfp=ntg+4
+      nfp=ntg+nntgfp
       if(nfp.gt.mfp) stop 'increase MFP'
       do itg=1,ntg
          read(lunr,*) (a(imp,itg),imp=1,nmp)
@@ -127,10 +129,13 @@ c  Read single-level partial differentials of first target gas.
          read(lunr,*) (b(imp,ilev),imp=1,nmp) ! Single-Level PDs of First Target gas
       end do
 c
-      read(lunr,*) (a(imp,ntg+1),imp=1,nmp)  ! CL partial differential
-      read(lunr,*) (a(imp,ntg+2),imp=1,nmp)  ! CT partial differential
-      read(lunr,*) (a(imp,ntg+3),imp=1,nmp)  ! FS partial differential
-      read(lunr,*) (a(imp,ntg+4),imp=1,nmp)  ! ZO partial differential
+      do j=1,nntgfp
+         read(lunr,*) (a(imp,ntg+j),imp=1,nmp)  ! CL partial differential
+c     read(lunr,*) (a(imp,ntg+2),imp=1,nmp)  ! CT partial differential
+c     read(lunr,*) (a(imp,ntg+3),imp=1,nmp)  ! CC partial differential
+c     read(lunr,*) (a(imp,ntg+4),imp=1,nmp)  ! FS partial differential
+c     read(lunr,*) (a(imp,ntg+5),imp=1,nmp)  ! ZO partial differential
+      enddo
       read(lunr,*) (psc(ilev),ilev=1,nlev)   ! partial slant columns
       read(lunr,*)  ps                       ! surface pressure (atm)
       read(lunr,*) (pres(ilev),ilev=1,nlev)  ! pressure
@@ -141,13 +146,13 @@ c  Write out the PD's in a form that can be easily plotted (e.g. xyplot)
 c  This is for trouble-shooting/illustrative purposes only.
       open(lunw,file=filename(:lf)//'.wtf', status='unknown')
       write(lunw,*)2,1+nfp+nlev
-      write(lunw,'(a18,999(9x,a1,i2.2))')
-     & 'i  CL  CT  FS  ZO ',
+      write(lunw,'(a22,999(9x,a1,i2.2))')
+     & 'i  CL  CT  CC  FS  ZO ',
      & ('T',itg,itg=1,ntg),
      & ('S',ilev,ilev=0,nlev-1)
       do imp=1,nmp
          write(lunw,'(i5,999(1pe12.4))') imp,
-     &    (a(imp,itg),itg=ntg+1,ntg+4),  ! CL, CT, FS, ZO
+     &    (a(imp,itg),itg=ntg+1,ntg+nntgfp),  ! CL, CT, CC, FS, ZO
      &    (a(imp,itg),itg=1,ntg),
      &    (b(imp,ilev),ilev=1,nlev)
       end do

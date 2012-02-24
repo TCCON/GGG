@@ -17,13 +17,15 @@ c                 = 0 means that all lines exceeded fpos
 c                 = NREC means that no line exceeded fpos
 c
 c  Normal usage:
-c     k1=posnall(lunx,nu1,nrec)
-c     k2=posnall(lunx,nu2,nrec)
-c     nline=k2-k1
-c     do k=1,nline
-c        read(lunc,llformat,rec=k+k1) igas, iso, freq, strength, ....
+c     fsib=file_size_in_bytes(lun_ll,linfile)
+c     nlines=fsib/reclen
+c     open(lun_ll,file=linfile,access='direct',
+c    & form='formatted',status='old',recl=reclen)
+c     k1=posnall(lun_ll,nu1,nlines) ! index of the last line with v < NU1
+c     k2=posnall(lun_ll,nu2,nlines) ! index of the last line with v < NU2
+c     do kk=k1+1,k2
+c        read(lun_ll,llformat,rec=kk) igas, iso, freq, strength, eprime, ....
 c     end do
-
 
       implicit none
       integer unit,nrec,new,nlo,nhi

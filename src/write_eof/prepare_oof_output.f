@@ -15,30 +15,42 @@ c subroutine read_oneline_oof(inputfile,inputlun, oof_out,
 c & outfmt1, oof_flag, irow,
 c & vmin, vmax, pindex,
 c & nflag, eflag, kflag, flag,
-c & nrow, ncol, nchar, scale, ofmt
+c & nrow, ncol, mchar, scale, ofmt
 c & )
 
       subroutine prepare_oof_output(inputfile,inputlun,
      & outfmt1, oof_flag, irow, 
      & vmin, vmax, pindex, 
      & nflag, eflag, kflag, flag,
-     & nrow, ncol, nchar, scale, ofmt, headout)
+     & nrow, ncol, mchar, scale, ofmt, headout,naux)
      
 
       implicit none
+      include "../ggg_int_params.f"
       include "params.f"
+
       integer*4
      & ncoml,ncol,kcol,icol,j,lg,
      & lnbc,nrow,li,k,krow_qc,irow,lof0,lof1,
-     & eflag,wrow_flag,wsp_flag,
-     & nchar,lh,le,klat,klong,kzobs,ncol_written,
+     & eflag,wrow_flag,wsp_flag,naux,
+     & mchar,lh,le,klat,klong,kzobs,ncol_written,
      & jj,nflag,ncoml_qc,ncol_qc,nrow_qc,wcol_flag
       integer*4 flag(mrow_qc),pindex(mcol),kflag(mrow_qc),
      & oof_flag(mrow)
-      character header*800,headarr(mcol)*20,parname(mrow_qc)*20,
-     & gggdir*80, inputfile*80,version*62,
-     & outfmt0*512,outfmt1*512,ofmt(mrow_qc)*4,temp*20, fmt(mrow_qc)*4,
-     & unit(mrow_qc)*6,headout*8000,
+      character
+     & dl*1,
+     & gggdir*(mpath),
+c    & version*62,
+     & headarr(mcol)*20,
+     & parname(mrow_qc)*20,
+     & inputfile*80,
+     & outfmt0*512,
+     & outfmt1*512,
+     & ofmt(mrow_qc)*4,
+     & temp*20,
+     & fmt(mrow_qc)*4,
+     & unit(mrow_qc)*6,
+     & headout*8000,
      & ssss*800
       real*4 scale(mrow_qc),
      & vmin(mrow_qc),vmax(mrow_qc)
@@ -61,25 +73,27 @@ c      version=
 c     & ' write_official_output_file   Version 1.2.2   2009-11-07   GCT'
 c      write(*,*) version
 
-      nchar=0
+      mchar=0
       klat=0
       klong=0
       kzobs=0
       wrow_flag=1
       wsp_flag=1
 
-      call getenv('GGGPATH',gggdir)
+      call get_ggg_environment(gggdir, dl)
       lg=lnbc(gggdir)
 
       li=lnbc(inputfile)
-      if(inputfile(li-3:li).ne.'.aia') write(*,*)
-     & 'Warning: input file is not of expected type (.aia)'
+c     if(inputfile(li-3:li).ne.'.aia'.or.
+c    & inputfile(li-3:li).ne.'.gaa') write(*,*)
+c    & 'Warning: input file is not of expected type (.aia or .gaa)'
 
 c  Open the Quality Control (QC) file and read in the information,
 c  to find out how many columns there are going to be in the .oof output files
 c     write(*,*)gggdir(:lg)//'/tccon/'//inputfile(1:2)//'_qc.dat'
       open(lun_qc,file=
-     & gggdir(:lg)//'/tccon/'//inputfile(1:2)//'_qc.dat', status='old')
+     & gggdir(:lg)//'tccon'//dl//inputfile(1:2)//'_qc.dat',
+     & status='old')
 c     write(*,*)gggdir(:lg)//'/tccon/'//inputfile(1:2)//'_qc.dat'
       read(lun_qc,*)ncoml_qc,ncol_qc,nrow_qc
       if(nrow_qc.gt.mrow_qc) stop 'nrow_qc > mrow_qc'
@@ -102,10 +116,12 @@ c     write(*,*)gggdir(:lg)//'/tccon/'//inputfile(1:2)//'_qc.dat'
 c  Read input file and start writing output files
 c       write(*,*) inputfile
       open(inputlun,file=inputfile, status='old')
-      read(inputlun,'(i2,i4,i7)') ncoml,ncol,nrow
+      read(inputlun,'(i2,i4,i7,i4)') ncoml,ncol,nrow,naux
+c     write(*,*)'naux_prepare',naux
       if(ncol.gt.mcol) stop 'increase mcol'
       open(lun_qc,file=
-     & gggdir(:lg)//'/tccon/'//inputfile(1:2)//'_qc.dat', status='old')
+     & gggdir(:lg)//'tccon'//dl//inputfile(1:2)//'_qc.dat',
+     & status='old')
       read(lun_qc,*)ncoml_qc,ncol_qc,nrow_qc
       do j=2,ncoml-1
          read(inputlun,'(a)') header
@@ -113,7 +129,7 @@ c       write(*,*) inputfile
       read(inputlun,'(a)') header ! column headers
       call substr(header,headarr,mcol,kcol)
       if(kcol.ne.ncol) stop 'ncol/kcol mismatch'
-      if (index(header,'spectrum') .gt. 0) nchar=1
+      if (index(header,'spectrum') .gt. 0) mchar=1
 
       do k=2,ncoml_qc
          read(lun_qc,'(a)') header
@@ -161,11 +177,11 @@ c     &   ' Parameter missing from QC file: '//headarr(icol)
 
       headout=' flag  spectrum'
       outfmt0='(i3'
-      outfmt1='(i3,1x,a38'
+      outfmt1='(i3,1x,a57'
       lof0=0
       lof1=0
       jj=0
-      do icol=1+nchar,ncol
+      do icol=1+mchar,ncol
          krow_qc=pindex(icol)
          if(flag(krow_qc).ge.1) then
             lof0=lnbc(outfmt0)

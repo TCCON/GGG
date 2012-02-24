@@ -45,15 +45,21 @@ c     GRAMS (512 byte binary header)
 c     JA (ASCII Jungfraujoch format)
 c
       implicit none
+      include "../ggg_const_params.f"
+      include "params.f"
+
       character specname*(*),spfmt*2,path*(*),amon*3,apf*2,
      & hst*80,runtype*1,date*8,c16*2
-      integer*4 dtype,hedlen,luns,iy,im,id,idwas,hh,mm,ss,ms,
-     & object,ktype,nip,nnn,isr,dfr,pkl,prl
+      integer*4 dtype,hedlen,luns,
+     & idwas,hh,mm,ss,ms,
+     & ktype,nip,nnn,isr,dfr,pkl,prl
 c      integer*2 mrs
       parameter (hedlen=512,luns=19)
 c      integer*2 i2val(mrs)
 
-      integer*4 possp,bytepw,fftsiz,ifirst,ilast,jj,jd,
+      integer*4
+     & jj,
+     & fftsiz,
      $ nfwdscans,posnrun,i,ic,krec,iflag,gfw,gbw,
      & lnbc,npoints,irec,reclen,
      $ iend,nscan,iscan,nintp,ncenter
@@ -61,9 +67,9 @@ c      integer*2 i2val(mrs)
       real*8 delwav,wsfact,dstep,nus,nue,nubar,
      $ apt,dur,lfl,hfl,oblat,oblon,obalt,
      & wspd,wdir,sia,sis,
-     $ startf,stopf,res,phr,vel,foc,pi,d2r,tgmt,
+     $ startf,stopf,res,phr,vel,foc,d2r,tgmt,
      & zpdtim,t_s,dt
-      parameter (pi=3.14159265d0,d2r=pi/180)
+      parameter (d2r=dpi/180)
 
       real*8 fovi,gmt,gmtstart,gmtwas,lasf,
      & opd,scandelt,sampfreq,
@@ -80,7 +86,8 @@ c      integer*2 i2val(mrs)
       real*4    r4hedr(hedlen/4), r4bombin(256)
       real*8    r8hedr(hedlen/8), r8bombin(128)
       real*4 sigflo(8), sigfhi(8)
-      integer*4 logoffset, charoff, ifil, ivac, iostat
+      integer*4 logoffset, charoff, ifil, ivac
+c    & ios
       logical*1 pcat
 
 c      equivalence (i2val,i4val,r8val,cval)  ! for OPUS
@@ -134,28 +141,28 @@ c       Read Grams header 512 bytes
         npoints=i4hedr(2)
 c       Read in Bomem binary block 1024 bytes at offset flogoff+64
           logoffset=i4hedr(63)+64                               !i4hedr(63)=flogoff
-          read(19,rec=int(logoffset/hedlen)+1,iostat=iostat)chhedr
-          if(iostat.lt.0)goto 100
+          read(19,rec=int(logoffset/hedlen)+1,iostat=ios)chhedr
+          if(ios.lt.0)goto 100
           charoff=logoffset-int(logoffset/hedlen)*hedlen
           bombin(1:hedlen-charoff)=chhedr(charoff+1:hedlen)
-        read(19,rec=int(logoffset/hedlen)+2,iostat=iostat)chhedr
-          if(iostat.lt.0)goto 100
+        read(19,rec=int(logoffset/hedlen)+2,iostat=ios)chhedr
+          if(ios.lt.0)goto 100
           bombin(hedlen-charoff+1:2*hedlen-charoff)=chhedr
-        read(19,rec=int(logoffset/hedlen)+3,iostat=iostat)chhedr
+        read(19,rec=int(logoffset/hedlen)+3,iostat=ios)chhedr
           bombin(2*hedlen-charoff+1:1024)=chhedr
-          if(iostat.lt.0)goto 100
+          if(ios.lt.0)goto 100
 c       Read in Log text block 1024 bytes at offset flogoff+64+1024
           logoffset=logoffset+1024
-          read(19,rec=int(logoffset/hedlen)+1,iostat=iostat)chhedr
-          if(iostat.lt.0)goto 100
+          read(19,rec=int(logoffset/hedlen)+1,iostat=ios)chhedr
+          if(ios.lt.0)goto 100
           charoff=logoffset-int(logoffset/hedlen)*hedlen
           logblock(1:hedlen-charoff)=chhedr(charoff+1:hedlen)
-        read(19,rec=int(logoffset/hedlen)+2,iostat=iostat)chhedr
-          if(iostat.lt.0)goto 100
+        read(19,rec=int(logoffset/hedlen)+2,iostat=ios)chhedr
+          if(ios.lt.0)goto 100
           logblock(hedlen-charoff+1:2*hedlen-charoff)=chhedr
-        read(19,rec=int(logoffset/hedlen)+3,iostat=iostat)chhedr
+        read(19,rec=int(logoffset/hedlen)+3,iostat=ios)chhedr
           logblock(2*hedlen-charoff+1:1024)=chhedr
-          if(iostat.lt.0)goto 100
+          if(ios.lt.0)goto 100
 100       close(19)
 
 c     Get filter and date from file name
@@ -381,7 +388,11 @@ c                 write(*,'(a)') path(:lnbc(path)),hst(10:)
            end do  ! krec=1,36
         end do  ! while iflag eq 0
         possp=80*irec
-        iy=iy+1900     
+        if(iy.lt.50) then
+           iy=iy+2000
+        else
+           iy=iy+1900     
+        endif
         opd=0.5/resn
         pout=1013.25*pout/760
 c        write(*,*)nus,nue,tout,pout
@@ -774,10 +785,17 @@ c        write(*,*)'  gmtstart  Delta_t(s) =',specname,gmtstart,
 c     &  nint(((id-idwas)*24.0d0+gmtstart-gmtwas)*3600)
         idwas=id
         gmtwas=gmtstart
+c  Some old spectra have GFW=0 and GBW=0, so can't tell whether
+c  it was a FWD or REV scan. So adopt the following kludge.
+        if(gfw.eq.0 .and. gbw.eq.0) then
+          if(pkl.gt.prl) gfw=1
+          if(pkl.le.prl) gbw=1
+        endif
+
         if(hfl.eq.0 .and. lfl.eq.0) hfl=lasf
         if(nip.le.0) then
            if(pkl.le.0 .or. prl.le.0) then
-              nip=2*0.9*(hfl-lfl)*(1/res+1/phr)
+              nip=2*0.9*(hfl-lfl)*(1/res+1/phr)/dfr
            else
               nip=pkl+prl  ! Primary Sites (slice-ipp)
 c              write(*,*)'pkl,prl,nip=',pkl,prl,nip
@@ -790,14 +808,16 @@ c              write(*,*)'pkl,prl,nip=',pkl,prl,nip
         nnn=nip
         if(gfw.eq.gbw) nnn=nip*2
 
-        isr=nint(2000*vel*(hfl-lfl)/lasf)  ! Igram Sampling Rate (Hz)
-        if(dfr.gt.1) isr=isr/dfr          ! Digital Filter Reduction
+        isr=nint(2000*vel*(hfl-lfl)/lasf)/dfr  ! Igram Sampling Rate (Hz)
+c        if(dfr.gt.1) isr=isr/dfr          ! Digital Filter Reduction
         t_s=dfloat(nip)/isr                ! Scan Time
 c
 c Reverse REV scans that OPUS has flipped to make appear as FWD scan
+c        write(*,*) gfw, gbw, pkl, prl, nip, isr, t_s, dur
         if(gbw.gt.0 .and. prl.lt.nip/2) prl=nip-prl
 
         dt=dur/2+t_s*(dfloat(pkl+prl)/nnn-0.5d0)
+c        write(*,*) gfw, gbw, pkl, prl, nip, isr, t_s, dur, dt
         gmt=gmtstart+dt/3600.
 c        write(*,*)' gmtstart: ',dt,dur,pkl,prl,nnn
 

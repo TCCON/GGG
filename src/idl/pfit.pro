@@ -46,7 +46,7 @@ psn=1
 idn=0
 ttyp=0
 vbar_was=0.
-version=string('pfit  v.4.5.1    24-Feb-2010    GCT')
+version=string('pfit  v.4.5.1a   24-Feb-2010    GCT')
 print,version
 
 disk=getenv('GGGPATH')+'/'
@@ -75,11 +75,11 @@ endwhile
 print,idot+1, strmid(occul,idot+1,1)
 ;
 case strmid(occul,idot+1,1) of
-   'g': openr,unit,string(disk,'runlogs/gnd/',occul),/get_lun
-   'a': openr,unit,string(disk,'runlogs/air/',occul),/get_lun
-   'b': openr,unit,string(disk,'runlogs/bal/',occul),/get_lun
-   'o': openr,unit,string(disk,'runlogs/orb/',occul),/get_lun
-   'l': openr,unit,string(disk,'runlogs/lab/',occul),/get_lun
+   'g': openr,unit,string(disk+'runlogs/gnd/'+occul),/get_lun
+   'a': openr,unit,string(disk+'runlogs/air/'+occul),/get_lun
+   'b': openr,unit,string(disk+'runlogs/bal/'+occul),/get_lun
+   'o': openr,unit,string(disk+'runlogs/orb/'+occul),/get_lun
+   'l': openr,unit,string(disk+'runlogs/lab/'+occul),/get_lun
 endcase
 
 readf,unit,names   ; skip title line
@@ -131,11 +131,11 @@ two:
   if(ntgas gt 2) then begin
      readf,unit,format='(2f14.6,i7,3f8.3,1x,2f7.4,f7.3,1x,i3,f4.1,1x,i3)',$
      fmin,fmax,npoints,asza,zobs,tang,rms,frac,colmant,colexp,errmant,errexp
-     print,fmin,fmax,npoints,asza,zobs,tang,rms,frac
+     print,fmin,fmax,npoints,asza,zobs,tang,rms,frac,colmant,colexp,errmant,errexp
      expont=max([colexp,errexp])
      burden=colmant*(10^(colexp-expont))
      berr=errmant*(10^(errexp-expont))
-     print,burden,berr
+     print,'column=',burden,berr
   endif else begin
      readf,unit,format='(2f14.6,i7,3f8.3,1x,2f7.4)',$
      fmin,fmax,npoints,asza,zobs,tang,rms,frac
@@ -143,9 +143,10 @@ two:
      berr=0.0
      expont=0
   endelse
-  print,path(kspec),npoints
+  print,'path,npoints=',path(kspec),npoints
   if npoints le 0 then goto,two
   readf,unit,headers
+  print,'headers=',headers
 ;  headers=headers+'other'
   if kskip ne 0 then begin
   if same_window eq 1 then begin
@@ -163,13 +164,18 @@ two:
 ;  datarray=dblarr(3+ntgas,npoints)
 ;  readf,unit,datarray
 ; Moved these 3 lines May 19, 2010
+  print,'Before closeunit'
 closeunit:
+  print,'After closeunit'
   print,"defining datarray: ",3+ntgas,npoints
   datarray=dblarr(3+ntgas,npoints)
+  print,"defined datarray: ",npoints
   readf,unit,datarray
+;  print,"readf datarray: ",npoints
 
   close,unit
   free_lun,unit
+  print," closed unit: ",npoints
   if npoints le 0 then goto,two
 ;
 ;; The following loop multiplies the various target transmittances
@@ -181,6 +187,7 @@ closeunit:
 ;  endfor
 ;
   pathlen=strlen(path(kspec))
+  print,'pathlen=',pathlen
   text(ntgas)=string(strmid(path(kspec),pathlen-21,21))+$
   string(format='("  !7w!6=",(f6.2),"!9%")',asza)+$
   string(format='("   !6Z!dT!n=",(f7.2),"km")',tang)+$

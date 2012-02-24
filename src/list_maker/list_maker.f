@@ -14,16 +14,19 @@ c
 c  Uses the gindfile subroutine to search through the list of
 c  data partitions where spectra may be stored.
 c
+      include "../ggg_int_params.f"
+
       integer*4 lunw,fnbc,lnbc,lf,iyyyy,imm,idd,j1,j2,jul,
      & idet,idet_initial, idet_final,
      & ncount, nquery,lfi,lff,iext_initial,iext_final,iext
       parameter (lunw=14)
-      character path*80,filename*40,initial_file*40,final_file*40,
-     & det_initial*1,det_final*1,dplist*80
+      character path*(mpath),filename*40,initial_file*40,final_file*40,
+     & det_initial*1,det_final*1,gggdir*(mpath),dl*1
 
-      call getenv('GGGPATH',dplist)
-      dplist=dplist(:lnbc(dplist))//'/config/data_part_list_maker.lst'
-      write(*,*) dplist
+      call get_ggg_environment(gggdir, dl)
+      gggdir=gggdir(:lnbc(gggdir))//'config'//dl//
+     &  'data_part_list_maker.lst'
+      write(*,*) gggdir
 
       write(*,*) 'Enter initial file (e.g. pa20040520saaaaa.001)'
       read(*,'(a)') initial_file
@@ -56,7 +59,7 @@ c
          do iext=iext_initial,iext_final
             do idet=idet_initial,idet_final
                write(filename(lf-4:lf),'(2a1,i3.3)') char(idet),'.',iext
-               call gindfile(dplist,filename,path)
+               call gindfile(gggdir,filename,path)
                nquery=nquery+1
                if(lnbc(path).gt.0) then
                     ncount=ncount+1
@@ -64,12 +67,12 @@ c
                endif
 c              write(*,*)file_exists,filename
                if( mod(nquery,10000).eq.0 ) write(*,*) ncount,
-     &         ' files listed   ',nquery,' queries performed',
+     &         ' files listed   ',nquery,' queries performed ',
      &         filename
             end do
          end do
       end do
       close(lunw)
-      write(*,*) ncount,' files listed   ',nquery,' queries performed'
+      write(*,*) ncount,' files listed   ',nquery,' queries performed '
       stop
       end

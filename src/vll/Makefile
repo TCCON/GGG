@@ -11,7 +11,8 @@ SOURCES := \
   $(COMN)/lloc.f \
   $(COMN)/hitran_to_atmos_gas_numbering.f \
   $(COMN)/file_size_in_bytes.f \
-  $(COMN)/posnall.f
+  $(COMN)/posnall.f \
+  $(COMN)/get_ggg_environment.f
 
 OBJECTS := $(patsubst %.f, %.o, $(SOURCES))
 
@@ -22,3 +23,10 @@ OBJECTS := $(patsubst %.f, %.o, $(SOURCES))
 #  Link the object files to create the executable
 $(TARGET) : $(OBJECTS)
 	$(FC) $(LDFLAGS) -o $(GGGPATH)/bin/$@ $^
+
+#  Add dependencies to object files
+$(TSRC)/vll.o:  $(GGGPATH)/src/ggg_int_params.f
+
+clean:
+	rm -f $(OBJECTS) $(GGGPATH)/bin/$(TARGET)
+

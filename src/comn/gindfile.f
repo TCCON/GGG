@@ -1,6 +1,6 @@
       subroutine gindfile(dplist,filnam,path)
 
-c   FINDFILE     Version 3.1.2     GCT    12-Nov-99
+c   GINDFILE     Version 3.1.2     GCT    12-Nov-99
 c   Locates a file and returns the path to it (including the filename).
 c   Systematically searches through the list of partitions, starting at
 c   the partition where the previous spectrum was found.
@@ -22,6 +22,8 @@ c       4)    Partition names beginning with a ':' are skipped
 c       5)    There are no more than MPART (=50) uncommented partitions
 c
       implicit none
+      include "../ggg_int_params.f"
+
       integer*4
      $ lf,       ! length of filnam string
      & fq, lq,   ! Positions of first and last ? in partition
@@ -32,9 +34,10 @@ c
      $ ipart,    ! partition index
      $ npart,    ! number of partitions to be searched
      $ mpart     ! maximum supported number of partitions
-      parameter (lunr=19,mpart=50)
-      character dplist*(*),filnam*(*),path*(*),partition(mpart)*80,
-     & root*40
+      parameter (lunr=19,mpart=256)
+      character dplist*(*),filnam*(*),path*(*),
+     & partition(mpart)*(mfilepath),
+     & gggdir*(mpath),dl*1
       logical*4 flexst
       save ipart,npart,partition
       data ipart,npart/1,0/
@@ -45,16 +48,16 @@ c
 c
 c  If first call, read file containing list of data partitions to be searched.
          if(npart.lt.1) then
-         call getenv('GGGPATH',root)
+         call get_ggg_environment(gggdir, dl)
 c            write(*,*)dplist
             open(lunr,file=dplist,status='old')
             do j=1,mpart
  1             read(lunr,'(a)',end=88) partition(j)
                if(partition(j)(1:1).eq.':') go to 1
                if(partition(j)(1:10).eq.'$(GGGPATH)') partition(j)=
-     &           root(:lnbc(root))//partition(j)(11:)
+     &           gggdir(:lnbc(gggdir))//partition(j)(11:)
             end do
-            write(*,*)'FINDFILE warning: Increase MPART=',mpart
+            write(*,*)'GINDFILE warning: Increase MPART=',mpart
 88          npart=j-1
             close(lunr)
 c            ipart=1
@@ -66,9 +69,9 @@ c  Systematically search over the NPART partitions starting at IPART
            if(fq.gt.0) then
               lq=lloc(partition(ipart),'?')  ! location of last ?
               path=partition(ipart)(:fq-1)//filnam(1:1+lq-fq)//
-     &        partition(ipart)(lq+1:lnbc(partition(ipart)))//filnam(:lf)
+     &       partition(ipart)(lq+1:lnbc(partition(ipart)))//filnam(:lf)
            else
-             path=partition(ipart)(:lnbc(partition(ipart)))//filnam(:lf)
+            path=partition(ipart)(:lnbc(partition(ipart)))//filnam(:lf)
            endif
            inquire(file=path,exist=flexst)
 c           write(*,*) path(:lnbc(path)),lf,flexst

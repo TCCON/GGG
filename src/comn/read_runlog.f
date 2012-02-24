@@ -90,9 +90,12 @@ c Note: ASCI character 9 is a horizontal tab.
      &  obalt,asza,zenoff,opd,fovi,fovo,amal,ifirst,ilast,graw,
      &  possp,bytepw,zoff,zerr,snr,scalf,apf
       elseif(lr.le.162) then     ! SPACE delimited (e.g. MkIV)
-        read(record,331,err=97) specname,iyr,iset,zpdtim,oblat,oblon,
+        specname(1:1)=col1
+        read(record,331,err=97)specname(2:),iyr,iset,zpdtim,oblat,oblon,
      &  obalt,asza,zenoff,opd,fovi,fovo,amal,ifirst,ilast,graw,possp,
      &  bytepw,zoff,snr,apf,tout,pout,hout
+ 331  format(a11,2x,2i4,f8.4,f7.3,f8.3,2f8.3,f7.0,f7.2,3f6.0,2i8,f14.11,
+     & i8,i3,2f5.0,1x,a2,f4.0,f8.0,f3.0)
         tins=25.0
         pins=pout
         hins=15
@@ -102,8 +105,6 @@ c Note: ASCI character 9 is a horizontal tab.
         wavtkr=9999.0d0
         aipl=0.001
         write(*,*)'OSDS set to zero (missing from old-format runlog)'
- 331  format(a12,2x,2i4,f8.4,f7.3,f8.3,2f8.3,f7.0,f7.2,3f6.0,2i8,f14.11,
-     & i8,i3,2f5.0,1x,a2,f4.0,f8.0,f3.0)
       elseif(lr.le.233) then     ! SPACE delimited (e.g. MkIV)
         read(record,332,err=97) specname,iyr,iset,zpdtim,oblat,oblon,
      &  obalt,asza,zenoff,opd,fovi,fovo,amal,ifirst,ilast,graw,possp,
@@ -132,13 +133,22 @@ c Note: ASCI character 9 is a horizontal tab.
      & f7.2,3f6.0,2i9,f15.11,
      & i9,i3,1x,2f5.0,1x,a2,2(f6.0,f8.0,f5.0),
      & f7.1,f7.4,f6.1,f6.0,f10.0,f7.0,f7.3)
-      else                 ! New GDS-format runlog
+      elseif(lr.eq.301) then
         read(record,335,err=98) specname,iyr,iset,zpdtim,oblat,oblon,
+     &  obalt,asza,zenoff,azim,osds,opd,fovi,fovo,amal,ifirst,ilast,
+     &  graw,possp,bytepw,zoff,snr,apf,tins,pins,hins,tout,pout,hout,
+     &  sia,fvsi,wspd,wdir,lasf,wavtkr,aipl
+ 335  format(a57,1x,2i4,f8.4,f8.3,f9.3,2f8.3,f7.0,f8.3,f7.3,
+     & f7.2,3f6.0,2i9,f15.11,
+     & i9,i3,1x,2f5.0,1x,a2,2(f6.0,f8.0,f5.0),
+     & f7.1,f7.4,f6.1,f6.0,f10.0,f7.0,f7.3)
+      else                 ! New GDS-format runlog
+        read(record,336,err=98) specname,iyr,iset,zpdtim,oblat,oblon,
      &  obalt,asza,zenoff,opd,fovi,fovo,amal,ifirst,ilast,graw,possp,
      &  bytepw,zoff,snr,apf,tins,pins,hins,tout,pout,hout,lasf,wavtkr,
      &  sia,sis,aipl
         if(sia.ne.0.0) fvsi=sis/sia
- 335  format(a35,1x,2i4,f8.4,f8.3,f9.3,2f8.3,f7.0,f7.2,3f6.0,2i8,f15.11,
+ 336  format(a35,1x,2i4,f8.4,f8.3,f9.3,2f8.3,f7.0,f7.2,3f6.0,2i8,f15.11,
      & i8,i3,1x,2f5.0,1x,a2,2(f6.0,f8.0,f5.0),f10.0,f7.0,2f6.1,f7.3)
       endif
       istat=0

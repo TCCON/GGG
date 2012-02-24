@@ -32,12 +32,13 @@ c  FREQ is the frequency (cm-1) of interest
 c  FOVD is the diameter of the field-of-view (radians)
 c
       implicit none
+      include "../ggg_const_params.f"
+
       INTEGER*4 k,apo,ns,np,jp
-      REAL*4 a(ns),zero
-      REAL*8 resnog,rectog,off,c(0:3,0:3),del,can,pi,xx,hwid
+      REAL*4 a(ns)
+      REAL*8 resnog,rectog,off,c(0:3,0:3),del,can,xx,hwid
       real*8 p,t,t2,t4,t6,t8,q0,q1,q2,q4,tr
       SAVE C
-      parameter (pi=3.14159265d0,zero=0.0)
       data c/1.0,0.5480,0.2600,0.0900,
      &       0.0,-.0833,-.154838,0.00,
      &       0.0,0.5353,.894838,.5875,
@@ -67,7 +68,7 @@ c  three moments of the continuous distribution (area, position, and hwidth).
 c      write(*,*)'np=',np,resnog,rectog
 c
 c  Calculate truncated instrumental function (sinx/x for apo=0)
-      can=pi/resnog
+      can=dpi/resnog
       DO 1040 k=1,ns
       a(k)=0.0
       xx=dble(k)-1.d0-hwid
@@ -100,7 +101,7 @@ c  Calculate truncated instrumental function (sinx/x for apo=0)
       endif
 1041  CONTINUE
       a(k)=a(k)*sngl((1.d0-(xx/(hwid+0.0d0))**2)**2)  ! apodize weakly
-c      a(k)=a(k)*(cos(3.14159265d0*xx/hwid/2))**4  ! apodize weakly
+c      a(k)=a(k)*(cos(dpi*xx/hwid/2))**4  ! apodize weakly
 1040  CONTINUE
       return
       end

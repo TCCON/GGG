@@ -15,14 +15,17 @@ c  various aircraft over-flights.  This is evaluated only for
 c  spectra that overlap the duration of the aircraft profile.
 c
       implicit none
+      include "../ggg_int_params.f"
+
       integer*4 lunr,luns,lunw,ncoml,ncol,mcol,kcol,icol,i,j,kco2,ko2,
-     & iy1,id1,ih1,im1,is1,iy2,id2,ih2,im2,is2,nap,lnbc,lg,kap,
-     & nchar,
+     & iy1,id1,ih1,im1,is1,iy2,id2,ih2,im2,is2,nap,lnbc,lg,lgs,kap,
+     & mchar,
      & kqcflag,
      & nrow,irow,kair,kh2o,kfvsi,kyear,klat,klon,ksza
       parameter (lunr=14,luns=15,lunw=16,mcol=50)
-      character header*800, headarr(mcol)*20, gggdir*80, inputfile*40,
-     & specname*35, version*62
+      character header*800, headarr(mcol)*20, gggdir*(mpath),
+     &  inputfile*40,
+     & specname*(nchar), version*62, gas*3,dl*1
       real*8 yrow(mcol),alat,alon,zz,tk,ratio,
      & tt,ty,ty2,tsza, 
      & qc_threshold,
@@ -44,10 +47,10 @@ c
       ksza=0
       kqcflag=0
 
-      nchar=0
+      mchar=0
       qc_threshold=2.
 
-      call getenv("GGGPATH", gggdir)
+      call get_ggg_environment(gggdir, dl)
       write(*,*)gggdir
       lg=lnbc(gggdir)
       write(*,*)'Enter name of input file (e.g. paIn_1.0lm.vav.ada):'
@@ -59,18 +62,34 @@ c
          read(lunr,*)
       end do
       read(lunr,'(a)')header
+
+c Determine which gas to process
+      gas = '   '
+3     write(6,9913)
+9913  format(' Gas (1=xco2,2=xco,3=xch4,4=xn2o) ? ',$)
+      read(5,'(a)') gas(1:1)
+      if(gas(1:1).eq.'1') gas(1:3)='co2'
+      if(gas(1:1).eq.'2') gas(1:3)='co '
+      if(gas(1:1).eq.'3') gas(1:3)='ch4'
+      if(gas(1:1).eq.'4') gas(1:3)='n2o'
+      if(gas(2:3).eq.'  ') go to 3
+      write(*,*)'Processing ',gas
+      lgs=lnbc(gas)
+
       call substr(header,headarr,mcol,kcol)
       if(kcol.ne.ncol ) stop 'ncol/kcol mismatch'
-      if (index(header,'Spectrum') .gt. 0) nchar=1
+      call lowercase(header)
+      if (index(header,'spectrum').gt.0) mchar=1
       open(lunw,file='dic_'//
-     & inputfile(:lnbc(inputfile))//'.out',status='unknown')
+     & inputfile(:lnbc(inputfile))//'_'//gas(:lgs)//'.out',
+     & status='unknown')
       do icol=1,ncol
 c         write(*,*)icol,headarr(icol)
 c  Find out which columns of the .vav file contain the required parameters
 c  This allows flexibility in the order of the columns.
          if(headarr(icol) .eq. 'xair') kair=icol
          if(headarr(icol) .eq. 'xh2o') kh2o=icol
-         if(headarr(icol) .eq. 'xco2') kco2=icol
+         if(headarr(icol) .eq. 'x'//gas(:lgs)) kco2=icol
          if(headarr(icol) .eq.  'xo2') ko2=icol
          if(headarr(icol) .eq. 'fvsi') kfvsi=icol
          if(headarr(icol) .eq.'year') kyear=icol
@@ -80,7 +99,7 @@ c  This allows flexibility in the order of the columns.
          if(headarr(icol) .eq.'qcflag') kqcflag=icol
       end do
 
-      if(kco2.eq.0) stop 'xco2 missing from input file  '
+      if(kco2.eq.0) stop 'xgas missing from input file  '
       if(ko2.eq.0)  stop ' xo2 missing from input file  '
       if(kh2o.eq.0) stop 'xh2o missing from input file  '
       if(kair.eq.0) stop 'xair missing from input file  '
@@ -90,11 +109,12 @@ c      write(*,*)kair,kh2o,kco2,ko2,kfvsi,kyear,klat,klon,ksza
       tt=0.0d0
       ty=0.0d0
       ty2=0.0d0
+c     write(*,*)'mchar=',mchar
       do irow=1,999999
-         if (nchar .eq. 1) then
-             read(lunr,*,end=88) specname, (yrow(j),j=1+nchar,ncol)
+         if (mchar .eq. 1) then
+             read(lunr,*,end=77) specname, (yrow(j),j=1+mchar,ncol)
          else
-             read(lunr,*,end=88) (yrow(j),j=1,ncol)
+             read(lunr,*,end=77) (yrow(j),j=1,ncol)
          endif
          if (kqcflag .ne. 0) then
             if( yrow(kqcflag) .lt. qc_threshold) cycle
@@ -109,8 +129,10 @@ c      write(*,*)kair,kh2o,kco2,ko2,kfvsi,kyear,klat,klon,ksza
          tt=tt+wt
          ty=ty+wt*zz
          ty2=ty2+wt*zz**2
+c        write(*,*)'fair,fvsi,fh2o,fyear=',fair,fvsi,fh2o,yrow(kyear)
+c         write(*,*)'yrow(kyear)',yrow(kyear)
       end do   ! irow=1,999999
-      close (lunr)
+77    close (lunr)
       nrow=irow-1
       write(*,*)
       write(lunw,*)
@@ -123,18 +145,19 @@ c      write(*,*)kair,kh2o,kco2,ko2,kfvsi,kyear,klat,klon,ksza
       write(*,*)
       write(*,*)
       write(lunw,'(a)')
-     & 'Year  DOY  NOBS   SZA    XCO2_AC Error  XCO2_FTS Error
-     &  Ratio   Error'
-      write(*,*)'Year  DOY  NOBS   SZA    XCO2_AC Error  XCO2_FTS Error
-     &  Ratio   Error'
+     & 'Year  DOY  NOBS   SZA    X'//gas(:lgs)
+     &  //'_AC Error  X'//gas(:lgs)//'_FTS Error  Ratio    Error'
+      write(*,*)'Year  DOY  NOBS   SZA    X'//gas(:lgs)//
+     & '_AC Error  X'//gas(:lgs)//'_FTS Error  Ratio    Error'
 
       ttn=0.0
       tt0=0.0
       tt1=0.0
       tt2=0.0
 c  Read in line of aircraft profile XCO2
-      open(luns,file=gggdir(:lg)//'/tccon/aircraft_overflights.dat',
-     &  status='old')
+
+      open(luns,file=gggdir(:lg)//'tccon'//dl//'aircraft_overflights_'
+     & //gas(:lgs)//'.dat',status='old')
       read(luns,*)
       do kap=1,999
          tn=0.0
@@ -148,8 +171,11 @@ c  Read in line of aircraft profile XCO2
          read(luns,*,end=88)alat,alon,iy1,id1,ih1,im1,is1,
      &   iy2,id2,ih2,im2,is2,xco2_ac,xco2_ac_err
          fxco2_ac=xco2_ac_err/xco2_ac
-         tstart=iy1+(id1+(ih1+(im1+float(is1)/60)/60)/24)/365.25
-         tstop =iy2+(id2+(ih2+(im2+float(is2)/60)/60)/24)/365.25
+c        tstart=iy1+(id1+(ih1+(im1+float(is1)/60)/60)/24)/365.25
+c        tstop =iy2+(id2+(ih2+(im2+float(is2)/60)/60)/24)/365.25
+         tstart=iy1+(id1+(ih1+(im1+float(is1)/60)/60)/24)/366 ! this is to match collate_results.f
+         tstop =iy2+(id2+(ih2+(im2+float(is2)/60)/60)/24)/366
+c        write(*,*)'tstart,tstop,yrow(kyear)',tstart,tstop,yrow(kyear)
 
 c Read the FTS data file, again
          open(lunr,file=inputfile, status='old')
@@ -157,17 +183,20 @@ c Read the FTS data file, again
            read(lunr,*) 
          end do
          do i=1,nrow
-            if (nchar .eq. 1) then
-               read(lunr,*,end=88) specname, (yrow(j),j=1+nchar,ncol)
+            if (mchar .eq. 1) then
+               read(lunr,*,end=66) specname, (yrow(j),j=1+mchar,ncol)
             else
-               read(lunr,*,end=88) (yrow(j),j=1,ncol)
+               read(lunr,*,end=66) (yrow(j),j=1,ncol)
             endif
             if (kqcflag .ne. 0) then
                if( yrow(kqcflag) .lt. qc_threshold) cycle
             endif
 c  If a measurement coincides with the current aircraft overpass      
+c           write(*,*)'tstart,tstop,fyear',tstart,tstop,yrow(kyear)
             if(yrow(kyear).ge.tstop) exit
             if(yrow(kyear).ge.tstart) then
+c              write(*,*)'yrow(klat),alat,yrow(klon),alon,yrow(kyear)=',
+c    & yrow(klat),alat,yrow(klon),alon,yrow(kyear)
                if(abs(yrow(klat)-alat) .lt. 0.2) then
                   if(abs(yrow(klon)-alon) .lt. 0.5) then
                      fco2=yrow(kco2+1)/yrow(kco2)
@@ -189,8 +218,9 @@ c  If a measurement coincides with the current aircraft overpass
                endif
             endif
          end do   ! irow=1,nrow
-         close(lunr)
+66       close(lunr)
          ratio=t1/t0  !  Ratio: FTS/Aircraft XCO2
+c        write(*,*)'tn=',tn
          if(nint(tn).gt.0) write(*,'(3i5,f7.1,2(f10.2,f6.2),2f9.4)')
      &  iy1,id1,nint(tn), tsza/t0,
      &  1.0e+06*xco2_ac, 1.0e+06*xco2_ac_err,
@@ -208,7 +238,9 @@ c  If a measurement coincides with the current aircraft overpass
       end do   ! kap=1,999
 88    close(luns)
       nap=kap-1  ! Number of aircraft profiles
+c     write(*,*)'nap=',nap
       ratio=tt1/tt0  !  Ratio: FTS/Aircraft XCO2
+c     write(*,*)'tt1,tt0=',tt1,tt0
       write(*,*) 'Average over all aircraft profiles ',
      & ratio,' +/-',ratio*sqrt(tt0*tt2-tt1**2)/tt1
       write(lunw,*) 'Average over all aircraft profiles ',

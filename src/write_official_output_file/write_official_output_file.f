@@ -11,20 +11,40 @@ c  Output Files:
 c       runlog.vav.ada.aia.oof
 c       
       implicit none
-      integer*4 lunr,lun_qc,lunw,lunc,lunh,
+      include "../ggg_int_params.f"
+
+      integer*4 lunr,lunr_qc,lunw,lunw_csv,lunr_oof,
      & ncoml,ncol,mcol,kcol,icol,j,lg,ncoml_head,
-     & lnbc,nrow,li,nco,k,kmax,mrow_qc,krow_qc,irow,lof0,lof1,
+     & lnbc,nrow,li,nco,k,kmax,krow_qc,irow,lof0,lof1,
      & eflag,wrow_flag,wsp_flag,
      & spectrum_flag,lh,le,klat,klong,kzobs,ncol_written,
      & jj,nflag,ncoml_qc,ncol_qc,nrow_qc,wcol_flag
-      parameter (lunr=14,lun_qc=15,lunw=16,lunc=17,lunh=18,mcol=150,
-     & mrow_qc=150)
+      parameter (lunr=14,lunr_qc=15,lunw=16,lunw_csv=17,lunr_oof=18,
+     & mcol=150)
       integer*4 flag(mrow_qc),pindex(mcol),kflag(mrow_qc)
-      character header*800,headarr(mcol)*20,parname(mrow_qc)*20,
-     & gggdir*80, inputfile*80,outputfile*80,csvfile*80,version*62,
-     & outfmt0*400,outfmt1*400,ofmt(mrow_qc)*4,temp*20, fmt(mrow_qc)*4,
-     & unit(mrow_qc)*6,headout*800,headoutcsv*800,
-     & specname*38,sitefile*200,ssss*800,sarr(mcol)*38,cc*20
+      character
+     & dl*1,
+     & gggdir*(mpath),
+     & version*62,
+     & specname*(nchar),
+     & csvfile*80,
+     & header*800,
+     & headarr(mcol)*20,
+     & parname(mrow_qc)*20,
+     & inputfile*80,
+     & outputfile*80,
+     & outfmt0*400,
+     & outfmt1*400,
+     & ofmt(mrow_qc)*4,
+     & temp*20,
+     & fmt(mrow_qc)*4,
+     & unit(mrow_qc)*6,
+     & headout*800,
+     & headoutcsv*800,
+     & sitefile*200,
+     & ssss*800,
+     & sarr(mcol)*57,
+     & cc*20
       real*4 yrow(mcol),dev,dmax,scale(mrow_qc),
      & vmin(mrow_qc),vmax(mrow_qc)
       real*8 wlimit
@@ -42,96 +62,102 @@ c
       wrow_flag=1
       wsp_flag=1
 
-      call getenv('GGGPATH',gggdir)
+      call get_ggg_environment(gggdir, dl)
       lg=lnbc(gggdir)
 
-      write(*,*)' Name of input file (e.g. paIn_1.0lm.vav.ada.aia):'
+      write(*,*)' Name of input file (e.g. paIn_1.0lm.vav.ada.aia.gaa):'
       read(*,'(a)') inputfile
       li=lnbc(inputfile)
-      if(inputfile(li-3:li).ne.'.aia') write(*,*)
-     & 'Warning: input file is not of expected type (.aia)'
+      if(inputfile(li-3:li).ne.'.aia'.and.
+     & inputfile(li-3:li).ne.'.gaa') write(*,*)
+     & 'Warning: input file is not of expected type (.aia or .gaa)'
       outputfile=inputfile(:li)//'.oof'
       csvfile=inputfile(:li)//'.oof.csv'
 
 c  Find length of site_oof_header.dat file
-      sitefile=gggdir(:lg)//'/tccon/'//inputfile(1:2)//'_oof_header.dat'
-      open(lunh, file=sitefile, status='old')
+      sitefile=gggdir(:lg)//'tccon'//dl//inputfile(1:2)
+     & //'_oof_header.dat'
+      open(lunr_oof, file=sitefile, status='old')
       do j=1,9999
-         read(lunh,'(a)',end=66),ssss
+         read(lunr_oof,'(a)',end=66),ssss
       end do
 66    ncoml_head=j-1
-      close(lunh)
+      close(lunr_oof)
       write(*,'(a,a,i4,a)') sitefile(:lnbc(sitefile)),
      & ' contains',ncoml_head,' lines'
 
 c  Open the Quality Control (QC) file and read in the information,
 c  to find out how many columns there are going to be in the .oof output files
-      open(lun_qc,file=
-     & gggdir(:lg)//'/tccon/'//inputfile(1:2)//'_qc.dat', status='old')
-      read(lun_qc,*)ncoml_qc,ncol_qc,nrow_qc
+      open(lunr_qc,file=
+     & gggdir(:lg)//'tccon'//dl//inputfile(1:2)//'_qc.dat',
+     & status='old')
+      read(lunr_qc,*)ncoml_qc,ncol_qc,nrow_qc
       if(nrow_qc.gt.mrow_qc) stop 'nrow_qc > mrow_qc'
-      read(lun_qc,*)wrow_flag   ! 0/1   whether to skip/write the out-of-range data records
-      read(lun_qc,*)wsp_flag    ! 0/1   whether to skip/write the spectrum names (if present in .aia file)
+      read(lunr_qc,*)wrow_flag   ! 0/1   whether to skip/write the out-of-range data records
+      read(lunr_qc,*)wsp_flag    ! 0/1   whether to skip/write the spectrum names (if present in .aia file)
       do k=4,ncoml_qc
-         read(lun_qc,'(a)') header
+         read(lunr_qc,'(a)') header
       end do
       ncol_written=1+wsp_flag   ! Always include "flag" in column #1
       do krow_qc=1,mrow_qc
-         read(lun_qc,*,end=77) temp,wcol_flag
+         read(lunr_qc,*,end=77) temp,wcol_flag
          ncol_written=ncol_written+wcol_flag
       end do
-77    close(lun_qc)
+77    close(lunr_qc)
       if(krow_qc-1.ne.nrow_qc)
      &  stop 'misreading xx_qc.dat file: krow_qc > nrow_qc'
 
 c  Read input file and start writing output files
+c     write(*,*)'inputfile=',inputfile
       open(lunr,file=inputfile, status='old')
       read(lunr,'(i2,i4,i7)') ncoml,ncol,nrow
       if(ncol.gt.mcol) stop 'increase mcol'
       open(lunw,file=outputfile,status='unknown')
-      open(lunc,file=csvfile,status='unknown')
-      open(lun_qc,file=
-     & gggdir(:lg)//'/tccon/'//inputfile(1:2)//'_qc.dat', status='old')
-      read(lun_qc,*)ncoml_qc,ncol_qc,nrow_qc
+      open(lunw_csv,file=csvfile,status='unknown')
+      open(lunr_qc,file=
+     & gggdir(:lg)//'tccon'//dl//inputfile(1:2)//'_qc.dat',
+     & status='old')
+      read(lunr_qc,*)ncoml_qc,ncol_qc,nrow_qc
       write(lunw,*) ncoml_head+ncoml_qc-0+ncoml+nrow_qc+4,ncol_written
-      write(lunc,*) ncoml_head+ncoml_qc-0+ncoml+nrow_qc+4,ncol_written
+      write(lunw_csv,*) ncoml_head+ncoml_qc-0+ncoml+nrow_qc+4,
+     &       ncol_written
       write(lunw,'(a)') version
-      write(lunc,'(a)') version
+      write(lunw_csv,'(a)') version
       do j=2,ncoml-1
          read(lunr,'(a)') header
          write(lunw,'(a)') header(:lnbc(header))
-         write(lunc,'(a)') header(:lnbc(header))
+         write(lunw_csv,'(a)') header(:lnbc(header))
       end do
       read(lunr,'(a)') header ! column headers
       call substr(header,headarr,mcol,kcol)
       if(kcol.ne.ncol) stop 'ncol/kcol mismatch'
       if (index(header,'spectrum') .gt. 0) spectrum_flag=1
 
-      open(lunh,
-     & file=gggdir(:lg)//'/tccon/'//inputfile(1:2)//'_oof_header.dat',
+      open(lunr_oof,
+     & file=gggdir(:lg)//'tccon'//dl//inputfile(1:2)//'_oof_header.dat',
      & status='old')
       do j=1,ncoml_head
-         read(lunh,'(a)'),ssss
+         read(lunr_oof,'(a)'),ssss
          write(lunw,'(a)') ssss(:lnbc(ssss))
-         write(lunc,'(a)') ssss(:lnbc(ssss))
+         write(lunw_csv,'(a)') ssss(:lnbc(ssss))
       end do
-      close(lunh)
+      close(lunr_oof)
 
       do k=2,ncoml_qc
-         read(lun_qc,'(a)') header
+         read(lunr_qc,'(a)') header
          if(k.eq.ncoml_qc) header=' #'//header
          write(lunw,'(a)') header(:lnbc(header))
-         write(lunc,'(a)') header(:lnbc(header))
+         write(lunw_csv,'(a)') header(:lnbc(header))
       end do
 
       do krow_qc=1,nrow_qc
-         read(lun_qc,'(a)') ssss
+         read(lunr_qc,'(a)') ssss
          write(lunw,'(i2,a)') krow_qc,ssss(:lnbc(ssss))
-         write(lunc,'(i2,a)') krow_qc,ssss(:lnbc(ssss))
+         write(lunw_csv,'(i2,a)') krow_qc,ssss(:lnbc(ssss))
          read(ssss,*) parname(krow_qc),flag(krow_qc),scale(krow_qc),
      &   fmt(krow_qc),unit(krow_qc),vmin(krow_qc),vmax(krow_qc)
       end do
-      close(lun_qc)
+      close(lunr_qc)
 
 c  Read the header of the .aia file and figure out the
 c  mapping between the gases in the corrections.dat
@@ -162,7 +188,7 @@ c  and those in the .vav file header
          headoutcsv=' flag,spectrum'
       endif
       outfmt0='(i3'
-      outfmt1='(i3,1x,a38'
+      outfmt1='(i3,1x,a57'
       lof0=0
       lof1=0
       jj=0
@@ -197,7 +223,7 @@ c     &      headarr(icol)(:lnbc(headarr(icol)))//unit(krow_qc)
       outfmt1(lof1+9:lof1+9)=')'
 
       write(lunw,'(120a1)') ('-',j=1,120)
-      write(lunc,'(120a1)') ('-',j=1,120)
+      write(lunw_csv,'(120a1)') ('-',j=1,120)
 c  Read each day of data into memory and multiply XGas values by the
 c  appropriate correction factors.
       nflag=0
@@ -205,19 +231,21 @@ c  appropriate correction factors.
          if (spectrum_flag .eq. 1) then
              read(lunr,*,end=99) specname, (yrow(j),j=2,ncol)
          else
+c             write(*,*)'irow,ncol=',irow,ncol
              read(lunr,*,end=99) (yrow(j),j=1,ncol)
          endif
          if (irow .eq. 1) then
              write(lunw,'(a)') 'Latitude  Longitude  Altitude  SiteID'
-             write(lunc,'(a)') 'Latitude  Longitude  Altitude  SiteID'
+             write(lunw_csv,'(a)')
+     &             'Latitude  Longitude  Altitude  SiteID'
              write(lunw,'(3f9.3,4x,(a))')
      &       yrow(klat),yrow(klong),yrow(kzobs),inputfile(1:2)
-             write(lunc,'(3f9.3,4x,(a))')
+             write(lunw_csv,'(3f9.3,4x,(a))')
      &       yrow(klat),yrow(klong),yrow(kzobs),inputfile(1:2)
              write(lunw,'(120a1)') ('-',j=1,120)
-             write(lunc,'(120a1)') ('-',j=1,120)
+             write(lunw_csv,'(120a1)') ('-',j=1,120)
              write(lunw,'(a)') headout(:lnbc(headout))
-             write(lunc,'(a)') headoutcsv(:lnbc(headoutcsv))
+             write(lunw_csv,'(a)') headoutcsv(:lnbc(headoutcsv))
          endif
 
 c  Look within each data record to see if any of the data values are
@@ -278,13 +306,16 @@ c         endif
             ssss=ssss(:lnbc(ssss))//','//cc(:lnbc(cc))
          end do
          if(eflag.eq.0.or.wrow_flag.gt.0)
-     &   write(lunc,'(a)')ssss(:lnbc(ssss))
+     &   write(lunw_csv,'(a)')ssss(:lnbc(ssss))
       end do         ! do irow=1,9999999
       stop ' irow exceeded 9999999'
 99    close(lunr)
       close(lunw)
-      close(lunc)
-      if(irow-1.ne.nrow) stop 'nrow mismatch'
+      close(lunw_csv)
+      if(irow-1.ne.nrow) then
+         write(*,*)'irow-1,nrow=',irow-1,nrow
+         stop 'irow/nrow mismatch'
+      endif
       write(*,*)nrow,' data records, of which',nflag,' flagged as bad'
       write(*,*)
       write(*,*)' Listed below are the fields with error flags exceeding

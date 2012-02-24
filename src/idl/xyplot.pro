@@ -125,7 +125,7 @@ ncol      =  lonarr(nfile)
 nrow      =  lonarr(nfile)
 
 print, ' Reading entire contents of data files into memory.....'
-buf = fltarr(10000000)
+buf = fltarr(48000000)
 mcol=1200
 header    =  strarr(nfile,mcol)
 gmissing   =  -999.
@@ -555,6 +555,7 @@ repeat begin
           for ifile=0,nfile-1 do begin
              temp=-999999
              for i = long(1), nrow(ifile) do begin
+;                print,i,nsym,temp,value(jrow,2), fix(value(jrow,2))
                 if temp ne fix(value(jrow,2)) then begin
 ;                   if nsym gt 0 then print,nsym,npp,index(nsym),totx,sqrt(totex),toty,sqrt(totey)
                    index(nsym)=npp

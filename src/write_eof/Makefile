@@ -21,7 +21,8 @@ SOURCES := \
   $(COMN)/fnbc.f \
   $(COMN)/fbc.f \
   $(COMN)/wlimit.f \
-  $(COMN)/skiprec.f
+  $(COMN)/skiprec.f \
+  $(COMN)/get_ggg_environment.f
 
 OBJECTS := $(patsubst %.f, %.o, $(SOURCES))
 
@@ -33,6 +34,12 @@ OBJECTS := $(patsubst %.f, %.o, $(SOURCES))
 $(TARGET) : $(OBJECTS)
 	$(FC) $(LDFLAGS) -o $(GGGPATH)/bin/$@ $^
 
+#  Add dependencies to object files
+$(TSRC)/prepare_collate_all.o:  $(GGGPATH)/src/ggg_int_params.f $(TSRC)/params.f
+$(TSRC)/prepare_oof_output.o:   $(GGGPATH)/src/ggg_int_params.f $(TSRC)/params.f
+$(TSRC)/read_oneline_col.o:     $(TSRC)/params.f
+$(TSRC)/read_oneline_oof.o:     $(GGGPATH)/src/ggg_int_params.f $(TSRC)/params.f
+$(TSRC)/write_eof.o:            $(GGGPATH)/src/ggg_int_params.f $(TSRC)/params.f
 
 clean:
-	rm -f *.o
+	rm -f $(OBJECTS) $(GGGPATH)/bin/$(TARGET)

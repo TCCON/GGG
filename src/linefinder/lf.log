@@ -1,0 +1,30 @@
+xyplot
+der_Ethane_300K.0000.rev
+der_Ethane_300K.0000.rev
+ll.out
+
+
+rdx
+Frequency_(cm-1)
+Frequency_(cm-1)
+Frequency_(cm-1)
+rdy
+Signal
+Deriv
+Stren
+pd
+cry
+-.03 .005
+crx
+2900 2901
+pd
+cry
+-.11 .01
+pd
+crx
+2900 2900.25
+pd
+crx
+2900.25 2900.5
+pd
+qu

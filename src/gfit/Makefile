@@ -21,9 +21,9 @@ SOURCES := \
   $(TSRC)/fringes.f \
   $(TSRC)/jetspe.f \
   $(TSRC)/write_spt.f \
-  $(TSRC)/read_mav.f \
+  $(COMN)/read_mavfile_body.f \
   $(COMN)/get_ggg_environment.f \
-  $(COMN)/abscoi.f \
+  $(COMN)/abscoj.f \
   $(COMN)/gasdev.f \
   $(COMN)/gct2_humlik.f \
   $(COMN)/getendian.f \
@@ -63,3 +63,27 @@ OBJECTS := $(patsubst %.f, %.o, $(SOURCES))
 #  Link the object files to create the executable
 $(TARGET) : $(OBJECTS)
 	$(FC) $(LDFLAGS) -o $(GGGPATH)/bin/$@ $^
+
+#  Add dependencies to object files
+$(TSRC)/do_retrieval.o:  $(GGGPATH)/src/ggg_const_params.f \
+                         $(TSRC)/const_params.f $(TSRC)/int_params.f
+$(TSRC)/do_retrieval3.o: $(GGGPATH)/src/ggg_const_params.f \
+                         $(TSRC)/const_params.f $(TSRC)/int_params.f
+$(TSRC)/fm.o:            $(GGGPATH)/src/ggg_const_params.f \
+                         $(GGGPATH)/src/ggg_int_params.f $(TSRC)/const_params.f
+$(TSRC)/fm3.o:           $(GGGPATH)/src/ggg_const_params.f $(TSRC)/const_params.f
+$(TSRC)/fringes.o:       $(GGGPATH)/src/ggg_const_params.f
+$(TSRC)/gfit.o:          $(GGGPATH)/src/ggg_int_params.f $(TSRC)/int_params.f
+$(TSRC)/jetspe.o:        $(GGGPATH)/src/ggg_const_params.f
+$(TSRC)/spectrum_loop.o: $(GGGPATH)/src/ggg_const_params.f \
+                         $(GGGPATH)/src/ggg_int_params.f   \
+                         $(TSRC)/const_params.f $(TSRC)/int_params.f
+$(TSRC)/subtract_cf.o:   $(GGGPATH)/src/ggg_const_params.f
+$(COMN)/abscoj.o:        $(GGGPATH)/src/ggg_const_params.f $(GGGPATH)/src/ggg_int_params.f
+$(COMN)/gindfile.o:      $(GGGPATH)/src/ggg_int_params.f
+$(COMN)/profzl.o:        $(GGGPATH)/src/ggg_const_params.f
+$(COMN)/tlpath.o:        $(GGGPATH)/src/ggg_const_params.f $(GGGPATH)/src/ggg_int_params.f
+
+clean:
+	rm -f $(OBJECTS) $(GGGPATH)/bin/$(TARGET)
+

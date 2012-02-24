@@ -4,6 +4,8 @@ c  Averages a series of binary spectra.
 
 c  Works for any binary spectra having a GGG-format runlog,
 c  which is adapted for use as the input file (including header).
+c  [New lines are inserted containing the string "average" to
+c  delimit the groups of spectra to be averaged.]
 c
 c  Works transparently for I*2 and R*4 binary data types.
 c
@@ -43,7 +45,7 @@ c
       real*8
      & nus, nue      ! selected frequency range of interest
 
-      version=' spectrum_averaging   Version 0.1.3   13-Sep-2010   GCT '
+      version=' spectrum_averaging   Version 0.1.4   07-Feb-2011   GCT '
       write(6,*) version
 
       write(*,*)'Enter Starting & Ending frequencies (cm-1):'

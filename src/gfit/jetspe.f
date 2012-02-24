@@ -45,18 +45,20 @@ C        =-2  No overlap between requested interval and disk file.
 C             This can also happen if MMP=0, or if NUS=NUE
 C======================================================================
       implicit none
+      include "../ggg_const_params.f"
+
       character specpath*(*)
 
-      INTEGER*4 apo_m,possp,nip,nmp,STATUS,mii,mip,
+      INTEGER*4 apo_m,possp,nip,nmp,STATUS,msi,mip,
      & k1,m1,m2,i1,i2,k,bytepw,ifirst,ilast,interp,iskip,iabpw,
-     & nhw,nsf,nii,nele,nscycle,j1,j2,ii
-      parameter (mii=50753,nscycle=25)  ! max dimension of slit function 
+     & nhw,nsf,nsi,nele,nscycle,j1,j2,ii
+      parameter (msi=50753,nscycle=25)  ! max dimension of sinc_interp function 
 c
       REAL*8 dzero,fr,resnog,resn,rect,opd,vbar,hwid,dd,sh
       REAL*8 nus,nue,graw,delwav,nustrt
 c
-      REAL*4 slit(mii),yobs(mip),foff,res,unity,tot,dum
-      parameter (dzero=0.0d0,unity=1.0)
+      REAL*4 sinc_interp(msi),yobs(mip),foff,res,tot,dum
+      parameter (dzero=0.0d0)
 c
       if(nus.ge.nue) stop 'NUS >= NUE'
       status=0
@@ -66,6 +68,7 @@ c
       dd=nscycle*resn  ! half-wifth of ILS in cm-1
 c      if(resn.lt.graw) resn=graw
       resnog=resn/graw
+c      write(*,*)'jetspe: apo_m=',apo_m
 c      write(*,*)opd,resn,graw,resnog
       nhw=nint(nscycle*resnog)
       nsf=2*iabs(nhw)+1
@@ -135,6 +138,7 @@ c  to be performed "in place" without prematurely overwriting any points.
       k1=1+(interp-1)*(nmp-nsf)
       iabpw=iabs(bytepw)
       if(iabpw.eq.3) iabpw=4
+      if(iabpw.eq.6) iabpw=8  ! ACE binary [Real, Imag]
       iskip=possp+iabpw*(m1-iabs(nhw)-ifirst)
 c      write(*,*)'m1, nhw, ifirst=',iabpw, m1, nhw, ifirst, nmp
       call fetch(specpath,bytepw,iskip,yobs(k1),nmp)
@@ -168,27 +172,28 @@ cc      write(*,*)nus,nue,i1,i2,m1,m2
 c      delwav=dabs(graw)/interp
 c      nustrt=i1*delwav
 c-------------------------------------------------------------------------
-c  Calculate slit function and normalize each subset to unity independently
+c  Calculate sinc_interp function and normalize each subset to unity independently
 c  RECTOG is zero since we are dealing with measured spectra.
       fr=dble(foff)/delwav
-      nii=1+2*interp*iabs(nhw)
-      if(nii.gt.mii) then
-         write(*,*)' JETSPE: Increase parameter MII to',nii
+      nsi=1+2*interp*iabs(nhw)
+      if(nsi.gt.msi) then
+         write(*,*)' JETSPE: Increase parameter MII to',nsi
          status=-7
          return
       endif
-      call profzl(apo_m,nii,interp*dabs(resnog),dzero,fr,slit)
-      nele=nii/interp
+      call profzl(apo_m,nsi,interp*dabs(resnog),dzero,fr,sinc_interp)
+      nele=nsi/interp
       do k=interp,1,-1
-         call vdot(slit(k),interp,unity,0,tot,nele)
-         call vmul(slit(k),interp,1./tot,0,slit(k),interp,nele)
+         call vdot(sinc_interp(k),interp,unity,0,tot,nele)
+         call vmul(sinc_interp(k),interp,1./tot,0,sinc_interp(k),interp,
+     &   nele)
       end do   ! k=1,interp
-      slit(nii)=slit(nii)/tot
+      sinc_interp(nsi)=sinc_interp(nsi)/tot
 c
 C  Perform the convolution that does the shifting, interpolation & apodization
 c  Convolve spectral values with pre-normalized operator A (sinc function)
-c      write(*,*)'JETSPE NEWDEC..',apo_m,resnog,nmp,nip,nhw,nii,k1
-c      write(*,*) (slit(k),k=1,nii)
+c      write(*,*)'JETSPE NEWDEC..',apo_m,resnog,nmp,nip,nhw,nsi,k1
+c      write(*,*) (sinc_interp(k),k=1,nsi)
 c      if(apo_m.gt.0) then
        if(m1.gt.0) then
          sh=dfloat(i1-interp*m1)/interp
@@ -196,7 +201,7 @@ c      if(apo_m.gt.0) then
          sh=dfloat(i1+interp*m2)/interp
        endif
 c         write(*,*)i1,m1,m2,interp,sh
-         call newdec(yobs(k1),nmp,slit,nii,interp,1.d0/interp,sh,
+         call newdec(yobs(k1),nmp,sinc_interp,nsi,interp,1.d0/interp,sh,
      &   yobs,nip)
 c      else
 c         call vmov(yobs(k1+nhw),1,yobs,1,nip)

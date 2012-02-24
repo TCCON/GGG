@@ -8,30 +8,32 @@ c     nnn = 162 (HITRAN_2004, DOS)
 c  There must be only one period inthe file name.
 
       implicit none
+      include "../ggg_int_params.f"
+
       integer*4 isot,molno,reclen,mgas,kgas,jgas,kiso,jiso,
-     & lunr,nlps,jline,kline,lnbc,lloc,nchar,nline,posnall,
+     & lunr,nlps,jline,kline,lnbc,lloc,mchar,nline,posnall,
      $ ldot,ierr,fsib,file_size_in_bytes,lr
-      parameter (lunr=14,mgas=68,nlps=18)
+      parameter (lunr=14,mgas=75,nlps=18)
       real pbhw,pshift,sbhw,tdpbhw
       real*8 eprime,fpos,freq,stren
-      character  ans*1,ccc*8,quantum*100,llformat*47,linfil*80,
-     $ molnam(mgas)*8,root*48, version*44
+      character  ans*1,ccc*8,quantum*100,llformat*47,linfil*(mfilepath),
+     $ molnam(mgas)*8,gggdir*(mpath), version*44,dl*1
 c============================================================
       data linfil/' '/
 
-      version=' VLL    Version 2.1.1    16-Apr-2010    GCT '
+      version=' VLL    Version 2.2.0    10-Aug-2011    GCT '
       write(*,*) version
       write(*,*)
 
       llformat=
      $'(i2,i1,f12.6,e10.3,10x,2f5.0,f10.4,f4.2,f8.6,a)'
-      call getenv('GGGPATH',root)
-      lr=lnbc(root)
+      call get_ggg_environment(gggdir, dl)
+      lr=lnbc(gggdir)
       ierr=0
       jgas=0
 c
 c  Read names of gases.
-      open(lunr,file=root(:lr)//'/isotopologs/isotopologs.dat')
+      open(lunr,file=gggdir(:lr)//'isotopologs'//dl//'isotopologs.dat')
       do while (jgas.lt.mgas .and. ierr.eq.0)
          read(lunr,'(1x,2i2,1x,a8)',iostat=ierr)jgas,jiso,molnam(jgas)
       end do
@@ -61,7 +63,7 @@ c Prompt user for name of linelist
            end do
         endif
       end do  ! while (lnbc(linfil).eq.0) 
-      linfil=root(:lr)//'/linelist/'//linfil(:lnbc(linfil))
+      linfil=gggdir(:lr)//'linelist'//dl//linfil(:lnbc(linfil))
       write(*,*)linfil
 
 c Open the linelist and determine:
@@ -101,8 +103,8 @@ c      do while ( ccc(1:1) .ne. 'q')  ! sun
          elseif(ccc(1:1).eq.'i') then
             read(ccc(2:),*)kiso
          else
-            nchar=lnbc(ccc)
-            if(nchar.gt.0) then   
+            mchar=lnbc(ccc)
+            if(mchar.gt.0) then   
                read(ccc,*)fpos  ! read real frequency entered
                ccc='        '
                if(fpos.ge.0)    ! if +ve position to frequency

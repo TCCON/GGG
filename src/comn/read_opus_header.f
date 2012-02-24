@@ -99,7 +99,7 @@ c  and therefore not set inside rdopushead.
         pkl=0
         prl=0
         nip=0
-        dfr=0
+        dfr=1
         reclen=2
         open(luns,file=path,form='unformatted',status='old',
      &  access='direct',recl=reclen)
@@ -137,10 +137,14 @@ c             write(*,*)'iy,im,id=',iy,im,id
              call getopusparval(luns,bpointer,'TIM',iend,mrs,i2val,rs)
              if(rs.gt.10 .and. cval(9:9).eq.'.') then
                  read(cval,'(i2,1x,i2,1x,i2,1x,i3)')hh,mm,ss,ms
-             elseif(rs.ge.6) then
+             elseif(rs.ge.5) then
                  ms=0
                  read(cval,'(i2,1x,i2,1x,i2)')hh,mm,ss
+             else
+                 write(*,*) cval
+                 stop 'Unrecognised time format'
              endif
+c         write(*,*) rs,cval(:2*rs-1), hh,mm,ss,ms
 
           elseif(btype.eq.160) then  ! ORGPAR block
              call getopusparval(luns,bpointer,'LAT',iend,mrs,i2val,rs)
@@ -191,9 +195,12 @@ c            write(*,*) 'rs, VEL=',rs,' ',cval(:4),vel
              call getopusparval(luns,bpointer,'TIM',iend,mrs,i2val,rs)
              if(rs.gt.10 .and. cval(9:9).eq.'.') then
                  read(cval,'(i2,1x,i2,1x,i2,1x,i3)')hh,mm,ss,ms
-             elseif(rs.ge.6) then
+             elseif(rs.ge.5) then
                  ms=0
                  read(cval,'(i2,1x,i2,1x,i2)')hh,mm,ss
+             else
+                 write(*,*) cval
+                 stop 'Unrecognised time format'
              endif
 
           elseif(btype.eq.64) then  !  FTPAR block

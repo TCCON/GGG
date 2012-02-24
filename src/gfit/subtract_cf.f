@@ -4,16 +4,17 @@ c  Determines the amplitude, frequency & phase of any channel fringes.
 c  Subtracts the resulting sine/cosine wave from OBSRVD.
 
       implicit none
+      include "../ggg_const_params.f"
 
       integer*4
      & mmp,nmp
 
       real*4
      & obsrvd(nmp),calcul(nmp),resids(nmp),
-     & cfamp,cffreq,cfphase,tcbar,unity,tiny
+     & cfamp,cffreq,cfphase,tcbar,
+     & tiny
 
-      data unity/1.0/
-      data tiny/1.0E-18/
+      parameter(tiny=1.0E-18)    !do not use the value in const_params.f
 c
       call vdot(calcul,1,unity,0,tcbar,nmp)
       tcbar=tiny+tcbar/nmp

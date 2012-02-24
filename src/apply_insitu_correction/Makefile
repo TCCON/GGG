@@ -10,7 +10,8 @@ SOURCES := \
   $(COMN)/lnbc.f \
   $(COMN)/fnbc.f \
   $(COMN)/fbc.f \
-  $(COMN)/substr.f
+  $(COMN)/substr.f \
+  $(COMN)/get_ggg_environment.f
 
 OBJECTS := $(patsubst %.f, %.o, $(SOURCES))
 
@@ -21,4 +22,10 @@ OBJECTS := $(patsubst %.f, %.o, $(SOURCES))
 #  Link the object files to create the executable
 $(TARGET) : $(OBJECTS)
 	$(FC) $(LDFLAGS) -o $(GGGPATH)/bin/$@ $^
+
+#  Add dependencies to object files
+$(TSRC)/apply_insitu_correction.o:  $(GGGPATH)/src/ggg_int_params.f
+
+clean:
+	rm -f $(OBJECTS) $(GGGPATH)/bin/$(TARGET)
 

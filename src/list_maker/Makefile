@@ -12,7 +12,8 @@ SOURCES := \
   $(COMN)/julian.f \
   $(COMN)/caldat.f \
   $(COMN)/fnbc.f \
-  $(COMN)/lnbc.f
+  $(COMN)/lnbc.f \
+  $(COMN)/get_ggg_environment.f
 
 OBJECTS := $(patsubst %.f, %.o, $(SOURCES))
 
@@ -23,3 +24,11 @@ OBJECTS := $(patsubst %.f, %.o, $(SOURCES))
 #  Link the object files to create the executable
 $(TARGET) : $(OBJECTS)
 	$(FC) $(LDFLAGS) -o $(GGGPATH)/bin/$@ $^
+
+#  Add dependencies to object files
+$(TSRC)/list_maker.o:   $(GGGPATH)/src/ggg_int_params.f
+$(COMN)/gindfile.o:     $(GGGPATH)/src/ggg_int_params.f
+
+clean:
+	rm -f $(OBJECTS) $(GGGPATH)/bin/$(TARGET)
+

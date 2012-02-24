@@ -2,47 +2,48 @@ c  Program to create a GGG-compatible runlog from the sunrun file.
 c  which is created by running create_sunrun_from_xxxx.
 c
       implicit none
+      include "../ggg_int_params.f"
+      include "params.f"
 
-      integer*4 bytepw,ifirst,ilast,iy,im,id,jj,jd,i,
-     & lnbc,ispe,ifmin,ifmax,istat,nlhead,mcol,ncol,
-     & lr,lrt,luns,lunt,possp,doy,one,object
-      parameter (luns=15,lunt=16,one=1,mcol=40)
+      integer*4
+     & jj,
+     & i,
+     & lnbc,ispe,ifmin,ifmax,
+     & nlhead,ncol,
+     & lr,lrt,
+     & doy,
+     & one,
+     & lunr,lunw, mcol
+      parameter (lunr=15,lunw=16,one=1,mcol=40)
 c
       real*8 amal,fovi,fovo,gmt,tins,pins,hins,tout,pout,hout,
      & obalt,asza,azim,snr,wavtkr,zoff,zpoff,oblat,oblon,opd,
      & lasf,fmin,fmax,fsf,delwav,tcorr,sia,fvsi,wspd,wdir,aipl,
      & tel_mag,eorv,ervc,osds,tplat,tplon,tpalt,site_solar_noon
 c
-c      logical flexst
-      character apf*2,dl*1,ext*3,spfmt*2,logfile*40,outfile*64,
-     & path*128,root*64,dplist*80,specname*38,col1*1,version*52,
+      character spfmt*2, logfile*40,
+     & outfile*(mfilepath),path*(mpath),dplist*(mfilepath),
      & header*512,outarr(mcol)*20
+      character
+     & col1*1,                    !first column of runlog record
+     & apf*2,                     !apodization function (e.g. BX N2, etc)
+     & dl*1,                      !forward or backward slash
+     & ext*3,                     !geometry ['air','bal','gnd','lab',orb','syn']
+     & gggdir*(mpath),            !ggg directory path (GGGPATH?)
+     & specname*(nchar),          !spectrum name
+     & version*64                 !current program version
+
 c
-      version=' CREATE_RUNLOG    Version 8.6.1    25-Jun-2009   GCT'
+      version=' CREATE_RUNLOG    Version 8.7.0    24-Dec-2010   GCT'
+      write(*,'(a)') version
       col1=' '
       iy=0
       im=0
       id=30
       amal=0.0d0
 c
-ccxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-cc   Root path specification
-c      call getenv('LOGNAME',user)
-c      if(user.ne.'        ')then     !Sun, PC-Linux
-c         call getenv('GGGPATH',root)
-c         dl='/'
-c         root=root(:lnbc(root))//dl
-c      else                           !PC-Win32
-c         dl=char(92)  ! backslash ('\')
-c         root='g:'//dl
-c         user='PC-Win'
-c      endif
-c      lrt=lnbc(root)       !Length of root
-cxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-      dl='/'
-      call getenv('GGGPATH',root)
-      root=root(:lnbc(root))//dl
-      lrt=lnbc(root)       !Length of root
+      call get_ggg_environment(gggdir, dl)
+      lrt=lnbc(gggdir)       !Length of gggdir
 
       lr=0
       do while(lr.eq.0)
@@ -60,36 +61,36 @@ cxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 c
       spfmt=logfile(lr-1:lr)
-c      write(*,*)root(:lrt)//'sunruns'//dl//ext//dl//logfile
-      open(luns,file=root(:lrt)//'sunruns'//dl//ext//dl//logfile,
+      open(lunr,file=gggdir(:lrt)//'sunruns'//dl//ext//dl//logfile,
      $status='old')
-      read(luns,*) nlhead, ncol
+      read(lunr,*) nlhead, ncol
       do i=2,nlhead
-         read(luns,*)
+         read(lunr,*)
       end do
-      outfile=root(:lrt)//'runlogs'//dl//ext//dl//logfile(:lr-2)//'rl'
+      outfile=gggdir(:lrt)//'runlogs'//dl//ext//dl//logfile(:lr-2)//'rl'
 c
       header=
-     &  '     Spectrum_File_Name                 Year  Day  Hour'//
+     &  '     Spectrum_File_Name                                  '//
+     &  '   Year  Day  Hour'//
      &  '   oblat    oblon   obalt    ASZA    POFF    AZIM   OSDS'//
      &  '    OPD   FOVI  FOVO'//
      &  '  AMAL   IFIRST    ILAST    DELTA_NU   POINTER  BPW ZOFF SNR'//
      &  '  APF tins  pins  hins   tout   pout  hout'//
      &  '  sia    fvsi   wspd  wdir  lasf    wavtkr  aipl'
       call substr(header, outarr, mcol, ncol)
-      open(lunt,file=outfile,status='unknown')
-      write(lunt,*)3,ncol
-      write(lunt,'(a)') version
-      write(lunt,'(a)') header(:lnbc(header))
+      open(lunw,file=outfile,status='unknown')
+      write(lunw,*)3,ncol
+      write(lunw,'(a)') version
+      write(lunw,'(a)') header(:lnbc(header))
 c
       do ispe=1,9999999  !---------Main loop over spectra----------
-         call read_sunrun(luns,col1,specname,object,tcorr,oblat,
+         call read_sunrun(lunr,col1,specname,object,tcorr,oblat,
      &   oblon,obalt,tins,pins,hins,tout,pout,hout,sia,fvsi,
-     &   wspd,wdir,fmin,fmax,fsf,lasf,wavtkr,aipl,tel_mag,istat)
-         if(istat.ne.0) go to 99
+     &   wspd,wdir,fmin,fmax,fsf,lasf,wavtkr,aipl,tel_mag,ios)
+         if(ios.ne.0) go to 99
 c
 c  find the spectral file, return the PATH to the spectrum
-         dplist=root(:lrt)//'config'//dl//'data_part.lst'
+         dplist=gggdir(:lrt)//'config'//dl//'data_part.lst'
          call gindfile(dplist,specname,path)
          if(lnbc(path).le.0) then
             write(6,*) ' Not Found: "'//specname//'"'
@@ -149,17 +150,17 @@ c
 
          zoff=0.0
          zpoff=0.0
-         call write_runlog(lunt,col1,specname,iy,doy,gmt,oblat,
+         call write_runlog(lunw,col1,specname,iy,doy,gmt,oblat,
      &   oblon,obalt,asza,zpoff,azim,osds,opd,fovi,fovo,amal,
      &   ifirst,ilast,
      &   delwav,possp,bytepw,zoff,snr,apf,tins,pins,hins,tout,
-     &   pout,hout,sia,fvsi,wspd,wdir,lasf,wavtkr,aipl,istat)
+     &   pout,hout,sia,fvsi,wspd,wdir,lasf,wavtkr,aipl,ios)
          if(mod(ispe,1000).eq.0) write(*,*) ispe
 c
       end do ! -------------Main loop over spectra----------------
 c
- 99   close(luns)
-      close(lunt)
+ 99   close(lunr)
+      close(lunw)
       write(*,*) ispe-1, ' spectra found'
       stop
       end

@@ -1,13 +1,15 @@
-8 3
+10 5
+2011-02-28  GCT
 Contains airmass-dependent and airmass-independent (in situ)
 correction factors to be applied to the column-averaged mole fractions.
 The former (ADCF) is determined offline from the symmetric component
 of the diurnal variation using program derive_daily_airmass_correction.
 The latter (AICF) is determined offline by comparisons with in situ
 profiles  using the program derive_insitu_correction
- Gas      ADCF   AICF
-"xco2"  -0.0075  0.989
-"xch4"   0.0000  0.978
-"xn2o"   0.0000  0.958
-"xco"   -0.0000  0.980
-"xh2o"  -0.0000  1.030
+Uncertainties are 1-sigma standard deviations from Wunch 2010
+ Gas      ADCF  ADCF_Err AICF  AICF_Err
+"xco2"  -0.0065  0.0050  0.989  0.001
+"xch4"   0.0055  0.0080  0.976  0.002
+"xn2o"   0.0172  0.0100  0.954  0.005
+"xco"   -0.0000  0.0000  1.006  0.020
+"xh2o"  -0.0000  0.0000  1.031  0.010

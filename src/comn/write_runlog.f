@@ -76,7 +76,7 @@ c    istat
      & fovi,fovo,amal,ifirst,ilast,graw,possp,
      & bytepw,zoff,nint(snr),apf,tins,pins,hins,tout,pout,hout,
      & sia,fvsi,wspd,wdir,lasf,wavtkr,aipl
- 34   format(a1,a38,1x,2i4,f8.4,f8.3,f9.3,
+ 34   format(a1,a57,1x,2i4,f8.4,f8.3,f9.3,
      & 2f8.3,1x,f6.4,f8.3,f7.3,
      & f7.2,3(1x,f5.4),
      & 2i9,1x,f14.11,i9,i3,1x,f5.3,i5,1x,a2,2(f6.1,f8.2,f5.1),

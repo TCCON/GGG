@@ -25,3 +25,11 @@ OBJECTS := $(patsubst %.f, %.o, $(SOURCES))
 $(TARGET) : $(OBJECTS)
 	$(FC) $(LDFLAGS) -o $(GGGPATH)/bin/$@ $^
 
+#  Add dependencies to object files
+$(TSRC)/average_results.o:        $(GGGPATH)/src/ggg_int_params.f
+$(TSRC)/average_with_mul_bias.o:  $(TSRC)/params.f
+$(TSRC)/average_with_add_bias.o:  $(TSRC)/params.f
+
+clean:
+	rm -f $(OBJECTS) $(GGGPATH)/bin/$(TARGET)
+
