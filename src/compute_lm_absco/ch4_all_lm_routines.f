@@ -1,8 +1,24 @@
       Subroutine CompAbsCH4(path_to_input_files,sgmin,dsig,nsig,
      & T,Ptot,xCH4,xH2O, AbsV, AbsY, AbsW)
-C Subroutine computes the absorption coeffcients of CH4 diluted in air 
-C in the 2NU3 region
+C  Computes the absorption coeffcients of CH4 diluted in air in the 2NU3 region.
+c  Inputs:
+c     path_to_input_files,
+c     sgmin,    ! Minimum wavenumber
+c     dsig,     ! wavenumber interval
+c     nsig,     ! number of points
+c     T,        ! temperaturea(K)
+c     Ptot,     ! pressure (atm)
+c     xCH4,     ! CH4 mole fraction
+c     xH2O      ! H2O mole fraction
+c  
+c  Outputs:
+c    AbsV   ! Voigt for selected Q & R-branch lines using Pine linelist (2nu3_hit08.dat).
+c    AbsY   ! LM-Voigt(Pine) for selected Q & R-branch lines.
+c    AbsW   ! Voigt for other non-LM CH4 lines using Frankenberg linelist (06_hit08.par).
 C
+c   2nu3_hit08.dat contains 76 lines from 5902-5994 cm-1 and 6015-6097 cm-1. Does not include Q-branch
+c   06_hit08.par contains 2745 lines covering 5571-6200 cm-1, including the 76 lines in 2nu3_hit08.dat.
+c   The subroutine somehow skips the 76 lines in 2nu3_hit08.dat when doing the AbsW caluclation.
         Implicit Double Complex (Z)
         Implicit Double Precision (A-H,O-Y)
         include "../ggg_int_params.f"
@@ -29,7 +45,7 @@ C Relaxation matrix for the 2nu3 band
         Dimension Zww0(Nnu3mx,Nnu3mx),Zww(Nnu3mx,Nnu3mx)
         Dimension Zvalp(Nnu3mx),Zvecp(Nnu3mx,Nnu3mx)
         Dimension Zivecp(Nnu3mx,Nnu3mx)
-        Dimension Zic(Nnu3mx),Zc(Nnu3mx),zWrk(Nnu3mx)
+        Dimension Zc(Nnu3mx),zWrk(Nnu3mx)
         Dimension EigVR(Nnu3mx),EigVI(Nnu3mx)
         Dimension SSR(Nnu3mx),SSI(Nnu3mx),AlphR(Nnu3mx),AlphI(Nnu3mx)
 C Intermediate results
@@ -47,6 +63,8 @@ C Constants
       aMass=16.D-3
       T0=296.d0
       CC=0.1013/(1.38D-23*T)
+      m=0  !  Do-nothing statement to prevent compiler warning (may be used uninitialized)
+      xx=xH2O  ! Do-nothing statement to prevent compiler warning (unused variable)
 
       if (Nsig.gt.nSigmx) then
       write(6,*)'Set nSigmx at least equal to',Nsig
@@ -61,7 +79,6 @@ C Doppler width
 C
 C Reading of HITRAN 2008 (Frankenberg et al 2008) data base for the considered region********
 C Lines that will be accounted by the LM code are skipped here.
-C
         lp=len_trim(path_to_input_files)
         Open(60,File=path_to_input_files(:lp)//'06_hit08.par')
 c  2745 lines in this linelist. The ones to be LMd have quantum numbers
@@ -303,25 +320,25 @@ C******************************************************
 c ch4 partition function
       implicit DOUBLE PRECISION (a-h,o-z)
       parameter (niso=3,ncoef=4)
-      dimension Qcoef(Niso,Ncoef)
+      dimension ch4_Qcoef(Niso,Ncoef)
 c
 c...ch4  --  211
-      DATA (Qcoef(1,j),j=1,4)/-.17475d+02, .95375d+00,
+      DATA (ch4_Qcoef(1,j),j=1,4)/-.17475d+02, .95375d+00,
      +                .39758d-02,-.81837d-06/
 c...ch4  --  311
-      DATA (Qcoef(2,j),j=1,4)/-.27757d+02, .17264d+01,
+      DATA (ch4_Qcoef(2,j),j=1,4)/-.27757d+02, .17264d+01,
      +                .93304d-02,-.48181d-05/
 c...ch4  --  212
-      DATA (Qcoef(3,j),j=1,4)/-.89810d+03, .44451d+02,
+      DATA (ch4_Qcoef(3,j),j=1,4)/-.89810d+03, .44451d+02,
      +                .17474d+00,-.22469d-04/
       if( (t.lt.70.d0) .or. (t.gt.415.d0) )then
       write(6,*)'temp out of range for ch4 partition function'
       stop
         else
-        Qch4 = Qcoef(iso,1)
-     +       + Qcoef(iso,2)*T
-     +       + Qcoef(iso,3)*T*T
-     +       + Qcoef(iso,4)*T*T*T
+        Qch4 = ch4_Qcoef(iso,1)
+     +       + ch4_Qcoef(iso,2)*T
+     +       + ch4_Qcoef(iso,3)*T*T
+     +       + ch4_Qcoef(iso,4)*T*T*T
       endif
       RETURN
       END
@@ -714,6 +731,7 @@ C
       Two=2.d0
       zZero=(0.d0,0.d0)
       zOne=(1.d0,0.d0)
+      zS=(0.0,0.0) ! Avoid compiler warning (may be used unitialized)
 C Smalst : the smallest (computer dependent) value such that
 C 1.+Smalst is different from 1
       Smalst=1.d-14
@@ -788,11 +806,13 @@ C
       zS=zS-zX
       GoTo 65
 60    Continue
-      X1=DREAL(zMat(NN,NNM1))
-      if(nnm2.gt.0) X2=DREAL(zMat(NNM1,NNM2))  ! GCT 2012-02-18
-      Y1=DIMAG(zMat(NN,NNM1))
-      if(nnm2.gt.0) Y2=DIMAG(zMat(NNM1,NNM2))  ! GCT 2012-02-18
-      zS=dcmplx(DABS(X1)+DABS(X2),DABS(Y1)+DABS(Y2))
+      if(nnm2.gt.0) then
+         X1=DREAL(zMat(NN,NNM1))
+         X2=DREAL(zMat(NNM1,NNM2)) 
+         Y1=DIMAG(zMat(NN,NNM1))
+         Y2=DIMAG(zMat(NNM1,NNM2))
+         zS=dcmplx(DABS(X1)+DABS(X2),DABS(Y1)+DABS(Y2))
+      end if
 65    Continue
       Do 70 I=K,NN
       zMat(I,I)=zMat(I,I)-zS
@@ -976,6 +996,9 @@ C
       Dimension zMat(nDim,nDim),zMatM1(nDim,nDim),iPivt(nLmx)
       Dimension IndRow(nLmx),IndCol(nLmx)
       Intrinsic dcmplx
+
+      iRow=0 ! Do-nothing statement to prevent compiler warning (may be used uninitialized)
+      iCol=0 ! Do-nothing statement to prevent compiler warning (may be used uninitialized)
 C      
 C Check that dimensions are fine. Stop if not
       If ( nTrue .GT. nLmx ) Then

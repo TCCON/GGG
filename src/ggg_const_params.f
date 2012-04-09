@@ -8,8 +8,7 @@ c Global Constants
       real*8
      & dpi          !PI in double precision
 
-      parameter(spi=2*acos(0.0))
-      parameter(dpi=2*dacos(0.0d0))
       parameter(zero=0.0)
       parameter(unity=1.0)
-
+      parameter(spi=3.14159265)
+      parameter(dpi=3.14159265358979323846d0)

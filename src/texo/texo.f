@@ -117,7 +117,7 @@ c
       include "../ggg_int_params.f"
 
       integer*4 lunb,lunr,lunw,luno,lnbc,lloc,llfs,nii,iseed,
-     & mmp,nmp,mspe,nspe,possp,bytepw,bytepw1,kspe,nfp,iabpw,
+     & mmp,nmp,mspe,nspe,possp,possp1,bytepw,bytepw1,kspe,nfp,iabpw,
      & ncol,nlhead,
      & iyr,iset,i,j,k,mit,iter,kconv,mconv,iend,iline,nk
       parameter (lunr=14,lunw=15,luno=16, lunb=17, nk=4,
@@ -242,7 +242,7 @@ c  Loop over spectra
 11       call read_runlog(lunr,col1,specname,iyr,iset,zpdtim,oblat,
      & oblon,obalt,asza,zenoff,azim,osds,
      & opd,fovi,fovo,amal,ifirst,ilast,
-     & graw,possp,bytepw1,zoff,snr,apf,tins,pins,hins,
+     & graw,possp1,bytepw1,zoff,snr,apf,tins,pins,hins,
      & tout,pout,hout,sia,fvsi,wspd,wdir,lasf,wavtkr,aipl,istat)
 
 c         if(istat.ne.0) write(*,*) 'Error in read_runlog:  istat=',istat
@@ -260,7 +260,7 @@ c         write(*,'(4i10,2x,a)') ifirst,ilast,m1,m2,specname
          if(m1.lt.ifirst) kfmin=ifirst
          kfmax=m2
          if(m2.gt.ilast) kfmax=ilast
-         possp=possp+iabpw*(kfmin-ifirst)
+         possp=possp1+iabpw*(kfmin-ifirst)
          nmp=kfmax-kfmin+1
          if(nmp.le.0)  go to 11  ! wrong detector spectral region
          if(nmp.gt.mmp) then
@@ -329,7 +329,7 @@ c     & tout,pout,hout,lasf,wavtkr,sia,sis,aipl,istat)
          call write_runlog(lunw,col1,specname,iyr,iset,zpdtim,oblat,
      & oblon,obalt,asza,zenoff,azim,osds,
      & opd,fovi,fovo,amal,kfmin,kfmax,
-     & graw,possp,bytepw,zoff,snr,apf,tins,pins,hins,
+     & graw,possp,bytepw1,zoff,snr,apf,tins,pins,hins,
      & tout,pout,hout,sia,fvsi,wspd,wdir,lasf,wavtkr,aipl,istat)
 
 
@@ -501,7 +501,10 @@ c Reference D and Y to the lowest aimass spectrum.
 
 c  Write out results
       open(lunr,file=rlgfile,status='old')
-      read(lunr,'(a)') rlheader
+      read(lunr,*) nlhead, ncol
+      do i=2,nlhead
+         read(lunr,'(a)') rlheader
+      end do
       do kspe=1,mspe
 c10       call read_runlog(lunr,col1,specname,iyr,iset,zpdtim,
 c     &   oblat,oblon,obalt,asza,zenoff,opd,fovi,fovo,amal,ifirst,
@@ -510,7 +513,7 @@ c     &   tout,pout,hout,lasf,wavtkr,sia,sis,aipl,istat)
 10        call read_runlog(lunr,col1,specname,iyr,iset,zpdtim,oblat,
      &     oblon,obalt,asza,zenoff,azim,osds,
      &     opd,fovi,fovo,amal,ifirst,ilast,
-     &     graw,possp,bytepw1,zoff,snr,apf,tins,pins,hins,
+     &     graw,possp1,bytepw1,zoff,snr,apf,tins,pins,hins,
      &     tout,pout,hout,sia,fvsi,wspd,wdir,lasf,wavtkr,aipl,istat)
          if(istat.ne.0) exit
          iabpw=iabs(bytepw1)
@@ -523,7 +526,7 @@ c         write(*,'(4i10,2x,a)') ifirst,ilast,m1,m2,specname
          if(m1.lt.ifirst) kfmin=ifirst
          kfmax=m2
          if(m2.gt.ilast) kfmax=ilast
-         possp=possp+iabpw*(kfmin-ifirst)
+         possp=possp1+iabpw*(kfmin-ifirst)
          nmp=kfmax-kfmin+1
          if(nmp.le.0)  go to 10  ! wrong detector spectral region
          write(*,'(i3,a22,3f12.6)')kspe,specname,

@@ -12,7 +12,7 @@ c
 c  Write .spt file
       open(lun_spt,file=sptpath(:fbc(sptpath)-1),status='unknown',
      & err=66) 
-      if( index(winfo,' so ') .gt. 0) then
+      if( index(winfo,' so ').gt.0 .or. index(winfo,' so/').gt.0) then
         write(lun_spt,*)3,ntg+5  ! Freq, Meas, Calc, Targets, Other, Solar
         write(lun_spt,'(2f14.6,i7,3f8.3,1x,2f7.4,21(1pe11.3,e8.1))',
      &  err=67)

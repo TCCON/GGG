@@ -38,7 +38,8 @@ c
       spec_flag=0
 
       version=
-     & ' apply_ghost_correction      Version 1.0.0   2011-07-19   NMD'
+     & ' apply_ghost_correction      Version 1.0.1   2012-03-08   GCT'
+c     & ' apply_ghost_correction      Version 1.0.0   2011-07-19   NMD'
 
       call get_ggg_environment(gggdir,dl)
 
@@ -107,7 +108,9 @@ c     write(*,*) endyear(1),ngrow
       call substr(header,headarr,mcol,kcol)
       if(kcol.ne.ncol ) stop 'ncol/kcol mismatch'
       do icol=1,ncol
-         cf(icol,:)=0.0
+         do k=1,ngrow
+            cf(icol,k)=0.0
+         end do
          do kgas=1,ngas
 c         write(*,*)kgas,icol,gasname(kgas),headarr(icol),gcf(kgas),
 c     &  cf(icol)

@@ -1,8 +1,8 @@
  8  44      4  24
  average_results              Version 1.1.7   2011-07-09   GCT
- collate_results              Version 1.4.2   2011-11-04   GCT
- GFIT                     Version 4.8.3    09-Jan-2012    GCT
- GSETUP                   Version 3.4.2    05-Nov-2011    GCT
+ collate_results              Version 1.5.0   2012-03-28   GCT
+ GFIT                     Version 4.8.6    28-Mar-2012    GCT
+ GSETUP                   Version 3.4.4    15-Mar-2012    GCT
   9.8765E+29   ! missing value
 (a57,a1,f13.8,22f13.5,020(1pe12.4))     
   spectrum  year  day  hour  run   lat   long  zobs  zmin  asza  azim  osds  opd  fovi  graw  tins  pins  tout  pout  hout  sia  fvsi  wspd  wdir       air       air_error      hf        hf_error     h2o       h2o_error     hdo       hdo_error      co        co_error     n2o       n2o_error     ch4       ch4_error     co2       co2_error      o2        o2_error     hcl       hcl_error

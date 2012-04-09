@@ -238,17 +238,19 @@ c      write(*,*)hnew,hnew/(1-hnew/radius),pnew,tnew
           h2onew=inh2ovmr(ii)
           go to 4
         else  !   z(k) is bracketed by zold & znew; proceed with interpolation
+           h2ox=0.0
            if(hnew.eq.hold) then
               x=0.0
            else
               x=(tnew/told-1)*(hk-hold)/(hnew-hold)
+              if(h2oold.gt.0.0) then
+                h2ox=(h2onew/h2oold-1)*(hk-hold)/(hnew-hold)
+              endif
            endif
            t(k)=told*(1+x)
            p(k)=pold/pfact*exp((hold-hk)*w(k)*gs*log1pxox(x)/gas/told)
 c           write(*,*)'p(k)=', p(k),told,tnew,hk,hold,hnew,gas,w(k),gs,x
            d(k)=0.101325*avagadro*p(k)/t(k)/gas  !units of cm-3
-           h2ox=0.0
-           if(h2oold.gt.0.0)h2ox=(h2onew/h2oold-1)*(hk-hold)/(hnew-hold)
            h2ovmr(k)=h2oold*(1+h2ox) !RAW Linear interpolation of H2O
         endif
 c       write(*,*)zold,pold,told,z(k),t(k),p(k),h2ovmr(k)

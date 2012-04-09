@@ -1,11 +1,11 @@
 25  44      4  24
- apply_ghost_correction      Version 1.0.0   2011-07-19   NMD 
+ apply_ghost_correction      Version 1.0.1   2012-03-08   GCT 
  apply_insitu_correction      Version 1.3.4   2011-11-05   GCT
  apply_airmass_correction     Version 1.1.7   2011-11-05   GCT
  average_results              Version 1.1.7   2011-07-09   GCT
- collate_results              Version 1.4.2   2011-11-04   GCT
- GFIT                     Version 4.8.3    09-Jan-2012    GCT
- GSETUP                   Version 3.4.2    05-Nov-2011    GCT
+ collate_results              Version 1.5.0   2012-03-28   GCT
+ GFIT                     Version 4.8.6    28-Mar-2012    GCT
+ GSETUP                   Version 3.4.4    15-Mar-2012    GCT
  Airmass-Dependent Correction Factors:
 xco2                  -0.0065   0.0050
 xch4                   0.0055   0.0080

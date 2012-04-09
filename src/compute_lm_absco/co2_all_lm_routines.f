@@ -1,4 +1,4 @@
-C******************************************************************************
+C	******************************************************************************
       Subroutine DetBand(path_to_bandinfo,SgMinR,SgMaxR,stotmax)
 C******************************************************************************
 C "DetBand": DETermine BANDs
@@ -46,10 +46,10 @@ C*********************************************************************
 C
 
       Implicit None
-      include 'parameters.inc'
+      include 'co2_parameters.inc'
       include "../ggg_int_params.f"
-      integer*4 nBand,Isot,isotR,nLines,JmaxB
-      integer*4 li,lf,lp,lir,lfr,iskip,iband0
+      integer*4 nBand,Isot,isotR,nLines
+      integer*4 li,lf,lp,lir,lfr
       integer*4 jmxP,jmxQ,jmxR
       character*2 c1,c2,c3,c4,c5
       real*8 SgMinR,SgMaxR,StotMax
@@ -65,7 +65,7 @@ C Open File Giving Information on Bands, Read, and Select
 c      write(*,*)' Detband: iFile=',ifile
       lp=len_trim(path_to_bandinfo)
       Open(Unit=iFile,File=path_to_bandinfo(:lp)//'BandInfo.dat',
-     & Status='Old')
+     &  Status='Old')
 1     Read(iFile,1000,End=100)isotR,c1,lfR,C2,c3,liR,c4,c5,
      &                         Stot,SgMin,SgMax,JmxP,JmxQ,JmxR
 1000  Format(I1,2(A2,i1,A2),a2,E12.4,2(1x,f12.6),8x,3I4)
@@ -75,7 +75,7 @@ C
       nBand=nBand+1
       if(nBand.gt.nBmx)then
       write(6,*)'Number of retained Bands to large for storage Arrays'
-      Write(6,*)'Raise value of nBmx in "parameters.inc"'
+      Write(6,*)'Raise value of nBmx in "co2_parameters.inc"'
       stop
       end if
 C
@@ -180,7 +180,7 @@ C F. Niro, last change 15 Jan 2005
 C*********************************************************************
 
       implicit none 
-      include 'parameters.inc'
+      include 'co2_parameters.inc'
       include "../ggg_int_params.f"
       integer*4 i,l,ideltal,lli,llf,lp
       integer*4 jic,jfc,jipc,jfpc
@@ -233,8 +233,8 @@ c
           i=1
 c          open(unit=10,file='../data_new/WTfit'//cr//'.dat', 
 c          write(*,*) 'Opening:',path_to_wfile(:lp)//'WTfit'//cr//'.dat'
-          open(unit=10,file=path_to_wfile(:lp)//'WTfit'//cr//'.dat', 
-     &         Status='Old')
+          open(unit=10,file=path_to_wfile(:lp)//'WTfit'//cr//'.dat',
+     &    Status='Old')
 111       read(10,'(2d20.12,2f14.6,4I4)',end=100)W0R,B0R,dmaxDT
      &         ,WTmax,jic,jfc,jipc,jfpc
           if(jic.gt.jfc.AND.jipc.gt.jfpc)then
@@ -339,13 +339,13 @@ C*********************************************************************
 C     
 
       Implicit None
-      include 'parameters.inc'
+      include 'co2_parameters.inc'
       include "../ggg_int_params.f"
-      integer*4 nBand,Isot,nLines,i
-      integer*4 iBand,I0,I1,I2,nLineR,Ji,Jf,iLine,iLineP
+      integer*4 nBand,Isot,nLines
+      integer*4 iBand,nLineR,Ji,Jf
       real*8 HWT0AIR,BHWAIR,HWT0H2O,BHWH2O,SHFT
-      real*8 Sig,Dipo0,E,PopuT0,S,PFCO2
-      real*8 partitioT0,DipoT,pop,Intens
+      real*8 Sig,Dipo0,E,PopuT0
+      real*8 DipoT,Intens
       Character*1 TpLine
       Character BandFile*14, path_to_sfile*(mpath+80)
 C     
@@ -392,8 +392,7 @@ C
          nLineR=1
 c        write(*,*)'Opening:',path_to_sfile(:lp)//Bandfile(iband)//'.dat'
          Open(Unit=iFile,
-c     &        File='../data_new/'//Bandfile(iband)//'.dat',Status='Old')
-     & File=path_to_sfile(:lp)//Bandfile(iband)//'.dat',Status='Old')
+     &   File=path_to_sfile(:lp)//Bandfile(iband)//'.dat',Status='Old')
  2       Read(iFile,1001,End=100)Isot(iBand),Sig(nLineR,iBand),Intens
      ,  ,HWT0AIR(nLineR,iBand),E(nLineR,iBand),BHWAIR(nLineR,iBand)
      ,  ,SHFT(nLineR,iBand),TpLine,Ji(nLineR,iBand)
@@ -507,19 +506,18 @@ C     F. Niro, last change 15 Jan 2005
 C*********************************************************************
 C     
       Implicit None
-      include 'parameters.inc'
+      include 'co2_parameters.inc'
       include "../ggg_int_params.f"
       logical MixFull
       integer*4 nBand,Isot,nLines,li,lf
       integer*4 nSig,iSig,iBand,iLine,ji,jf
-      real*8 Temp,Ptot,xCO2,xH2O,SigMin,SigMax,DSig
+      real*8 Temp,Ptot,xCO2,xH2O,SigMin,DSig
       real*8 Sig,Dipo0,HWT,SHFT,PopuT,YT,DipoT
       real*8 SSR,SSI,AlphR,AlphI,Dens,PopuDipo
-      real*8 SigMoy,GamD,Cte,Cte1,Fact
-      real*8 SigC,SumV(nSigmx),SumY(nSigmx),pptl
+      real*8 SigMoy,GamD,Cte,Fact
+      real*8 SigC
       real*8 XX,YY,WR,WI
-      real*8 StotB
-      real*8 partitioT0, PFCO2,SqrTm,rdmult
+      real*8 SqrTm,rdmult
       real*8 sq_ln2,sq_ln2pi,u_pi,u_sqln2pi
       intrinsic dimag, dcmplx
 C     Results (Absorption Coefficients) 
@@ -753,15 +751,15 @@ C*********************************************************************
 C     
 
       Implicit None
-      include 'parameters.inc'
+      include 'co2_parameters.inc'
       integer*4 iBand,IsotC,nLineC
-      integer*4 iLine,iLineP,Ji,Jf,lii,lff
+      integer*4 iLine,iLineP,Ji,Jf
       real*8 SigMoy,Temp,Ptot,xH2O
       real*8 HWT0AIR,BHWAIR,HWT0H2O,BHWH2O,SHFT
-      real*8 Sig,Dipo0,E,PopuT0,S,PFCO2
+      real*8 Sig,Dipo0,E,PopuT0,PFCO2
       real*8 HWT,PopuT,YT,DipoT
       real*8 RatioT,RatioPart
-      real*8 SumWgt,SumY,Wgt,OpR,OpI
+      real*8 SumWgt,Wgt,OpR,OpI
       real*8 SSR,SSI,AlphR,AlphI,W
       logical MixFull
 C     
@@ -896,10 +894,10 @@ C     F. Niro, last change 15 Jan 2005
 C*********************************************************************
 
       implicit none
-      include 'parameters.inc'
-      integer*4 i,l,j,lli,llf,iBand,jji,jjf,jjip,jjfp
-      integer*4 nraies,nraiEven
-      integer*4 iR,iRp,irc
+      include 'co2_parameters.inc'
+      integer*4 i,j,lli,llf,iBand,jji,jjf,jjip,jjfp
+      integer*4 nraies
+      integer*4 iR,iRp
       integer*4 ji,jf
       integer*4 nBand,Isot,nLines,li,lf	
       real*8 ycal,sum0,sumUP,sumLW,deltasig
@@ -1197,7 +1195,7 @@ C
 !!!!!!
 
       Implicit None
-      include 'parameters.inc'
+      include 'co2_parameters.inc'
       Integer iBand,nLineC
       Integer iLine,iLineP
          Double Precision PopuT,DipoT,OpR,OpI
@@ -1205,7 +1203,7 @@ C
          Double Precision EigVlR,EigVlI,SigMoy
 
       Double Complex z,zOne,zZero
-      Double Complex zSum,zVec,zVecM1
+      Double Complex zSum,zVec
 C
 C Data of the PQR Lines at (Temp,Pressure) 
       Common/PopuT/PopuT(nLmx)
@@ -1232,11 +1230,9 @@ C     Univ. of Tennessee, Univ. of California Berkeley, NAG Ltd.,
 C     Courant Institute, Argonne National Lab, and Rice University
 C     June 30, 1999
 C
-      CHARACTER          JOBVL, JOBVR
-      INTEGER            INFO, LDVR
       DOUBLE PRECISION   RWORK( 2*nLmx )
-      COMPLEX*16         VR(nLmx,nLmx),VL(nLmx,nLmx)
-      INTEGER            IPIV(nLmx)
+      COMPLEX*16         VL(nLmx,nLmx)
+      INTEGER            IPIV(nLmx),INFO
       intrinsic dimag, dcmplx
 C
 C
@@ -1381,7 +1377,7 @@ C F. Niro, last change 15 Jan 2004
 C*********************************************************************
 C
       Implicit None
-      include 'parameters.inc'
+      include 'co2_parameters.inc'
       Integer*4 Iso
       Real*8 Temp,PFCO2
 C--------
@@ -1394,10 +1390,10 @@ C
         Stop
         EndIf
 C      
-        PFCO2 = Qcoef(Iso,1)
-     +       + Qcoef(Iso,2)*Temp
-     +       + Qcoef(Iso,3)*Temp*Temp
-     +       + Qcoef(Iso,4)*Temp*Temp*Temp
+        PFCO2 = co2_Qcoef(Iso,1)
+     +       + co2_Qcoef(Iso,2)*Temp
+     +       + co2_Qcoef(Iso,3)*Temp*Temp
+     +       + co2_Qcoef(Iso,4)*Temp*Temp*Temp
 C      
         Return
         End Function PFCO2

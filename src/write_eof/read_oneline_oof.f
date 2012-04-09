@@ -1,21 +1,11 @@
-c  Program: create_official_output_file.f
+c  subroutine read_oneline_oof.f
 c
-c  Purpose: To convert the runlog.vav.ada.aia file to
-c  an official format.
-c  
-c  Input Files:
-c       runlog.vav.ada.aia 
-c       qc_limits.dat  
-c
-c  Output Files:
-c       runlog.vav.ada.aia.oof
-c       
 
-      subroutine read_oneline_oof(inputfile,inputlun, oof_out,
+      subroutine read_oneline_oof(inputlun, oof_out,
      & outfmt1, oof_flag, irow,
      & vmin, vmax, pindex,
      & nflag, eflag, kflag, flag,
-     & nrow, ncol, mchar, scale, ofmt,gaa_naux,yrow1
+     & ncol, mchar, scale, ofmt,gaa_naux,yrow1
      & )
 
       
@@ -24,7 +14,7 @@ c
       include "../ggg_int_params.f"
       include "params.f"
 
-      integer*4 ncol, nrow, irow, gaa_naux
+      integer*4 ncol, irow, gaa_naux
       integer*4 nflag, eflag, inputlun, mchar, lnbc
       integer*4 oof_flag(mrow)
       real*4 vmin(mrow_qc), vmax(mrow_qc)
@@ -32,21 +22,18 @@ c
       integer*4 pindex(mcol)
       character*512 outfmt1
       character*800 oof_out
-      character*80 inputfile
       character ofmt(mrow_qc)*4
       real*4 scale(mrow_qc)
 
       !local
-      character*57 specname,cc
-      character*800 ssss
+      character*(nchar) specname
       integer*4 kmax, krow_qc, nco
-      integer*4 j,jj,k, kcol, icol
+      integer*4 j,jj,icol
       real*4 yrow(mcol),yrow1(mcol)
-      character sarr(mcol)*57
       real*8 wlimit
       real*4 dmax, dev
       
-
+         nflag=0
          if (mchar .eq. 1) then
              read(inputlun,*) specname, (yrow(j),j=1+mchar,ncol)
          else
@@ -66,17 +53,28 @@ c  the variable that was furthest out of range. Then write out the data.
          dmax=0.0
          do icol=1+mchar,ncol
             krow_qc=pindex(icol)
+            if (yrow(icol).ge.9.000E+29) then
+              write(*,*)'Missing value found (>=9E29). Ending program.'
+              write(*,*)'You may need to remove missing .col files '//
+     & 'from multiggg.sh'
+              write(*,*)'and rerun post_processing.sh.'
+              stop
+            else
             dev=abs((scale(krow_qc)*yrow(icol)-vmin(krow_qc))/
-     &      (vmax(krow_qc)-vmin(krow_qc))-0.5)
+     &      (vmax(krow_qc)-vmin(krow_qc))-0.5) 
+            endif
             if(dev.gt.dmax) then
                dmax=dev
                kmax=krow_qc
             endif
-            if(flag(krow_qc).ge.1) then
+            if(flag(krow_qc).ge.1) then 
+c This if statement eliminates columns in the output file that aren't 
+c included in the qc.dat file. To include everything by default, 
+c remove the if statement
                nco=nco+1
                yrow(nco)=yrow(icol)*scale(krow_qc)
             endif
-         end do  ! do icol=1,ncol
+         end do  ! do icol=1+mchar,ncol
          if(dmax.gt.0.5) then
             eflag=kmax
             nflag=nflag+1
@@ -85,13 +83,6 @@ c  the variable that was furthest out of range. Then write out the data.
          yrow(1)=nint(yrow(1)-yrow(2)/365.25)   ! Year
          yrow(2)=nint(yrow(2)-yrow(3)/24.0)     ! Day
 
-         write(ssss,outfmt1)eflag,specname,
-     &   (wlimit(dble(yrow(j)),ofmt(j)),j=1,nco)
-         call substr(ssss,sarr,mcol,kcol)
-         do k=2,kcol
-            cc=sarr(k)
-            ssss=ssss(:lnbc(ssss))//','//cc(:lnbc(cc))
-         end do
          oof_flag(irow)=eflag
          write(oof_out,outfmt1)eflag,specname,
      &   (wlimit(dble(yrow(j)),ofmt(j)),j=1,nco)

@@ -1,28 +1,28 @@
  24 22
- GFIT                     Version 4.8.3    09-Jan-2012    GCT   
- GSETUP                   Version 3.4.2    05-Nov-2011    GCT
-99e36b9b153ce3c2e9fbb3f7ba6e4303  /net/nicolet/raid1/dwunch/ggg_devel/ggg_working/config/data_part.lst
-83c26098eb109331f403793bf4d60520  /net/nicolet/raid1/dwunch/ggg_devel/ggg_working/apriori/gfit_ap.gnd
-26d0dc08ddb933b4b73ff09c5bed1266  /net/nicolet/raid1/dwunch/ggg_devel/ggg_working/runlogs/gnd/pa_ggg_benchmark.grl
-7ff3c96fbfd4e17b9b04e78805c67363  /net/nicolet/raid1/dwunch/ggg_devel/ggg_working/levels/integral.gnd
-                                  /net/nicolet/raid1/dwunch/ggg_devel/ggg_working/models/gnd/
-                                  /net/nicolet/raid1/dwunch/ggg_devel/ggg_working/vmrs/gnd/
-57894822543c0c084e28430ec0f6d5ce  pa_ggg_benchmark.mav
-6a0493cbbb6ee88cb9d48ef566537db9  pa_ggg_benchmark.ray
+ GFIT                     Version 4.8.6    28-Mar-2012    GCT   
+ GSETUP                   Version 3.4.4    15-Mar-2012    GCT
+8c8ca2b6e6478ac15b6a4c24c70dd1a9  /net/nicolet/raid1/dwunch/ggg_devel/ggg_update/config/data_part.lst
+83c26098eb109331f403793bf4d60520  /net/nicolet/raid1/dwunch/ggg_devel/ggg_update/apriori/gfit_ap.gnd
+26d0dc08ddb933b4b73ff09c5bed1266  /net/nicolet/raid1/dwunch/ggg_devel/ggg_update/runlogs/gnd/pa_ggg_benchmark.grl
+7ff3c96fbfd4e17b9b04e78805c67363  /net/nicolet/raid1/dwunch/ggg_devel/ggg_update/levels/integral.gnd
+                                  /net/nicolet/raid1/dwunch/ggg_devel/ggg_update/models/gnd/
+                                  /net/nicolet/raid1/dwunch/ggg_devel/ggg_update/vmrs/gnd/
+04e751fd33c7fd7c5a519b1d8e864147  pa_ggg_benchmark.mav
+e2c84d14b25c2b6870488c59c2f67376  pa_ggg_benchmark.ray
 ad85bfca7628a1b4d7f146e66170b238  isotopologs_local.dat
-51bec825af4b5d8d9b5198117f229b56  /net/nicolet/raid1/dwunch/ggg_devel/ggg_working/windows/gnd/tccon.gnd
-ef9916d7b614697da5d2f434d0a7bcf8  /net/nicolet/raid1/dwunch/ggg_devel/ggg_working/linelist/atm.101
-7cef41a0900522b021d765cbcfcfcbb2  /net/nicolet/raid1/dwunch/ggg_devel/ggg_working/linelist/gct.101
-6fd821359b77fa5a0f3bb7608ffa007e  /net/nicolet/raid1/dwunch/ggg_devel/ggg_working/linelist/fcia.101
-61e34bb86814b4d71a3a74f517412a19  /net/nicolet/raid1/dwunch/ggg_devel/ggg_working/linelist/scia.101
-b281c747ce68b949fca0a3ebdbe660a6  /net/nicolet/raid1/dwunch/ggg_devel/ggg_working/linelist/solar_merged.108
-                                  /net/nicolet/raid1/dwunch/ggg_devel/ggg_working/ak/k
-                                  /net/nicolet/raid1/dwunch/ggg_devel/ggg_working/spt/z
+51bec825af4b5d8d9b5198117f229b56  /net/nicolet/raid1/dwunch/ggg_devel/ggg_update/windows/gnd/tccon.gnd
+ef9916d7b614697da5d2f434d0a7bcf8  /net/nicolet/raid1/dwunch/ggg_devel/ggg_update/linelist/atm.101
+7cef41a0900522b021d765cbcfcfcbb2  /net/nicolet/raid1/dwunch/ggg_devel/ggg_update/linelist/gct.101
+6fd821359b77fa5a0f3bb7608ffa007e  /net/nicolet/raid1/dwunch/ggg_devel/ggg_update/linelist/fcia.101
+61e34bb86814b4d71a3a74f517412a19  /net/nicolet/raid1/dwunch/ggg_devel/ggg_update/linelist/scia.101
+51482c771568f063ffd53e98cc923751  /net/nicolet/raid1/dwunch/ggg_devel/ggg_update/linelist/solar_merged.108
+                                  /net/nicolet/raid1/dwunch/ggg_devel/ggg_update/ak/k
+                                  /net/nicolet/raid1/dwunch/ggg_devel/ggg_update/spt/z
                                   hcl_5719.pa_ggg_benchmark.col
-                                  (1x,a,1x,i2,1x,f5.3,4(1x,f4.1),1x,f5.3,1x,f6.4,f8.3,15(0pf7.3,1pe11.4,0pf9.4,1pe8.1))
+                                  (1x,a,1x,i2,1x,f5.3,1x,f5.1,3(1x,f4.1),1x,f5.3,1x,f6.4,f8.3,15(0pf7.3,1pe11.4,0pf9.4,1pe8.1))
  5719.00   1.50  15 0 1 0 cl  ct  fs  so     : hcl h2o ch4
-  Spectrum            Nit  CL   CT   CC   FS   S-G  ZO   RMS/CL   Zpres  AM_hcl    OVC_hcl    VSF_hcl    VSF_hcl_error  AM_h2o    OVC_h2o    VSF_h2o    VSF_h2o_error  AM_ch4    OVC_ch4    VSF_ch4    VSF_ch4_error
- pa20040721saaaaa.049  6 0.303  0.0  0.0  0.5  0.2 0.000 0.3287   0.472372.359 3.2798E+15   1.0944 2.4E-02  1.297 1.4814E+23   0.8423 1.3E-02  1.298 3.5772E+19   0.4811 3.1E-01
- pa20040721saaaaa.125  6 0.290 -0.2  0.0  0.7  0.9 0.000 0.6062   0.473373.297 3.2797E+15   1.0919 4.6E-02  2.251 1.4807E+23   0.7510 2.1E-02  2.252 3.5768E+19   0.3981 3.4E-01
- pa20041222saaaaa.021  6 0.474 -0.9  0.0  0.3  0.0 0.000 0.6142   0.478260.982 4.8176E+15   1.0769 4.3E-02  7.779 5.5469E+21   0.8473 1.9E-01  7.524 3.6070E+19   1.0397 1.2E-01
- pa20041222saaaaa.022  6 0.474 -0.9  0.0  0.3  0.0 0.000 0.5798   0.477260.705 4.8177E+15   1.0692 4.1E-02  7.396 5.5510E+21   0.7672 1.9E-01  7.174 3.6078E+19   1.0418 1.2E-01
+  Spectrum            Nit  CL    CT   CC   FS   S-G  ZO   RMS/CL   Zpres  AM_hcl    OVC_hcl    VSF_hcl    VSF_hcl_error  AM_h2o    OVC_h2o    VSF_h2o    VSF_h2o_error  AM_ch4    OVC_ch4    VSF_ch4    VSF_ch4_error
+ pa20040721saaaaa.049  6 0.303   0.0  0.0  0.5  0.2 0.000 0.3287   0.472372.359 3.2798E+15   1.0944 2.4E-02  1.297 1.4814E+23   0.8423 1.3E-02  1.298 3.5772E+19   0.4811 3.1E-01
+ pa20040721saaaaa.125  6 0.290  -0.2  0.0  0.7  0.9 0.000 0.6062   0.473373.297 3.2797E+15   1.0919 4.6E-02  2.251 1.4807E+23   0.7510 2.1E-02  2.252 3.5768E+19   0.3981 3.4E-01
+ pa20041222saaaaa.021  6 0.474  -0.9  0.0  0.3  0.0 0.000 0.6142   0.478260.982 4.8176E+15   1.0769 4.3E-02  7.779 5.5469E+21   0.8473 1.9E-01  7.524 3.6070E+19   1.0397 1.2E-01
+ pa20041222saaaaa.022  6 0.474  -0.9  0.0  0.3  0.0 0.000 0.5798   0.477260.705 4.8177E+15   1.0692 4.1E-02  7.396 5.5510E+21   0.7672 1.9E-01  7.174 3.6078E+19   1.0418 1.2E-01

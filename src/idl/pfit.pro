@@ -121,6 +121,7 @@ two:
       kskip=-1
   endif
 
+  xunit=0 ; cm-1 (default)
   pathlen=strlen(findfile(path(kspec)))
   if pathlen(0) le 0  then goto,two
   openr,unit,path(kspec), /get_lun

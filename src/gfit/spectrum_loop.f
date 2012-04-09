@@ -167,7 +167,7 @@ c     & slpd(mslpd),
       character winfo*(*),ap_file*(*),specname*(nchar),pars(ntg)*(*),
      & sptfile*(*),akpath*(mfilepath),akfile*(*),specpath*(mfilepath),
      & sptpath*(mfilepath),
-     & solarll*(*),runlabmav*(nchar),oformat*10,colabel*(*),
+     & solarll*(*),runlabmav*(nchar),oformat*12,colabel*(*),
      & mavstring*64,linefiles*(*),parfile*(*),dplist*(*),
      & col1*1,apf*2,rayfile*(*),specray*(nchar),runlog*(*),mavfile*(*),
      & string*80,colfile_format*(*)
@@ -357,9 +357,9 @@ c         write(*,*)' Calling abscoj...', kspflag
      &   linefiles,parfile,fzero,grid,ncp,vac,vac(nva+1))
 c         write(*,*)' Called abscoj...'
 
-         write(oformat,'(a5,i2.2,a3)')'(1x,a',lrmax+1,',a)'
+         write(oformat,'(a5,i2.2,a5)')'(1x,a',lrmax+1,',a,a)'
          write(6,oformat)' Spectrum            ',
-     &   colabel(:lcl)//'   AM      OVC        VSF   VSF_err'
+     &   colabel(:lcl),'   AM      OVC        VSF   VSF_err'
          if(mavfound.eq.0) then
             do jtg=1,ntg
                if(speci(jtg).eq.0) then
@@ -474,7 +474,7 @@ c  Add noise and systematic error to OBSRVD (assumes a continuum level of 1.0)
 
 c  Add detector noise and source photon noise in quadrature
       rnoise=SQRT(tbar*sphnoise**2+detnoise**2)
-      write(*,*)'tbar,rnoise,SNR =',tbar,rnoise,tbar/rnoise
+c      write(*,*)'tbar,rnoise,SNR =',tbar,rnoise,tbar/rnoise
       do imp=1,nmp
         obsrvd(imp)=obsrvd(imp)+rnoise*gasdev(iseed) ! Add random noise
 c      obsrvd(imp)=obsrvd(imp)+0.00012*gasdev(iseed)*opd ! add 0.4% rms random noise (iATMOS SNR=250)
@@ -633,7 +633,7 @@ c      write(*,*)' ntg=',ntg
 c      write(*,*)'sl: apx(n2)=',n2,apx(n2)
       call vmov(apx,1,cx,1,nfp) ! Initialize to A PRIORI each spectrum
       if(debug)
-     &  write(6,*)  'It   CL       CT    CC    FS    ZOFF  RMS/CL'//
+     &  write(6,*)  'It    CL       CT    CC    FS    ZOFF  RMS/CL'//
      &'  Vfact1  Vfact2  Vfact3  Vfact4  Vfact5  Vfact6'
 
       ifm=1
@@ -729,7 +729,7 @@ c  Skip levels representing the cells, so start ilev at ncell+1.
          write(6,*)' Average % RMS fit =',100*avgrms/avgcl
          avgtc=tottc/toterr
          rmstc=sqrt(abs(tottc2/toterr-(avgtc-1.)**2))
-         write(6,*)' Average Totcon =',avgtc,' +- ',rmstc
+         write(6,*)' Average VSF =',avgtc,' +- ',rmstc
       endif
       close(lun_rlg)
       close(lun_ray)

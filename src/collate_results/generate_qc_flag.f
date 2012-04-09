@@ -59,14 +59,14 @@ c  in order to read data from appropriate target gas.
       read(lunc,'(a)') gfit_version
       read(lunc,'(a)') gsetup_version
       do k=4,nlhead-1
-        read(lunc,'(a)')colabel
-c       if(index(colabel,'runlogs').gt.0) rlgfile=colabel(:80)
+        read(lunc,'(a)')header_string
+c       if(index(header_string,'runlogs').gt.0) rlgfile=header_string(:80)
       end do
-      read(colabel,*) fcen, width, mit
-      read(lunc,'(a)')colabel
-      ktg=1+index(colabel,' OVC_'//colfile(:i1-1))
+      read(header_string,*) fcen, width, mit
+      read(lunc,'(a)')header_string
+      ktg=1+index(header_string,' OVC_'//colfile(:i1-1))
       if ( ktg .gt. 1) then
-          call substr(colabel(:ktg-1),cdum,1,nss)
+          call substr(header_string(:ktg-1),cdum,1,nss)
           ktg=(nss-4)/4
       endif
 

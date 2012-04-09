@@ -56,6 +56,7 @@ c
       character winfo*(*),ss(4)*4
       data ss/' cl ',' ct ',' fs ',' zo '/
 
+      jj=lun_ak  ! to stop compiler warnings (unused variable)
 c      do jtg=0,ntg+2
 c      call vdot(spxv(1,jtg),1,spxv(1,jtg),1,sum2,ncp)
 c      write(*,*)'FM: sum SPXV:',jtg,sqrt(sum2/ncp)

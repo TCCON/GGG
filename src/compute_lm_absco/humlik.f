@@ -123,7 +123,7 @@ c *
         ELSEIF ( ABX .GT. XLIM2 ) THEN ! Humlicek W4 Region 2 
           IF ( RG2 .NE. 0 ) THEN ! First point in Region 2
             RG2 = 0
-            H0 =  0.5625d0 + YQ*(4.5d0 + YQ*(10.5d0 + YQ*(6.0d0 + YQ))) ! Region 2 y-dependents
+            H0 = 0.5625d0 + YQ*(4.5d0 + YQ*(10.5d0 + YQ*(6.0d0 + YQ))) ! Region 2 y-dependents
             H2 = -4.5d0    + YQ*(9.0d0 + YQ*( 6.0d0 + YQ* 4.0d0))
             H4 = 10.5d0    - YQ*(6.0d0 - YQ*  6.0d0)
             H6 = -6.0d0    + YQ* 4.0d0

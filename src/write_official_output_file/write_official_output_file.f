@@ -46,7 +46,7 @@ c
      & sarr(mcol)*57,
      & cc*20
       real*4 yrow(mcol),dev,dmax,scale(mrow_qc),
-     & vmin(mrow_qc),vmax(mrow_qc)
+     & vmin(mrow_qc),vmax(mrow_qc),ymiss
       real*8 wlimit
 
       data kflag/mrow_qc*0/
@@ -127,6 +127,8 @@ c     write(*,*)'inputfile=',inputfile
          read(lunr,'(a)') header
          write(lunw,'(a)') header(:lnbc(header))
          write(lunw_csv,'(a)') header(:lnbc(header))
+         if (j.eq.ncoml-4) read(header(:lnbc(header)),*)ymiss
+c        if (j.eq.ncoml-4) write(*,*)'ymiss=',ymiss
       end do
       read(lunr,'(a)') header ! column headers
       call substr(header,headarr,mcol,kcol)
@@ -257,15 +259,26 @@ c  the variable that was furthest out of range. Then write out the data.
          dmax=0.0
          do icol=1+spectrum_flag,ncol
             krow_qc=pindex(icol)
-            dev=abs((scale(krow_qc)*yrow(icol)-vmin(krow_qc))/
-     &      (vmax(krow_qc)-vmin(krow_qc))-0.5)
+c           write(*,*)'scale,yrow,vmax,vmin,ymiss=',
+c    & scale(krow_qc),yrow(icol),vmax(krow_qc),vmin(krow_qc),ymiss
+            if (yrow(icol).ge.0.9*ymiss) then
+c              write(*,*)'Missing field found.'
+               dev=0.0 ! Don't include missing fields in the flags
+            else
+               dev=abs((scale(krow_qc)*yrow(icol)-vmin(krow_qc))/
+     &         (vmax(krow_qc)-vmin(krow_qc))-0.5)
+            endif
             if(dev.gt.dmax) then
                dmax=dev
                kmax=krow_qc
             endif
             if(flag(krow_qc).ge.1) then
                nco=nco+1
-               yrow(nco)=yrow(icol)*scale(krow_qc)
+               if (yrow(icol).ge.0.9*ymiss) then
+                  yrow(nco)=yrow(icol)
+               else
+                  yrow(nco)=yrow(icol)*scale(krow_qc)
+               endif
             endif
          end do  ! do icol=1,ncol
          if(dmax.gt.0.5) then

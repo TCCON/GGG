@@ -1,4 +1,4 @@
-c  Program COLLATE
+c  Program collate_results
 c
 c  Reads the .col output files (gas_1234.runlog.col) produced by GFIT,
 c  collates them with auxiliary data from the runlog, and then writes
@@ -20,7 +20,7 @@ c     runlog.xsw   Spreadsheet of individual window values for each spectrum
       integer i1,idot,irow,jtg,k,ktg,lnbc,fnbc,fbc,lloc,nn,
      & npp,ldot,l2,l3,l4,totnit,ntc,mlabel,mval,jval,lunw_nts,
      & lr,lunr_mul,lunr_rlg,lunr_col,lunw_rpt,lunw_xsw,
-     & mcol,ncol,icol,mrow,
+     & mcol,ncol,icol,mrow,lnit,
      & nauxcol,nlhead,nmiss,iyrwas,doywas,
      & nrow,nss,nit,mit,i,iyr,doy,istat,nfound
       parameter (lunr_mul=51)       ! multiggg.sh 
@@ -69,12 +69,11 @@ c     runlog.xsw   Spreadsheet of individual window values for each spectrum
       logical append_qcflag
       logical append_spectrum_name
 
+
       append_qcflag=.false.
 
-c      append_spectrum_name=.true.
-    
       version=
-     &' collate_results              Version 1.4.2   2011-11-04   GCT'
+     &' collate_results              Version 1.5.0   2012-03-28   GCT'
       write(6,*) version
       lr=0
 
@@ -132,22 +131,28 @@ c  in order to read data from appropriate target gas.
         read(lunr_col,'(a)') gfit_version
         read(lunr_col,'(a)') gsetup_version
         do k=4,nlhead-2
-           if(nlhead.ge.23) read(lunr_col,'(34x,a)')colabel
-           if(nlhead.eq.20) read(lunr_col,'(34x,a)')colabel
-           if(nlhead.eq.21) read(lunr_col,'(a)')colabel
-           if(k.eq.6) rlgfile=colabel(:90)    ! GCT 2009-03-04
-           if(index(colabel,'runlogs').gt.0) rlgfile=colabel(:mpath)
+           if(nlhead.ge.23) read(lunr_col,'(34x,a)')header_string
+           if(nlhead.eq.20) read(lunr_col,'(34x,a)')header_string
+           if(nlhead.eq.21) read(lunr_col,'(a)')header_string
+           if(k.eq.6) rlgfile=header_string(:90)    ! GCT 2009-03-04
+           if(index(header_string,'runlogs').gt.0)
+     &     rlgfile=header_string(:mpath)
         end do
-        read(lunr_col,'(a)') colabel
-c        write(*,*) 'colabel=',colabel
-        read(colabel,*) fcen, width, mit
-        read(lunr_col,'(a)')colabel
-c        write(*,*) colabel
+        if(nlhead.eq.24) csformat=header_string(:lnbc(header_string))
+c        write(*,'(a)') 'csformat='//csformat
+
+        read(lunr_col,'(a)') header_string
+c        write(*,'(a)') 'header_string='//header_string
+        read(header_string,*) fcen, width, mit
+        read(lunr_col,'(a)')header_string
+        lnit= index(header_string,'Nit')
+
+c        write(*,*) header_string
 c        write(*,*) colfile(:i1-1)
-        ktg=1+index(colabel,' OVC_'//colfile(:i1-1))
+        ktg=1+index(header_string,' OVC_'//colfile(:i1-1))
 c        write(*,*)'ktg=',ktg
         if ( ktg .gt. 1) then
-          call substr(colabel(:ktg-1),cdum,1,nss)
+          call substr(header_string(:ktg-1),cdum,1,nss)
           ktg=(nss-4)/4
         endif
 c        write(*,*)'ktg=',ktg
@@ -173,7 +178,6 @@ c  Add spectrum name to output files only on gnd data
         else
            append_spectrum_name = .false.
         endif
-c        append_spectrum_name = .false.  !  GCT
 c
 c  Read auxilliary measurements from runlog
 c        write(*,*) 'runlog=',rlgfile
@@ -193,24 +197,26 @@ c           write(*,'(a)')col_string(:lnbc(col_string))
            l4=fbc(col_string(l3:))+l3-1   ! First space following NIT
 c           write(*,*)l2,l3,l4
 
-           if (index(gfit_version,'2.40.2') .ne. 0) then !  old col file format 
-               csformat='(1x,a21,i2,1x,f5.3,3(1x,f4.1),1x,f5.3,'
-     &         //'1x,f6.4,f7.3,1x,9(0pf7.3,1pe10.3,0pf9.4,1pe8.1))'
-           elseif (index(gfit_version,'4.8.') .ne. 0) then !  new .col file format
-               write(csformat,'(a,i2.2,a)')'(1x,a',l4-5,
-     &    ',i3,f6.3,4f5.1,f6.3,f7.4,f8.3,15(f7.3,e11.4,f9.4,e8.1))'
-           else                                  ! assume previous .col file format 
-               write(csformat,'(a,i2.2,a)')'(1x,a',l4-5,
-     &     ',i3,f6.3,3f5.1,f6.3,f7.4,f8.3,15(f7.3,e11.4,f9.4,e8.1))'
-           endif
+c           if (index(gfit_version,'2.40.2') .ne. 0) then !  old col file format 
+c               csformat='(1x,a21,i2,1x,f5.3,3(1x,f4.1),1x,f5.3,'
+c     &         //'1x,f6.4,f7.3,1x,9(0pf7.3,1pe10.3,0pf9.4,1pe8.1))'
+c           elseif (index(gfit_version,'4.8.') .ne. 0) then !  new .col file format
+c               write(csformat,'(a,i2.2,a)')'(1x,a',l4-5,
+c     &    ',i3,f6.3,4f5.1,f6.3,f7.4,f8.3,15(f7.3,e11.4,f9.4,e8.1))'
+c           else                                  ! assume previous .col file format 
+c               write(csformat,'(a,i2.2,a)')'(1x,a',l4-5,
+c     &     ',i3,f6.3,3f5.1,f6.3,f7.4,f8.3,15(f7.3,e11.4,f9.4,e8.1))'
+c           endif
 
-c           write(*,'(a)') csformat
-c           write(*,'(a)') col_string
-           if (index(gfit_version,'4.8.') .gt. 0) then
-           read(col_string,csformat)specname_col,nit,cl,tilt,cc,fqshift,
+c        write(*,'(a)') 'csformat='//csformat
+c           write(*,'(a)') 'col_string='//col_string
+           if (index(gfit_version,'4.8.') .gt. 0) then   !  .col file includes CC
+           read(col_string,csformat)
+     &        specname_col(:lnit-3),nit,cl,tilt,cc,fqshift,
      &       sg,zlo,rmsfit,zmin,(airmass,ovcol,vsf,vsf_err,jtg=1,ktg)
-           else
-           read(col_string,csformat)specname_col,nit,cl,tilt,fqshift,
+           else                                          !  no CC
+           read(col_string,csformat)
+     &       specname_col(:lnit-3),nit,cl,tilt,fqshift,
      &       sg,zlo,rmsfit,zmin,(airmass,ovcol,vsf,vsf_err,jtg=1,ktg)
            endif
 c           write(*,*) specname_col,nit,cl,tilt,cc,fqshift,
@@ -459,13 +465,13 @@ c  to support both the new and the old runlog formats.
 c====================================================================
       write(6,*)
       write(6,*) outfile//' contains:'
-      write(6,'(i7,a)') nauxcol,' auxiliary columns'
-      write(6,'(i7,a)') ncol,' data parameters (each value + error)'
-      write(6,'(i7,a)') 2*ncol+nauxcol,' total columns'
-      write(6,'(i7,a)') nrow,' data rows'
-      write(6,'(i7,a,f5.1,a1)') nfound,' found values   = ',
+      write(6,'(i8,a)') nauxcol,' auxiliary columns'
+      write(6,'(i8,a)') ncol,' data parameters (each value + error)'
+      write(6,'(i8,a)') 2*ncol+nauxcol,' total columns'
+      write(6,'(i8,a)') nrow,' data rows'
+      write(6,'(i8,a,f5.1,a1)') nfound,' found values   = ',
      & 100*float(nfound)/(nfound+nmiss),'%'
-      write(6,'(i7,a,f5.1,a1)') nmiss,' missing values = ',
+      write(6,'(i8,a,f5.1,a1)') nmiss,' missing values = ',
      & 100*float(nmiss)/(nfound+nmiss),'%'
 c====================================================================
       stop

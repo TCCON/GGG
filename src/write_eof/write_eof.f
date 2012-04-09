@@ -4,7 +4,7 @@ c  Writes out a version of the oof file but with the kitchen sink.
       include "../ggg_int_params.f"
       include "params.f"
       integer*4 lun_tav,lun_vav,lun_ada,lun_out,lun_outc,lun_aia,
-     & li,lnbc,ncoml,ncolt,ncolv,ncola,nrow,naux,j,
+     & li,lnbc,ncoml,ncolt,ncolv,ncola,nrow,naux,j,lnit,
      & lspace,jj,mhead,ncomlc,ncolc,ngas,lun_cor,flag,lun_asw,
      & k,maux,mwin,nwin,NN2,NN3,NN4,NN5,NN0,NN6,NN7,gaa_naux,
      & col_ncol, mcsv,kcol,gh
@@ -28,19 +28,19 @@ c      parameter (lun_gaa=31)      ! input file (.gaa)
      & adaheader*550,gaafile*90,aiaheader*550,
      & inputfmt*1024,adafmt*1024,
      & outfmt*1024,hdr(mhead)*(24),headaux(mhead)*(24),
-     & corfmt*1024,ssss*16584,sarr(mrow)*57,csvarr(mrow)*57,
+     & corfmt*1024,ssss*16584,sarr(mrow)*(nchar),csvarr(mrow)*(nchar),
      & headtav(mhead)*(24),headvav(mhead)*(24),headada(mhead)*(24),
-     & gasname(mwin)*20,gggdir*(mpath),corr_head*300,cc*57,dl*1,
+     & gasname(mwin)*20,gggdir*(mpath),corr_head*300,cc*(nchar),dl*1,
      & ooffmt*512,oof_header*8000,oof_out*800,aswfile*80,
      & col_header*20000,col_out*10000,headercsv*20000,
-     & ghost_head(mhead)*(24)
+     & ghost_head(mhead)*(24),specfmt*3
       real*4 yauxt(maux),yobst(mwin),yerrt(mwin),yauxv(maux),
      & yobsv(mwin),yerrv(mwin),
      & yauxi(maux),yobsi(mwin),yerri(mwin),yauxai(maux),yobsai(mwin),
      & yerrai(mwin),yobs_ghost(maux),yobsga(mwin)
 
       real*8 year,adcf(mwin),adcf_err(mwin),aicf(mwin),aicf_err(mwin)
-      integer*4 oof_flag(mrow)
+      integer*4 oof_flag(mrow),ktg(mcol)
       integer*4 ncol, mchar, eflag, irow, nflag
       integer*4 kflag(mrow_qc), oflag(mrow_qc), 
      & pindex(mrow_qc)
@@ -50,20 +50,12 @@ c      parameter (lun_gaa=31)      ! input file (.gaa)
       integer*4 inputlun
       integer*4 percent_complete, percent_complete_target
      
-      integer*4 luns(mluns), noc
-
-      integer grl_array_size
-      parameter (grl_array_size=10)
-      character specname_grl_array(grl_array_size)*57
-      integer iyr_array(grl_array_size), doy_array(grl_array_size)
-      integer delta_t_array(grl_array_size)
-      integer zpdtim_array(grl_array_size)
-      integer grl_array_counter
-
+      integer*4 luns(mluns)
 
       call getlun(inputlun)
       we_version=
-     &' write_eof  Version 0.3.2   2012-01-17   DW/CL'
+     & ' WRITE_EOF                Version 0.4.2    30-Mar-2012     DW '
+
       write(*,*) we_version
 
       write(*,'(a)')
@@ -93,18 +85,17 @@ c     open(lun_gaa,file=gaafile,status='old')
       open(lun_out,file=outfile,status='unknown')
       open(lun_outc,file=outfilec,status='unknown')
 
-CC prepare oof
+C prepare oof and col files for reading
 
        call prepare_oof_output(gaafile,inputlun,
      & ooffmt, oof_flag, irow, 
      & vmin, vmax, pindex, 
-     & nflag, eflag, kflag, oflag,
+     & eflag, kflag, oflag,
      & nrow, ncol, mchar, scale, ofmt, oof_header,gaa_naux)
 CC
-       call prepare_collate_all(col_header, luns, col_ncol, noc,
-     & grl_array_size, specname_grl_array, iyr_array, doy_array,
-     & delta_t_array, zpdtim_array, grl_array_counter,gfit_version,
-     & gsetup_version, atmsum, gctsum, fciasum, sciasum, solarsum)
+       call prepare_collate_all(col_header, luns, col_ncol,ktg, 
+     & gfit_version,gsetup_version, atmsum, gctsum, fciasum, 
+     & sciasum, solarsum,lnit,csformat)
 
 c Read and parse the corrections.dat file
       call get_ggg_environment(gggdir, dl)
@@ -253,10 +244,10 @@ c Write the top part of the output files
       write(lun_outc,'(a)')headercsv(:lnbc(headercsv))
 
 c Set the formats of the files
-      inputfmt='(a57,1x,f13.8,NNf13.5,800(1pe12.4))'
+      write(specfmt,'(a,i2)')'a',nchar
+      inputfmt='('//specfmt//',1x,f13.8,NNf13.5,800(1pe12.4))'
       write(inputfmt(15:16),'(i2.2)')naux-1
-
-      adafmt='(a57,1x,f13.8,NNf13.5,200(1pe12.4))'
+      adafmt='('//specfmt//',1x,f13.8,NNf13.5,200(1pe12.4))'
       write(adafmt(15:16),'(i2.2)') naux-1
 
       corfmt='(NNf8.4)'
@@ -264,15 +255,9 @@ c Set the formats of the files
 
       nwin=(ncolt-naux)/2
 
-c Read in each line of the files, and write the string to the output file
-
-C prepare oof and col files for reading
-
-  
-
-   
 C end prepare files
 
+c Read in each line of the files, and write the string to the output file
       percent_complete_target=0.0
       do j=1,nrow
           percent_complete = j*100/nrow
@@ -282,18 +267,22 @@ C end prepare files
               percent_complete_target=percent_complete_target+1+100/nrow
            endif
           oof_out(:)=""
-         call read_oneline_oof(gaafile,inputlun, oof_out,
+
+c read one line of the oof file
+         call read_oneline_oof(inputlun, oof_out,
      & ooffmt, oof_flag, irow,
      & vmin, vmax, pindex,
      & nflag, eflag, kflag, oflag,
-     & nrow, ncol, mchar, scale, ofmt, gaa_naux,yobsga
+     & ncol, mchar, scale, ofmt, gaa_naux,yobsga
      & )
 
-         call read_oneline_col(col_out, luns, col_ncol, noc,
-     & grl_array_size, specname_grl_array, iyr_array, doy_array,
-     & delta_t_array, zpdtim_array, grl_array_counter, gfit_version,
+c read one line of the col file(s)
+         call read_oneline_col(col_out, luns, col_ncol,csformat,
+     & lnit,ktg, 
+     & gfit_version,
      & gsetup_version,atmsum,gctsum,fciasum,sciasum,solarsum)
 
+c set the output file format
          outfmt='(aNNX,'
      &    //'NN(1pe12.4),'
      &    //'NN(1pe12.4),'
@@ -322,10 +311,6 @@ C end prepare files
 c        write(*,*)'outfmt=',outfmt
 
 c The above assumes that all the oof and col file lines are the same length!
-
-c read one line of the oof file
-
-c read one line of the col file(s)
 
          read(lun_tav,inputfmt) 
      &   specname,year,

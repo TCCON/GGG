@@ -1,7 +1,6 @@
 C*********************************************************************
       Subroutine LMandCIAO2(path_to_input_files,T,Ptot,
-     &  xo2,xh2o,
-     &  SigMin,DSig,nSig, AbsV, AbsY, AbsW)
+     &  xo2,xh2o,SigMin,DSig,nSig, AbsV, AbsY, AbsW)
 C*********************************************************************
 C	"LMandCIAO2": COMPute ABSorptions
 C	.................................................
@@ -12,16 +11,26 @@ C	.     Subroutine "Readline".                    .
 C	.     Voigt, First Order L-M					.
 C	.................................................
 C
-C	Input/Output Parameters of Routine (Arguments or Common)
-C	---------------------------------
-C	o2_nLines  : Integer Array of the number of lines (Input).
-C	T	    : Temperature in Kelvin (Input).
-C	Ptot    : Total pressure in Atmosphere (Input).
-C	xO2     : O2 volume mixing ratio (Input).
-C	SigMin  : Minimum WaveNumber of the Computation (Cm-1, Input)
-C	DSig    : WaveNumber Step of the Computation (Cm-1, Input)
+C   Inputs:
+C       path_to_input_files: where to find linelist, matrices, etc.
+C	T	: Temperature in Kelvin 
+C	Ptot    : Total pressure in Atmosphere 
+C	xO2     : O2 volume mixing ratio 
+C       xH2O    : H2O vmr
+C	SigMin  : Minimum WaveNumber of the Computation (Cm-1)
+C	DSig    : WaveNumber Step of the Computation (Cm-1)
+C       nSig    : Number of frequencies
 C
-C	Other important Input Quantities (through Common Statements)
+C
+C   Outputs
+C	AbsV    : Absorption Coefficient neglecting LineMixing
+C                (assuming Voigt Line-Shapes) (cm-1)
+C	AbsY    : Difference between Absorption Coefficient predicted
+C                using First Order Line-Mixing and Voigt (cm-1)
+C       AbsW    : Absorption Coefficient due to CIA (cm-1)
+C
+C
+C   Other important Input Quantities (through Common Statements)
 C	--------------------------------
 C	HWT     : Air Broadened HalfWidths of the Lines for the
 C	          Considered Temperature and Pressure (Cm-1)
@@ -31,16 +40,6 @@ C	o2_YT      : Air Broadened First Order Line Mixing Coefficients
 C               of the Lines for the Considered Temperature and
 C	          Pressure (No Unit)
 C	Dipo    : Dipole transition Moments of the Lines
-C
-C	Output Quantities (through Common Statements)
-C	-----------------
-C	AbsV    : Absorption Coefficient neglecting LineMixing
-C               (assuming Voigt Line-Shapes) (Cm-1)
-C	AbsY    : Absorption Coefficient predicted using the First
-C               Order Line-Mixing Approximation (Cm-1)
-C
-C	See Preceding Routines for the Other Variables
-C
 C
 C	Accessed Files:  None
 C	--------------
@@ -57,6 +56,7 @@ C     H. Tran, last change 24 November 2005
 C*********************************************************************
 C
       Implicit None
+      include '../ggg_int_params.f'
       Integer nLmx,nSigmx,nCIAmx
       Integer o2_nLines,nCIA
       Integer nSig,iSig,iLine
@@ -65,12 +65,12 @@ C
       Double Precision o2_Sig,Dipo,HWT,o2_PopuT,o2_YT
       Double Precision aMass,Pi
       Double Precision SigMoy,GamD,Cte,Cte1,Cte2
-      Double Precision SigC,SumV,SumY
+      Double Precision SigC
       Double Precision aa,bb
       Double Precision XX,YY,WR,WI
       Double Precision SigCIA,CIA,Acialoc
       Double complex zint,zval
-      character path_to_input_files*80
+      character path_to_input_files*(mpath+80)
 C Max Number of Lines, of Spectral and of CIA data points
       Parameter (nLmx=100)
       Parameter (nSigmx=500000)
@@ -97,6 +97,7 @@ C Constants
       Data aMass/32.D-3/
 C----------
 C
+      xx=xh2o  ! avoid compiler warning (unused variable)
 C Convert Band Data to Considered Temperature and Pressure
       Call ConvTPO2(path_to_input_files,T,Ptot)
 C
@@ -142,11 +143,13 @@ C
       do iSig=1,nSig
       SigC=SigC+dSig
       ind=(SigC-SigCIA(1))/10.+1
-      if(ind.le.0) then
-        stop ' Outside valid spectral region for O2 LM'
+      if(ind.le.0 .or. ind.gt.nCIAmx) then
+         write(*,*)'Warning: Outside region for O2 CIA'
+         Acialoc=0.0
+      else
+         Acialoc=CIA(ind)+(SigC-SigCIA(ind))
+     &    *(CIA(ind+1)-CIA(ind))/10.
       endif
-      Acialoc=CIA(ind)+(SigC-SigCIA(ind))
-     & *(CIA(ind+1)-CIA(ind))/10.
         AbsW(isig)=Acialoc*xo2
 c       AbsY(isig)=AbsY(isig)+Acialoc*xo2
       enddo
@@ -199,9 +202,10 @@ C     H. Tran, last change 28 November 2005
 C*********************************************************************
 C
       Implicit double precision (a-h,o-z)
+      include '../ggg_int_params.f'
       Integer o2_nLines
-      Double complex zInt,zVal,zOp,zVec,zVecM1,z
-      character path_to_input_files*80
+      Double complex zInt,zVal
+      character path_to_input_files*(mpath+80)
 C Max Number of Lines and of matrix elements
       Parameter (nLmx=100)
       Parameter (nMmx=5000)
@@ -236,7 +240,7 @@ C Other parameters
       Double precision WW0(nLmx,nLmx)
       Double Precision Sup(nLmx)
       Double Precision Slow(nLmx)
-      DImension zOp(nlmx,nlmx),zVec(nlmx,nlmx),zVecM1(nlmx,nlmx)
+c      DImension zVec(nlmx,nlmx),zVecM1(nlmx,nlmx)
 C----------
       T0=296.D0
       A=1.4388D0
@@ -581,8 +585,8 @@ C	           (at 296 K) of all Couples of Lines (Cm-1/Atm)
 C	BW		 : Temperature Dependence Coefficients of WT0
 C
 C	Accessed Files:	'SDF.dat'	(Spectroscopy Data File)
-C	--------------	'RMF.dat'	(Relaxation Matrix File)
-C					'CIAF.dat'	(Collision Induced Absorption File)
+C	              	'RMF.dat'	(Relaxation Matrix File)
+C			'CIA.dat'	(Collision Induced Absorption File)
 C
 C	Called By: 'ConvTP'			(CONVert to Temperature and Pressure)
 C	---------
@@ -659,7 +663,7 @@ C Open File of spectroscopic Data and Read
 C        
         iLine=1
       Open(Unit=iFile,file=path_to_input_files(:lp)//'SDFO2.dat',
-     & Status='Old')
+     &  Status='Old')
   2     Read(iFile,1001,End=100)o2_Sig(iLine),o2_PopuT0(iLine),
      , DipoR(iLine),Dipo0(iLine),E(iLine),
      , HWT0(iLine),BHW(iLine),
@@ -740,7 +744,7 @@ C NO SUBROUTINE CALLED
 C CALLED BY : "ICTCVG", "ICTCVW"
 C--------------------------------------------------------------------
       implicit double precision (a-h,o-z)
-      DIMENSION COEF(20),SYSMAT(20,21)                                           
+      DIMENSION COEF(20),SYSMAT(20,21)
       DATA EPS/1.d-30/
 C
       IOK=1                                                            
@@ -748,12 +752,12 @@ C
       SUP=dABS(SYSMAT(M,M))    
       K=M
 C SEARCH FOR LARGEST ELEMENT ON COLUMN
-         DO 100 I=M,N                                                      
-         W=dABS(SYSMAT(I,M))     
-         IF(W.LT.SUP) GO TO 100                                            
-         SUP=W                                                             
-         K=I                                                               
-100      CONTINUE                                                          
+         DO 100 I=M,N
+         W=dABS(SYSMAT(I,M))
+         IF(W.LT.SUP) GO TO 100
+         SUP=W
+         K=I
+100      CONTINUE
 C MAKE PERMUTATION OF COLUMNS IF REQUIRED
                IF(K.NE.M)THEN
                DO 200 I=1,N+1
@@ -777,7 +781,7 @@ C SOLVE TRIANGULAR SYSTEM
       J=N-I                                                             
       SUM=0.D0                                                          
       DO 400 K=J+1,N                                                    
-      SUM=SUM+SYSMAT(J,K)*COEF(K)                                              
+      SUM=SUM+SYSMAT(J,K)*COEF(K)
 400   CONTINUE                                                          
       COEF(J)=(SYSMAT(J,N+1)-SUM)/SYSMAT(J,J)
 500   CONTINUE                                                          

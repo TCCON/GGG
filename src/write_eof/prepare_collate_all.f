@@ -1,78 +1,63 @@
-c  Program COLLATE_ALL
+c  Subroutine PREPARE_COLLATE_ALL
 c
-c  Reads the .col output files (gas_1234.runlog.col) produced by GFIT and
-c  writes it out to a string.
+c  Reads the .col output file headers. Requires multiggg.sh to run.
 c
-c  INPUT FILES:
-c     multiggg.sh          batch file containing names of .col files
-c     runlog.xrl           runlog file
-c     gas_1234.runlog.col  files containing column amounts
-c
-      subroutine prepare_collate_all(header,luns, ncol, noc,
-     & grl_array_size, specname_grl_array, iyr_array, doy_array,
-     & delta_t_array, zpdtim_array, grl_array_counter, gfit_version,
-     & gsetup_version,atmsum,gctsum,fciasum,sciasum,solarsum)
+      subroutine prepare_collate_all(header,luns, ncol,ktg,
+     & gfit_version,
+     & gsetup_version,atmsum,gctsum,fciasum,sciasum,solarsum,lnit,
+     & csformat)
       implicit none
       include "../ggg_int_params.f"
       include "params.f"
 
-      integer i1,idot,irow,k,ktg,lnbc,nn,
+      integer i1,idot,
+     & k,lnbc,
      & mlabel,mval,
-     & lr,ncol,icol,
-     & nlhead,iyrwas,doywas,jj,noc,
-     & nss,mit,i,j,flag,lspace
+     & lr,ncol,icol,lnit,
+     & nlhead,
+     & jj,
+c     & noc,
+     & mit,i,j,flag,lspace
       integer lun_col
       parameter (mval=mrow*mcol) ! Max number of values (NROW * NCOL)
       parameter (mlabel=16000)  ! Max # of characters in column labels
 
-      integer*4 luns(mluns), temp_lun
+      integer*4 luns(mluns), temp_lun,ktg(mcol),nss
       character
+     & cdum*20,
      & rlgfile*(mfilepath),
      & colfile*40,
-     & cdum*20,
      & colabel*15000,
      & collabel*(mlabel),
-     & specname_grl*(nchar),
      & tabel*500,
-c     & collate_version*64,
      & windows(mcol)*10,
-     & specname_gwas*(nchar),
      & hdri(mval)*(26),
      & cksum*32
 
-      real*8 fcen,width,rmin,rmax,
-     & r8was,trms
+      real*8 fcen,width,trms
 
-      real*8 zpdwas,max_delta_t
+c     logical append_qcflag
+c     logical append_spectrum_name
 
-      logical append_qcflag
-      logical append_spectrum_name
+c     integer grl_array_size
+c     character specname_grl_array(grl_array_size)*(nchar)
+c     integer iyr_array(grl_array_size), doy_array(grl_array_size)
+c     integer zpdtim_array(grl_array_size)
+c     integer grl_array_counter
 
-      integer grl_array_size
-      character specname_grl_array(grl_array_size)*57
-      integer iyr_array(grl_array_size), doy_array(grl_array_size)
-      integer delta_t_array(grl_array_size)
-      integer zpdtim_array(grl_array_size)
-      integer grl_array_counter
+c     grl_array_counter=1
+c     do grl_array_counter=1,grl_array_size
+c        specname_grl_array(grl_array_counter)=""
+c        iyr_array(grl_array_counter)=0
+c        doy_array(grl_array_counter)=0
+c        zpdtim_array(grl_array_counter)=0
+c     end do
+c     grl_array_counter=1
 
-      grl_array_counter=1
-      specname_grl=""
-      do grl_array_counter=1,grl_array_size
-         specname_grl_array(grl_array_counter)=""
-         iyr_array(grl_array_counter)=0
-         doy_array(grl_array_counter)=0
-         zpdtim_array(grl_array_counter)=0
-      end do
-      grl_array_counter=1
-
-      append_qcflag=.false.
-      append_spectrum_name=.true.
-c     append_spectrum_name=.false.
-c This program now probably requires the spectrum be appended
+c     append_qcflag=.false.
+c     append_spectrum_name=.true.
+c This program now requires the spectrum be appended
     
-c      collate_version=
-c     &' collate_all_results          Version 1.3.0   2010-06-24   GCT'
-c      write(6,*) collate_version
       lr=0
 c initialize the checksum values to zero, in case the linelists aren't found
       atmsum  ='00000000000000000000000000000000'
@@ -138,9 +123,7 @@ c  in order to read data from appropriate target gas.
         read(lun_col,'(a)') gsetup_version
         do k=4,nlhead-2
            if(nlhead.ge.23) read(lun_col,'(a32,2x,a)')cksum,colabel
-c          if(nlhead.ge.23) read(lun_col,'(34x,a)')colabel
            if(nlhead.eq.20) read(lun_col,'(a32,2x,a)')cksum,colabel
-c          if(nlhead.eq.20) read(lun_col,'(34x,a)')colabel
            if(nlhead.eq.21) read(lun_col,'(a)')colabel
            if(k.eq.6) rlgfile=colabel    ! GCT 2009-03-04
            if(index(colabel,'runlogs').gt.0) rlgfile=colabel
@@ -162,10 +145,22 @@ c          if(nlhead.eq.20) read(lun_col,'(34x,a)')colabel
 c          if(index(colabel,'solar_dc.101').gt.0)solarsum=cksum
 c          if(index(colabel,'solar_di.101').gt.0)solarsum=cksum
         end do
-
+        if(nlhead.eq.24) csformat=colabel(:lnbc(colabel))
+c       write(*,*)'csformat=',csformat
         read(lun_col,'(a)') colabel
         read(colabel,*) fcen, width, mit
         read(lun_col,'(a)')colabel
+c       write(*,*)'colabel=',colabel
+        lnit=index(colabel,'Nit')
+c       write(*,*)'colabel=',colabel(:lnbc(colabel))
+c       write(*,*)'colfile=',colfile(:i1-1)
+        ktg(icol)=1+index(colabel,' AM_'//colfile(:i1-1))
+        if ( ktg(icol) .gt. 1) then
+          call substr(colabel(ktg(icol)-1:lnbc(colabel)),cdum,1,nss)
+          ktg(icol)=nss/4
+        endif
+c       write(*,*)'ktg=',ktg
+
         k=1
         flag=0
 
@@ -200,38 +195,7 @@ c          if(index(colabel,'solar_di.101').gt.0)solarsum=cksum
         enddo ! j=1,99999
 
 56      continue
-        ktg=1+index(colabel,' OVC_'//colfile(:i1-1))
-        if ( ktg .gt. 1) then
-          call substr(colabel(:ktg-1),cdum,1,nss)
-          call substr(colabel(ktg:lnbc(colabel)),cdum,1,noc)
-          noc=(noc+1)/4
-          ktg=(nss-4)/4
-        endif
-        iyrwas=-99999
-        doywas=-99999
-        zpdwas=-99999.9d0
-        irow=0
-        rmin=9999999.0
-        rmax=0.0
-        specname_grl=' '
-        specname_gwas='x'
-
-        lr=lnbc(rlgfile)
-        if(rlgfile(lr-2:lr-2).eq.'o') then
-           max_delta_t=0.0004  ! 1.44s (ACE)
-        else
-           max_delta_t=0.0025  ! 9.0s (ground-based TCCON)
-        endif
       end do
-c
-c  Read auxilliary measurements from runlog
-        open(lun_rlg,file=rlgfile(:lnbc(rlgfile)), status='old')   !DG000906
-        read(lun_rlg,*) nlhead,nn
-        do i=2,nlhead
-           read(lun_rlg,*)
-        end do
-        r8was=-9999999.9d0
-
 !this is the end of the header
 
 c Write header to a string to pass along

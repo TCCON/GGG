@@ -22,7 +22,7 @@ c
      & lun_rlg,     ! LUN to read input runlogs from
      & lun_rpt,     ! LUN to write rms deviation
      & lun_wbs,     ! LUN to Write Binary Spectra (averages)
-     & lun_wav,     ! LUN to write acerage spectrum to
+     & lun_wav,     ! LUN to write average spectrum to
      & lr,nhl,      ! number of header lines
      & mcol, ncol, kcol, ! Number of columns in runlog
      & lnbc,        ! function Last Non-Black Character

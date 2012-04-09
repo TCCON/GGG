@@ -36,7 +36,7 @@ c BASIS FOR LINESHAPE FORMULATION
 c  Molecular absorptions (e.g. CO, OH, NH, CN) tend to have narrow,
 c  Doppler lineshapes because they are confined to a relatively
 c  narrow layer in the cooler, upper, part of the solar atmosphere.
-c  In the hotter depths molecules are dissociated.
+c  In the hotter depths molecules are dissociated. Only atoms survive.
 c
 c  Atoms, on the other hand, are stable to much higher temperatures.
 c  Atomic absorptions can occur at greater depths in the sun where

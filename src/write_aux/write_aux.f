@@ -9,19 +9,26 @@ c  Writes out a nice version of the mav file for data users.
       parameter (lun_mav=12)      ! input file (.mav)
       parameter (lun_out=14)      ! output file (.map)
       parameter (mvmr=28000)
-      real*4 z(mlev),t(mlev),p(mlev),d(mlev),vmr(mvmr)
+      real*4 z(mlev),t(mlev),p(mlev),d(mlev),vmr(mvmr),
+     & gravity,oblat
       character version*62,mavfile*80,outfile*80,mavstring*64,
      & runlabmav*57,string*48,head*1800,hdr(mlev)*(11),string1*25,
      & mav_version*64
 
       version=
-     &' write_aux              version 1.0.0   2012-01-10   DW'
+     &' WRITE_AUX                Version 1.1.0    23-Mar-2012    DW'
       write(*,*) version
 
       write(*,'(a)')
      & 'Enter name of .mav file'
       read(*,'(a)')mavfile
 c     lr=lnbc(mavfile)
+
+      oblat=0.0d0
+      write(*,'(a)')
+     & 'Enter latitude of site (default: 0 degrees)'
+      read(*,'(f7.4)')oblat
+c     write(*,*)'oblat=',oblat
 
 c  Read the entire contents of the .mav file
       open(lun_mav,file=mavfile,status='old')
@@ -41,7 +48,7 @@ c         lr=lnbc(runlabmav)
 
 c  Figure out where the date ends (usually has an 's' for TCCON spectrum names).
           lr=index(runlabmav,'s')
-          if (lr.eq.0) lr=11
+          if (lr.lt.3) lr=11 ! To avoid problems with station names with s in the site id or no site id at all
 c         write(*,*)lr
           outfile=runlabmav(:lr-1)//'.map'
 
@@ -120,20 +127,32 @@ c         write(*,*)string1
 
 c Write new .map file
           open(lun_out,file=outfile,status='unknown')
-          write(lun_out,'(1x,a)')outfile
+          write(lun_out,'(1x,i2,1x,i2)')11,11
+          write(lun_out,'(1x,a)')outfile(:lnbc(outfile))
           write(lun_out,'(a)')mav_version
           write(lun_out,'(a)')version
-          write(lun_out,'(1x,a,a)')'Height,Temp,Pressure,Density,',
-     & string1
+          write(lun_out,'(1x,a)')
+     & 'Please see https://tccon-wiki.caltech.edu for a complete'//
+     & ' description of this file and its usage.'
+          write(lun_out,'(1x,a)')
+     & 'Avogadro (molecules/mole): 6.0221415E+23'
+          write(lun_out,'(1x,a)')
+     & 'Mass_Dry_Air (kg/mole): 28.9644E-03'
+          write(lun_out,'(1x,a)')
+     & 'Mass_H2O (kg/mole): 18.01534E-03'
+          write(lun_out,'(1x,a,f7.3)')
+     & 'Latitude (degrees): ',oblat
+          write(lun_out,'(1x,a,a,a)')'Height,Temp,Pressure,Density,',
+     & string1(:lnbc(string1)),',gravity'
 
 c Match units to string1
           write(lun_out,'(1x,a,a)')'km,K,hPa,molecules_cm3,',
-     & 'parts,parts,ppm,ppb,ppb,ppb'
+     & 'parts,parts,ppm,ppb,ppb,ppb,m_s2'
 
 c    Note that the pe11.3 format without 0p affects the subsequent f11.3 format.
 c    It multiplies it by 10!
 10        format ((2(f7.2,","),1p,4(e10.3,","),0p,1(f8.3,","),
-     & 1p,1(e10.3,","),0p,1(f8.3,","),f7.1))
+     & 1p,1(e10.3,","),0p,1(f8.3,","),1(f7.1,","),f6.3))
           do j=1,nlev
              if(z(j).ge.0) then ! Skip cell levels
              write(lun_out,10)z(j),t(j),
@@ -143,7 +162,8 @@ c    It multiplies it by 10!
      & vmr(ico2-4+(j-1)*nspeci)*0.99*1e6,  ! CO2*0.99 in ppm
      & vmr(in2o-4+(j-1)*nspeci)*1e9,       ! N2O in ppb
      & vmr(ico -4+(j-1)*nspeci)*1e9,       ! CO  in ppb
-     & vmr(ich4-4+(j-1)*nspeci)*1e9        ! CH4 in ppb
+     & vmr(ich4-4+(j-1)*nspeci)*1e9,       ! CH4 in ppb
+     & gravity(oblat,z(j))                 ! gravity in m/s^2
             endif
           enddo ! do j=1,nlev
           close(lun_out)

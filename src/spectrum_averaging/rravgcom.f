@@ -131,6 +131,7 @@ c  of root partition (e.g. "/home/toon/ggg/" ).
       dplist=gggdir(:lr)//'config'//dl//'data_part.lst'
 
       d2r=dpi/180
+      lext=0  ! Avoid compiler warning (may be used uninitialized)
 
       if (mode.eq.1) then
          do j=1,nmax/4

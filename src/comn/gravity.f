@@ -1,13 +1,4 @@
       real*4 function gravity(gdlat,altit)
-c  Computes the effective Earth gravity at a given latitude and altitude.
-c  This is the sum of the gravitational and centripital accelerations.
-c  These are based on equation I.2.4-(17) in US Standard Atmosphere 1962
-c  The Earth is assumed to be an oblate ellipsoid, with a ratio of the
-c  major to minor axes = sqrt(1+con) where con=.006738
-c  This eccentricity makes the Earth's gravititational field smaller at the
-c  poles and larger at the equator than if the Earth were a sphere of the
-c  same mass. It also makes the local mid-latitude gravity field not point
-c  toward the center of mass.
 c
 c  Input Parameters:
 c      gdlat       r*4  GeoDetric Latitude (degrees)
@@ -16,13 +7,28 @@ c
 c  Output Parameter:
 c      gravity     r*4  Effective Gravitational Acceleration (m/s2)
 c
+c  Computes the effective Earth gravity at a given latitude and altitude.
+c  This is the sum of the gravitational and centripital accelerations.
+c  These are based on equation I.2.4-(17) in US Standard Atmosphere 1962
+c  The Earth is assumed to be an oblate ellipsoid, with a ratio of the
+c  major to minor axes = sqrt(1+con) where con=.006738
+c  This eccentricity makes the Earth's gravititational field smaller at
+c  the poles and larger at the equator than if the Earth were a sphere
+c  of the same mass. [At the equator, more of the mass is directly
+c  below, whereas at the poles more is off to the sides). This effect
+c  also makes the local mid-latitude gravity field not point towards
+c  the center of mass.
+c
+c  The equation used in this subroutine agrees with the International
+c  Gravitational Formula of 1967 (Helmert's equation) within 0.005%.
+c
 c  Interestingly, since the centripital effect of the Earth's rotation
 c  (-ve at equator, 0 at poles) has almost the opposite shape to the
-c  second order gravitational field (+ve at equator, -ve at poles), their
-c  sum is almost constant so that the surface gravity can be approximated
-c  (to .07%) by the simple expression g = 0.99746*GM/radius**2, the latitude
-c  variation coming entirely from the variation of surface r with latitude.
-c
+c  second order gravitational field (+ve at equator, -ve at poles),
+c  their sum is almost constant so that the surface gravity could be
+c  approximated (.07%) by the simple expression g=0.99746*GM/radius^2,
+c  the latitude variation coming entirely from the variation of surface
+c  r with latitude. This simple equation is not used in this subroutine.
 
       implicit none
       include "../ggg_const_params.f"

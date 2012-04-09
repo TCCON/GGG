@@ -1,5 +1,34 @@
   GGG spectral fitting program.
 
+compute_lm_absco     V1.0.6    GCT  2012-03-30
+Updated some of the comment fields.
+dimensioned some of the path character variables to xxx*(mpath)
+instead of hardwired values, x*80. This required including
+../ggg_int_params.f
+
+collate_results              Version 1.5.0   2012-03-28   GCT
+Changed the code to use the format statement in each .col file
+rather than a version-dependent hard-wired format. This was
+more difficult than it may seem because the format statement
+uses "a" to read the 57-character spectrum name, even though
+the length in the .col file is adjustable. To implement this
+in a compiler-independent fashion required using the position
+of "Nit" in the col file header line to determine the length
+of the spectrum names.
+
+Also, I noticed that there were two character variables in use
+with very similar names: colabel and collabel. Changed the
+former to header_string, which aso required editing
+params.f and generate_qc_flag.f
+
+At the same time, I increased the number of significant digits
+in the CL field -- the format was changed from f4.1 to f5.1.
+
+This new version of collate_results in incompatible with .col
+files that predate the Feb 2012 release, which don't contain
+the format statement in the .col files.
+
+
 compute_lm_absco     V1.0.2    GCT  2012-02-22
   Created a new program (based on the work of Hartmann and Tran) to compute
   absorptions coefficients for CO2, O2, and CH4, with and without line mixing.

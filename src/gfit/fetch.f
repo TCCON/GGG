@@ -98,9 +98,11 @@ c  The spectral signal is in the third column, e.g. an spt output file
       elseif(bytepw.eq.7) then 
          open(19,file=specpath,status='old')
          read(19,*) nlhead, ncol
+c         write(*,*) nlhead, ncol,iskip
          call skiprec(19,nlhead-1+iskip/7)  !  Skip header & unwanted data
          do jpts=1,npts  !
             read(19,*)freq,tm,buf(jpts)  ! read wanted data
+c            write(*,*) freq,buf(jpts)
          end do
 c
 c  The spectral signal is in the second column and there's a header

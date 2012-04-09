@@ -24,7 +24,7 @@ c  Writes one line to the already-opened .col file.
 
        write(lun_col,colfile_format) specname(:lrmax),nit,
      & wlimit(dble(cx(n1)),'f5.3'),       ! CL
-     & wlimit(100*dble(cx(n2)),'f4.1'),   ! CT
+     & wlimit(100*dble(cx(n2)),'f5.1'),   ! CT
      & wlimit(1000*dble(cx(n3)),'f4.1'),  ! CC
      & wlimit(1000*gint*dble(cx(n4)),'f4.1'),
      & wlimit(dble(sgshift),'f4.1'),

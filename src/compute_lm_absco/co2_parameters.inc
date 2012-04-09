@@ -36,30 +36,30 @@ C Constants
 C      
 C Polynomial Coefficients for the Various Isotopomers
 	integer*4 Jcoef
-      	real*8 Qcoef(nIsotp,4)
+      	real*8 co2_Qcoef(nIsotp,4)
 C Iso=1, i.e. O(16)-C(12)-O(16)
-      DATA (Qcoef(1,Jcoef),Jcoef=1,4)/-.13617D+01, .94899D+00,
+      DATA (co2_Qcoef(1,Jcoef),Jcoef=1,4)/-.13617D+01, .94899D+00,
      +               -.69259D-03, .25974D-05/
 C Iso=2, i.e. O(16)-C(13)-O(16)
-      DATA (Qcoef(2,Jcoef),Jcoef=1,4)/-.20631D+01, .18873D+01,
+      DATA (co2_Qcoef(2,Jcoef),Jcoef=1,4)/-.20631D+01, .18873D+01,
      +               -.13669D-02, .54032D-05/
 C Iso=3, i.e. O(16)-C(12)-O(18)
-      DATA (Qcoef(3,Jcoef),Jcoef=1,4)/-.29175D+01, .20114D+01,
+      DATA (co2_Qcoef(3,Jcoef),Jcoef=1,4)/-.29175D+01, .20114D+01,
      +               -.14786D-02, .55941D-05/
 C Iso=4, i.e. O(16)-C(12)-O(17)
-      DATA (Qcoef(4,Jcoef),Jcoef=1,4)/-.16558D+02, .11733D+02,
+      DATA (co2_Qcoef(4,Jcoef),Jcoef=1,4)/-.16558D+02, .11733D+02,
      +               -.85844D-02, .32379D-04/
 C Iso=5, i.e. O(16)-C(13)-O(18)
-      DATA (Qcoef(5,Jcoef),Jcoef=1,4)/-.44685D+01, .40330D+01,
+      DATA (co2_Qcoef(5,Jcoef),Jcoef=1,4)/-.44685D+01, .40330D+01,
      +               -.29590D-02, .11770D-04/
 C Iso=6, i.e. O(16)-C(13)-O(17)
-      DATA (Qcoef(6,Jcoef),Jcoef=1,4)/-.26263D+02, .23350D+02,
+      DATA (co2_Qcoef(6,Jcoef),Jcoef=1,4)/-.26263D+02, .23350D+02,
      +               -.17032D-01, .67532D-04/
 C Iso=7, i.e. O(18)-C(12)-O(18)
-      DATA (Qcoef(7,Jcoef),Jcoef=1,4)/-.14811D+01, .10667D+01,
+      DATA (co2_Qcoef(7,Jcoef),Jcoef=1,4)/-.14811D+01, .10667D+01,
      +               -.78758D-03, .30133D-05/
 C Iso=8, i.e. O(17)-C(12)-O(18)
-      DATA (Qcoef(8,Jcoef),Jcoef=1,4)/-.17600D+02, .12445D+02,
+      DATA (co2_Qcoef(8,Jcoef),Jcoef=1,4)/-.17600D+02, .12445D+02,
      +               -.91837D-02, .34915D-04/
 c...   CO2  --   626
 c...   CO2  --   636

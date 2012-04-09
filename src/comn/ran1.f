@@ -1,3 +1,5 @@
+C   Returns a uniform random deviate between 0.0 and 1.0.
+C   Set idum to any nagative value to (re)initialize the sequence.
 C     Re-coded per changes to Numerical Recipes
 C     Bill Irion, May 14, 2003
 

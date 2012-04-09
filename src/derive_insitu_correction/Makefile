@@ -4,8 +4,8 @@ include $(GGGPATH)/install/.compiler_ggg
 TARGET=derive_insitu_correction
 TSRC = $(GGGPATH)/src/$(TARGET)
 COMN = $(GGGPATH)/src/comn
-CFLAGS = -c -O -fbounds-check -Wunused -Wuninitialized -W -Wall
-LDFLAGS =
+#CFLAGS = -c -O -fbounds-check -Wunused -Wuninitialized -W -Wall
+#LDFLAGS =
 
 #  Statement of dependencies
 SOURCES :=  \

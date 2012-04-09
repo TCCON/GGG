@@ -62,7 +62,7 @@ c
      &   vibfrq(mvmode)! Array of vibrational frequencies
 c
       character
-     &   colfile_format*86,
+     &   colfile_format*94,
      &   cdum*12
 
       character*24 md5sum
@@ -71,17 +71,17 @@ c
       data speci/mtg*0/
       
       version=
-     & ' GFIT                     Version 4.8.3    09-Jan-2012    GCT '
+     & ' GFIT                     Version 4.8.6    28-Mar-2012    GCT '
       write(6,*)
       write(6,'(a)')version
 
-      colabel='Nit  CL   CT   CC   FS   S-G  ZO   RMS/CL   Zpres'
+      colabel='Nit  CL    CT   CC   FS   S-G  ZO   RMS/CL   Zpres'
       lcl=lnbc(colabel)
       call substr(colabel,cdum,1,nch)
 c     write(*,*)'nch=',nch
 
-      colfile_format='(1x,a,1x,i2,1x,f5.3,4(1x,f4.1),1x,f5.3,1x,f6.4,'//
-     &'f8.3,15(0pf7.3,1pe11.4,0pf9.4,1pe8.1))'
+      colfile_format='(1x,a,1x,i2,1x,f5.3,1x,f5.1,3(1x,f4.1),1x,f5.3,'//
+     &'1x,f6.4,f8.3,15(0pf7.3,1pe11.4,0pf9.4,1pe8.1))'
 
 c     Platform specification:      DG090519
       call get_ggg_environment(gggdir, dl)

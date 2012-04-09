@@ -1,4 +1,4 @@
-      subroutine write_postprocessfile(ext,rlgfile)
+      subroutine write_postprocessfile(ext,rlgfile,oblat)
 c
 c write the post-processing file based on geometry 'ext'
 c
@@ -13,6 +13,7 @@ c
      &  dl*1               !delimiter (='/' Unix, ='\' DOS)
 
       integer*4 lunw_pp, lunw, lrt, lr, lnbc
+      real*8 oblat
       parameter (lunw=52)     ! for writing (general purpose)
       parameter (lunw_pp=76)  ! for post_processing.sh/post_processing.bat
 
@@ -98,6 +99,7 @@ c     'gnd' geometry
      &  gggdir(:lrt)//'bin'//dl//'write_aux < '//'write_aux.input'
         open(lunw,file='write_aux.input',status='unknown')
         write(lunw,'(a)') rlgfile(:lr-3)//'mav'
+        write(lunw,'(f7.4)') oblat
         close(lunw)
 
 c     'bal' or 'orb' geometry

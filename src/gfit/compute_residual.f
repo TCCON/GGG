@@ -76,15 +76,18 @@ c   RES= OBSRVD-CALCUL
 c   CORR = RES/CALCUL
 c   CALCUL*LOGe(1+del)= RES*(1-0.5*CORR*(1+0.666*CORR)) 
 
+      implicit none
       integer*4 mode,nmp,imp
-      real*4  obsrvd(nmp),calcul(nmp),resids(nmp)
+      real*4  obsrvd(nmp),calcul(nmp),resids(nmp),resoc
 
 c  Calculate residuals
       call vsub(obsrvd,1,calcul,1,resids,1,nmp) ! residuals
       if(mode.gt.1) then ! use logarithmic residuals 1'st convergence
          do imp=1,nmp
+            if (calcul(imp).ne.0) then
             resoc=resids(imp)/calcul(imp)
             if(abs(resoc).lt.0.5) resids(imp)=resids(imp)*(1-resoc/2)
+            endif
          end do   ! imp=1,nmp
       endif   !  mode.gt.1
       return

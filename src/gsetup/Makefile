@@ -15,7 +15,6 @@ SOURCES := \
  $(TSRC)/apply_vmr_latitude_gradients.f \
  $(TSRC)/resample_vmrs_at_effective_altitudes.f \
  $(TSRC)/calc_aoa.f \
- $(TSRC)/gravity.f \
  $(TSRC)/readmenu.f \
  $(TSRC)/read_model_fc.f \
  $(TSRC)/read_refvmrs.f \
@@ -23,6 +22,7 @@ SOURCES := \
  $(COMN)/get_ggg_environment.f \
  $(COMN)/fbc.f \
  $(COMN)/fnbc.f \
+ $(COMN)/gravity.f \
  $(COMN)/height.f \
  $(COMN)/lnbc.f \
  $(COMN)/vsubs.f \
@@ -47,7 +47,7 @@ $(TARGET) : $(OBJECTS)
 	$(FC) $(LDFLAGS) -o $(GGGPATH)/bin/$@ $^
 
 #  Add dependencies to object files
-$(TSRC)/gravity.o:                $(GGGPATH)/src/ggg_const_params.f
+$(COMN)/gravity.o:                $(GGGPATH)/src/ggg_const_params.f
 $(TSRC)/gsetup.o:                 $(GGGPATH)/src/ggg_const_params.f \
                                   $(GGGPATH)/src/ggg_int_params.f $(TSRC)/int_params.f
 $(TSRC)/read_model_fc.o:          $(GGGPATH)/src/ggg_const_params.f $(TSRC)/const_params.f

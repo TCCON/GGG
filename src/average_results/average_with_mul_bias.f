@@ -127,7 +127,11 @@ c  Determine YBAR, EYBAR, and REW
      &      ((yobs(irow,jcol)-ybar(irow)*scal(jcol))/yerr(irow,jcol))**2
             endif
          end do
-         rew(irow)=sqrt(chi2_irow/nval_irow)
+         if (nval_irow.gt.0) then
+            rew(irow)=sqrt(chi2_irow/nval_irow)
+         else
+            rew(irow)=ymiss
+         endif
          if(den_irow.eq.0.0) then
             ybar(irow)=ymiss
             eybar(irow)=ymiss
@@ -155,7 +159,11 @@ c  Determine SCAL, ESCAL, and CEW
      &      ((yobs(irow,jcol)-ybar(irow)*scal(jcol))/yerr(irow,jcol))**2
             endif
          end do
-         cew(jcol)=sqrt(chi2_jcol/nval_jcol)
+         if(nval_jcol.gt.0) then
+            cew(jcol)=sqrt(chi2_jcol/nval_jcol)
+         else
+            cew(jcol)=ymiss
+         endif
          nval=nval+nval_jcol
          chi2=chi2+chi2_jcol
          if(den_jcol.eq.0.0) then

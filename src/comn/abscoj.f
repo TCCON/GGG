@@ -57,7 +57,7 @@ c     &   jtg, jcp,
      &   mgas,ngas,kgas,  ! Number of different gases found in MOLPAR
      &   idot,
      &   mlf,nlf,  ! maximum & actual number of linefiles
-     &   posnall,mm,reclen,nlines,kiso,i,k,
+     &   posnall,jm,mm,mmax,reclen,nlines,kiso,i,k,
      &   lmax,lfile,ilev,istat,fsib,file_size_in_bytes
 c
       parameter (mgas=75,mlf=10,lun_ll=21,lun_iso=22,
@@ -89,6 +89,7 @@ c
 c
       real*4
      &   yy,
+     &   vv,zz,
      &   vvoigt(ncp),  ! Array of Voigt profile
      &   y,            ! Lorentz-width/Doppler-width (used by VOIGT(x,y))
      &   tnu,tnulst,   ! line-center absorbtance & threshold
@@ -137,6 +138,7 @@ c     &   rcsmax*40,
 c
       logical hitran, scia,fcia,lmfile_exist
 c====================================================================
+      mmax=0
       srpi=sqrt(spi)
 c      write(*,*)'abscog '
       if(nlev.gt.mlev) then
@@ -313,6 +315,7 @@ c
      &      kgas,kiso,freq,stren,abhw,sbhw,eprime,tdpbhw,pshift,quantum
 c            write(*,*)jline,kline1,kline2,kgas,kiso,freq
 c            pshift=0.0    ! disable pressure shifts
+c         if(pshift.ge.0.006) write(*,*)'gas,f,pshift=',kgas,freq,pshift
             if(index(linfil(lfile),'hitran').gt.0) then ! Re-map HITRAN gas numbers to the ATMOS 
                call hitran_to_atmos_gas_numbering(kgas,kiso)
             endif
@@ -366,6 +369,7 @@ c  Some linelists use E"=-1 to denote no info. Set to large value
           if(kiso.gt.0 .and. eprime.lt.0.0d0) eprime=999. 
 
           mm=targmol(ispeci)  ! =1 for 1'st target gas etc.
+          if(mm.gt.mmax) mmax=mm
 
 c  Fudge the CH4 P-branch lines of the 2nu3 band.
           if(kgas.eq.6 .and. abs(freq-5900).lt.100 )
@@ -447,9 +451,20 @@ c                if(i.eq.3) write(*,*) freq,stren,x1,y,godw
 c  Replace internally-calculated absorption coefficients by externally calculated ones.
       lr=lnbc(runlab)
       lmfile=''
-      if(targmol(specindex(2)+1).eq.1) lmfile=runlab(:10)//'_co2'
-      if(targmol(specindex(6)+1).eq.1) lmfile=runlab(:10)//'_ch4'
-      if(targmol(specindex(7)+1).eq.1) lmfile=runlab(:10)//'_o2'
+      do jm=1,mmax
+      if(targmol(specindex(2)+1).eq.jm) then
+         lmfile=runlab(:10)//'_co2'
+         exit
+      endif
+      if(targmol(specindex(6)+1).eq.jm) then
+         lmfile=runlab(:10)//'_ch4'
+         exit 
+      endif
+      if(targmol(specindex(7)+1).eq.jm)then
+         lmfile=runlab(:10)//'_o2'
+         exit
+      endif
+      end do
 c      write(*,'(a)') lmfile
 c      write(*,*) lnbc(lmfile)
       write(lmfile(lnbc(lmfile)+1:),'(a1,i5.5,a1,i5.5,a7)')
@@ -460,19 +475,21 @@ c      write(*,*)'lmfile=',lmfile
 c         write(*,*) ' Calling FSIB:'//lmfile
          fsib=file_size_in_bytes(lun_rbin,lmfile)
          write(*,*)' lmfile found: ',lmfile(:lnbc(lmfile))
-         if(fsib.ne.4*ncp*nlev) then
+c         if(fsib.ne.4*ncp*nlev) then
+         if(fsib.ne.12*ncp*nlev) then
              write(*,*) lmfile
              write(*,*) 'ncp, nlev, fsib=',ncp,nlev,fsib
              stop 'fsib .ne. 4*ncp*nlev '
          endif
          open(lun_rbin,file=lmfile,access='direct',status='old',
-     &   recl=4,form='unformatted')
+     &   recl=12,form='unformatted')
          irec=0
          do ilev=1,nlev
             do j=1,ncp
                irec=irec+1
-               read(lun_rbin,rec=irec)yy
-               vac(j,ilev,1)=vac(j,ilev,1)-yy  ! first order LM only
+               read(lun_rbin,rec=irec)vv,yy,zz
+c               vac(j,ilev,jm)=-vv-yy-zz  ! CH4: Pine Voigt + LM 
+               vac(j,ilev,jm)=vac(j,ilev,jm)-yy  ! first order LM only
             end do
          end do
          close(lun_rbin)

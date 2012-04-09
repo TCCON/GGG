@@ -9,6 +9,7 @@ SOURCES := \
   $(TSRC)/$(TARGET).f \
   $(TSRC)/read_mav_head.f \
   $(TSRC)/read_mav_aux.f \
+  $(COMN)/gravity.f \
   $(COMN)/lnbc.f \
   $(COMN)/skiprec.f
 
@@ -24,6 +25,7 @@ $(TARGET) : $(OBJECTS)
 
 #  Add dependencies to object files
 $(TSRC)/write_aux.o:  $(GGGPATH)/src/ggg_int_params.f
+$(COMN)/gravity.o:  $(GGGPATH)/src/ggg_const_params.f
 
 clean:
 	rm -f $(OBJECTS) $(GGGPATH)/bin/$(TARGET)

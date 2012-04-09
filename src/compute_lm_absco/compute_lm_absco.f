@@ -1,5 +1,5 @@
 C-------------------------------------------------
-C  Merges the Hartmann/Tran codes for CO2, O2 and CH4 Line Mixing into a single program.
+C  Merges the Hartmann/Tran/Niro codes for CO2, O2 and CH4 Line Mixing.
 c
 c  Program asks for the .ggg file for the window under consideration.
 c  From this it computes the range of frequencies over which the
@@ -23,35 +23,29 @@ C               can shift Voigt to lorentz (save CPU time)
 C               values lower than 30 should be avoided in
 C               order to minimize error
 C
-C	RESULTS 
-C --------------
-C     AbsV : Absorption Coefficient neglecting LineMixing
-C            (assuming Voigt Line-Shapes) (Cm-1)
-C     AbsY : Absorption Coefficient predicted using the First
-C            Order Line-Mixing Approximation (Cm-1)
-C     AbsW : Absorption Coefficient predicted using Full
-C            diagonalization Line-Mixing (Cm-1)
-C-------------------------------------------------
-c     AbsV:  Contains Voigt lineshape
+C   RESULTS 
+c     AbsV:  Absorption Coefficient assuming Voigt lineshape
+c            (neglecting LM)
 c
-c     AbsY:  Difference between 1st order LM and Voigt calculationa
+c     AbsY:  Difference between 1st order LM and Voigt calculations
 c
 c     AbsW: CO2: Difference between Full and 1st order LM
 c           CH4: Voigt Calculation using Frankenberg linelist
-c           aO2: CIA absorption coefficients
+c            O2: CIA absorption coefficients
+c
+c  The results (AbsV, AbsY, AbsW) are written to a binary output file
 C
       implicit none
       include "../ggg_int_params.f"
       integer lunr,lun_mav,lun_vac,lun_wbin,
      & nlhead,mcol,ncol,kcol,icol,
-     & nlev,ilev,k,Li,nSigmx,kcol_temp,kcol_pres,
+     & nlev,ilev,k,nSigmx,kcol_temp,kcol_pres,
      & lcolon,k1,k2,fbc,fnbc,lnbc,lrt,irec,
      & kcol_h2o, kcol_co2, kcol_ch4,kcol_o2
       parameter(lunr=13,lun_mav=14,lun_vac=15,lun_wbin=16,
      & nSigmx=500000,mcol=200)
       logical MixFull
-      real*8 pshift,StotMax,vv(mcol)
-      real*8 z,temp,pres,dens
+      real*8 StotMax,vv(mcol)
 C Results (Absorption Coefficients)
       real*8 AbsV(nsigmx)
       real*8 AbsY(nsigmx)
@@ -70,7 +64,7 @@ C Results (Absorption Coefficients)
      & path_to_wfile*(mpath+80),
      & path_to_sfile*(mpath+80)
 
-      version=' compute_lm_absco     V1.0.3    GCT  2012-02-22'
+      version=' compute_lm_absco     V1.0.6    GCT  2012-03-30'
       write(*,*) version
       MixFull=.false.
       MixFull=.true.
@@ -94,10 +88,18 @@ c
       end do
       write(*,*) winfo
       lcolon=index(winfo,':')
-      k1=fnbc(winfo(lcolon+1:))+lcolon
+88    k1=fnbc(winfo(lcolon+1:))+lcolon
       k2=fbc(winfo(k1+1:))+k1-1
       if(winfo(k1:k2).eq.'1co2') k1=k1+1  ! drop the prefix 1
+      if(winfo(k1:k2).eq.'1ch4') k1=k1+1  ! drop the prefix 1
+      if(winfo(k1:k2).eq.'ao2') k1=k1+1  ! drop the prefix 1
+      if(winfo(k1:k2).eq.'bo2') k1=k1+1  ! drop the prefix 1
       gas=winfo(k1:k2)
+      if(gas.ne.'co2' .and. gas.ne.'ch4' .and. gas.ne.'o2') then
+         lcolon=k2
+         go to 88
+      endif
+c      write(*,*)'gas=',gas
       
 c      write(*,*) winfo(k1:k2)
 c      write(*,*)lcolon,k1,k2
@@ -142,9 +144,12 @@ c
          write(*,*) 'kcol, ncol =', kcol,ncol
            stop 'kcol/ncol mismatch'
       endif
+      kcol_h2o=0
       kcol_co2=0
       kcol_ch4=0
       kcol_o2=0
+      kcol_pres=0
+      kcol_temp=0
       do icol=1,ncol
         if(index(header_vector(icol),'Temp').gt.0) kcol_temp=icol
         if(index(header_vector(icol),'Pres').gt.0) kcol_pres=icol
@@ -162,7 +167,7 @@ c
       write(lun_vac,*)' i t p f v y w'
 c  Open binary absco file
       open(lun_wbin,file=outfile(:lnbc(outfile))//'.bin',
-     & access='direct',status='unknown',form='unformatted',recl=4*nsig)
+     &access='direct',status='unknown',form='unformatted',recl=12*nsig)
       irec=0
       do ilev=1,nlev
          read(lun_mav,*) (vv(icol),icol=1,ncol)
@@ -181,7 +186,7 @@ c   AbsY is the difference: 1'st order LM - Voigt abscoeffs
 c   AbsW is the difference: Full LM  -  1'st order abscoeffs (CO2)
 c   AbsW is the CIA: (O2)
 c   AbsW is the non-LM absorption (CH4)
-c   So  AbsY+AbsW = Full LM - Voigt abscoeffs
+c   So  AbsY+AbsW = Full LM + Voigt abscoeffs
          elseif(gas.eq.'ch4') then
 c            write(*,*) 'calling CompAbsCH4...'
             call CompAbsCH4(path_to_input_files,sigmin,dsig,nsig,
@@ -189,9 +194,11 @@ c            write(*,*) 'calling CompAbsCH4...'
      &      AbsV, AbsY, AbsW)
          else
             write(*,*)'No LM subroutine for: ',gas
+            stop
          endif
 
-         write(lun_wbin,rec=ilev) (sngl(AbsY(i)),i=1,nsig)
+         write(lun_wbin,rec=ilev)
+     &   (sngl(AbsV(i)),sngl(AbsY(i)),sngl(AbsW(i)),i=1,nsig)
          do i=1,nsig
             sig=sigmin+(i-1)*dsig
          write(lun_vac,123)ilev,vv(2),vv(3),sig,AbsV(i),AbsY(i),AbsW(i)

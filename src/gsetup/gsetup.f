@@ -140,7 +140,7 @@ c    & user*8,             ! investigator
 
 
       version=
-     & ' GSETUP                   Version 3.4.2    05-Nov-2011    GCT '
+     & ' GSETUP                   Version 3.4.4    15-Mar-2012    GCT '
       modname='                                                '
       vmrname='                                                '
       filnamwas='qwertyuioqwertyuioqwertyuioqwertyuio'
@@ -563,22 +563,26 @@ c     &  tlat,idoy,vmr_found)
 c If there's only 1 level (i.e. lab), or the vmr file for that particular
 c measurement already exists, don't try to modify the .vmr file
         if ((nlev.gt.1).and.(vmr_found.eqv..false.)) then
-        call resample_vmrs_at_effective_altitudes(nlev,z,mgas,ngas,
-     &   refvmr,ztrop_gct,ztrop_vmr,oblat,reflat_vmr,apvmr)
-         call apply_vmr_latitude_gradients(nlev,z,mgas,apvmr,
-     &   ztrop_gct,reflat_vmr,oblat,apvmr)
-         call apply_secular_trends(nlev,z,mgas,apvmr,
-     &   ztrop_gct,reflat_vmr,oblat,date_mod,date_vmr,apvmr)
-         fryr=date_mod-int(date_mod)
-         do ilev=1,nlev
-            z8=dble(z(ilev))
-            do jgas=1,6
-            apvmr(jgas,ilev)=apvmr(jgas,ilev)*
-     &      compute_seasonal_cycle(jgas,z8,ztrop_gct,oblat,fryr)
-            end do
-         end do
+           call resample_vmrs_at_effective_altitudes(nlev,z,mgas,
+     &     ngas,refvmr,ztrop_gct,ztrop_vmr,oblat,reflat_vmr,apvmr)
+           call apply_vmr_latitude_gradients(nlev,z,mgas,apvmr,
+     &     ztrop_gct,reflat_vmr,oblat,apvmr)
+           call apply_secular_trends(nlev,z,mgas,apvmr,
+     &     ztrop_gct,reflat_vmr,oblat,date_mod,date_vmr,apvmr)
+           fryr=date_mod-int(date_mod)
+           do ilev=1,nlev
+              z8=dble(z(ilev))
+              do jgas=1,6
+                 apvmr(jgas,ilev)=apvmr(jgas,ilev)*
+     &           compute_seasonal_cycle(jgas,z8,ztrop_gct,oblat,fryr)
+              end do
+           end do
         else
-           apvmr=refvmr
+           do ilev=1,nlev
+              do jgas=1,mgas
+                 apvmr(jgas,ilev)=refvmr(jgas,ilev)
+              end do
+           end do
         endif
 
       endif   !  if(newvmrname.ne.vmrname) then
@@ -680,7 +684,7 @@ c
 
 c  Code to generate post_processing.sh batch file and associated inputs.
 
-      call write_postprocessfile(ext,rlgfile)
+      call write_postprocessfile(ext,rlgfile,oblat)
 
       stop
       end

@@ -1,27 +1,9 @@
-c  Program: create_official_output_file.f
+c  subroutine: prepare_oof_output.f
 c
-c  Purpose: To convert the runlog.vav.ada.aia file to
-c  an official format.
-c  
-c  Input Files:
-c       runlog.vav.ada.aia 
-c       qc_limits.dat  
-c
-c  Output Files:
-c       runlog.vav.ada.aia.oof
-c       
-
-c subroutine read_oneline_oof(inputfile,inputlun, oof_out,
-c & outfmt1, oof_flag, irow,
-c & vmin, vmax, pindex,
-c & nflag, eflag, kflag, flag,
-c & nrow, ncol, mchar, scale, ofmt
-c & )
-
       subroutine prepare_oof_output(inputfile,inputlun,
      & outfmt1, oof_flag, irow, 
      & vmin, vmax, pindex, 
-     & nflag, eflag, kflag, flag,
+     & eflag, kflag, flag,
      & nrow, ncol, mchar, scale, ofmt, headout,naux)
      
 
@@ -34,13 +16,12 @@ c & )
      & lnbc,nrow,li,k,krow_qc,irow,lof0,lof1,
      & eflag,wrow_flag,wsp_flag,naux,
      & mchar,lh,le,klat,klong,kzobs,ncol_written,
-     & jj,nflag,ncoml_qc,ncol_qc,nrow_qc,wcol_flag
+     & jj,ncoml_qc,ncol_qc,nrow_qc,wcol_flag
       integer*4 flag(mrow_qc),pindex(mcol),kflag(mrow_qc),
      & oof_flag(mrow)
       character
      & dl*1,
      & gggdir*(mpath),
-c    & version*62,
      & headarr(mcol)*20,
      & parname(mrow_qc)*20,
      & inputfile*80,
@@ -51,6 +32,7 @@ c    & version*62,
      & fmt(mrow_qc)*4,
      & unit(mrow_qc)*6,
      & headout*8000,
+     & specfmt*3,
      & ssss*800
       real*4 scale(mrow_qc),
      & vmin(mrow_qc),vmax(mrow_qc)
@@ -69,10 +51,6 @@ c    & version*62,
           vmax(i) = 0
       end do
       
-c      version=
-c     & ' write_official_output_file   Version 1.2.2   2009-11-07   GCT'
-c      write(*,*) version
-
       mchar=0
       klat=0
       klong=0
@@ -133,7 +111,7 @@ c     write(*,*)'naux_prepare',naux
 
       do k=2,ncoml_qc
          read(lun_qc,'(a)') header
-         if(k.eq.ncoml_qc) header=' #'//header
+c        if(k.eq.ncoml_qc) header=' #'//header
       end do
 
       do krow_qc=1,nrow_qc
@@ -177,7 +155,8 @@ c     &   ' Parameter missing from QC file: '//headarr(icol)
 
       headout=' flag  spectrum'
       outfmt0='(i3'
-      outfmt1='(i3,1x,a57'
+      write(specfmt,'(a,i2)')'a',nchar
+      outfmt1='(i3,1x,'//specfmt
       lof0=0
       lof1=0
       jj=0
@@ -204,28 +183,4 @@ c     &   ' Parameter missing from QC file: '//headarr(icol)
       end do
       outfmt0(lof0+9:lof0+9)=')'
       outfmt1(lof1+9:lof1+9)=')'
-
-c  Read each day of data into memory and multiply XGas values by the
-c  appropriate correction factors.
-      nflag=0
-
-CCC LOOP GOES HERE.
-
-
-CCC
-
-      
-c      if(irow-1.ne.nrow) stop 'nrow mismatch'
-c      write(*,*)nrow,' data records, of which',nflag,' flagged as bad'
-c      write(*,*)
-c      write(*,*)' Listed below are the fields with error flags exceeding
-c     & the allowed range and the number of such occurrences'
-c      write(*,*)
-c      write(*,*)' #   Parameter            N_flag     %'
-c      do k=1,nrow_qc
-c          if(kflag(k).gt.0) write(*,'(i3,3x,a,i6,f8.1)') k,
-c     &  parname(k), kflag(k), 100*float(kflag(k))/nrow
-c      end do
-cc     stop
       end
-
