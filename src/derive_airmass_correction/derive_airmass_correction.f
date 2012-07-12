@@ -1,6 +1,6 @@
 c  Program: derive_airmass_dependence.f
 c
-c  Purpose: To quantify any airmass-dependent artifacts in the XCO2 data
+c  Purpose: To quantify any airmass-dependent artifacts in the XGAS data
 c  
 c  Minimizes the function:
 c      chi2 = Sum [ (yy(i)-f(i)) / uy(i) ]**2
@@ -15,7 +15,7 @@ c      ABF(i)=sin(2.Pi.(t(i)-t_solar_noon))
 c      SBF(i)=((SZA(i)+13)/(90+13))**3 - ((45+13)/(90+13))**3
 c
 c  ABF is zero at solar noon, -1 at sunrise, and +1 at sunset.
-c  SBF is zero at SZA=32 deg, is -0.122 at SZA=0, is 0.875 at SZA=77
+c  SBF is zero at SZA=45 deg, is -0.18 at SZA=0, is 0.82 at SZA=90
 c
 c  The minimization is performed with respect to the three unknown
 c  coefficients cx. This is done separately for each day.
@@ -56,30 +56,30 @@ c       runlog.vav
 c       airmass_dependence.dat  
 c
 c  Output Files:
-c       runlog.vav_ddac.out
+c       dac_runlog.vav_gas.out
 c       
       implicit none
       include "../ggg_const_params.f"
       include "../ggg_int_params.f"
 
-      integer*4 lunr,luns,lunw,ncoml,ncol,mcol,kcol,icol,j,kgas,ko2,
-     & lnbc,mrow,nmp,imp,ntot,mfp,nfp,
-     & iyear,iywas,idoy,idwas,li,
+      integer*4 lunr,lunw,ncoml,ncol,mcol,kcol,icol,j,kgas,ko2,
+     & lnbc,mrow,nmp,imp,ntot,nfp,nday,doy,i,nlhead,
+     & iyear,iywas,idoy,idwas,li,naux,nrow,
      & kfvsi,kyear,kdoy,klat,klon,ksza, kqcflag, mchar
-      parameter (lunr=14,luns=15,lunw=16,mcol=50,mrow=1000,mfp=3)
-      character header*800,headarr(mcol)*20,gas*20,
+      parameter (lunr=14,lunw=16,mcol=50,mrow=1000,nfp=3)
+      character header*800,headarr(mcol)*12,gas*4,
      & inputfile*40,outputfile*40,version*62, specname*(nchar)
-      real*4 yy(mrow),uy(mrow),bf(mrow,mfp),apx(mfp),apu(mfp),
+      real*4 yy(mrow),uy(mrow),bf(mrow,nfp),apx(nfp),apu(nfp),
      & rnorm, uscale,
-     & fugas,fuo2,solar_noon,b,eot,diff, qc_threshold
+     & aa(nfp),ae(nfp), year, tyy(nfp),ty(nfp),tee(nfp),ybar,
+     & fugas,fuo2,solar_noon,b,eot,diff,qc_threshold
       real*8 yrow(mcol),d2r,chi2
 
       version=
-     &' derive_airmass_correction        1.1.3     2010-11-23     GCT'
+     &' derive_airmass_correction        1.2.0     2012-07-10     GCT'
       write(*,*) version
 
       d2r=dpi/180.d0
-      nfp=3
 
       qc_threshold=2.
       mchar=0
@@ -98,40 +98,32 @@ c
       li=lnbc(inputfile)
       if(inputfile(li-3:li) .ne. '.vav') write(*,*)
      & ' Warning: input file is not of expected type (.vav)'
+
       open(lunr,file=inputfile, status='old')
-
-      write(*,*)'Enter name of gas:'
-      read(*,'(a)') gas
-
-c  Set loose A Priori constraints on ybar, ASDC, & SDC.
-c  This prevent the solution going crazy whenever there are
-c  fewer than 3 linearly-independent observations in a day.
-      if(gas.eq.'co2') then
-         apx(1)=380E-06
-         apu(1)=200E-06
-      elseif(gas.eq.'ch4') then
-         apx(1)=1.8E-06
-         apu(1)=1.0E-06
-      elseif(gas.eq.'n2o') then
-         apx(1)=0.3E-06
-         apu(1)=0.2E-06
-      elseif(gas.eq.'co') then
-         apx(1)=0.1E-06
-         apu(1)=0.1E-06
-      else
-         write(*,*)'Unrecognized gas', gas
-         stop
-      endif
-c
-c  Set large A Priori constraints on the coefficients of the ASDC and SDC
-      do j=2,nfp
-        apx(j)=0.0
-        apu(j)=10*apu(1)
+      read(lunr,'(i2,i4,i7,i4)')ncoml,ncol,nrow,naux
+      if(ncol.gt.mcol) stop 'increase mcol'
+      do j=2,ncoml-1
+         read(lunr,*)
       end do
+      read(lunr,'(a)')header
+      call substr(header,headarr,mcol,kcol)
+      call lowercase(header)
+      if (index(header,'spectrum') .gt. 0) mchar=1
+      if(kcol.ne.ncol ) stop 'ncol/kcol mismatch'
+      close(lunr)
+      
+c      write(*,*)'Enter name of gas:'
+c      read(*,'(a)') gas
+
+c     write(*,*)'naux,ncol=',naux,ncol
+      write(*,*) 'gas         ybar   ybar_error    asdc    asdc_error   
+     & sdc     sdc_error'
+      do kgas=naux+1,ncol,2
 
 c  Read the header of the .vav file and figure out
 c  which columns contain the values that we need.
-      read(lunr,'(i2,i4)')ncoml,ncol
+      open(lunr,file=inputfile, status='old')
+      read(lunr,'(i2,i4,i7,i4)')ncoml,ncol,nrow,naux
       if(ncol.gt.mcol) stop 'increase mcol'
       do j=2,ncoml-1
          read(lunr,*)
@@ -142,7 +134,7 @@ c  which columns contain the values that we need.
       if (index(header,'spectrum') .gt. 0) mchar=1
       if(kcol.ne.ncol ) stop 'ncol/kcol mismatch'
       do icol=1,ncol
-         if(headarr(icol) .eq. gas) kgas=icol
+c         if(headarr(icol) .eq. gas) kgas=icol
          if(headarr(icol) .eq.  'o2') ko2=icol
          if(headarr(icol) .eq.'fvsi') kfvsi=icol
          if(headarr(icol) .eq.'year') kyear=icol
@@ -153,14 +145,47 @@ c  which columns contain the values that we need.
          if(headarr(icol) .eq.'qcflag') kqcflag=icol
       end do
 
+      gas=headarr(kgas)
+
+c  Set loose A Priori constraints on ybar, ASDC, & SDC.
+c  This prevents the solution going crazy whenever there are
+c  fewer than 3 linearly-independent observations in a day.
+      if(gas.eq.'co2') then
+         apx(1)=400E-06
+         apu(1)=300E-06
+      elseif(gas.eq.'ch4') then
+         apx(1)=1.8E-06
+         apu(1)=1.4E-06
+      elseif(gas.eq.'n2o') then
+         apx(1)=0.3E-06
+         apu(1)=0.3E-06
+      elseif(gas.eq.'co') then
+         apx(1)=0.1E-06
+         apu(1)=0.2E-06
+      elseif(gas.eq.'air') then
+         apx(1)=1.0E-00
+         apu(1)=2.0E-00
+      else
+c        write(*,*)'Skipping column/gas: ',kgas, gas
+         close(lunr)
+         cycle
+      endif
+c
+c  Set large A Priori constraints on the coefficients of the ASDC and SDC
+      do j=2,nfp
+        apx(j)=0.0
+        apu(j)=10*apu(1)
+      end do
+
       outputfile='dac_'//inputfile(:li)//'_'//gas(:lnbc(gas))//'.out'
       open(lunw,file=outputfile,status='unknown')
-      write(lunw,'(2i5)')2,10
-      write(lunw,'(a)')'   year     doy  nmp     uscale      ybar    '//
-     &' ybar_error    asdc     asdc_error    sdc    sdc_error'
+      write(lunw,'(2i5)')2,11
+      write(lunw,'(a)')'gas    year     doy  nmp    uscale      ybar '//
+     &'    ybar_error     asdc     asdc_error     sdc      sdc_error'
 
 c  Read each day of data into memory.
       ntot=0
+      nday=1
       chi2=0.0d0
       idwas=99999
       iywas=99999
@@ -187,10 +212,11 @@ c  Read each day of data into memory.
             call wlsfit(mrow,nmp,yy,nfp,bf,apx,apu,rnorm)
             uscale = rnorm*sqrt(1./nmp)            ! error scale factor 
             chi2=chi2+rnorm**2
-            write(lunw,'(f11.5,2i5,7(1pe12.4))') iywas+idwas/365.25,
+           write(lunw,'(a,f11.5,2i5,7(1pe12.4))')gas,iywas+idwas/365.25,
      &      idwas,nmp,uscale,
      &      (1.E+06*yy(j),1.E+06*sqrt(uscale*bf(j,j)),j=1,nfp)
             imp=1
+            nday=nday+1
          endif
          endif
 
@@ -215,14 +241,46 @@ c   Divide measurements (YY) and basis functions (BF) by uncertainties (UY)
       end do              ! while (imp.lt.mrow-nfp)
 88    close (lunr)
       nmp=imp-1
+c  
+c  Do the last day.
       call wlsfit(mrow,nmp,yy,nfp,bf,apx,apu,rnorm)
       uscale = rnorm*sqrt(1./nmp)
-      write(lunw,'(f11.5,2i5,7(1pe12.4))') iywas+idwas/365.25,
+      write(lunw,'(a,f11.5,2i5,7(1pe12.4))') gas,iywas+idwas/365.25,
      & idwas,nmp,uscale,
      & (1.E+06*yy(j),1.E+06*sqrt(uscale*bf(j,j)),j=1,nfp)
       close(lunw)
       nmp=imp-1
       chi2=chi2+rnorm**2
-      write(*,'(a5,i6,f9.6)')'ntot=',ntot,sqrt(chi2/ntot)
+c      write(*,'(a10,2i6,f9.6)')'nday,ntot=',nday,ntot,sqrt(chi2/ntot)
+      open(lunw,file=outputfile,status='old')
+      read(lunw,*) nlhead,ncol
+      do i=2,nlhead
+        read(lunw,*)
+      end do
+      do j=1,nfp
+        tee(j)=0.0
+        tyy(j)=0.0
+        ty(j)=0.0
+      end do
+      do i=1,nday
+         read(lunw,*) gas, year, doy, nmp,uscale,(aa(j),ae(j),j=1,nfp)
+         do j=1,nfp
+c            taa(j)=taa(j)+aa(j)/ae(j)**2
+c            tae(j)=tae(j)+1/ae(j)**2
+            ty(j)=ty(j)+aa(j)/ae(j)**2
+            tyy(j)=tyy(j)+(aa(j)/ae(j))**2
+            tee(j)=tee(j)+1/ae(j)**2
+         end do
+      end do
+      close(lunw)
+c     write(*,*) 'gas     ybar   ybar_error     asdc    asdc_error   
+c    & sdc     sdc_error'
+      write(*,'(a,6f11.4)') 'X'//gas(:3)//'(ppm)',(ty(j)/tee(j),
+     & sqrt(tyy(j)/tee(j)-(ty(j)/tee(j))**2),j=1,nfp)
+      ybar=ty(1)/tee(1)
+      write(*,'(a,6f11.5)') 'X'//gas(:3)//'/ybar',(ty(j)/tee(j)/ybar,
+     & sqrt(tyy(j)/tee(j)-(ty(j)/tee(j))**2)/ybar,j=1,nfp)
+
+      end do        !  kgas=naux+1,ncol,2
       stop
       end

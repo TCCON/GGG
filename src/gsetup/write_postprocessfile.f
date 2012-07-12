@@ -99,7 +99,7 @@ c     'gnd' geometry
      &  gggdir(:lrt)//'bin'//dl//'write_aux < '//'write_aux.input'
         open(lunw,file='write_aux.input',status='unknown')
         write(lunw,'(a)') rlgfile(:lr-3)//'mav'
-        write(lunw,'(f7.4)') oblat
+        write(lunw,'(f8.4)') oblat
         close(lunw)
 
 c     'bal' or 'orb' geometry

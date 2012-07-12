@@ -16,11 +16,11 @@ c
       integer*4 lunr,lunr_qc,lunw,lunw_csv,lunr_oof,
      & ncoml,ncol,mcol,kcol,icol,j,lg,ncoml_head,
      & lnbc,nrow,li,nco,k,kmax,krow_qc,irow,lof0,lof1,
-     & eflag,wrow_flag,wsp_flag,
+     & eflag,wrow_flag,wsp_flag,nhead_gaa,nrow_gaa,ngas_gaa,lunr_gaa,
      & spectrum_flag,lh,le,klat,klong,kzobs,ncol_written,
      & jj,nflag,ncoml_qc,ncol_qc,nrow_qc,wcol_flag
       parameter (lunr=14,lunr_qc=15,lunw=16,lunw_csv=17,lunr_oof=18,
-     & mcol=150)
+     & lunr_gaa=20,mcol=150)
       integer*4 flag(mrow_qc),pindex(mcol),kflag(mrow_qc)
       character
      & dl*1,
@@ -107,7 +107,17 @@ c  to find out how many columns there are going to be in the .oof output files
       if(krow_qc-1.ne.nrow_qc)
      &  stop 'misreading xx_qc.dat file: krow_qc > nrow_qc'
 
+c  Open the Ghost Correction file and figure out how many lines are
+c  contained
+      
+
 c  Read input file and start writing output files
+      open(lunr_gaa,file=
+     & gggdir(:lg)//'tccon'//dl//inputfile(1:2)//'_ghost_corr.dat',
+     & status='old')
+      read(lunr_gaa,*)nhead_gaa,ngas_gaa,nrow_gaa
+      close(lunr_gaa)
+
 c     write(*,*)'inputfile=',inputfile
       open(lunr,file=inputfile, status='old')
       read(lunr,'(i2,i4,i7)') ncoml,ncol,nrow
@@ -127,7 +137,9 @@ c     write(*,*)'inputfile=',inputfile
          read(lunr,'(a)') header
          write(lunw,'(a)') header(:lnbc(header))
          write(lunw_csv,'(a)') header(:lnbc(header))
-         if (j.eq.ncoml-4) read(header(:lnbc(header)),*)ymiss
+         if (j.eq.ncoml-(nhead_gaa+nrow_gaa-2)) then
+           read(header(:lnbc(header)),*)ymiss
+         endif
 c        if (j.eq.ncoml-4) write(*,*)'ymiss=',ymiss
       end do
       read(lunr,'(a)') header ! column headers

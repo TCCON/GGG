@@ -25,10 +25,12 @@ c  of this ratio is calculated for each gas, the weights being given by
 c  a Lorentzian with a 5 minute half-width.
 c
       implicit none
-      integer*4 lunr,luns,ncoml,ncol,mcol,kcol,j,
+      include "../ggg_int_params.f"
+
+      integer*4 lunr,ncoml,ncol,mcol,kcol,j,
      & lnbc,irow,naux,nrow,li,k, mchar
-      parameter (lunr=14,luns=15,mcol=150)
-      character header*800,headarr(mcol)*20,specname*57,
+      parameter (lunr=14,mcol=150)
+      character header*800,headarr(mcol)*20,specname*(nchar),
      & inputfile*40,version*62
       real*8 yrow(mcol),ywas(mcol),dt,wt,twt,tot(mcol)
 
@@ -37,7 +39,7 @@ c
 
       mchar=0
 
-      write(*,*)'Enter name of input file (e.g. paIn_1.0lm.vav):'
+      write(*,*)'Enter name of input file (e.g. paIn_1.0lm.vav.ada):'
       read(*,'(a)') inputfile
       li=lnbc(inputfile)
       open(lunr,file=inputfile, status='old')
@@ -49,7 +51,8 @@ c  Read the header of the .ada file and figure out the
          read(lunr,'(a)') header
       end do
       call substr(header,headarr,mcol,kcol)
-      if (index(header,'Spectrum') .gt. 0) mchar=1
+      call lowercase(header)
+      if (index(header,'spectrum') .gt. 0) mchar=1
       if(kcol.ne.ncol ) stop 'ncol/kcol mismatch'
 
 c  Read each day of data into memory and divide XGas values by the
@@ -73,7 +76,7 @@ c  appropriate correction factors.
 
          wt=1/(1+((yrow(1+mchar)-ywas(1+mchar))/dt)**2)  ! Lorentzian Weighting
          twt=twt+wt
-         do k=naux+mchar+1,ncol-1,2
+         do k=naux+1,ncol-1,2
             tot(k)=tot(k)+wt*(yrow(k)-ywas(k))**2/
      &      (yrow(k+1)**2+ywas(k+1)**2)
          end do
@@ -85,8 +88,11 @@ c  appropriate correction factors.
 99    close(lunr)
 
 c  Output results to the screen.
-      do k=naux+mchar+1,ncol-1,2
+      do k=naux+1,ncol-1,2
+         if(headarr(k).ne.'air') then ! avoid writing out the error
+c     scale factor for column air which isn't terribly meaningful
          write(*,'(i4,2x,a,f9.3)') k,headarr(k),sqrt(tot(k)/twt)
+         endif
       end do
 
       stop
