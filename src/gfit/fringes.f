@@ -22,13 +22,15 @@ c
       implicit none
       include "../ggg_const_params.f"
 
-      integer*4 nfft,nmp,mmp,i,imax
+      integer*4 nfft,nmp,mmp,i,imax,k
       real*4 ybuf(mmp),cfamp,cffreq,cfphase,
      * tiny,aa,
      & xi,am,dm,amax,ap,dp,phasm,phasi,phasp,
      & denom
-      parameter (tiny=0.e-18)    ! do not use local params file !
+      parameter (tiny=1.e-18)    ! do not use local params file !
+      data k/0/
 c
+      k=k+1
       cfamp=0.0
       cffreq=0.0
       cfphase=0.0
@@ -39,6 +41,9 @@ c  Find the smallest power of 2 to accomodate NMP
       nfft=nfft+nfft
       end do
       if (nfft.gt.mmp) stop 'fringes: Increase parameter MMP'
+c      do i=1,nmp
+c      write(55,*) k,i,ybuf(i)
+c      end do
 c
 c  Re-arrange RESID vector to FFT-packed format
       call fft_pack(ybuf,nmp,nfft)
@@ -57,8 +62,8 @@ c  Search for point IMAX having the peak amp (ignoring DC and Nyquist terms)
       amax=0.0
       am=abs(ybuf(1))
       aa=cabs(cmplx(ybuf(3),ybuf(4)))
-c      do i=3,nfft/2
-      do i=3,(nfft/2) * 2/3   ! 75% of Nyquist  GCT 2010-07-22
+c      do i=3,(nfft/2) * 2/3   ! 75% of Nyquist  GCT 2010-07-22
+      do i=4,(nfft/2) * 2/3   ! 75% of Nyquist  GCT 2012-04-29
         ap=cabs(cmplx(ybuf(2*i-1),ybuf(2*i)))
         if(aa.ge.amax) then
         if(aa.ge.am .and. aa.ge.ap) then

@@ -8,7 +8,14 @@ COMN = $(GGGPATH)/src/comn
 SOURCES := \
   $(TSRC)/$(TARGET).f \
   $(COMN)/log1pxox.o \
-  $(COMN)/read_runlog.o \
+  $(COMN)/get_ggg_environment.o \
+  $(COMN)/read_runlog_header.o \
+  $(COMN)/read_runlog_data_record.o \
+  $(COMN)/substr.o \
+  $(COMN)/julian.o \
+  $(COMN)/caldat.o \
+  $(COMN)/fbc.o \
+  $(COMN)/fnbc.o \
   $(COMN)/lnbc.o
 
 OBJECTS := $(patsubst %.f, %.o, $(SOURCES))
@@ -20,3 +27,7 @@ OBJECTS := $(patsubst %.f, %.o, $(SOURCES))
 #  Link the object files to create the executable
 $(TARGET) : $(OBJECTS)
 	$(FC) $(LDFLAGS) -o $(GGGPATH)/bin/$@ $^
+
+clean:
+	rm -f $(OBJECTS) $(GGGPATH)/bin/$(TARGET)
+

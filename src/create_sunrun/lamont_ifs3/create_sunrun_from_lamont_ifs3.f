@@ -13,14 +13,14 @@ c
 
       integer*4 iy,im,id,hh,mm,ss,ms,pkl,prl,gfw,gbw,
      & fnbc,lnbc,fbc,ispe,iend,dtype,nsp,nip,dfr,
-     & lr,lrt,ls,
-     & possp,istat,object,mcol,ncol
+     & lr,lrt,ls,lom,doy,warning_flag,
+     & possp,istat,object,mcol,ncol,lst
       parameter (mcol=40)
 c
       real*8 tins,pins,hins,tout,pout,hout,wspd,wdir,
      & wavtkr,oblat,oblon,obalt,lfl,hfl,foc,
-     & fsf,tcorr,nus,nue,lwn,sia,sis,fvsi,aipl,tel_mag,
-     & fxv,lxv,apt,dur,vel,phr,res,pout_cor
+     & fsf,tcorr,nus,nue,lwn,sia,sis,fvsi,vdc,aipl,tel_mag,
+     & fxv,lxv,apt,dur,vel,phr,res,pout_cor,lse,lsu
 c
       character 
      & header*512,outarr(mcol)*20,
@@ -32,6 +32,8 @@ c
      & specname*(nchar),          !spectrum name
      & version*64                 !current program version
 
+
+      warning_flag=0
 c
 c      pout_cor = 1.0 ! DW090331 this was what the pout_cor was before 090324
 c It probably should have been more like -0.89hPa, but the Zeno battery
@@ -51,8 +53,15 @@ c
       lrt=lnbc(gggdir)       !Length of root
       lr=0
       do while(lr.eq.0)
-         write(6,'(a)') 'Enter name of input file (e.g. pa2004.gnd): '
-         read(*,'(a)') logfile
+         if (iargc() == 0) then
+            write(6,'(a)') 'Enter name of input file (e.g. pa2004.gnd):'
+            read(*,'(a)') logfile
+         elseif (iargc() == 1) then
+            call getarg(1, logfile)
+         else
+            stop 'Usage: $gggpath/bin/create_sunrun pa2004.gnd'
+         endif
+
          lr=lnbc(logfile)
       end do
       ext=logfile(lr-2:lr)
@@ -125,17 +134,39 @@ c  find the spectral file, return the PATH to the spectrum
           call read_opus_header(path,iend,dtype,nsp,fxv,lxv,iy,im,
      &     id,hh,mm,ss,ms,apt,dur,vel,apf,phr,res,lwn,foc,nip,dfr,
      &     pkl,prl,gfw,gbw,lfl,hfl,possp,oblat,oblon,obalt,
-     &     tins,pins,hins,tout,pout,hout,wspd,wdir,sia,sis)
+     &     tins,pins,hins,tout,pout,hout,wspd,wdir,sia,sis,vdc,
+     &     lst,lse,lsu)
 
 c  Apply correction to measured surface pressure.
           pout = pout + pout_cor
 
-c  Apply correction for missing temp and humidity values during May 2004
-          if(iy.eq.2004 .and. im.eq.5) then
-            tout = 20.0
-            tins = 20.0
-            hout = 35.0
-            hins = 35.0
+c  Apply correction for timing errors from July 15 - October 24, 2010
+          if(iy.eq.2010 .and. ((im.eq.7 .and. id.ge.15) .or.
+     &      im.eq.8 .or. im.eq.9 .or.
+     &      (im.eq.10 .and. id.le.24))) then
+c            approximate length of the month in days
+             lom = 31
+c            doy 181 is June 30, 196 is July 15, 297 is October 24
+             doy = 181 + (im-7)*lom + id
+c            linearly increasing tcorr from 0 to -37 seconds
+             tcorr = (doy-196)*37/(196-297)
+c            write(*,*)'doy=',doy,'tcorr=',tcorr
+          else
+             tcorr = 0.0d0
+          endif
+
+c  There was a bug in the QNX6 driver that made all tout values positive
+c  (i.e. abs(tout)) from September 16, 2013 to February 28, 2014. If
+c  these values are ever needed, they should be corrected here.
+          if(((iy.eq.2013 .and. ((im.eq.9 .and. id.ge.16) .or.
+     &       im.ge.10)) .or.
+     &       (iy.eq.2014 .and. im.lt.3)).and.warning_flag.eq.0) then
+             write(*,*)'Warning! During the period from '//
+     &         'September 16, 2013 '//
+     &         'through February 28, 2014, outside '//
+     &         'temperatures were recorded without '//
+     &         'any negative signs (i.e. they''re all >=0)'
+             warning_flag=1
           endif
 
 c         fvsi=sis/sia

@@ -18,9 +18,9 @@ c  Ak   airmass of the k'th spectrum.
 c  #    convolution operator.
 c
 c Assumes:
-c  Ak is known. The unknowns are therefore Ei, Ci, and Dk
+c  Ak, the airmasses, are known. The unknowns are therefore Ei, Ci, and Dk
 c
-c  Assumes that the shifted (solar) features are broader
+c  That the shifted (solar) features are broader
 c  than their shifts, so that the partial differentials
 c  wrt shift can be computed numerically.
 c
@@ -38,6 +38,10 @@ c  MkIV balloon spectra or cell-HCl in the case of TCCON measurements.
 c  This causes the doppler stretches to be underestimated, which causes
 c  the derived solar features to have an anti-symmetric airmass-dependent
 c  component, which causes their position to appear to be airmass-dependent.
+c
+c  Another limitation is that lines may be saturated and therefore
+c  growing non-linearly with airmass. Thus a linear extrapolation
+c  to zero airmass won't completely remove these types of lines.
 
 c  MATH
 c  Ni is the number of points in each spectrum
@@ -116,12 +120,11 @@ c
       include "../ggg_const_params.f"
       include "../ggg_int_params.f"
 
-      integer*4 lunb,lunr,lunw,luno,lnbc,lloc,llfs,nii,iseed,
-     & mmp,nmp,mspe,nspe,possp,possp1,bytepw,bytepw1,kspe,nfp,iabpw,
-     & ncol,nlhead,
+      integer*4 lunr_bs,lunr_rlg,lunw_rlg,luno,lnbc,lloc,llfs,nii,iseed,
+     & mmp,nmp,mspe,nspe,possp,possp1,bytepw,bytepw1,kspe,iabpw,
      & iyr,iset,i,j,k,mit,iter,kconv,mconv,iend,iline,nk
-      parameter (lunr=14,lunw=15,luno=16, lunb=17, nk=4,
-     &  mspe=99, mmp=995000,mit=15,nfp=2, mconv=7, nii=21)
+      parameter (lunr_rlg=14,lunw_rlg=15,luno=16,lunr_bs=17, nk=4,
+     &  mspe=99, mmp=995000,mit=15,mconv=7, nii=21)
       real*4 stretch(mspe),st,airmass(mspe),am,exo,
      & y(mmp,mspe),r4buf(mmp),rms,rtry,apwt,smin,var,gasdev,
      & twt,tj,tjj,ty,tjy,otee,otcc,de_err,dc_err,
@@ -170,9 +173,9 @@ c    & sis,             ! Solar Intensity (SD)
      & lasf,            ! laser frequency (e.g. 15798.03 cm-1)
      & wavtkr           ! suntracker operating frequency (e.g. 9900 cm-1)
 
-      character rlmin*57, rlmax*57, 
+      character rlmin*57, rlmax*57,data_fmt_write_rl*256, 
      & path*128, dplist*90, cc*1, outpath*90,rlabs*57,rlext*57,rlexo*57,
-     & rlheader*400,
+     & col_labels_rl*320,
      & header*40
       character
      & col1*1,                    !first column of runlog record
@@ -180,11 +183,13 @@ c    & sis,             ! Solar Intensity (SD)
      & dl*1,
      & gggdir*(mpath),            !ggg directory path (GGGPATH?)
      & specname*(nchar),          !spectrum name
+     & data_fmt_read_rl*256,      !
      & version*64,                !current program version
-     & rlgfile*120                !name of runlog file
+     & rlgfile*120,               !name of runlog file
+     & fmin_str*80,fmax_str*80
 
       logical self_test
-      version='TEXO   Version 1.5.1   2011-07-25   GCT '
+      version=' TEXO   Version 1.60   2012-12-18   GCT '
 c
       specname='                     '
       rlmin= '                     '
@@ -209,19 +214,34 @@ c
       iseed=4444
       
       write(*,*)version
-      write(*,*)'Enter path to input file/runlog:'
-      read(*,'(a)') rlgfile
-c      rlgfile='/home/gka/ggg/runlogs/gnd/paIn_040909s.grl'
+      if (iargc() == 0) then
+         write(*,*)'Enter path to input file/runlog:'
+         read(*,'(a)') rlgfile
+      elseif (iargc() == 3) then
+         call getarg(1, rlgfile)
+         call getarg(2, fmin_str)
+         read(fmin_str,*)fmin
+         call getarg(3, fmax_str)
+         read(fmax_str,*)fmax
+      else
+         write(*,*) 'Usage: $gggpath/bin/texo path/runlog '//
+     &  'start_freq end_freq (enter 0 99999 to retain spectral limits'
+         stop
+      endif
       bytepw=4*iend
-      open(lunr,file=rlgfile,status='old')
-      read(lunr,*) nlhead,ncol
-      do i=2,nlhead
-      read(lunr,'(a)') rlheader
-      end do
+      open(lunr_rlg,file=rlgfile,status='old')
+      call read_runlog_header(lunr_rlg,data_fmt_read_rl,col_labels_rl)
+      write(*,*)'data_fmt_write_rl=',data_fmt_read_rl
+c      read(lunr_rlg,*) nlhead,ncol
+c      do i=2,nlhead
+c      read(lunr_rlg,'(a)') col_labels_rl
+c      end do
 
-      write(*,*)'Enter Starting & Ending frequencies:'
-      write(*,*)'Enter 0 99999 to retain original spectral limits'
-      read(*,*) fmin,fmax
+      if (iargc() == 0) then
+         write(*,*)'Enter Starting & Ending frequencies:'
+         write(*,*)'Enter 0 99999 to retain original spectral limits'
+         read(*,*) fmin,fmax
+      endif
       fbar=0.5*(fmin+fmax)
       fwid=fmax-fmin
       do iline=1,3
@@ -229,19 +249,21 @@ c      rlgfile='/home/gka/ggg/runlogs/gnd/paIn_040909s.grl'
       end do
 
       llfs=lloc(rlgfile,'/')
-      open(lunw,file=rlgfile(:llfs)//'texo_'//rlgfile(llfs+1:),
+      open(lunw_rlg,file=rlgfile(:llfs)//'texo_'//rlgfile(llfs+1:),
      & status='unknown')
-      write(lunw,*) 3,36
-      write(lunw,'(a)') 'Created by texo.f'
-      write(lunw,'(a)') rlheader(:lnbc(rlheader))
+c      write(lunw_rlg,*) 3,36
+c      write(lunw_rlg,'(a)') 'Created by texo.f'
+c      write(lunw_rlg,'(a)') col_labels_rl(:lnbc(col_labels_rl))
+      call write_runlog_header(lunw_rlg,'Created by '//version,
+     & data_fmt_write_rl)
 c
 c  Loop over spectra 
       amax=0.0
       amin=huge
       do kspe=1,mspe
-11       call read_runlog(lunr,col1,specname,iyr,iset,zpdtim,oblat,
-     & oblon,obalt,asza,zenoff,azim,osds,
-     & opd,fovi,fovo,amal,ifirst,ilast,
+11       call read_runlog_data_record(lunr_rlg,data_fmt_read_rl,col1,
+     & specname,iyr,iset,zpdtim,oblat,oblon,obalt,asza,zenoff,azim,
+     & osds,opd,fovi,fovo,amal,ifirst,ilast,
      & graw,possp1,bytepw1,zoff,snr,apf,tins,pins,hins,
      & tout,pout,hout,sia,fvsi,wspd,wdir,lasf,wavtkr,aipl,istat)
 
@@ -268,7 +290,7 @@ c         write(*,'(4i10,2x,a)') ifirst,ilast,m1,m2,specname
             stop 'nmp > mmp'
          endif
 
-         airmass(kspe)=pout/1013.25/cos(asza*dpi/180.)
+         airmass(kspe)=pout/1013.25/cos(0.982*asza*dpi/180.)
          if(airmass(kspe).gt.amax) then
             amax=airmass(kspe)
             kmax=kspe
@@ -303,10 +325,10 @@ c            write(*,*)kspe,freq,y(i,kspe),absor
          if(lnbc(path).eq.0) then
             write(*,*) specname,' not found on disk'
          endif
-         open(lunb,file=path,access='direct',status='old',
+         open(lunr_bs,file=path,access='direct',status='old',
      &    form='unformatted',recl=possp+iabpw*nmp)
-         read(lunb,rec=1) (cc,j=1,possp),(bbuf(i),i=1,iabpw*nmp)
-         close(lunb)
+         read(lunr_bs,rec=1) (cc,j=1,possp),(bbuf(i),i=1,iabpw*nmp)
+         close(lunr_bs)
          if(iend*bytepw1.lt.0) call rbyte(bbuf,iabpw,nmp)
          if(iabpw.eq.2) then
             do i=1,nmp
@@ -322,13 +344,13 @@ c            write(*,*)kspe,freq,y(i,kspe),absor
       endif                         !  self_test .eqv. .true.
 
 c  Write possibly-truncated spectrum and runlog
-c      call write_runlog(lunw,col1,specname,iyr,iset,zpdtim,
+c      call write_runlog(lunw_rlg,col1,specname,iyr,iset,zpdtim,
 c     & oblat,oblon,obalt,asza,zenoff,opd,fovi,fovo,amal,kfmin,
 c     & kfmax,graw,possp,bytepw1,zoff,snr,apf,tins,pins,hins,
 c     & tout,pout,hout,lasf,wavtkr,sia,sis,aipl,istat)
-         call write_runlog(lunw,col1,specname,iyr,iset,zpdtim,oblat,
-     & oblon,obalt,asza,zenoff,azim,osds,
-     & opd,fovi,fovo,amal,kfmin,kfmax,
+         call write_runlog_data_record(lunw_rlg,data_fmt_write_rl,
+     & col1,specname,iyr,iset,zpdtim,oblat,oblon,obalt,asza,zenoff,azim,
+     & osds,opd,fovi,fovo,amal,kfmin,kfmax,
      & graw,possp,bytepw1,zoff,snr,apf,tins,pins,hins,
      & tout,pout,hout,sia,fvsi,wspd,wdir,lasf,wavtkr,aipl,istat)
 
@@ -337,19 +359,9 @@ c     & tout,pout,hout,lasf,wavtkr,sia,sis,aipl,istat)
       write(*,'(i5,2f13.7)') kspe,stretch(kspe),airmass(kspe)
 
       end do       !  kspe=1,mspe
-c      call read_runlog(lunr,col1,specname,iyr,iset,zpdtim,
-c     & oblat,oblon,obalt,asza,zenoff,opd,fovi,fovo,amal,ifirst,
-c     & ilast,graw,possp,bytepw1,zoff,snr,apf,tins,pins,hins,
-c     & tout,pout,hout,lasf,wavtkr,sia,sis,aipl,istat)
-      call read_runlog(lunr,col1,specname,iyr,iset,zpdtim,oblat,
-     & oblon,obalt,asza,zenoff,azim,osds,
-     & opd,fovi,fovo,amal,ifirst,ilast,
-     & graw,possp,bytepw1,zoff,snr,apf,tins,pins,hins,
-     & tout,pout,hout,sia,fvsi,wspd,wdir,lasf,wavtkr,aipl,istat)
-      if(istat.ne.0) go to 99
       write(*,*)'nspe,mspe=',kspe,mspe
-      stop ' nspe.ge.mspe'
-99    close(lunr)
+      stop ' Increase parameter MSPE '
+99    close(lunr_rlg)
       nspe=kspe-1
       write(*,*)'nspe,nmp,kmin,kmax',nspe,nmp,kmin,kmax
       if(nspe.le.0) stop 'nspe <=0'
@@ -497,22 +509,25 @@ c Reference D and Y to the lowest aimass spectrum.
      &   +(airmass(kspe)-airmass(kmin))*dpdc/dpd2
       end do   ! kspe=1,nspe
       end do   ! while(kconv.lt.mconv) 
-      close(lunr)
+      close(lunr_rlg)
 
 c  Write out results
-      open(lunr,file=rlgfile,status='old')
-      read(lunr,*) nlhead, ncol
-      do i=2,nlhead
-         read(lunr,'(a)') rlheader
-      end do
+      open(lunr_rlg,file=rlgfile,status='old')
+      call read_runlog_header(lunr_rlg,data_fmt_read_rl,col_labels_rl)
+c      read(lunr_rlg,*) nlhead, ncol
+c      do i=2,nlhead
+c         read(lunr_rlg,'(a)') col_labels_rl
+c      end do
+      write(*,*)
+      write(*,*)' #     Spectrum       Airmass     Stretch    RMS fit'
       do kspe=1,mspe
-c10       call read_runlog(lunr,col1,specname,iyr,iset,zpdtim,
+c10       call read_runlog(lunr_rlg,col1,specname,iyr,iset,zpdtim,
 c     &   oblat,oblon,obalt,asza,zenoff,opd,fovi,fovo,amal,ifirst,
 c     &   ilast,graw,possp,bytepw1,zoff,snr,apf,tins,pins,hins,
 c     &   tout,pout,hout,lasf,wavtkr,sia,sis,aipl,istat)
-10        call read_runlog(lunr,col1,specname,iyr,iset,zpdtim,oblat,
-     &     oblon,obalt,asza,zenoff,azim,osds,
-     &     opd,fovi,fovo,amal,ifirst,ilast,
+10        call read_runlog_data_record(lunr_rlg,data_fmt_read_rl,
+     &     col1,specname,iyr,iset,zpdtim,oblat,oblon,obalt,asza,zenoff,
+     &     azim,osds,opd,fovi,fovo,amal,ifirst,ilast,
      &     graw,possp1,bytepw1,zoff,snr,apf,tins,pins,hins,
      &     tout,pout,hout,sia,fvsi,wspd,wdir,lasf,wavtkr,aipl,istat)
          if(istat.ne.0) exit
@@ -529,8 +544,8 @@ c         write(*,'(4i10,2x,a)') ifirst,ilast,m1,m2,specname
          possp=possp1+iabpw*(kfmin-ifirst)
          nmp=kfmax-kfmin+1
          if(nmp.le.0)  go to 10  ! wrong detector spectral region
-         write(*,'(i3,a22,3f12.6)')kspe,specname,
-     &   airmass(kspe),stretch(kspe),rmsarr(kspe)
+         write(*,'(i3,1x,a20,3f11.6)')kspe,specname(:20),
+     &   airmass(kspe),1000000*stretch(kspe),rmsarr(kspe)
       end do
 c
 c  Write absorption coefficient spectrum (for diagnostic purposes)
@@ -538,16 +553,15 @@ c  Write absorption coefficient spectrum (for diagnostic purposes)
       call write_binary_file(19,outpath(:lo)//rlmin(:lr-3)//'abs',
      &header,0,-4,cbest,nmp)
       rlabs=rlmin(:lr-3)//'abs'
-c      call write_runlog(lunw,col1,rlabs,iyr,iset,zpdtim,
+c      call write_runlog(lunw_rlg,col1,rlabs,iyr,iset,zpdtim,
 c     &   oblat,oblon,obalt,asza,zenoff,opd,fovi,fovo,amal,kfmin,
 c     &   kfmax,graw,0,-4,zoff,snr,apf,tins,pins,hins,
 c     &   tout,pout,hout,lasf,wavtkr,sia,sis,aipl,istat)
-         call write_runlog(lunw,col1,rlabs,iyr,iset,zpdtim,oblat,
-     & oblon,obalt,asza,zenoff,azim,osds,
-     & opd,fovi,fovo,amal,kfmin,kfmax,
+         call write_runlog_data_record(lunw_rlg,data_fmt_write_rl,
+     & col1,rlabs,iyr,iset,zpdtim,oblat,oblon,obalt,asza,zenoff,azim,
+     & osds,opd,fovi,fovo,amal,kfmin,kfmax,
      & graw,0,-4,zoff,snr,apf,tins,pins,hins,
      & tout,pout,hout,sia,fvsi,wspd,wdir,lasf,wavtkr,aipl,istat)
-
 
 c-------------------------------------------------------------------
 c  Perform shaving of smoothed exo-atmospheric spectrum
@@ -605,13 +619,13 @@ c  Write exo-atmospheric spectrum (for diagnostic purposes)
       call write_binary_file(19,outpath(:lo)//rlmin(:lr-3)//'ext',
      & header,0,bytepw,ebest,nmp)
       rlext=rlmin(:lr-3)//'ext'
-c      call write_runlog(lunw,col1,rlext,iyr,iset,zpdtim,
+c      call write_runlog(lunw_rlg,col1,rlext,iyr,iset,zpdtim,
 c     & oblat,oblon,obalt,asza,zenoff,opd,fovi,fovo,amal,kfmin,
 c     & kfmax,graw,0,bytepw,zoff,snr,apf,tins,pins,hins,
 c     & tout,pout,hout,lasf,wavtkr,sia,sis,aipl,istat)
-         call write_runlog(lunw,col1,rlext,iyr,iset,zpdtim,oblat,
-     & oblon,obalt,asza,zenoff,azim,osds,
-     & opd,fovi,fovo,amal,kfmin,kfmax,
+         call write_runlog_data_record(lunw_rlg,data_fmt_write_rl,
+     & col1,rlext,iyr,iset,zpdtim,oblat,oblon,obalt,asza,zenoff,azim,
+     & osds,opd,fovi,fovo,amal,kfmin,kfmax,
      & graw,0,bytepw,zoff,snr,apf,tins,pins,hins,
      & tout,pout,hout,sia,fvsi,wspd,wdir,lasf,wavtkr,aipl,istat)
 
@@ -620,19 +634,18 @@ c  Write shaved EXO file and its runlog entry
       call write_binary_file(19,outpath(:lo)//rlmin(:lr-3)//'exo',
      & header,0,bytepw,etry,nmp)
       rlexo=rlmin(:lr-3)//'exo'
-c      call write_runlog(lunw,col1,rlexo,iyr,iset,zpdtim,
+c      call write_runlog(lunw_rlg,col1,rlexo,iyr,iset,zpdtim,
 c     & oblat,oblon,obalt,asza,zenoff,opd,fovi,fovo,amal,kfmin,
 c     & kfmax,graw,0,bytepw,zoff,snr,apf,tins,pins,hins,
 c     & tout,pout,hout,lasf,wavtkr,sia,sis,aipl,istat)
-         call write_runlog(lunw,col1,rlexo,iyr,iset,zpdtim,oblat,
-     & oblon,obalt,asza,zenoff,azim,osds,
-     & opd,fovi,fovo,amal,kfmin,kfmax,
+         call write_runlog_data_record(lunw_rlg,data_fmt_write_rl,
+     & col1,rlexo,iyr,iset,zpdtim,oblat,oblon,obalt,asza,zenoff,azim,
+     & osds,opd,fovi,fovo,amal,kfmin,kfmax,
      & graw,0,bytepw,zoff,snr,apf,tins,pins,hins,
      & tout,pout,hout,sia,fvsi,wspd,wdir,lasf,wavtkr,aipl,istat)
 
-
-      close(lunw)
-      close(lunr)
+      close(lunw_rlg)
+      close(lunr_rlg)
       close(luno)
       stop
       end

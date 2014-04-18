@@ -12,7 +12,8 @@ SOURCES := \
   $(COMN)/fnbc.f \
   $(COMN)/lnbc.f \
   $(COMN)/lloc.f \
-  $(COMN)/read_runlog.f \
+  $(COMN)/read_runlog_header.f \
+  $(COMN)/read_runlog_data_record.f \
   $(COMN)/substr.f
 
 OBJECTS := $(patsubst %.f, %.o, $(SOURCES))

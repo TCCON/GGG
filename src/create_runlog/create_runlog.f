@@ -13,17 +13,19 @@ c
      & lr,lrt,
      & doy,
      & one,
-     & lunr,lunw, mcol
-      parameter (lunr=15,lunw=16,one=1,mcol=40)
+     & lunr,lunw_rlg, mcol,lst,lunw_lse,lsp
+      parameter (lunr=15,lunw_rlg=16,lunw_lse=17,one=1,mcol=40)
 c
       real*8 amal,fovi,fovo,gmt,tins,pins,hins,tout,pout,hout,
      & obalt,asza,azim,snr,wavtkr,zoff,zpoff,oblat,oblon,opd,
      & lasf,fmin,fmax,fsf,delwav,tcorr,sia,fvsi,wspd,wdir,aipl,
-     & tel_mag,eorv,ervc,osds,tplat,tplon,tpalt,site_solar_noon
+     & tel_mag,eorv,ervc,osds,tplat,tplon,tpalt,site_solar_noon,
+     & lse,lsu
 c
       character spfmt*2, logfile*40,
      & outfile*(mfilepath),path*(mpath),dplist*(mfilepath),
-     & header*512,outarr(mcol)*20
+     & lsefile*(mfilepath)
+
       character
      & col1*1,                    !first column of runlog record
      & apf*2,                     !apodization function (e.g. BX N2, etc)
@@ -31,24 +33,32 @@ c
      & ext*3,                     !geometry ['air','bal','gnd','lab',orb','syn']
      & gggdir*(mpath),            !ggg directory path (GGGPATH?)
      & specname*(nchar),          !spectrum name
+     & data_fmt_write_rl*256,
+     & lsefile_format*100,
      & version*64                 !current program version
 
 c
-      version=' CREATE_RUNLOG    Version 8.7.0    24-Dec-2010   GCT'
+      version=' CREATE_RUNLOG    Version 8.72     18-Dec-2012   GCT'
       write(*,'(a)') version
       col1=' '
       iy=0
       im=0
       id=30
       amal=0.0d0
-c
+
       call get_ggg_environment(gggdir, dl)
       lrt=lnbc(gggdir)       !Length of gggdir
 
       lr=0
       do while(lr.eq.0)
-         write(6,'(a)') 'Enter sunrun (e.g. fts89avg.gop): '
-         read(*,'(a)') logfile
+         if (iargc() == 0) then
+            write(6,'(a)') 'Enter sunrun (e.g. fts89avg.gop): '
+            read(*,'(a)') logfile
+         elseif (iargc() == 1) then
+            call getarg(1, logfile)
+         else
+            stop 'Usage: $gggpath/bin/create_runlog sunrun'
+         endif
          lr=lnbc(logfile)
       end do
       ext(1:1)=logfile(lr-2:lr-2)
@@ -68,20 +78,37 @@ c
          read(lunr,*)
       end do
       outfile=gggdir(:lrt)//'runlogs'//dl//ext//dl//logfile(:lr-2)//'rl'
+      lsefile=gggdir(:lrt)//'lse'//dl//ext//dl//logfile(:lr-3)//'lse'
+c     write(*,*)'lsefile=',lsefile
 c
-      header=
-     &  '     Spectrum_File_Name                                  '//
-     &  '   Year  Day  Hour'//
-     &  '   oblat    oblon   obalt    ASZA    POFF    AZIM   OSDS'//
-     &  '    OPD   FOVI  FOVO'//
-     &  '  AMAL   IFIRST    ILAST    DELTA_NU   POINTER  BPW ZOFF SNR'//
-     &  '  APF tins  pins  hins   tout   pout  hout'//
-     &  '  sia    fvsi   wspd  wdir  lasf    wavtkr  aipl'
-      call substr(header, outarr, mcol, ncol)
-      open(lunw,file=outfile,status='unknown')
-      write(lunw,*)3,ncol
-      write(lunw,'(a)') version
-      write(lunw,'(a)') header(:lnbc(header))
+c
+c      data_fmt_write_rl='(a1,a57,1x,2i4,f8.4,f8.3,f9.3,2f8.3,1x,f6.4,f8.3,'//
+c     & 'f7.3,f7.2,3(1x,f5.4),2i9,1x,f14.11,i9,i3,1x,f5.3,i5,1x,'//
+c     & 'a2,2(f6.1,f8.2,f5.1),f7.1,f7.4,f6.1,f6.0,f10.3,f7.0,f7.3)'
+
+c      header=
+c     &  '     Spectrum_File_Name                                  '//
+c     &  '   Year  Day  Hour'//
+c     &  '   oblat    oblon   obalt    ASZA    POFF    AZIM   OSDS'//
+c     &  '    OPD   FOVI  FOVO'//
+c     &  '  AMAL   IFIRST    ILAST    DELTA_NU   POINTER  BPW ZOFF SNR'//
+c     &  '  APF tins  pins  hins   tout   pout  hout'//
+c     &  '  sia    fvsi   wspd  wdir  lasf    wavtkr  aipl'
+c      call substr(header, outarr, mcol, ncol)
+c      write(lunw_rlg,*)4,ncol
+c      write(lunw_rlg,'(a)') version
+c      write(lunw_rlg,'(a)')'format='//data_fmt_write_rl(:lnbc(data_fmt_write_rl))
+c      write(lunw_rlg,'(a)') header(:lnbc(header))
+      open(lunw_rlg,file=outfile,status='unknown')
+      open(lunw_lse,file=lsefile,status='unknown')
+      lsefile_format = '(1x,a99,i5,i4,f9.4,i3,1pe12.4,1pe12.4)'
+      write(lsefile_format(6:7),'(i2.2)') nchar
+      write(lunw_lse,'(a)')' 3   7'
+      write(lunw_lse,'(a)')' '//lsefile_format
+      write(lunw_lse,'(a)')
+     &' Specname                                                 '//
+     &' year doy  hour   LST  LSE         LSU'
+      call write_runlog_header(lunw_rlg,version,data_fmt_write_rl)
 c
       do ispe=1,9999999  !---------Main loop over spectra----------
          call read_sunrun(lunr,col1,specname,object,tcorr,oblat,
@@ -99,7 +126,7 @@ c  find the spectral file, return the PATH to the spectrum
 
          call rdsphead(spfmt,specname,path,ifirst,ilast,possp,
      &   bytepw,apf,delwav,opd,fovi,snr,
-     &   iy,im,id,gmt,lasf,wavtkr)
+     &   iy,im,id,gmt,lasf,wavtkr,lst,lse,lsu)
 c         write(*,*)'create_runlog: ',specname,iy,im,id,gmt
 
          fovo=fovi/tel_mag
@@ -130,7 +157,7 @@ c  Calculate Day of Year (DOY)
          doy=jd-jj+1
 c
 c  We want all observations to have the day number of local noon,
-c  even though the UT day number may be different. The following
+c  even though the UT day number may change. The following code
 c  makes all spectra acquired on the same local day have the same
 c  day number. To achieve this, the UT time must be allowed to go
 c  -ve or to exceed 24.
@@ -150,18 +177,20 @@ c
 
          zoff=0.0
          zpoff=0.0
-         call write_runlog(lunw,col1,specname,iy,doy,gmt,oblat,
-     &   oblon,obalt,asza,zpoff,azim,osds,opd,fovi,fovo,amal,
-     &   ifirst,ilast,
+         call write_runlog_data_record(lunw_rlg,data_fmt_write_rl,
+     &   col1,specname,iy,doy,gmt,oblat,oblon,obalt,asza,zpoff,azim,
+     &   osds,opd,fovi,fovo,amal,ifirst,ilast,
      &   delwav,possp,bytepw,zoff,snr,apf,tins,pins,hins,tout,
      &   pout,hout,sia,fvsi,wspd,wdir,lasf,wavtkr,aipl,ios)
+         write(lunw_lse,lsefile_format)
+     &   specname,iy,doy,gmt,lst,lse,lsu
          if(mod(ispe,1000).eq.0) write(*,*) ispe
 c
       end do ! -------------Main loop over spectra----------------
 c
  99   close(lunr)
-      close(lunw)
+      close(lunw_rlg)
+      close(lunw_lse)
       write(*,*) ispe-1, ' spectra found'
       stop
       end
-

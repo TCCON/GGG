@@ -8,8 +8,9 @@ c
       include "../ggg_int_params.f"
 
 c  Variables associated with the write-runlog subroutine call.
-      integer*4  lsp,lrp,liff,fsib,file_size_in_bytes,
-     & lunw,             ! Logical unit number
+      integer*8 fsib,file_size_in_bytes
+      integer*4  lsp,lrp,liff,
+     & lunw_rlg,             ! Logical unit number
      & istat,            ! status flag (0=success, 1=EOF)
      & iyr,              ! year
      & iset,             ! day of year
@@ -56,6 +57,7 @@ c  Variables associated with the write-runlog subroutine call.
      & col1*1,                    !first column of runlog record
      & apf*2,                     !apodization function (e.g. BX N2, etc)
      & dl*1,
+     & rlg_fmt*256,
      & gggdir*(mpath),            !ggg directory path (GGGPATH?)
      & specname*(nchar),          !spectrum name
      & version*64                 !current program version
@@ -64,8 +66,10 @@ c  Other variables.
       integer*4 lunr,mss,im,id,hh,mm,nhss,ndss,
      & j0,jj,i,k,lnbc,iocc,isun,lrt
       real*8 sec
-      parameter (lunr=14,lunw=15,mss=60)
-      character header*1600,rlheader*1600,data_string*1600,
+      parameter (lunr=14,lunw_rlg=15,mss=60)
+      character header*1600,
+c     & rlheader*1600,
+     & data_string*1600,
      & hss(mss)*32,dss(mss)*32,sp_path*120,
      & ssun(2)*2,rl_path*120,ifformat*6
       logical filexist
@@ -94,28 +98,24 @@ c  Other variables.
       if(filexist) then
          write(*,*) rl_path(:lrp)//' found'
          open(lunr,file=rl_path,status='old')
-         open(lunw, file=gggdir(:lrt)//'runlogs'//dl//
+         open(lunw_rlg, file=gggdir(:lrt)//'runlogs'//dl//
      &   'orb'//dl//ssun(isun)//chiocc(:liff)//'.orl',
      &   status='unknown')
-         rlheader=
-     &     '     Spectrum_File_Name'//
-     &     '                                    Year  Day  Hour'//
-     &     '   oblat    oblon   obalt    ASZA    POFF    AZIM   OSDS'//
-     &     '    OPD   FOVI  FOVO  AMAL   IFIRST    ILAST    DELTA_NU'//
-     &     '   POINTER  BPW ZOFF SNR  APF tins  pins  hins   tout'//
-     &     '   pout  hout'//
-     &     '  sia    fvsi   wspd  wdir  lasf    wavtkr  aipl'
-         call substr(rlheader, hss, mss, nhss)
-         if(nhss.gt.mss) stop 'nhss > mss'
-         write(lunw,*)3,nhss
-         write(lunw,'(a)') version
-         write(lunw,'(a)') rlheader(:lnbc(rlheader))
+         call write_runlog_header(lunw_rlg,version,rlg_fmt)
+c         rlheader=
+c     &     '     Spectrum_File_Name'//
+c     &     '                                    Year  Day  Hour'//
+c     &     '   oblat    oblon   obalt    ASZA    POFF    AZIM   OSDS'//
+c     &     '    OPD   FOVI  FOVO  AMAL   IFIRST    ILAST    DELTA_NU'//
+c     &     '   POINTER  BPW ZOFF SNR  APF tins  pins  hins   tout'//
+c     &     '   pout  hout'//
+c     &     '  sia    fvsi   wspd  wdir  lasf    wavtkr  aipl'
+c         call substr(rlheader, hss, mss, nhss)
+c         if(nhss.gt.mss) stop 'nhss > mss'
+c         write(lunw_rlg,*)3,nhss
+c         write(lunw_rlg,'(a)') version
+c         write(lunw_rlg,'(a)') rlheader(:lnbc(rlheader))
 
-c         write(lunw,'(a)') ' Spectrum_File_Name    Year  Day  Hour'//
-c     &     '   oblat    oblon   obalt    ASZA   POFF    OPD   FOVI  FOVO'//
-c     &     '  AMAL  IFIRST   ILAST    DELTA_NU   POINTER  BPW ZOFF SNR'//
-c     &     '  APF tins  pins  hins   tout   pout  hout   lasf    wavtkr'//
-c     &     '  sia   sis   aipl'
          read(lunr,'(a)') header
          call cdsubstr(header,hss,mss,nhss)
          if(nhss.gt.mss) stop 'nhss > mss'
@@ -183,7 +183,8 @@ c            write(*,*)'fsib,possp=',fsib,possp
             sia=0.0
             fvsi=0.0
             aipl=0.000
-            call write_runlog(lunw,col1,specname,iyr,iset,zpdtim,
+            call write_runlog_data_record(lunw_rlg,rlg_fmt,
+     &      col1,specname,iyr,iset,zpdtim,
      &      oblat,oblon,obalt,asza,zenoff,azim,osds,opd,fovi,fovo,amal,
      &      ifirst,ilast,graw,possp,bytepw,zoff,snr,apf,tins,pins,hins,
      &      tout,pout,hout,sia,fvsi,wspd,wdir,lasf,wavtkr,aipl,istat)
@@ -191,7 +192,7 @@ c            write(*,*)'fsib,possp=',fsib,possp
 88          continue
          end do  ! Loop over spectra
 90       close(lunr)
-         close(lunw)
+         close(lunw_rlg)
       else
 c         write(*,*) rl_path(:lrp)//' not found'
       endif  ! if(filexist)

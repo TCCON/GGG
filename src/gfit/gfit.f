@@ -6,72 +6,81 @@ c  See ggg.history for description of latest changes
       include "int_params.f"
 c
       integer*4
-     & lunw_col,lunr_iso,lunr_cs,nss,i,getpid,nch,lcl,
+     & lunw_col,lunr_iso,lunr_cs,lun_apx,
+     & nss,i,j,getpid,nch,lcl,isv,lbf,
+     & iptg,ipcl,ipfs,ipzo,ipcf,lspmax,
      & istat, lnbc,lp,lc,
-     & nmode,               ! Number of vibrational modes
-     & nlhead_ggg,          ! number of header lines in .ggg file
+     & nmode,           ! Number of vibrational modes
+     & nlhead_ggg,      ! number of header lines in .ggg file
      & kgas,kiso,
-     & ntg, jtg,            ! number of target molecules
-     & nspeci,jspeci        ! number of different species listed in ISOTOPOLOG.DAT
+     & ntg, jtg,        ! number of target molecules
+     & ncbf,            ! number of continuum terms (basis functions)
+     & nfp,             ! number of fited parameters = ntg+ncbf+n
+     & nspeci_iso,jspeci    ! number of different species listed in ISOTOPOLOG.DAT
 c
-      parameter (lunw_col=14,lunr_cs=15,lunr_iso=17)
+      parameter (lunw_col=14,lunr_cs=15,lunr_iso=17,lun_apx=18)
 
       integer*4
-     & targmol(mspeci), ! Group assignment for each specie.
-     & speci(mtg),      ! speci # of the parent isotopolog of each target gas
-     & dgen(mvmode),    ! degeneracy of vibrational modes
-     & molewt,          ! Molar Mass
-     & system           ! For calling system operations
+     & targmol(mspeci),      ! Group assignment for each specie.
+     & speci(mtg),           ! speci # of the parent isotopolog of each target gas
+     & dgen(mvmode),         ! degeneracy of vibrational modes
+     & molewt,               ! Molar Mass
+     & system                ! For calling system operations
 c
       character
-     & version*64,       ! gfit version number
-     & rlgfile*(mfilepath),       ! name of occultation file
+     & version*64,           ! gfit version number
+     & rlgfile*(mfilepath),  ! name of occultation file
      & gggdir*(mpath),
      & dl*1,
-     & gasname*8,        ! names of species in ISOTOPOLOG.DAT
-     & winfile*(mfilepath),       ! name of window list
-     & colfile*80,       ! output file containing column amounts
-     & colabel*600,      ! Header labels for .col file
-     & akfile*(mfilepath),        ! output file of averaging kernels
-     & sptfile*(mfilepath),       ! output file of ascii spectral fits
-     & mavfile*80,       ! file containing T/P & VMR at user-chosen levels
-     & rayfile*80,       ! file of slant paths at user-chosen levels
-     & parfile*80,       ! path to "molparam.dat"
+     & gasname*8,            ! names of species in ISOTOPOLOG.DAT
+     & winfile*(mfilepath),  ! name of window list
+     & colfile*80,           ! output file containing column amounts
+     & colabel*600,          ! Header labels for .col file
+     & akfile*(mfilepath),   ! output file of averaging kernels
+     & sptfile*(mfilepath),  ! output file of ascii spectral fits
+     & mavfile*80,           ! file containing T/P & VMR at user-chosen levels
+     & rayfile*80,           ! file of slant paths at user-chosen levels
+     & parfile*(mfilepath),       ! path to "molparam.dat"
      & apvalerr*(mfilepath),      ! path to a priori variable values and uncertainties
      & levfile*(mfilepath),       ! name of file containing fitting levels
      & modelpath*(mfilepath),     ! path to atmospheric model directory 
      & vmrsetpath*(mfilepath),    ! path to vmr set directory
      & speci_id*24,
      &
-c     & llsize*80,       ! path to llsize.dat file
+c     & llsize*80,           ! path to llsize.dat file
      & linefiles*(mfilepath*4),    ! path to linelists
      & solarll*(mfilepath),       ! solar linelist
-     & gsversion*64,     ! GSETUP version number
+     & gsversion*64,         ! GSETUP version number
      & dplist*(mfilepath),        ! Data Partition List (e.g. m4part.lst)
-c     & tname*8,         ! names of species in ISOTOPOLOG.DAT prefixed by "t"
-c     & fullname*10,     ! full names of species in ISOTOPOLOG.DAT
-     & winfo*160,        ! window information (command line)
-     & pars(mtg)*9,      ! parameters to fit
+c     & tname*8,             ! names of species in ISOTOPOLOG.DAT prefixed by "t"
+c     & fullname*10,         ! full names of species in ISOTOPOLOG.DAT
+     & winfo*160,            ! window information (command line)
+     & pars(mtg)*9,          ! parameters to fit
      & linelists(9)*(mfilepath),  ! linelists
-     & checksum*32,      ! md5sum checksum value
-     & csfilename*32     ! file containing checksums
+     & checksum*32,          ! md5sum checksum value
+     & csfilename*32,    ! file containing checksums
+     & menuinputfile*80
 c
       real*4
-     &   tdrpf,        ! T-Dependence of Rotational Partition Function
+     &   tdrpf,              ! T-Dependence of Rotational Partition Function
+     &   apx(mfp),apu(mfp),
      &   fia,delta,epsilon,  ! Fractional Isotopic Abundance
      &   vibfrq(mvmode)! Array of vibrational frequencies
 c
       character
-     &   colfile_format*94,
+     &   colfile_format*103,
+     &   ss(mfp)*4,
      &   cdum*12
 
+      logical debug
       character*24 md5sum
       parameter(md5sum = "$GGGPATH/bin/gfit_md5sum")
 
       data speci/mtg*0/
       
+      lspmax=0
       version=
-     & ' GFIT                     Version 4.8.6    28-Mar-2012    GCT '
+     & ' GFIT                     Version 4.37       2014-03-21    GCT '
       write(6,*)
       write(6,'(a)')version
 
@@ -80,46 +89,160 @@ c
       call substr(colabel,cdum,1,nch)
 c     write(*,*)'nch=',nch
 
-      colfile_format='(1x,a,1x,i2,1x,f5.3,1x,f5.1,3(1x,f4.1),1x,f5.3,'//
-     &'1x,f6.4,f8.3,15(0pf7.3,1pe11.4,0pf9.4,1pe8.1))'
+      colfile_format='(1x,a99,1x,i2,1x,f5.3,1x,f5.1,2(1x,f4.1),'//
+     &'1x,f5.2,'//  ! S-G
+     &'1x,f5.3,1x,f6.4,f8.3,15(0pf7.3,1pe11.4,0pf9.4,1pe8.1))'
 
 c     Platform specification:      DG090519
       call get_ggg_environment(gggdir, dl)
 c
 c  Read runlog, model, vmrset & window information from input file (.ggg)
+      call getarg(1, menuinputfile)
+      open(10, file=menuinputfile, status='old')
+      read(10,*)nlhead_ggg
+      read(10,'(a)')gsversion
+      read(10,'(a)')dplist
+      read(10,'(a)')apvalerr
+      read(10,'(a)')rlgfile
+      read(10,'(a)')levfile
+      read(10,'(a)')modelpath
+      read(10,'(a)')vmrsetpath
+      read(10,'(a)')mavfile
+      read(10,'(a)')rayfile
+      read(10,'(a)')parfile
+      read(10,'(a)')winfile
+c      read(10,'(a)')llsize
+      read(10,'(a)')linefiles
+      read(10,'(a)')solarll
+      read(10,'(a)')akfile
+      read(10,'(a)')sptfile
+      read(10,'(a)')colfile
+      read(10,'(a)')winfo
+      close(10)
 
-      read(5,*)nlhead_ggg
-      read(5,'(a)')gsversion
-      read(5,'(a)')dplist
-      read(5,'(a)')apvalerr
-      read(5,'(a)')rlgfile
-      read(5,'(a)')levfile
-      read(5,'(a)')modelpath
-      read(5,'(a)')vmrsetpath
-      read(5,'(a)')mavfile
-      read(5,'(a)')rayfile
-      read(5,'(a)')parfile
-      read(5,'(a)')winfile
-c      read(5,'(a)')llsize
-      read(5,'(a)')linefiles
-      read(5,'(a)')solarll
-      read(5,'(a)')akfile
-      read(5,'(a)')sptfile
-      read(5,'(a)')colfile
-      read(5,'(a)')winfo
+      if( index(winfo,' debug ') .gt. 0 ) then
+         debug=.true.
+      else
+         debug=.false.
+      endif
 
-      lc=index(winfo,'#')
-      if(lc.gt.0) winfo=winfo(:lc-1)
-      lp=lnbc(winfo)
+c  Look at the WINFO string to index the state vector.
+c  The structure of the state vector is as follows. Elements:
+c      1 to NTG            are the Target Gases
+c  NTG+1 to NTG+NCBF       are the Continuum Basis Functions Coefficients
+c  NTG+NCBF+1              is the FS 
+c  NTG+NCBF+2              is the ZO
+c  
+      iptg=0
+      ipcl=0
+      ipfs=0
+      ipzo=0
+      ipcf=0
       lc=index(winfo,':')
-      write(6,'(a)')winfo(:lp)
+      write(*,*) winfo(:lnbc(winfo))
       call lowercase(winfo)
       call substr(winfo(lc+1:),pars,mtg,ntg)
       if(ntg.gt.mtg) then
           write(*,*)' gfit: Error: NTG > MTG ',ntg,mtg
           stop 'Increase parameter MTG in gfit.f'
       endif
-      if( index(winfo,' cf ').gt.0)write(*,*)'Fitting channel fringes'
+      if(ntg.gt.0) iptg=1
+
+      lp=lnbc(winfo)
+      isv=ntg     !   ISV is index into the State Vector (SV)
+      if(index(winfo(:lc),' ncbf=').gt.0) then
+          lbf = index(winfo(:lc),' ncbf=')
+          read(winfo(lbf+6:),*)ncbf
+      else
+         ncbf=0
+         if(index(winfo(:lc),' cl ').gt.0) ncbf=ncbf+1
+         if(index(winfo(:lc),' ct ').gt.0) ncbf=ncbf+1
+         if(index(winfo(:lc),' cc ').gt.0) ncbf=ncbf+1
+      endif
+      if(ncbf.gt.0) ipcl=isv+1
+      isv=isv+ncbf
+      if(index(winfo(:lc),' fs ').gt.0) then
+          isv=isv+1
+          ipfs=isv
+      endif
+      if(index(winfo(:lc),' zo ').gt.0) then
+          isv=isv+1
+          ipzo=isv
+      endif
+      nfp=isv
+
+      if(nfp.gt.mfp) then
+        write(*,*) 'mfp,nfp=', mfp,nfp
+        stop 'GFIT: NFP > MFP'
+      endif
+
+      if(debug) then
+      write(*,*)'ip =  iptg,     ipcl,     ipfs,     ipzo,      nfp'
+      write(*,*)iptg,ipcl,ipfs,ipzo,nfp
+      endif
+
+      if( index(winfo,' cf ').gt.0) then
+        write(*,*)'Fitting channel fringes'
+        ipcf=nfp+1
+      endif
+
+c----------------------------------------------------------------------
+c  Read A Priori Values and Uncertainties. Assign to appropriate SV elements.
+c  Read the a priori values and uncertainties of the parameters to be fitted.
+      open(lun_apx,file=apvalerr,status='old')
+      read(lun_apx,*)     ! Skip header line
+      isv=ntg
+      do j=1,3        ! Read CL, CT, CC a prioris
+         if(j.le.ncbf) then
+            isv=isv+1
+            read(lun_apx,'(f5.0,f9.0,1x,a4)') apx(isv),apu(isv),ss(isv)
+         else
+            read(lun_apx,*)  !  Skip if j>ncbf
+         endif
+      end do
+
+c  For highr order continuum basis functions, use the CC a priori.
+      do j=4,ncbf
+         isv=isv+1
+         apx(isv)=apx(isv-1)
+         apu(isv)=apu(isv-1)
+         ss(isv) =ss(isv-1)
+      end do
+c
+c  Read FS priors
+      if(ipfs.gt.0) then
+         read(lun_apx,'(f5.0,f9.0,1x,a4)') apx(ipfs),apu(ipfs),ss(ipfs)
+      else
+         read(lun_apx,*)                   ! Skip if FS not fitted
+      endif
+c
+c  Read ZO priors
+      if(ipzo.gt.0) then
+         read(lun_apx,'(f5.0,f9.0,1x,a4)') apx(ipzo),apu(ipzo),ss(ipzo)
+      else
+         read(lun_apx,*)                   ! Skip if ZO not fitted
+      endif
+
+      read(lun_apx,*)                      ! Solar Scaling
+
+      if(ntg.ge.1) read(lun_apx,*) apx(1),apu(1),ss(1)   ! First Target Gas
+      if(ntg.ge.2) read(lun_apx,*) apx(2),apu(2),ss(2)   ! Other Target Gases
+      close(lun_apx)
+
+c      call vmov(apx(2),0,apx(3),1,ntg-2)   ! absorber amount
+c      call vmov(apu(2),0,apu(3),1,ntg-2)   ! absorber uncertainty
+      do j=3,ntg
+         apx(j)=apx(j-1)
+         apu(j)=apu(j-1)
+         ss(j)=ss(j-1)
+      end do
+
+      if(debug) then
+         do isv=1,nfp
+            write(*,*) isv,apx(isv),apu(isv),ss(isv)
+         end do
+      endif
+c----------------------------------------------------------
 c
 c  Read in names of isotopomers
       open(lunr_iso,file=parfile,status='old')
@@ -142,23 +265,35 @@ c  Read in names of isotopomers
       read(lunr_iso,*,end=77)
       stop ' GFIT: Number of species in ISOTOPOLOG.DAT exceeds MSPECI'
 77    close(lunr_iso)
-      nspeci=jspeci-1
+      nspeci_iso=jspeci-1
 c
-      do jspeci=nspeci,1,-1
+      do jspeci=nspeci_iso,1,-1
          if(targmol(jspeci).gt.0) speci(targmol(jspeci))=jspeci
       end do
 c
+      do jtg=1,ntg
+         if(speci(jtg).eq.0) then
+            write(*,*) jtg,pars(jtg),' unrecognized/duplicated'
+            stop
+         endif
+         colabel=colabel(:lnbc(colabel))//'  AM_'//pars(jtg)(:6)
+     &   //' OVC_'//pars(jtg)(:6)//' VSF_'//pars(jtg)(:6)
+     &   //' VSF_'//pars(jtg)(:lnbc(pars(jtg)))//'_error'
+      end do
 c========================================================================
 c The first time that spectrum_loop is called it skips the
 c CPU intensive operations (e.g. computing VACs, spectral fitting)
 c and simply checks that the spectra, .mav, and .ray files are okay.
 c This prevents GFIT spending 20 minutes processing and then crashing.
       write(*,*) ' Pre-screening input files...'
-      call spectrum_loop(apvalerr,winfo,
-     & lunw_col,lcl,colabel,colfile_format,
-     & rlgfile,
-     & akfile,rayfile,mavfile,targmol,linefiles,parfile,
-     & dplist,ntg,speci,nspeci,solarll,pars,sptfile)
+      write(*,*) ' Calling spectrum loop: nspeci_iso=',nspeci_iso
+
+      call spectrum_loop(winfo,debug,
+     & lunw_col,lcl,colabel,colfile_format,lspmax,
+     & rlgfile,akfile,rayfile,mavfile,targmol,linefiles,parfile,
+     & apx,apu,dplist,iptg,ipcl,ipfs,ipzo,ipcf,
+     & ntg,ncbf,nfp,speci,nspeci_iso,solarll,pars,sptfile)
+       write(colfile_format(6:7),'(i2.2)') lspmax
 c======================================================================
 c Compute md5sum checksums of input files and write to "check_md5sums_012345.tmp"
       if(dl.eq.'/')then
@@ -243,7 +378,7 @@ c          istat=system('md5sum '//solarll//' >> '//csfilename)
           write(lunw_col,'(a)') parfile(:lnbc(parfile))
           write(lunw_col,'(a)') winfile(:lnbc(winfile))
           do i=1,nss
-              write(lunw_col,'(a)')linelists(i)(:lnbc(linelists(i)))
+             write(lunw_col,'(a)')linelists(i)(:lnbc(linelists(i)))
           end do
           write(lunw_col,'(a)') solarll(:lnbc(solarll))
           write(lunw_col,'(a)') akfile(:lnbc(akfile))
@@ -254,10 +389,11 @@ c          istat=system('md5sum '//solarll//' >> '//csfilename)
         endif
 c
 c Do the real spectral fitting.
-      call spectrum_loop(apvalerr,winfo,
-     & lunw_col,lcl,colabel,colfile_format,
+      call spectrum_loop(winfo,debug,
+     & lunw_col,lcl,colabel,colfile_format,lspmax,
      & rlgfile,akfile,rayfile,mavfile,targmol,linefiles,parfile,
-     & dplist,ntg,speci,nspeci,solarll,pars,sptfile)
+     & apx,apu,dplist,iptg,ipcl,ipfs,ipzo,ipcf,
+     & ntg,ncbf,nfp,speci,nspeci_iso,solarll,pars,sptfile)
 
       close(lunw_col)
       stop

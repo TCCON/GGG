@@ -367,6 +367,7 @@ C     ------------------------------------------------------------------
       integer I, IERR, J, N, MDIM, K, IP1, KP1
       integer IP(N)
       real             A(MDIM,N), SDOT, ONE, TMP, VAR, ZERO
+      real*8 DSDOT
 C
       parameter(ZERO = 0.0E0, ONE = 1.0E0)
 C     ------------------------------------------------------------------
@@ -384,7 +385,7 @@ c
 
       do 62 I = 1,N-1
          do 60 J = I+1,N
-            A(I,J) = -A(J,J) * SDOT(J-I,A(I,I),MDIM,A(I,J),1)
+            A(I,J) = -A(J,J) * DSDOT(J-I,A(I,I),MDIM,A(I,J),1)
    60    continue
    62 continue
 C
@@ -393,7 +394,7 @@ c     multiplied by VAR.
 c
       do 92 I = 1,N
          do 90 J = I,N
-            A(I,J) = VAR * SDOT(N-J+1,A(I,J),MDIM,A(J,J),MDIM)
+            A(I,J) = VAR * DSDOT(N-J+1,A(I,J),MDIM,A(J,J),MDIM)
    90    continue
    92 continue
 C                                 Permute rows & columns
@@ -650,6 +651,74 @@ C
       NS = N*INCX
           DO 70 I=1,NS,INCX
           SDOT = SDOT + X(I)*Y(I)
+   70     CONTINUE
+      RETURN
+      END
+
+      REAL*8           FUNCTION DSDOT(N,X,INCX,Y,INCY)
+C>> 1994-11-11 SDOT  Krogh   Declared all vars.
+c>> 1994-10-20 SDOT   Krogh  Changes to use M77CON
+c>> 1994-04-19 SDOT   Krogh   Minor -- Made code versions line up.
+C>> 1985-08-02 SDOT   Lawson  Initial code.
+c--S replaces "?": ?DOT
+C
+C     RETURNS THE DOT PRODUCT OF X AND Y.
+C     SDOT = SUM FOR I = 0 TO N-1 OF  X(LX+I*INCX) * Y(LY+I*INCY),
+C     WHERE LX = 1 IF INCX .GE. 0, ELSE LX = (-INCX)*N, AND LY IS
+C     DEFINED IN A SIMILAR WAY USING INCY.
+C
+      INTEGER N, INCX, INCY, IX, IY, I, M, MP1, NS
+      REAL             X(*),Y(*)
+      DSDOT = 0.0D0
+      IF(N.LE.0)RETURN
+      IF(INCX.EQ.INCY) THEN
+        IF((INCX-1) <0) THEN
+          GOTO 5
+        ELSEIF ((INCX-1) ==0) THEN
+          GOTO 20
+        ELSEIF ((INCX-1) >0) THEN
+          GOTO 60
+        ENDIF
+      ENDIF
+    5 CONTINUE
+C
+C         CODE FOR UNEQUAL OR NONPOSITIVE INCREMENTS.
+C
+      IX = 1
+      IY = 1
+      IF(INCX.LT.0)IX = (-N+1)*INCX + 1
+      IF(INCY.LT.0)IY = (-N+1)*INCY + 1
+      DO 10 I = 1,N
+         DSDOT = DSDOT + X(IX)*dble(Y(IY))
+        IX = IX + INCX
+        IY = IY + INCY
+   10 CONTINUE
+      RETURN
+C
+C        CODE FOR BOTH INCREMENTS EQUAL TO 1.
+C
+C
+C        CLEAN-UP LOOP SO REMAINING VECTOR LENGTH IS A MULTIPLE OF 5.
+C
+   20 M = MOD(N,5)
+      IF( M .EQ. 0 ) GO TO 40
+      DO 30 I = 1,M
+         DSDOT = DSDOT + X(I)*dble(Y(I))
+   30 CONTINUE
+      IF( N .LT. 5 ) RETURN
+   40 MP1 = M + 1
+      DO 50 I = MP1,N,5
+         DSDOT = DSDOT + X(I)*dble(Y(I)) + X(I+1)*dble(Y(I+1)) +
+     $   X(I+2)*dble(Y(I+2)) + X(I+3)*dble(Y(I+3)) + X(I+4)*dble(Y(I+4))
+   50 CONTINUE
+      RETURN
+C
+C         CODE FOR POSITIVE EQUAL INCREMENTS .NE.1.
+C
+   60 CONTINUE
+      NS = N*INCX
+          DO 70 I=1,NS,INCX
+          DSDOT = DSDOT + X(I)*dble(Y(I))
    70     CONTINUE
       RETURN
       END

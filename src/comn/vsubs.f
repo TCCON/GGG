@@ -256,6 +256,11 @@ c
 c   output parameters:
 c       vecout : real*4 vector to contain the exponentiated values
 c
+c  Computes VECOUT = Exp[VECIN}
+c  without risk of underflow or overflow, the latter leading to Inf's.
+c  Uses a Taylor expansion for x>0 to eliminate risk of Inf for x>88
+c  while still avoiding a discontinuity in the function value
+c  or its gradient.
       subroutine vexp(vecin,incrin,vecout,incrout,nele)
       implicit none
       integer i,j,k,incrin,incrout,nele
@@ -265,7 +270,8 @@ c
       do i=1,nele
         x=vecin(j)
         if(x.gt. 0.0) then
-           vecout(k)=1.+x*(1.+0.5*x) ! quad expansion prevents overflow for large x
+c           vecout(k)=1.+x*(1.+0.5*x) ! quad expansion prevents overflow for large x
+           vecout(k)=1.+x*(1.+x*(1+x*(1+x/4)/3)/2) 
         elseif(x.lt.-80.0) then
            vecout(k)=0.0
         else

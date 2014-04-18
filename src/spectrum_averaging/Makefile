@@ -8,7 +8,10 @@ COMN = $(GGGPATH)/src/comn
 SOURCES := \
   $(TSRC)/$(TARGET).f \
   $(TSRC)/rravgcom.f \
-  $(COMN)/read_runlog.f \
+  $(COMN)/read_runlog_header.f \
+  $(COMN)/write_runlog_header.f \
+  $(COMN)/read_runlog_data_record.f \
+  $(COMN)/write_runlog_data_record.f \
   $(COMN)/gindfile.f \
   $(COMN)/lnbc.f \
   $(COMN)/fnbc.f \

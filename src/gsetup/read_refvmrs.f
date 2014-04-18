@@ -1,4 +1,4 @@
-      subroutine read_refvmrs(lunr,vmrpath,nlev,z,mgas,modname,pabel,
+      subroutine read_refvmrs(lunr,vmrpath,nlev,z,mgas,modname,vmrlabel,
      & refvmr,ngas,reflat_vmr,refdate_vmr,refztrop_vmr)
 
 c  Reads and interpolates an initial vmr set onto the vertical grid
@@ -16,7 +16,7 @@ c     mgas              I*4    Declared first dimension of VMR matrix
 c     modname           C*(*)  Name of model (used only by DG code)
 c
 c Outputs:
-c     pabel             C**    Column labels of vmr file
+c     vmrlabel          C**    Column labels of vmr file
 c     refvmr(mgas,nlev) R*4    Gas VMRs
 c     ngas              I*4    Actual number of gases in .vmr file
 c     reflat_vmr        R*8    latitude of reference vmrs
@@ -30,7 +30,7 @@ c     refztrop_vmr      R*8    Tropopause Altitudes from .vmr file
      & k,pos,minlvl, ninlvl, igas, i, ii, lnbc
 c      parameter (mg=134,minlvl=151)    !minlvl <= mg  -DG: not necessary if inlvl and vold not equivalenced.
       parameter (mg=230,minlvl=250)    !DG Jan03
-      CHARACTER vmrpath*(*),pabel*(*),dum*16,string*1000,modname*48
+      CHARACTER vmrpath*(*),vmrlabel*(*),dum*16,string*1000,modname*(*)
       real*4 z(nlev),zold,znew,vold(mg),vnew(mg),refvmr(mgas,nlev),fr,
      &inlvl(minlvl),zero
       real*8 twopi,reflat_vmr,refdate_vmr,refztrop_vmr
@@ -47,6 +47,7 @@ c      equivalence (inlvl,vold)
 c==================================================================
 c  Read in names of gases in vmr set
 c      write(6,*)'readvmr: mgas,nlev ',mgas,nlev
+c      write(6,*)'lunr, lnbc, vmrpath= ',lunr,lnbc(vmrpath),vmrpath
       open(lunr,file=vmrpath,status='old')
       read(lunr,'(a)')string
 c
@@ -55,27 +56,28 @@ c         GFIT format
           backspace (lunr)
           read(lunr,*)nlheader,ncol
           ngas=ncol-1   ! first column is Z
+          if(ngas.gt.mgas) stop 'ngas >  mgas'
           refztrop_vmr= -999.0 ! km   default tropopause altitude
           do k=2,nlheader
-            read(lunr,'(a)')pabel
-            pos = index(pabel,'ZTROP_VMR:')
-            if( pos .gt. 0 ) read(pabel(pos+10:),*) refztrop_vmr
-            pos = index(pabel,'LAT_VMR:')
-            if( pos .gt. 0 ) read(pabel(pos+8:),*) reflat_vmr
-            pos = index(pabel,'DATE_VMR:')
-            if( pos .gt. 0 ) read(pabel(pos+9:),*) refdate_vmr
-            pos = index(pabel,'ZTROP:')
-            if( pos .gt. 0 ) read(pabel(pos+6:),*) refztrop_vmr
-            pos = index(pabel,'LATIT:')
-            if( pos .gt. 0 ) read(pabel(pos+6:),*) reflat_vmr
-            pos = index(pabel,'YEAR:')
-            if( pos .gt. 0 ) read(pabel(pos+5:),*) refdate_vmr
+            read(lunr,'(a)')vmrlabel
+            pos = index(vmrlabel,'ZTROP_VMR:')
+            if( pos .gt. 0 ) read(vmrlabel(pos+10:),*) refztrop_vmr
+            pos = index(vmrlabel,'LAT_VMR:')
+            if( pos .gt. 0 ) read(vmrlabel(pos+8:),*) reflat_vmr
+            pos = index(vmrlabel,'DATE_VMR:')
+            if( pos .gt. 0 ) read(vmrlabel(pos+9:),*) refdate_vmr
+            pos = index(vmrlabel,'ZTROP:')
+            if( pos .gt. 0 ) read(vmrlabel(pos+6:),*) refztrop_vmr
+            pos = index(vmrlabel,'LATIT:')
+            if( pos .gt. 0 ) read(vmrlabel(pos+6:),*) reflat_vmr
+            pos = index(vmrlabel,'YEAR:')
+            if( pos .gt. 0 ) read(vmrlabel(pos+5:),*) refdate_vmr
           end do
 c
 c     Check that the number of column labels (NSS) matches NCOL
-          call substr(pabel,dum,1,nss)
+          call substr(vmrlabel,dum,1,nss)
           if(nss.ne.ncol) then
-            write(*,*)pabel
+            write(*,*)vmrlabel
             write(*,*) ncol,nss
             stop 'READ_REFVMR: mismatch: # of columns/labels differ'
           endif
@@ -128,8 +130,7 @@ c            write(*,*)klev,nlev,z(klev),znew
              fr=(z(klev)-zold)/(znew-zold)
              do jcol=1,ngas
                 refvmr(jcol,klev)=fr*vnew(jcol)+(1.-fr)*vold(jcol)
-c                if(jcol.eq.4) write(*,*) klev,zold,znew,z(klev),
-c     &          vold(jcol),vnew(jcol),refvmr(jcol,klev)
+c             if(jcol.eq.70)write(*,*)klev,z(klev),refvmr(jcol,klev)
              end do
           end do   ! klev=1,nlev
           close(lunr)
@@ -146,15 +147,15 @@ c         levels are first read from zpt model file
           read(lunr,*)(inlvl(ninlvl+1-i),i=1,ninlvl)
           close(lunr)
           open(unit=lunr,file=vmrpath,status='old')
-          pabel='Height '
+          vmrlabel='Height '
           do igas=1,mgas
               read(lunr,*,end=110)jcol,dum
               if(jcol.ne.igas)then
                 write(*,*)'Species numbers do not match: ',jcol, igas
-                return
+                go to 110
               endif
-              string=pabel(1:lnbc(pabel))
-              pabel=string(1:lnbc(string))//' '//dum
+              string=vmrlabel(1:lnbc(vmrlabel))
+              vmrlabel=string(1:lnbc(string))//' '//dum
               read(lunr,*)(vnew(ninlvl+1-i),i=1,ninlvl)
               zold=inlvl(1)
               znew=inlvl(2)
@@ -179,5 +180,6 @@ c         levels are first read from zpt model file
           stop
       endif
 
-110   return
+110   close(lunr)
+      return
       end

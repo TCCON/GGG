@@ -1,56 +1,41 @@
-BINDIR = $(GGGPATH)/bin
-CSRC = $(GGGPATH)/src/comn
+# include file contains: chosen fortran compiler and link options
+include $(GGGPATH)/install/.compiler_ggg
+
+TARGET= create_sunrun_from_caltech_ifs3
+
 TSRC = $(GGGPATH)/src/create_sunrun/caltech_ifs3
+COMN = $(GGGPATH)/src/comn
 
-#sun solaris f77, compiler flags, linker flags
-#FC = f77
-#FFLAGS = -c -Nl50 -O
-#LDFLAGS =
+SOURCES := \
+ $(TSRC)/$(TARGET).f \
+ $(COMN)/read_opus_header.f \
+ $(COMN)/getopusparval.f \
+ $(COMN)/getendian.f \
+ $(COMN)/gindfile.f \
+ $(COMN)/lloc.f \
+ $(COMN)/lnbc.f \
+ $(COMN)/fnbc.f \
+ $(COMN)/fbc.f \
+ $(COMN)/substr.f \
+ $(COMN)/rbyte.f \
+ $(COMN)/write_sunrun.f \
+ $(COMN)/get_ggg_environment.f 
 
-#linux gnu g77, compiler flags, linker flags
-FC = g77
-FFLAGS = -c -O -fbounds-check -Wunused -Wuninitialized -W -Wall
-LDFLAGS =
+OBJECTS := $(patsubst %.f, %.o, $(SOURCES))
 
-#linux absoft f95, compiler flags, linker flags
-#FC = f95
-#FFLAGS = -c -ea -en -g -g77
-#LDFLAGS = -g -g77 -lU77
+#  Compile the .f files that are newer than the corresponding .o files
+.f.o:
+	$(FC)  $(CFLAGS) -o $@ $<
 
-SRCS = \
-	$(TSRC)/create_sunrun_from_caltech_ifs3.f
-
-CSRCS = \
-	$(CSRC)/read_opus_header.f \
-	$(CSRC)/getopusparval.f \
-	$(CSRC)/getendian.f \
-	$(CSRC)/gindfile.f \
-	$(CSRC)/lloc.f \
-	$(CSRC)/lnbc.f \
-	$(CSRC)/fnbc.f \
-	$(CSRC)/fbc.f \
-	$(CSRC)/rbyte.f \
-	$(CSRC)/write_sunrun.f \
-	$(CSRC)/get_ggg_environment.f
-
-OBJS = $(SRCS:.f=.o)
-COBJS = $(CSRCS:.f=.o)
-
-.SUFFIXES : .f
-.f.o :
-	$(FC) $(FFLAGS) $<
-
-create_sunrun_from_caltech_ifs3 : $(OBJS) comn_objs
-	$(FC) $(LDFLAGS) -o $(BINDIR)/$@ $(OBJS) $(COBJS)
-
-comn_objs :
-	cd $(CSRC); make create_sunrun
+#  Link the object files to create the executable
+$(TARGET) : $(OBJECTS)
+	$(FC) $(LDFLAGS) -o $(GGGPATH)/bin/$@ $^
 
 #  Add dependencies to object files
-$(TSRC)/create_sunrun_from_caltech_ifs3.o:  $(GGGPATH)/src/ggg_int_params.f $(TSRC)/../params.f
-$(CSRC)/gindfile.o:                 $(GGGPATH)/src/ggg_int_params.f
-$(CSRC)/write_sunrun.o:             $(GGGPATH)/src/ggg_int_params.f
+$(TSRC)/create_sunrun_from_caltech_ifs3.o: $(GGGPATH)/src/ggg_int_params.f $(TSRC)/../params.f
+$(COMN)/gindfile.o:                       $(GGGPATH)/src/ggg_int_params.f
+$(COMN)/write_sunrun.o:                   $(GGGPATH)/src/ggg_int_params.f
 
-clean :
-	/bin/rm -f $(OBJS) $(COBJS)
+clean:
+	rm -f $(OBJECTS) $(GGGPATH)/bin/$(TARGET)
 

@@ -1,5 +1,6 @@
 echo " Deleting .o files"
 rm -f ../src/*/*.o
+rm -f ../src/create_sunrun/*/*.o
 echo " Deleting old executables"
 rm -f ../bin/*
 cp .gfit_md5sum ../bin/gfit_md5sum
@@ -12,9 +13,17 @@ for dir in `ls -1 ../src/ `; do
       make -f ../src/${dir}/Makefile >> compile_messages.out 2>&1
     fi
 done
+#there are subroutines found in create_sunrun
+for dir in `ls -1 ../src/create_sunrun/ `; do
+    if [ -e ../src/create_sunrun/${dir}/Makefile ]; then
+      echo "     "${dir}
+      make -f ../src/create_sunrun/${dir}/Makefile >> compile_messages.out 2>&1
+    fi
+done
 echo " Failed to compile:" `grep -E 'Stop|Error' compile_messages.out | wc -l` "program(s)."
 echo " Deleting .o files"
 rm -f ../src/*/*.o
+rm -f ../src/create_sunrun/*/*.o
 echo " Looking for .exe files to rename"
 if [ -e ../bin/*.exe ]; then
   echo "     Removing .exe extensions"

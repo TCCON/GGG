@@ -181,6 +181,8 @@ value = fltarr(ntot,mreg+1)
 error = fltarr(ntot,mreg+1)
 result = fltarr(ntot)
 
+value(*,0)=findgen(ntot)
+
 repeat begin
    print
    banner=string('Register                 File0                    File1                    File2')

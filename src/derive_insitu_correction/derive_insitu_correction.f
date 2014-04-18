@@ -49,12 +49,22 @@ c
 
       mchar=0
       qc_threshold=2.
+      gas = '   '
 
       call get_ggg_environment(gggdir, dl)
       write(*,*)gggdir
       lg=lnbc(gggdir)
-      write(*,*)'Enter name of input file (e.g. paIn_1.0lm.vav.ada):'
-      read(*,'(a)') inputfile
+      if (iargc() == 0) then
+         write(*,*)'Enter name of input file (e.g. paIn_1.0lm.vav.ada):'
+         read(*,'(a)') inputfile
+      elseif (iargc() == 2) then
+         call getarg(1, inputfile)
+         call getarg(2, gas(1:1))
+      else
+        write(*,*)'Use: $gggpath/bin/derive_insitu_correction adafile'//
+     & ' gas# (1=xco2,2=xco,3=xch4,4=xn2o)'
+        stop
+      endif
       open(lunr,file=inputfile, status='old')
       read(lunr,*)ncoml,ncol
       if(ncol.gt.mcol) stop 'increase mcol'
@@ -64,15 +74,16 @@ c
       read(lunr,'(a)')header
 
 c Determine which gas to process
-      gas = '   '
-3     write(6,9913)
-9913  format(' Gas (1=xco2,2=xco,3=xch4,4=xn2o) ? ',$)
-      read(5,'(a)') gas(1:1)
+      if (iargc() == 0) then
+         write(6,9913)
+9913     format(' Gas (1=xco2,2=xco,3=xch4,4=xn2o) ? ',$)
+         read(5,'(a)') gas(1:1)
+      endif
       if(gas(1:1).eq.'1') gas(1:3)='co2'
       if(gas(1:1).eq.'2') gas(1:3)='co '
       if(gas(1:1).eq.'3') gas(1:3)='ch4'
       if(gas(1:1).eq.'4') gas(1:3)='n2o'
-      if(gas(2:3).eq.'  ') go to 3
+      if(gas(2:3).eq.'  ') stop 'Unknown gas'
       write(*,*)'Processing ',gas
       lgs=lnbc(gas)
 

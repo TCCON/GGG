@@ -1,19 +1,38 @@
 c  adjust_solar_linelist.f
 c  Program to revise a solar linelist based on fits to measured spectra.
 c  The solar lines are assumed to have an absorption shape:
-c    k = s.exp[-x^2/SQRT(d^4+x^2.y^2)]
-c  The solar pseudo transmittance is then  T = exp[-k]
-c  The partial differentials are;
-c   dk/ds = k/s = exp[-x^2/SQRT(d^4+x^2.y^2)]
-c   dk/dx = x.(2d^4+x^2.y^2)/den
-c   dk/dd = -2*x^2.d^3/den
-c   dk/dy = -y*x^4/den
-c  where den=(d^4+x^2.y^2)^1.5
+c    h(x,d,w) = Exp2[-x^2/SQRT(d^4+x^2.w^2(1+|x|/(w+d))]
+c  The solar pseudo transmittance is then  T = rspf + (1-rspf)*Exp1(-s.h )
+c  where s is the line strength and rspf is BB(4000)/BB(T(v)), the Ratio of
+c  the Solar Planck Functions at the T minimum (4000K) and at unit optical
+c  depth ~5800K). This relates to the Minnaert correction.
+c  Note that there are two different Exp operators, one converting
+c  the absorption to transmittance, and the other describing the
+c  (Gaussian) lineshape. To avoid confusion, these are labeled Exp1
+c  and Exp2.
 c
-c   dT/ds - dT/dk . dk/ds = -T.exp[-x^2/SQRT(d^4+x^2.y^2)]
+c  The partial differentials are:
+c    dT/ds = -h.(1-rspf).Exp1(-s.h)
+c    dT/dh = -s.(1-rspf).Exp1(-s.h)
+c    dh/dx =  h.x.(2d^4+x^2.w^2(1+0.5|x|/(w+d)))/den^1.5
+c    dh/dd =  h.x^2.(2d^3-0.5|x|.(w.x/(w+d))^2)/den^1.5
+c    dh/dw =  h.w*x^4(1+|x|.(w+2d)/(w+d)^2)/den^1.5
+c  where den=(d^4+x^2.w^2)
+c
+c  s.dT/ds =             = -s.(1-rspf).Exp1(-s.h).h
+c    dT/dx = dT/dh.dh/dx = -s.(1-rspf).Exp1(-s.h).dh/dx
+c    dT/dd = dT/dh.dh/dd = -s.(1-rspf).Exp1(-s.h).dh/dd
+c    dT/dw = dT/dh.dh/dw = -s.(1-rspf).Exp1(-s.h).dh/dd
+c
+c  Let b = -s.(1-rspf).Exp1(-s.h).h
+c  Let z= |x|/(w+d)
+c  s.dT/ds = b
+c    dT/dx = b.x.(2d^4+x^2.w^2(1+0.5z))/den^1.5
+c    dT/dd = b.x^2.(2d^3-0.5z^3.(w+d).w^2)/den^1.5
+c    dT/dw = b.w.x^4(1+z.(w+2d)/(w+d))/den^1.5
 c
 c  NFP=7 variables are retrieved for each line (frequency,
-c  strength_dc, strength_di, lwidth_dc, lwidth_di, dwidth_dc, dwidth_di). 
+c  strength_dc, strength_di, wwidth_dc, wwidth_di, dwidth_dc, dwidth_di). 
 c
 c  There are NSPEC * NPTS spectral measurements.
 c
@@ -26,39 +45,55 @@ c  The revised values are written back into the same linelist,
 c  overwriting the old values.
 c
 c  Run by typing
-c  ~/ggg/bin/adjust_solar_linelist < window_runlog.col
+c  ~/ggg/bin/adjust_solar_linelist window_runlog.col
 c
       implicit none
       include "../ggg_const_params.f"
       include "params.f"
 
+      integer*8 file_size_in_bytes,fsib
       integer*4  lun_col,luns,lunt,lunll,nfp,nfpi,nmp,krank,iline,
-     & i,j,k,ncol,
+     & j,k,ncol,
      & reclen,i1,i2,posnall,nline,mline,nrec,kk,ispec,nspec,mspec,
-     & lr,fsib,nlhead,lnbc,file_size_in_bytes
-      parameter (nfp=7,mline=500,lun_col=5,luns=15,lunll=16,
-     & lunt=17,mspec=19)
+     & lr,nlhead,lnbc
+      parameter (nfp=7,mline=500,luns=15,lunll=16,
+     & lunt=17,mspec=20)
       integer*4 ip(nfp*mline),mw(mline),np(mspec)
-      real*8 nu1(mspec),nu2(mspec),f,tm,tc,rms,frqcen,width,graw(mspec)
+      real*8 nu1(mspec),nu2(mspec),f,tm,tc,rms,rmsbar,
+     & frqcen,width,graw(mspec)
       real*8 freq(mline),sdc(mline),sdi(mline),wdc(mline),wdi(mline),
-     & ddc(mline),ddi(mline),rc,stren,wwid,dwid,
-     & frstep,frac,nus,nue,d_min,w_min
-      real*4 x,x2,xx,den,ff,ss,gg,pd(mmp+2*nfp*mline,nfp*mline),
+     & ddc(mline),ddi(mline),sct,rspf,stren,wwid,dwid,smax,
+     & frstep,frac,nus,nue,d_min,w_min,trms
+      real*4 x,x2,hh,den,ff,bb,gg,pd(mmp+2*nfp*mline,nfp*mline),
      & res(mmp+2*nfp*mline),wk(nfp*mline),rnorm,
      & scons,sconw,scond,ws,ww,wd,tt,
-     & d2,d4, rats, ratw, ratd,zobs,zmin,wx2
-      parameter (scons=3.0,sconw=2.0,scond=2.0,
+     & d2,d4, rats, ratw, ratd,zobs,zmin
+      parameter (scons=3.0,sconw=2.0,scond=9.0,smax=99.99999,
      & rats=1.1,  ! Ratio of the line strengths (DC/DI))
      & ratw=0.96, ! Ratio of the line Lorentz widths (DC/DI))
      & ratd=0.99, ! Ratio of the line Doppler widths (DC/DI)
-     & w_min=0.001)
-      character llformat*23,
-     & sss(mline)*37
+     & w_min=0.000)
+      character llformat*23,version*56,
+     & sss(mline)*37, inputfile*50
 c
-      write(*,*)' adjust_solar_linelist    2011-02-12   GCT'
       llformat='(i3,f13.6,6f9.5,1x,a37)'
+
+      version=
+     & ' adjust_solar_linelist   Version 1.31   2013-04-29   GCT'
+      write(*,*) version
+
+      rmsbar=0.30  ! assumed average RMS spectral fit
 c
 c  Read .col file.
+      if (iargc() == 0) then
+         lun_col = 5
+      elseif (iargc() == 1) then
+         call getarg(1, inputfile)
+         lun_col = 10
+         open(lun_col, file=inputfile, status='old')
+      else
+         stop 'Usage: $gggpath/bin/adjust_solar_linelist colfile'
+      endif
       read(lun_col,*)nlhead,ncol
       do j=2,nlhead-7
          read(lun_col,*) 
@@ -73,6 +108,14 @@ c  Read .col file.
       nus=frqcen-width/2
       nue=frqcen+width/2
       
+c  Compute Ratio of Solar Planck Functions (for Minnaert correction)
+      if(index(solarll,'minnaert').eq.0) then
+         rspf=0.0
+      else
+         sct=2200+1000*log10(frqcen)  ! Solar Continuum Temperature
+         rspf=(exp(1.4388*frqcen/sct)-1)/(exp(1.4388*frqcen/4000.0)-1)
+      endif
+
 c  Open linelist and read relevent portion into memory.
       lr=lnbc(solarll)
       read(solarll(lr-2:lr),*)reclen
@@ -101,11 +144,26 @@ c  They will be better fitted in the previous/next panel
      &   sdc(iline),sdi(iline),
      &   wdc(iline),wdi(iline),
      &   ddc(iline),ddi(iline),sss(iline)
+         if(sdc(iline)*sdi(iline).le.0.0) then
+            close(lunll)
+            write(*,*)'Freq SDC SDI=',freq(iline),sdc(iline),sdi(iline)
+            stop 'Error: Line strengths have opposite sign'
+         endif
+         if(sdc(iline).eq.0.0 .and. sdi(iline).eq.0.0) then
+            close(lunll)
+            stop 'Error: Both line strength are zero!'
+         endif
+         if(sdc(iline).eq.0.0) sdc(iline)=sdi(iline)/4
+         if(sdi(iline).eq.0.0) sdi(iline)=sdc(iline)/4
       end do
 c
       kk=0
+      nspec=0
+      trms=0.0d0
       do ispec=1,mspec  !  loop over spectra
          read(lun_col,*,end=99)specname
+         if(specname.eq.'ace-solar-spectrum.txt') cycle
+         nspec=nspec+1
          sptfile=sptpath(:lnbc(sptpath))//specname
          write(*,*) ispec,sptfile
          open(luns,file=sptfile,status='old')
@@ -115,8 +173,9 @@ c
          if(frac.gt.1.) frac=1.
          ff=frac**2
          graw(ispec)=(nu2(ispec)-nu1(ispec))/(np(ispec)-1)
-         if(abs(rms).gt.9.9) rms=2.0E+34
+         if(abs(rms).gt. 10.0) rms=0.1*rms**2  ! de-weight really bad fits
          read(luns,*)
+         trms=trms+1.0/rms**2
          if (kk+np(ispec).gt.mmp) then
             write(*,*)'nmp,mmp=',kk+np(ispec),mmp
             stop 'nmp>mmp'
@@ -124,7 +183,7 @@ c
          do k=1,np(ispec)  !  loop over points
             kk=kk+1
             read(luns,*)f,tm,tc
-            res(kk)=(tm-tc)/(abs(rms)+0.02)
+            res(kk)=(tm-tc)*tc/(abs(rms)+rmsbar)
             do iline=1,nline
                stren=sdc(iline)*(1-ff)+sdi(iline)*ff
                dwid=ddc(iline)*(1-ff)+ddi(iline)*ff
@@ -133,29 +192,31 @@ c
                d4=d2**2
                x=f-freq(iline)
                x2=x**2
-               wx2=x2*wwid**2
-               den=d4+wx2
-               xx=exp(-(x2/sqrt(den)))
-c               rc=0.70138-3.8252d-5*freq(k)  ! Minnaert correction.
-               rc=0.0
-               ss=(rc-1.)*tc*xx/(abs(rms)+0.02)
-               gg=ss*stren/den**1.5
-               pd(kk,nfp*(iline-1)+1)=x*(d4+den)*gg              ! d/dx
-               pd(kk,nfp*(iline-1)+2)=ss*(1-ff)                  ! d/ds1
-               pd(kk,nfp*(iline-1)+3)=ss*ff                      ! d/ds2
-               pd(kk,nfp*(iline-1)+4)=wwid*x2**2*gg*(1-ff)   ! d/dw1
-               pd(kk,nfp*(iline-1)+5)=wwid*x2**2*gg*ff       ! d/dw2
-               pd(kk,nfp*(iline-1)+6)=2*dwid**3*x2*gg*(1-ff) ! d/dd1
-               pd(kk,nfp*(iline-1)+7)=2*dwid**3*x2*gg*ff     ! d/dd2
+               den=d4+x2*wwid**2
+               hh=exp(-(x2/sqrt(den)))
+c
+c  Let b = -s.(1-rspf).Exp1(-s.h).h
+c  s.dT/ds =             = b
+c    dT/dx = dT/dh.dh/dx = b.x.(d^4+den)/den^1.5
+c    dT/dd = dT/dh.dh/dd = b.x^2.2d^3/den^1.5
+c    dT/dw = dT/dh.dh/dw = b.w.x^4/den^1.5
+               bb=stren*(rspf-1.)*exp(-stren*hh)*hh/(abs(rms)+rmsbar)
+               gg=bb/den**1.5
+               pd(kk,nfp*(iline-1)+1)=gg*x*(d4+den)          ! d/dx
+               pd(kk,nfp*(iline-1)+2)=bb*(1-ff)              ! d/ds1
+               pd(kk,nfp*(iline-1)+3)=bb*ff                  ! d/ds2
+               pd(kk,nfp*(iline-1)+4)=gg*wwid*x2**2*(1-ff)   ! d/dw1
+               pd(kk,nfp*(iline-1)+5)=gg*wwid*x2**2*ff       ! d/dw2
+               pd(kk,nfp*(iline-1)+6)=gg*2*dwid**3*x2*(1-ff) ! d/dd1
+               pd(kk,nfp*(iline-1)+7)=gg*2*dwid**3*x2*ff     ! d/dd2
             end do   !  iline=1,nline
          end do    ! k=1,np(ispec)
          close(luns)
       end do  ! ispec=1,mspec
       read(lun_col,*,end=99) specname
       write(*,*)'Warning: nspec > mspec'
-99    nspec=ispec-1
+99    if(iargc() == 1) close(lun_col)
       nmp=kk       ! total number of measured spectral points (from all spectra)
-      close(lun_col)
 c
 c  Write out the PD's to file (in XYPLOT format).
         write(*,*) ' nline, nfp = ', nline,nfp
@@ -185,10 +246,12 @@ c  Add constraint that couples Strengths (DC & DI)
          ws=tt*scons
          pd(nmp+nfpi+2,nfpi+2)=ws                      ! set diagonal element
          pd(nmp+nfpi+3,nfpi+2)=-ws                     ! off-diagonal element
-         res(nmp+nfpi+2)=-ws*(sdc(iline)-rats*sdi(iline))
+c         res(nmp+nfpi+2)=-ws*(sdc(iline)-rats*sdi(iline))
+         res(nmp+nfpi+2)=-ws*(1-rats*sdi(iline)/sdc(iline))
          pd(nmp+nfpi+2,nfpi+3)=-rats*ws                ! off-diagonal element
          pd(nmp+nfpi+3,nfpi+3)=rats*ws                 ! set diagonal element
-         res(nmp+nfpi+3)= ws*(sdc(iline)-rats*sdi(iline))
+c         res(nmp+nfpi+3)= ws*(sdc(iline)-rats*sdi(iline))
+         res(nmp+nfpi+3) = ws*(sdc(iline)/sdi(iline)-rats)
 
 c  Add constraint that couples W-Widths (DC & DI)
          ww=tt*sconw
@@ -211,7 +274,7 @@ c  Add constraint that couples D-Widths (DC & DI)
       end do  ! iline=1,nline
 
 c  Augment PD with diagonal constraint matrix. Augment RES with zeros.
-c  This reduces the step size and tilts it toward the steepesst descent direction.
+c  This reduces the step size and tilts it toward the steepest descent direction.
       do iline=1,nline
          nfpi=nfp*(iline-1)
          do j=1,nfp
@@ -240,8 +303,18 @@ c  Update values and write into linelist.
          write(*,'(f12.4,8f12.6)')freq(iline),(res(nfpi+j),j=1,nfp)
          write(25,'(f12.4,8f12.6)')freq(iline),(res(nfpi+j),j=1,nfp)
          freq(iline)=freq(iline)+frstep*res(nfpi+1)
-         sdc(iline)=sdc(iline)+frstep*dble(res(nfpi+2))
-         sdi(iline)=sdi(iline)+frstep*dble(res(nfpi+3))
+c         sdc(iline)=sdc(iline)+frstep*dble(res(nfpi+2))
+c         sdi(iline)=sdi(iline)+frstep*dble(res(nfpi+3))
+         sdc(iline)=sdc(iline)*exp(frstep*dble(res(nfpi+2)))
+         sdi(iline)=sdi(iline)*exp(frstep*dble(res(nfpi+3)))
+         if(sdc(iline).gt.smax) then
+           write(*,*)'Setting sdc to smax',freq(iline),sdc(iline)
+           sdc=smax
+         endif
+         if(sdi(iline).gt.smax) then
+           write(*,*)'Setting sdi to smax',freq(iline),sdi(iline)
+           sdi=smax
+         endif
          wdc(iline)=max(w_min,wdc(iline)+frstep*dble(res(nfpi+4)))
          wdi(iline)=max(w_min,wdi(iline)+frstep*dble(res(nfpi+5)))
          ddc(iline)=

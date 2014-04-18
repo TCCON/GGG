@@ -7,7 +7,6 @@ COMN = $(GGGPATH)/src/comn
 
 SOURCES := \
  $(TSRC)/$(TARGET).f \
- $(TSRC)/clistindex.f \
  $(TSRC)/write_mav.f \
  $(TSRC)/compute_seasonal_cycle.f \
  $(TSRC)/apply_vmr_latitude_gradients.f \
@@ -19,6 +18,7 @@ SOURCES := \
  $(TSRC)/read_model_fc.f \
  $(TSRC)/read_refvmrs.f \
  $(TSRC)/write_postprocessfile.f \
+ $(COMN)/clistindex.f \
  $(COMN)/get_ggg_environment.f \
  $(COMN)/fbc.f \
  $(COMN)/fnbc.f \
@@ -29,7 +29,8 @@ SOURCES := \
  $(COMN)/julian.f \
  $(COMN)/caldat.f \
  $(COMN)/lowercase.f \
- $(COMN)/read_runlog.f \
+ $(COMN)/read_runlog_header.f \
+ $(COMN)/read_runlog_data_record.f \
  $(COMN)/read_isotop.f \
  $(COMN)/log1pxox.f \
  $(COMN)/tlpath.f \

@@ -29,17 +29,17 @@ c
 
       integer*4 lunr,luns,lunw,ncoml,ncolvav,
      & kcolvav,jcol,j,
-     & kgas,ko2,ksza,lnbc,irow,naux,mgas,ngas,nrow,li,k,ncolcorr
-      parameter (lunr=14,luns=15,lunw=16,mgas=9)
+     & kgas,ko2,kh2o,kair,ksza,lnbc,irow,naux,ngas,nrow,li,k,ncolcorr
+      parameter (lunr=14,luns=15,lunw=16)
       real*8 yrow(mcolvav),ymiss,
      & adcf(mgas),adcf_err(mgas),
      & aicf(mgas),aicf_err(mgas),
-     & cf(mcolvav),fu,sbf,vc_air
+     & cf(mcolvav),gfu,sbf,vc_air
       character
      & dl*1,
      & gggdir*(mpath),
      & version*62,
-     & specname*57,
+     & specname*(nchar),
      & header*800,
      & headarr(mcolvav)*20,
      & gasname(mgas)*20,
@@ -52,10 +52,12 @@ c
       specflag=0
 
       version=
-     &' apply_airmass_correction     Version 1.1.7   2011-11-05   GCT'
+     &' apply_airmass_correction     Version 1.31    2014-03-17   GCT'
       write(*,*) version
       call get_ggg_environment(gggdir, dl)
       ko2=0
+      kh2o=0
+      kair=0
       ksza=0
 
 c  Open the corrections.dat file and read in the Airmass-Dependent
@@ -84,8 +86,14 @@ c  Factors (AICF) for each gas. Only the former is used by this prog.
       stop 'increase parameter MGAS'
 88    ngas=k-1
 
-      write(*,*)'Enter name of input file (e.g. paIn_1.0lm.vav):'
-      read(*,'(a)') inputfile
+      if (iargc() == 0) then
+         write(*,*)'Enter name of input file (e.g. paIn_1.0lm.vav):'
+         read(*,'(a)') inputfile
+      elseif (iargc() == 1) then
+         call getarg(1, inputfile)
+      else
+         stop 'Usage: $gggpath/bin/apply_airmass_correction vavfile'
+      endif
       li=lnbc(inputfile)
       if(inputfile(li-3:li).ne.'.vav') write(*,*)
      &  ' Warning: input file is not of expected type (.vav) '
@@ -109,15 +117,15 @@ c  file, adding the correction coefficients
          if(ncolcorr.eq.5) write(lunw,'(a,2f9.4)') gasname(k),adcf(k),
      &   adcf_err(k)
       end do
-      read(lunr,*) ymiss
+      read(lunr,'(8x,d12.5)') ymiss
       ymiss=ymiss-0.0001E+29
       write(lunw,*)ymiss
-      read(lunr,'(a)') output_fmt
+      read(lunr,'(7x,a)') output_fmt
       read(lunr,'(a)') header
       call substr(header,headarr,mcolvav,kcolvav)
       if (index(header,'spectrum') .gt. 0) specflag=1
       if (specflag.eq.1) output_fmt(6:7)='1x'
-      write(lunw,'(a)') output_fmt
+      write(lunw,'(a)') 'format='//output_fmt
 c      write(*,*) index(header,'spectrum') 
       do j=naux+1,ncolvav
         headarr(j)='x'//headarr(j)
@@ -135,12 +143,19 @@ c  and those in the .vav file header
             if(headarr(jcol).eq.gaserr) cf(jcol)=adcf(kgas)
          end do
          if(headarr(jcol) .eq. 'xo2') ko2=jcol
+         if(headarr(jcol) .eq. 'xh2o') kh2o=jcol
+         if(headarr(jcol) .eq. 'xair') kair=jcol
          if(headarr(jcol) .eq. 'asza') ksza=jcol
          if(jcol.gt.naux) write(*,'(i3,f8.4,2x,a)')
      &   jcol,cf(jcol),headarr(jcol)
       end do
 
       if(ko2.eq.0) stop ' o2 column not found'
+      if(kair.eq.0) stop ' air column not found'
+      if(kh2o.eq.0) then
+         write(*,*) 'Warning: h2o column not found'
+         write(*,*) 'Assuming no h2o'
+      endif
       if(ksza.eq.0) stop ' asza column not found'
 
 c      if (specflag .eq. 1) then
@@ -161,6 +176,8 @@ c  Read each day of data into memory.
              read(lunr,*,end=99) (yrow(j),j=1,ncolvav)
          endif
          vc_air=yrow(ko2)/0.2095
+c  Compute dry air instead of wet air if kh2o exists
+         if(kh2o.gt.0) yrow(kair)=yrow(kair)-yrow(kh2o)*18.02/28.964
          if(yrow(ko2).eq.0.0) then
            write(*,'(a,i6,a)')'Warning: O2_column=0 for spectrum',irow,
      &     '  (lamp run?)  Your output file will contain Inf'
@@ -169,12 +186,12 @@ c  Read each day of data into memory.
          do k=naux+1,ncolvav-1,2
             if(yrow(k).lt.ymiss) then
             if(k.eq.ko2) then
-              fu=yrow(k+1)/yrow(k)                 ! fractional uncertainty
+              gfu=yrow(k+1)              
             else
-              fu=sqrt((yrow(k+1)/yrow(k))**2+(yrow(ko2+1)/yrow(ko2))**2)
+              gfu=sqrt(yrow(k+1)**2+(yrow(k)*yrow(ko2+1)/yrow(ko2))**2)
             endif
             yrow(k)=yrow(k)/vc_air/(1+cf(k)*sbf)   ! apply airmass correction
-            yrow(k+1)=yrow(k)*fu
+            yrow(k+1)=gfu/vc_air/(1+cf(k)*sbf)
             endif  ! if(yrow(k).lt.ymiss
          end do
          if (specflag .eq. 1) then

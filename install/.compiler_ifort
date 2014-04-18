@@ -1,0 +1,3 @@
+FC = ifort
+CFLAGS = -c -check bounds -assume byterecl -fpe0 -g -traceback -O3 -ip
+LDFLAGS = 

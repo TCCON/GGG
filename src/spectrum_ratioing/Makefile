@@ -9,12 +9,17 @@ SOURCES := \
   $(TSRC)/$(TARGET).f \
   $(COMN)/gindfile.f \
   $(COMN)/lnbc.f \
+  $(COMN)/fnbc.f \
+  $(COMN)/fbc.f \
   $(COMN)/lloc.f \
   $(COMN)/rbyte.f \
   $(COMN)/getendian.f \
-  $(COMN)/write_runlog.f \
+  $(COMN)/substr.f \
+  $(COMN)/write_runlog_header.f \
+  $(COMN)/write_runlog_data_record.f \
+  $(COMN)/read_runlog_header.f \
+  $(COMN)/read_runlog_data_record.f \
   $(COMN)/wlimit.f \
-  $(COMN)/read_runlog.f \
   $(COMN)/get_ggg_environment.f
 
 OBJECTS := $(patsubst %.f, %.o, $(SOURCES))

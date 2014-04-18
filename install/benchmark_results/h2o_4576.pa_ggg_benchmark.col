@@ -1,28 +1,28 @@
  24 18
- GFIT                     Version 4.8.6    28-Mar-2012    GCT   
- GSETUP                   Version 3.4.4    15-Mar-2012    GCT
-8c8ca2b6e6478ac15b6a4c24c70dd1a9  /net/nicolet/raid1/dwunch/ggg_devel/ggg_update/config/data_part.lst
-83c26098eb109331f403793bf4d60520  /net/nicolet/raid1/dwunch/ggg_devel/ggg_update/apriori/gfit_ap.gnd
-26d0dc08ddb933b4b73ff09c5bed1266  /net/nicolet/raid1/dwunch/ggg_devel/ggg_update/runlogs/gnd/pa_ggg_benchmark.grl
-7ff3c96fbfd4e17b9b04e78805c67363  /net/nicolet/raid1/dwunch/ggg_devel/ggg_update/levels/integral.gnd
-                                  /net/nicolet/raid1/dwunch/ggg_devel/ggg_update/models/gnd/
-                                  /net/nicolet/raid1/dwunch/ggg_devel/ggg_update/vmrs/gnd/
-04e751fd33c7fd7c5a519b1d8e864147  pa_ggg_benchmark.mav
-e2c84d14b25c2b6870488c59c2f67376  pa_ggg_benchmark.ray
-ad85bfca7628a1b4d7f146e66170b238  isotopologs_local.dat
-51bec825af4b5d8d9b5198117f229b56  /net/nicolet/raid1/dwunch/ggg_devel/ggg_update/windows/gnd/tccon.gnd
-ef9916d7b614697da5d2f434d0a7bcf8  /net/nicolet/raid1/dwunch/ggg_devel/ggg_update/linelist/atm.101
-7cef41a0900522b021d765cbcfcfcbb2  /net/nicolet/raid1/dwunch/ggg_devel/ggg_update/linelist/gct.101
-6fd821359b77fa5a0f3bb7608ffa007e  /net/nicolet/raid1/dwunch/ggg_devel/ggg_update/linelist/fcia.101
-61e34bb86814b4d71a3a74f517412a19  /net/nicolet/raid1/dwunch/ggg_devel/ggg_update/linelist/scia.101
-51482c771568f063ffd53e98cc923751  /net/nicolet/raid1/dwunch/ggg_devel/ggg_update/linelist/solar_merged.108
-                                  /net/nicolet/raid1/dwunch/ggg_devel/ggg_update/ak/k
-                                  /net/nicolet/raid1/dwunch/ggg_devel/ggg_update/spt/z
+ GFIT                     Version 4.37       2014-03-21    GCT  
+ GSETUP                   Version 3.92     2013-12-20    GCT
+eef67b8c0f131c30bfb7f9e548764f94  /net/nicolet/nobackup/dwunch/ggg_devel/ggg_working/config/data_part.lst
+b726bee6d1ef790129ee605640fa6af1  /net/nicolet/nobackup/dwunch/ggg_devel/ggg_working/apriori/gfit_ap.gnd
+045ad2bcf91b0eb10a9321f526da8bfd  /net/nicolet/nobackup/dwunch/ggg_devel/ggg_working/runlogs/gnd/pa_ggg_benchmark.grl
+7ff3c96fbfd4e17b9b04e78805c67363  /net/nicolet/nobackup/dwunch/ggg_devel/ggg_working/levels/integral.gnd
+                                  /net/nicolet/nobackup/dwunch/ggg_devel/ggg_working/models/gnd/
+                                  /net/nicolet/nobackup/dwunch/ggg_devel/ggg_working/vmrs/gnd/
+f8d9103b025e43bf33cf0dc8bcd4d330  pa_ggg_benchmark.mav
+2d1a86aa2db12d965ba6a27c63a8a7f1  pa_ggg_benchmark.ray
+f1c0115d620d0ea6540a509df7cccafc  /net/nicolet/nobackup/dwunch/ggg_devel/ggg_working/isotopologs/isotopologs.dat
+f8b8c93f1aebb1df552b921df2451f8d  /net/nicolet/nobackup/dwunch/ggg_devel/ggg_working/windows/gnd/tccon.gnd
+a7166ef14ce39657269fb9e6ddef9df7  /net/nicolet/nobackup/dwunch/ggg_devel/ggg_working/linelist/atm.101
+3cda33e3bd74093012454d3adfb9b726  /net/nicolet/nobackup/dwunch/ggg_devel/ggg_working/linelist/gct.101
+6fd821359b77fa5a0f3bb7608ffa007e  /net/nicolet/nobackup/dwunch/ggg_devel/ggg_working/linelist/fcia.101
+61e34bb86814b4d71a3a74f517412a19  /net/nicolet/nobackup/dwunch/ggg_devel/ggg_working/linelist/scia.101
+44ee608e578d3c1565bcd5ea8fa3b685  /net/nicolet/nobackup/dwunch/ggg_devel/ggg_working/linelist/solar_merged.108
+                                  /net/nicolet/nobackup/dwunch/ggg_devel/ggg_working/ak/k
+                                  /net/nicolet/nobackup/dwunch/ggg_devel/ggg_working/spt/z
                                   h2o_4576.pa_ggg_benchmark.col
-                                  (1x,a,1x,i2,1x,f5.3,1x,f5.1,3(1x,f4.1),1x,f5.3,1x,f6.4,f8.3,15(0pf7.3,1pe11.4,0pf9.4,1pe8.1))
+                                  (1x,a20,1x,i2,1x,f5.3,1x,f5.1,2(1x,f4.1),1x,f5.2,1x,f5.3,1x,f6.4,f8.3,15(0pf7.3,1pe11.4,0pf9.4,1pe8.1))
  4576.85   1.90  15 1 1 0  cl  ct  fs  so    : h2o  ch4
   Spectrum            Nit  CL    CT   CC   FS   S-G  ZO   RMS/CL   Zpres  AM_h2o    OVC_h2o    VSF_h2o    VSF_h2o_error  AM_ch4    OVC_ch4    VSF_ch4    VSF_ch4_error
- pa20040721saaaaa.049  6 0.321   1.9  0.0  2.0  5.6 0.000 0.6619   0.472  1.297 1.4814E+23   0.8548 2.1E-02  1.298 3.5772E+19   2.0414 7.3E-01
- pa20040721saaaaa.125  6 0.307   1.8  0.0  2.9  5.1 0.000 0.7363   0.473  2.251 1.4807E+23   0.7429 2.3E-02  2.252 3.5768E+19   1.3602 5.2E-01
- pa20041222saaaaa.021  6 0.576   1.5  0.0  0.5 -0.4 0.000 0.7454   0.478  7.779 5.5469E+21   1.1678 2.4E-02  7.524 3.6070E+19   1.2563 1.2E-01
- pa20041222saaaaa.022  6 0.576   1.5  0.0  0.5 -0.9 0.000 0.7453   0.477  7.396 5.5510E+21   1.1599 2.4E-02  7.174 3.6078E+19   1.2548 1.2E-01
+ pa20040721saaaaa.043  6 0.319   1.0  0.0  0.7  5.28 0.000 0.5895   0.472  1.297 1.4722E+23   0.8763 1.9E-02  1.298 3.5790E+19   1.5152 8.6E-01
+ pa20040721saaaaa.119  6 0.305   0.9  0.0  1.3  3.91 0.000 0.7273   0.473  2.251 1.4716E+23   0.7670 2.3E-02  2.252 3.5786E+19   1.1461 7.5E-01
+ pa20041222saaaaa.019  6 0.569   1.1  0.0 -0.3  1.21 0.000 0.5430   0.478  7.779 5.5442E+21   1.1741 1.8E-02  7.524 3.6076E+19   1.1863 9.7E-02
+ pa20041222saaaaa.020  6 0.570   1.0  0.0 -0.3  0.58 0.000 0.5468   0.477  7.396 5.5483E+21   1.1656 1.8E-02  7.174 3.6084E+19   1.1833 1.0E-01

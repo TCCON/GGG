@@ -22,8 +22,8 @@ c
       include "../ggg_int_params.f"
 
       integer*4 lunr,luns,lunw,ncoml,ncol,mcol,kcol,icol,j,
-     & kgas,lnbc,irow,naux,mgas,ngas,nrow,li,k,ngrow,ngas1,kk,mrow
-      parameter (lunr=14,luns=15,lunw=16,mcol=150,mgas=9,mrow=5)
+     & kgas,lnbc,irow,naux,ngas,nrow,li,k,ngrow,ngas1,kk,mrow
+      parameter (lunr=14,luns=15,lunw=16,mcol=150,mrow=5)
       character header*800,headarr(mcol)*20,gasname(mgas)*20,
      & gggdir*(mpath),inputfile*40,outputfile*40, version*62,gaserr*32,
      & filename*(mpath+40)
@@ -33,18 +33,28 @@ c
 
       integer*4 endyear(mgas),endday(mgas)
 
-      character outfmt*42,specname*(nchar),site*2,dl*1
+      character outfmt*42,specname*(nchar),site*2,dl*1,input_fmt*40
+      character cl*1
       integer spec_flag,colindyear,colindday
       spec_flag=0
+      colindyear=0  ! prevent compiler warning (may be used uninitialized)
+      colindday =0  ! prevent compiler warning (may be used uninitialized)
 
       version=
-     & ' apply_ghost_correction      Version 1.0.1   2012-03-08   GCT'
+     & ' apply_ghost_correction      Version 1.11    2013-01-15   GCT'
+c     & ' apply_ghost_correction      Version 1.0.1   2012-03-08   GCT'
 c     & ' apply_ghost_correction      Version 1.0.0   2011-07-19   NMD'
 
       call get_ggg_environment(gggdir,dl)
 
-      write(*,*)'Enter name of input file (e.g. paIn.vav.ada.aia):'
-      read(*,'(a)') inputfile
+      if (iargc() == 0) then
+         write(*,*)'Enter name of input file (e.g. paIn.vav.ada.aia):'
+         read(*,'(a)') inputfile
+      elseif (iargc() == 1) then
+         call getarg(1, inputfile)
+      else
+         stop 'Usage: $gggpath/bin/apply_ghost_correction aiafile'
+      endif
       li=lnbc(inputfile)
       site=inputfile(1:2)
       if(inputfile(li-3:li).ne.'.aia') write(*,*)
@@ -83,17 +93,18 @@ c  and those in the .vav file header
       write(lunw,'(i2,i4,i7,i4)') ncoml+1+ngrow+1,ncol,nrow,naux
       write(lunw,'(a)') version
       if(ncol.gt.mcol) stop 'increase mcol'
-      do j=2,ncoml-1
+      do j=2,ncoml-2
          read(lunr,'(a)') header
          write(lunw,'(a)') header(:lnbc(header))
       end do
-      outfmt=header(:lnbc(header))
-
+      read(lunr,'(7x,a)') input_fmt
+      write(lunw,'(a)') 'format='//input_fmt
+      outfmt=input_fmt
 c     write(*,*) endyear(1),ngrow
       
       write(lunw,'(a)')'Ghost correction factors:'
       do j=1,ngrow
-        write(lunw,'(2i4,5(a,2e10.3))')endyear(j),endday(j),
+        write(lunw,'(2i4,5(a,2e11.3))')endyear(j),endday(j),
      & ' xco2',gcf(j,1)*scl(j,1),gcfe(j,1)*scl(j,1),
      & ' xch4',gcf(j,2)*scl(j,2),gcfe(j,2)*scl(j,2),
      & ' xn2o',gcf(j,3)*scl(j,3),gcfe(j,3)*scl(j,3),
@@ -143,7 +154,7 @@ c  to the XGas values.
             read(lunr,*,end=99) specname, (yrow(j),j=1+spec_flag,ncol)
          else
 c           write(*,*)'yrow(j),ncol=',yrow,ncol 
-            read(lunr,*,end=99) (yrow(j),j=1,ncol)
+            read(lunr,input_fmt,end=99) cl,(yrow(j),j=1,ncol)
          endif
          do k=naux+spec_flag+1,ncol-1,2
            do j=1,ngrow
@@ -168,7 +179,7 @@ c                 write(*,*)'b',j,ngrow,cf(k,j)
          if (spec_flag .eq. 1) then
             write(lunw,outfmt) specname,(yrow(j),j=1+spec_flag,ncol)
          else
-            write(lunw,outfmt) (yrow(j),j=1,ncol)
+            write(lunw,outfmt) cl,(yrow(j),j=1,ncol)
          endif
       end do         ! do irow=1,9999999
 c      write(*,*) cf

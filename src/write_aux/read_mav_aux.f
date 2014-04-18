@@ -1,4 +1,5 @@
-      subroutine read_mav_aux(lunm,nlhead,nlev,nspeci,z,t,p,d,vmr,head)
+      subroutine read_mav_aux(lunm,nlhead,nlev,nspeci,z,t,p,d,vmr,
+     & vmrfile,modfile,head)
 c  Reads the contents of the .mav file MAVNAME into the appropriate arrays.
 c
 c  Inputs:
@@ -18,16 +19,18 @@ c
       implicit none
       integer*4 lunm,nlev,nspeci,nlhead,j,ilev
       real*4 z(nlev),t(nlev),p(nlev),d(nlev),vmr(nspeci,nlev)
-      character head*1800
+      character head*1800,vmrfile*1800,modfile*1800
 
 c     call skiprec(lunm,nlhead-1)  !   Skip header
-      call skiprec(lunm,nlhead-2)  !   Skip header DW 20100322
+      call skiprec(lunm,nlhead-4)  !   Skip header DW 20100322
+      read(lunm,'(a)')vmrfile
+      read(lunm,'(a)')modfile
       read(lunm,'(a)')head ! DW 20100322
 c     write(*,*)head   ! DW 20100322
 
 c      write(*,*)'READ_MAV: nlev,nspeci=',nlev,nspeci
       do ilev=1,nlev
-         read(lunm,'(2f7.2,2(1pe11.3),150(e11.3))')
+         read(lunm,'(2f7.2,2(1pe11.3),200(e11.3))')
      &   z(ilev),t(ilev),p(ilev),d(ilev),(vmr(j,ilev),j=1,nspeci)
          if(t(ilev).eq.0.0) stop 'zero temperature'
       end do

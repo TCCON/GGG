@@ -15,6 +15,9 @@ c
       implicit none
       integer mi,ni,i,nj,j
       real*4 vali,valj,fi,fj,omfi,omfj,tabj(nj),tabi(mi),tab(mi,nj)
+
+      fi=0.0 ! prevent compiler warning (may be uninitialized)
+      fj=0.0 ! prevent compiler warning (may be uninitialized)
 c
 c  Search for TABI's which bracket VALI and find its fractional position (FI)
       do i=1,ni-1

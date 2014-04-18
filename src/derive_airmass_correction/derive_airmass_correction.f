@@ -63,20 +63,20 @@ c
       include "../ggg_int_params.f"
 
       integer*4 lunr,lunw,ncoml,ncol,mcol,kcol,icol,j,kgas,ko2,
-     & lnbc,mrow,nmp,imp,ntot,nfp,nday,doy,i,nlhead,
+     & lnbc,mrowpd,nopd,iopd,nfp,nday,doy,i,nlhead,
      & iyear,iywas,idoy,idwas,li,naux,nrow,
      & kfvsi,kyear,kdoy,klat,klon,ksza, kqcflag, mchar
-      parameter (lunr=14,lunw=16,mcol=50,mrow=1000,nfp=3)
+      parameter (lunr=14,lunw=16,mcol=50,mrowpd=1000,nfp=3)
       character header*800,headarr(mcol)*12,gas*4,
      & inputfile*40,outputfile*40,version*62, specname*(nchar)
-      real*4 yy(mrow),uy(mrow),bf(mrow,nfp),apx(nfp),apu(nfp),
+      real*4 yy(mrowpd),uy(mrowpd),bf(mrowpd,nfp),apx(nfp),apu(nfp),
      & rnorm, uscale,
      & aa(nfp),ae(nfp), year, tyy(nfp),ty(nfp),tee(nfp),ybar,
      & fugas,fuo2,solar_noon,b,eot,diff,qc_threshold
       real*8 yrow(mcol),d2r,chi2
 
       version=
-     &' derive_airmass_correction        1.2.0     2012-07-10     GCT'
+     &' derive_airmass_correction        1.2.2     2012-07-12     GCT'
       write(*,*) version
 
       d2r=dpi/180.d0
@@ -93,8 +93,14 @@ c
       klon=0
       ksza=0
       kqcflag=0
-      write(*,*)'Enter name of input file (e.g. paIn_1.0lm.vav):'
-      read(*,'(a)') inputfile
+      if (iargc() == 0) then
+         write(*,*)'Enter name of input file (e.g. paIn_1.0lm.vav):'
+         read(*,'(a)') inputfile
+      elseif (iargc() == 1) then
+         call getarg(1, inputfile)
+      else
+         stop 'Usage: $gggpath/bin/derive_airmass_correction vavfile'
+      endif
       li=lnbc(inputfile)
       if(inputfile(li-3:li) .ne. '.vav') write(*,*)
      & ' Warning: input file is not of expected type (.vav)'
@@ -125,16 +131,10 @@ c  which columns contain the values that we need.
       open(lunr,file=inputfile, status='old')
       read(lunr,'(i2,i4,i7,i4)')ncoml,ncol,nrow,naux
       if(ncol.gt.mcol) stop 'increase mcol'
-      do j=2,ncoml-1
+      do j=2,ncoml
          read(lunr,*)
       end do
-      read(lunr,'(a)')header
-      call substr(header,headarr,mcol,kcol)
-      call lowercase(header)
-      if (index(header,'spectrum') .gt. 0) mchar=1
-      if(kcol.ne.ncol ) stop 'ncol/kcol mismatch'
       do icol=1,ncol
-c         if(headarr(icol) .eq. gas) kgas=icol
          if(headarr(icol) .eq.  'o2') ko2=icol
          if(headarr(icol) .eq.'fvsi') kfvsi=icol
          if(headarr(icol) .eq.'year') kyear=icol
@@ -145,7 +145,7 @@ c         if(headarr(icol) .eq. gas) kgas=icol
          if(headarr(icol) .eq.'qcflag') kqcflag=icol
       end do
 
-      gas=headarr(kgas)
+      gas=headarr(kgas)(1:4)
 
 c  Set loose A Priori constraints on ybar, ASDC, & SDC.
 c  This prevents the solution going crazy whenever there are
@@ -180,17 +180,16 @@ c  Set large A Priori constraints on the coefficients of the ASDC and SDC
       outputfile='dac_'//inputfile(:li)//'_'//gas(:lnbc(gas))//'.out'
       open(lunw,file=outputfile,status='unknown')
       write(lunw,'(2i5)')2,11
-      write(lunw,'(a)')'gas    year     doy  nmp    uscale      ybar '//
-     &'    ybar_error     asdc     asdc_error     sdc      sdc_error'
+      write(lunw,'(a)')'gas    year     doy  nopd    uscale      ybar
+     &   ybar_error     asdc     asdc_error     sdc      sdc_error'
 
 c  Read each day of data into memory.
-      ntot=0
       nday=1
       chi2=0.0d0
       idwas=99999
       iywas=99999
-      imp=1
-      do while (imp.lt.mrow-nfp)
+      iopd=1
+      do while (iopd.lt.mrowpd-nfp)
          yrow(kyear)=0
          if (mchar .eq. 1) then
              read(lunr,*,end=88) specname, (yrow(j),j=1+mchar,ncol)
@@ -207,15 +206,15 @@ c  Read each day of data into memory.
          idoy=nint(diff)                          ! Convert to Local time
          iyear=int(yrow(kyear))
          if(iyear.ne.iywas .or. idoy.ne.idwas) then ! New day
-         if(ntot.gt.0) then
-            nmp=imp-1
-            call wlsfit(mrow,nmp,yy,nfp,bf,apx,apu,rnorm)
-            uscale = rnorm*sqrt(1./nmp)            ! error scale factor 
+         if(iopd.gt.1) then
+            nopd=iopd-1
+            call wlsfit(mrowpd,nopd,yy,nfp,bf,apx,apu,rnorm)
+            uscale = rnorm*sqrt(1./nopd)            ! error scale factor 
             chi2=chi2+rnorm**2
            write(lunw,'(a,f11.5,2i5,7(1pe12.4))')gas,iywas+idwas/365.25,
-     &      idwas,nmp,uscale,
+     &      idwas,nopd,uscale,
      &      (1.E+06*yy(j),1.E+06*sqrt(uscale*bf(j,j)),j=1,nfp)
-            imp=1
+            iopd=1
             nday=nday+1
          endif
          endif
@@ -223,35 +222,33 @@ c  Read each day of data into memory.
          if(yrow(kfvsi).lt.0.0) yrow(kfvsi)=0.0  ! Don't let missing data affect UY
          fuo2=yrow(ko2+1)/yrow(ko2)          ! fractional uncertainty in column O2
          fugas=yrow(kgas+1)/yrow(kgas)       ! fractional uncertainty in chosen gas
-         yy(imp)=0.2095*yrow(kgas)/yrow(ko2) ! Xgas
-         uy(imp)=yy(imp)*sqrt(0.00001+fuo2**2+fugas**2
+         yy(iopd)=0.2095*yrow(kgas)/yrow(ko2) ! Xgas
+         uy(iopd)=yy(iopd)*sqrt(0.00001+fuo2**2+fugas**2
      &  +0.1*yrow(kfvsi)**2                  ! contribution of solar intensity variations
      &  +0.1*(yrow(ksza)/90)**8)             ! de-weight high zenith angles
 
 c   Divide measurements (YY) and basis functions (BF) by uncertainties (UY)
-         yy(imp)=yy(imp)/uy(imp)
-         bf(imp,1)=1.0/uy(imp)
-         bf(imp,2)=sin(2*dpi*diff)/uy(imp)
-         bf(imp,3)=(((yrow(ksza)+13)/(90+13))**3-((45.0+13)/(90+13))**3)
-     &   /uy(imp)
+         yy(iopd)=yy(iopd)/uy(iopd)
+         bf(iopd,1)=1.0/uy(iopd)
+         bf(iopd,2)=sin(2*dpi*diff)/uy(iopd)
+        bf(iopd,3)=(((yrow(ksza)+13)/(90+13))**3-((45.0+13)/(90+13))**3)
+     &   /uy(iopd)
          iywas=iyear
          idwas=idoy
-         imp=imp+1
-         ntot=ntot+1
-      end do              ! while (imp.lt.mrow-nfp)
+         iopd=iopd+1
+      end do              ! while (iopd.lt.mrowpd-nfp)
 88    close (lunr)
-      nmp=imp-1
+      nopd=iopd-1
 c  
 c  Do the last day.
-      call wlsfit(mrow,nmp,yy,nfp,bf,apx,apu,rnorm)
-      uscale = rnorm*sqrt(1./nmp)
+      call wlsfit(mrowpd,nopd,yy,nfp,bf,apx,apu,rnorm)
+      uscale = rnorm*sqrt(1./nopd)
       write(lunw,'(a,f11.5,2i5,7(1pe12.4))') gas,iywas+idwas/365.25,
-     & idwas,nmp,uscale,
+     & idwas,nopd,uscale,
      & (1.E+06*yy(j),1.E+06*sqrt(uscale*bf(j,j)),j=1,nfp)
       close(lunw)
-      nmp=imp-1
+      nopd=iopd-1
       chi2=chi2+rnorm**2
-c      write(*,'(a10,2i6,f9.6)')'nday,ntot=',nday,ntot,sqrt(chi2/ntot)
       open(lunw,file=outputfile,status='old')
       read(lunw,*) nlhead,ncol
       do i=2,nlhead
@@ -263,7 +260,7 @@ c      write(*,'(a10,2i6,f9.6)')'nday,ntot=',nday,ntot,sqrt(chi2/ntot)
         ty(j)=0.0
       end do
       do i=1,nday
-         read(lunw,*) gas, year, doy, nmp,uscale,(aa(j),ae(j),j=1,nfp)
+         read(lunw,*) gas, year, doy, nopd,uscale,(aa(j),ae(j),j=1,nfp)
          do j=1,nfp
 c            taa(j)=taa(j)+aa(j)/ae(j)**2
 c            tae(j)=tae(j)+1/ae(j)**2

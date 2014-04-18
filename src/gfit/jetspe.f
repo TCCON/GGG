@@ -1,4 +1,4 @@
-      subroutine jetspe(specpath,opd,graw,ifirst,ilast,possp,bytepw,
+      subroutine jetspe(specpath,resn,graw,ifirst,ilast,possp,bytepw,
      & nus,nue,apo_m,interp,foff,res,
      & yobs,mip,nip,nustrt,delwav,status)
 c  Reads a portion of spectrum from disk, apodizes, interpolates, and resamples
@@ -54,7 +54,7 @@ C======================================================================
      & nhw,nsf,nsi,nele,nscycle,j1,j2,ii
       parameter (msi=50753,nscycle=25)  ! max dimension of sinc_interp function 
 c
-      REAL*8 dzero,fr,resnog,resn,rect,opd,vbar,hwid,dd,sh
+      REAL*8 dzero,fr,resnog,resn,rect,vbar,hwid,dd,sh
       REAL*8 nus,nue,graw,delwav,nustrt
 c
       REAL*4 sinc_interp(msi),yobs(mip),foff,res,tot,dum
@@ -63,13 +63,11 @@ c
       if(nus.ge.nue) stop 'NUS >= NUE'
       status=0
       rect=0.0d0
-      resn=0.5d0/opd
       resn=dmax1(resn,dble(res))
       dd=nscycle*resn  ! half-wifth of ILS in cm-1
 c      if(resn.lt.graw) resn=graw
       resnog=resn/graw
 c      write(*,*)'jetspe: apo_m=',apo_m
-c      write(*,*)opd,resn,graw,resnog
       nhw=nint(nscycle*resnog)
       nsf=2*iabs(nhw)+1
 c-------------------------------------------------------------------------
@@ -140,7 +138,8 @@ c  to be performed "in place" without prematurely overwriting any points.
       if(iabpw.eq.3) iabpw=4
       if(iabpw.eq.6) iabpw=8  ! ACE binary [Real, Imag]
       iskip=possp+iabpw*(m1-iabs(nhw)-ifirst)
-c      write(*,*)'m1, nhw, ifirst=',iabpw, m1, nhw, ifirst, nmp
+c      write(*,*)' bpw, m1, nhw, ifirst=',iabpw, m1, nhw, ifirst
+c      write(*,*)' possp, nmp, nsf,k1, iskip=',possp, nmp,nsf, k1, iskip
       call fetch(specpath,bytepw,iskip,yobs(k1),nmp)
       if(graw.lt.0.0) then
 c       call vswap(yobs(k1),1,yobs(k1+nmp-1),-1,nmp/2)

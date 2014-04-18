@@ -13,13 +13,13 @@ c
 
       integer*4 iy,im,id,hh,mm,ss,ms,pkl,prl,gfw,gbw,
      & fnbc,lnbc,fbc,ispe,iend,dtype,nsp,nip,dfr,
-     & lr,lrt,ls,possp,istat,object,mcol,ncol
+     & lr,lrt,ls,possp,istat,object,mcol,ncol,lst
       parameter (mcol=40)
 c
       real*8 tins,pins,hins,tout,pout,hout,wspd,wdir,
      & wavtkr,oblat,oblon,obalt,lfl,hfl,foc,
-     & fsf,tcorr,nus,nue,lwn,sia,sis,fvsi,aipl,tel_mag,
-     & fxv,lxv,apt,dur,vel,phr,res,pout_cor
+     & fsf,tcorr,nus,nue,lwn,sia,sis,vdc,fvsi,aipl,tel_mag,
+     & fxv,lxv,apt,dur,vel,phr,res,pout_cor,lse,lsu
 
       character
      & col1*1,                    !first column of runlog record
@@ -43,13 +43,21 @@ c      pout_cor = 0.9  ! mbar  Darwin (based on nmd03 email: 2006-05-26)
      & 'for May 2004.'
       col1=' '
       call getendian(iend)  ! iend=+1 on Sun; iend=-1 on PC
+      vdc=0.d0
 c
       call get_ggg_environment(gggdir, dl)
       lrt=lnbc(gggdir)       !Length of root 
       lr=0
       do while(lr.eq.0)
-         write(6,'(a)') 'Enter name of input file (e.g. pa2004.gnd): '
-         read(*,'(a)') logfile
+         if (iargc() == 0) then
+            write(6,'(a)') 'Enter name of input file (e.g. pa2004.gnd):'
+            read(*,'(a)') logfile
+         elseif (iargc() == 1) then
+            call getarg(1, logfile)
+         else
+            stop 'Usage: $gggpath/bin/create_sunrun pa2004.gnd'
+         endif
+
          lr=lnbc(logfile)
       end do
       ext=logfile(lr-2:lr)
@@ -122,26 +130,26 @@ c  find the spectral file, return the PATH to the spectrum
           call read_opus_header(path,iend,dtype,nsp,fxv,lxv,iy,im,
      &     id,hh,mm,ss,ms,apt,dur,vel,apf,phr,res,lwn,foc,nip,dfr,
      &     pkl,prl,gfw,gbw,lfl,hfl,possp,oblat,oblon,obalt,
-     &     tins,pins,hins,tout,pout,hout,wspd,wdir,sia,sis)
+     &     tins,pins,hins,tout,pout,hout,wspd,wdir,sia,sis,vdc,
+     &     lst,lse,lsu)
 
 c  Apply correction to measured surface pressure.
           pout = pout + pout_cor
 
-c  Apply correction for missing temp and humidity values during May 2004
-          if(iy.eq.2004 .and. im.eq.5) then
-            tout = 20.0
-            tins = 20.0
-            hout = 35.0
-            hins = 35.0
-          endif
-
-c         fvsi=sis/sia
-          if(sia .le. 0.0 .or. specname(11:11).eq.'l') then
-              fvsi=-.9999  ! Missing Value
+c  Calculate fvsi as sis/sia if sia is not zero or missing, and if
+c  it's not a lamp run:
+          if(sia.le.0.0 .or. ext(:1).eq.'l') then
+            if(vdc.gt.0) then
+              fvsi=vdc
+            else
+c             Use the missing value in xx_sunrun.dat
+            endif
           else
-              fvsi=sis/sia
-              if(fvsi.ge.1.0)fvsi=1.
+            fvsi=sis/sia
           endif
+          if(fvsi.ge.1.0)fvsi=1.
+c  moving it here assumes the default value is set to something <1
+
           call write_sunrun(lunt,col1,specname,object,tcorr,oblat,
      &    oblon,obalt,tins,pins,hins,tout,pout,hout,sia,fvsi,
      &    wspd,wdir,nus,nue,fsf,lwn,wavtkr,aipl,tel_mag,istat)

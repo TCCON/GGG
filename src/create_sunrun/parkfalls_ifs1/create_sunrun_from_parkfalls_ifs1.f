@@ -14,13 +14,13 @@ c
       integer*4 iy,im,id,hh,mm,ss,ms,pkl,prl,gfw,gbw,
      & fnbc,lnbc,fbc,ispe,iend,dtype,nsp,nip,dfr,
      & lr,lrt,ls,
-     & possp,istat,object,mcol,ncol
+     & possp,istat,object,mcol,ncol,lst
       parameter (mcol=40)
 c
       real*8 tins,pins,hins,tout,pout,hout,wspd,wdir,
      & wavtkr,oblat,oblon,obalt,lfl,hfl,foc,
-     & fsf,tcorr,nus,nue,lwn,sia,sis,fvsi,aipl,tel_mag,
-     & fxv,lxv,apt,dur,vel,phr,res,pout_cor
+     & fsf,tcorr,nus,nue,lwn,sia,sis,fvsi,vdc,aipl,tel_mag,
+     & fxv,lxv,apt,dur,vel,phr,res,pout_cor,lse,lsu
 c
       character
      & header*512,outarr(mcol)*20,
@@ -48,8 +48,15 @@ c
       lrt=lnbc(gggdir)       !Length of root
       lr=0
       do while(lr.eq.0)
-         write(6,'(a)') 'Enter name of input file (e.g. pa2004.gnd): '
-         read(*,'(a)') logfile
+         if (iargc() == 0) then
+            write(6,'(a)') 'Enter name of input file (e.g. pa2004.gnd):'
+            read(*,'(a)') logfile
+         elseif (iargc() == 1) then
+            call getarg(1, logfile)
+         else
+            stop 'Usage: $gggpath/bin/create_sunrun pa2004.gnd'
+         endif
+
          lr=lnbc(logfile)
       end do
       ext=logfile(lr-2:lr)
@@ -123,7 +130,8 @@ c  find the spectral file, return the PATH to the spectrum
           call read_opus_header(path,iend,dtype,nsp,fxv,lxv,iy,im,
      &     id,hh,mm,ss,ms,apt,dur,vel,apf,phr,res,lwn,foc,nip,dfr,
      &     pkl,prl,gfw,gbw,lfl,hfl,possp,oblat,oblon,obalt,
-     &     tins,pins,hins,tout,pout,hout,wspd,wdir,sia,sis)
+     &     tins,pins,hins,tout,pout,hout,wspd,wdir,sia,sis,vdc,
+     &     lst,lse,lsu)
 
 c  Apply correction to measured surface pressure.
           pout = pout + pout_cor

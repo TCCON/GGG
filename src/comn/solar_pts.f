@@ -80,16 +80,23 @@ c  broadening of the solar lines due to the linear variation
 c  of the Doppler shift from solar rotation across the solar disk.
 c
       implicit none
-      integer*4 mw,iline,ncp,kline1,kline2,kv1,kv2,iv,i,lr,
-     & lnbc,nlines,posnall,reclen,fsib,file_size_in_bytes,lunr
-      real*4 spts(ncp),zero
+      integer*4 mw,iline,ncp,kline1,kline2,kv1,kv2,iv,i,lr,mflag,
+     & lnbc,nlines,posnall,reclen,lunr
+      integer*8 fsib,file_size_in_bytes
+      real*4 spts(ncp),zero,aa,rspf,stmin,sct,dd
       real*8 fzero,grid,flinwid,srot,frac,xx,x2,d4,y2,margin,
      & sdc,sdi,wdc,wdi,ddc,ddi,
      & fzmf,rr,ff,acc,freq,w_wid,stren,d_wid
       character llformat*16,solarll*(*)
-      parameter (acc=0.00001d0,margin=90.)
+      parameter (acc=0.00001d0,margin=90.,stmin=4000.0)
       llformat='(i3,f13.6,6f9.5)'
 c
+      if(index(solarll,'minnaert').eq.0) then
+         mflag=0
+      else
+         mflag=1
+      endif
+
 c      write(*,*)'SOLAR_SPEC',grid,fzero,ncp
       if ( ncp .lt. 1 ) stop ' SOLARSPEC: NCP < 1   '
 c
@@ -112,7 +119,7 @@ c  Check that NLINES is an integer.
       nlines=fsib/reclen
       if ( nlines*reclen .ne. fsib ) then
          write(*,*)'Linelist size not divisible by record length',reclen
-         write(*,*)solarll,fsib
+         write(*,*)solarll(:lr),fsib
          stop
       endif
       if( reclen.ne.108) stop 'using wrong solar linelist'
@@ -134,33 +141,41 @@ c      write(*,*) kline1, kline2
          w_wid=(1-ff)*wdc+ff*wdi
          d_wid=(1-ff)*ddc+ff*ddi
 c         write(*,*)iline,freq,stren
-         srot=5.E-06*freq*sqrt(frac)    ! broadening due to solar rotation
+c         srot=5.E-06*freq*sqrt(frac)    ! broadening due to solar rotation
+         aa=0.538
+         srot=3.95E-06*freq*frac/sqrt(aa+(1-aa)*frac**2.5)    ! broadening due to solar rotation
          d4=(d_wid**2+srot**2)**2  ! Total Gaussian width
-         flinwid=sqrt(abs(2*stren*(d_wid+w_wid)/acc))
+         flinwid=sqrt(abs(2*stren*(d_wid+w_wid)/acc)) !  Effective line width
          kv1=max0(1,int((freq-fzero-flinwid)/grid))
          kv2=min0(ncp,int((freq-fzero+flinwid)/grid))
          y2=(w_wid)**2
          fzmf=fzero-freq
-c         rc=0.70138-3.8252d-5*freq ! Minnaert Correction factor
-c         stren=stren/(1-rc)
+         dd=w_wid+4*mflag*d_wid+0.07*(1-mflag) !  GCT 20130207
          do iv=kv1,kv2
             xx=fzmf+iv*grid
             x2=xx**2
-            rr=x2/sqrt(d4+y2*x2*(1+abs(xx/(w_wid+0.07))))
+c            rr=x2/sqrt(d4+y2*x2*(1+abs(xx/(w_wid+0.07))))
+            rr=x2/sqrt(d4+y2*x2*(1+abs(xx/dd))) ! GCT 20130207
             spts(iv)=spts(iv)+stren*exp(-rr)
          end do
       end do
       close(lunr)
 c
 c  Convert optical thickness into an apparent transmittance
-c  and then apply Minnaert correction (not currently enabled).
       freq=fzero
-      do i=1,ncp
-        freq=freq+grid
-c        spts(i)=exp(-spts(i)/50)
-        spts(i)=exp(-spts(i))
-c        rc=0.70138-3.8252d-5*freq
-c        spts(i)=rc+(1.-rc)*spts(i)
-      end do 
+      if(index(solarll,'minnaert').eq.0) then
+         do i=1,ncp
+            freq=freq+grid
+            spts(i)=exp(-spts(i))
+         end do
+      else
+c  Apply Minnaert correction using Ratio of Solar Planck Functions (RSPF).
+         do i=1,ncp
+            freq=freq+grid
+            sct=2200+1000*log10(freq)  ! Solar Continuum Temperature
+            rspf=(exp(1.4388*freq/sct)-1)/(exp(1.4388*freq/stmin)-1)
+            spts(i)=rspf+(1.-rspf)*exp(-spts(i))
+         end do 
+      endif
       return
       end

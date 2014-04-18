@@ -17,7 +17,7 @@ c  The revised values are written back into the same linelist,
 c  overwriting the old values.
 c
 c  Run by typing
-c  ~/ggg/bin/adjust_solar_linelist_di < window_runlog.col
+c  ~/ggg/bin/adjust_solar_linelist_di window_runlog.col
 c
       implicit none
       include "../ggg_const_params.f"
@@ -26,7 +26,7 @@ c
       integer*4 lunr,luns,lun_di,nfp,nmp,krank,i,j,k,ncol,
      & reclen,k1,k2,posnall,nline,mline,nrec,kk,ispec,nspec,mspec,
      & lr,fsib,nlhead,lnbc,file_size_in_bytes
-      parameter (nfp=4,mline=600,lunr=5,luns=15,lun_di=16,
+      parameter (nfp=4,mline=600,luns=15,lun_di=16,
      & mspec=10)
       integer*4 ip(nfp*mline),mw_di(mline),mw_dc(mline),np(mspec)
       real*8 nu1(mspec),nu2(mspec),f,tm,tc,rms,frqcen,width,graw(mspec)
@@ -42,7 +42,7 @@ c
      & d2,d4,zobs,zmin,wx2
       parameter (d_min=0.005,w_min=0.0001)
       character llformatr*46,llformatw*54,llformatx*54,
-     & sss(mline)*37
+     & sss(mline)*37, inputfile*50
 c
       write(*,*)' solar_linelist    2009-11-13   GCT'
       llformatr='(i3,f12.6,e10.3,e10.3,2f5.4,f10.4,f8.4,1x,a37)'
@@ -50,6 +50,15 @@ c
       llformatx='(i3,f12.6,1pe10.3,e10.3,0pf5.3,f5.4,f10.4,f8.4,1x,a37)'
 c
 c  Read .col file.
+      if (iargc() == 0) then
+         lunr = 5
+      elseif (iargc() == 1) then
+         lunr = 10
+         call getarg(1, inputfile)
+         open(lunr, file=inputfile, status='old')
+      else
+         stop 'Usage: $gggpath/bin/adjust_solar_linelist colfile'
+      endif
       read(lunr,*)nlhead,ncol
       do j=2,nlhead-6
          read(lunr,*) 
@@ -143,7 +152,7 @@ c
       write(*,*)'Warning: nspec > mspec'
 99    nspec=ispec-1
       nmp=i            ! total number of measured spectral points (from all spectra)
-      close(lunr)
+      if (iargc() == 1) close(lunr)
 c
 c  Write out the PD's to file (in XYPLOT format).
          write(*,*) nline,nfp

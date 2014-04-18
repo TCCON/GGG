@@ -1,0 +1,120 @@
+#! /usr/bin/perl -w
+# OpusHdr <filename>
+#   Reads the Header of the Opus file and dumps its output.
+
+my $magicval = unpack 'L1', pack( 'C4', 0x0A, 0x0A, 0xFE, 0xFE );
+my %hdrtype = (
+  160 => 'Sample Parameters',
+  48  => 'Acquisition Parameters',
+  32  => 'Instrument Parameters',
+  96  => 'Optic Parameters',
+  23  => 'Data Parameters',
+  64  => 'FT Parameters',
+   7  => 'Data Block',
+   0  => 'Type 0'
+);
+my %needssubtype = (
+  23 => 1,
+   7 => 1,
+   0 => 1
+);
+my %subtype = (
+    4 => 'SpSm',
+    8 => 'IgSm',
+ 0x84 => 'SpSm/2.Chn.',
+ 0x88 => 'IgSm/2.Chn.'
+);
+my %subtypesuffix = (
+    8 => '1',
+ 0x88 => '2'
+);
+
+for my $file ( @ARGV ) {
+  my $data;
+  unless ( open( IN, "<$file" ) ) {
+    warn "Unable to read file '$file'\n";
+    next;
+  }
+  binmode(IN);
+  read IN, $data, 6*4;
+  my ( $magic, undef, undef, $dof, $tdb, $ndb ) =
+    unpack 'L6', $data;
+  if ( $magic != $magicval ) {
+    warn "  Bad Magic in '$file'\n";
+    next;
+  }
+  seek IN, $dof, 0;
+  my @dirs;
+  while ( $ndb-- > 0 ) {
+    read IN, $data, 3*4;
+    my ( $type, $subtype, undef, $length, $offset ) =
+      unpack( 'C2SL2', $data );
+    push @dirs, {
+      type => $type,
+      subtype => $subtype,
+      length => $length,
+      offset => $offset };
+  }
+  for my $block ( @dirs ) {
+    my $subtype = '';
+    my $suffix = '';
+    my $hdrtext = $hdrtype{$block->{type}};
+    if ( $needssubtype{$block->{type}} ) {
+      $subtype = $subtype{$block->{subtype}} ||
+	"[unknown:$block->{subtype}]";
+      $suffix = $subtypesuffix{$block->{subtype}} || '';
+    } elsif ( $block->{subtype} != 0 ) {
+      $subtype = $block->{subtype};
+      warn "Unexpected subtype '$subtype' for block type $block->{type}\n";
+    }
+    if ( $hdrtext ) {
+      $block->{typetext} = "$hdrtext $subtype";
+      if ( $block->{type} == 0 ) {
+        print "$block->{typetext} offset $block->{offset} length $block->{length}\n";
+      } elsif ( $block->{type} == 7 ) {
+	print "$block->{typetext} length $block->{length}\n";
+      } else {
+	readhdr( *IN{IO}, $block, 0 );
+	print
+	  "$block->{typetext}\n",
+	  map "  $_\n",
+	    map join( "$suffix: ", @$_ ),
+	      @{$block->{params}};
+      }
+    } else {
+      print "Unknown header type '$block->{type}'\n";
+    }
+  }
+}
+
+sub readhdr {
+  my ( $fh, $block, $verbose ) = @_;
+  # my ( $fh, $type, $subtype, $offset ) = @_;
+  seek( $fh, $block->{offset}, 0 ) ||
+    die "Seek to $block->{offset} failed\n";
+  print "$block->{typetext}\n" if $verbose;
+  $block->{params} = [];
+  while (1) {
+    my $hdr;
+    read $fh, $hdr, 8;
+    my ( $mnemonic, $mtype, $len ) = unpack 'Z4S2', $hdr;
+    my ( $data, $val );
+    read $fh, $data, 2*$len;
+    if ( $mtype == 0 ) {
+      print " Expected len = 2 or 0 for mtype 0 (was $len)\n"
+        if $len != 2 && $len != 0;
+      $val = $len ? unpack( 'l1', $data ) : '';
+    } elsif ( $mtype == 1 ) {
+      print " Expected len = 4 for mtype 1 (was $len)\n" if $len != 4;
+      $val = unpack 'd1', $data;
+    } elsif ( $mtype >= 2 && $mtype <= 4) {
+      $val = unpack 'Z*', $data;
+    } else {
+      print " Unknown mtype '$mtype'\n";
+      $val = join ' ', unpack( 'C*', $data );
+    }
+    print "  $mnemonic($mtype,$len): $val\n" if $verbose;
+    push( @{$block->{params}}, [ $mnemonic, $val ] );
+    last if $mnemonic eq 'END';
+  }
+}

@@ -20,31 +20,67 @@ c
      & idet,idet_initial, idet_final,
      & ncount, nquery,lfi,lff,iext_initial,iext_final,iext
       parameter (lunw=14)
-      character path*(mpath),filename*40,initial_file*40,final_file*40,
-     & det_initial*1,det_final*1,gggdir*(mpath),dl*1
+      character path*(mpath),filename*57,initial_file*57,final_file*57,
+     & det_initial*1,det_final*1,gggdir*(mpath),dl*1,fmt*10,version*50
+      integer*4 ldot, lloc, nextdigit
 
+      version= ' list_maker    Version 1.1.0     2013-01-14   GCT '
+      write(*,*) version
       call get_ggg_environment(gggdir, dl)
       gggdir=gggdir(:lnbc(gggdir))//'config'//dl//
      &  'data_part_list_maker.lst'
       write(*,*) gggdir
 
-      write(*,*) 'Enter initial file (e.g. pa20040520saaaaa.001)'
-      read(*,'(a)') initial_file
+      if (iargc() == 0) then
+         write(*,*) 'Enter initial file (e.g. pa20061101saaaaa.001)'
+         read(*,'(a)') initial_file
+
+         write(*,*) 'Enter final file (e.g. pa20061231saaaab.500)'
+         read(*,'(a)') final_file
+      elseif (iargc() == 2) then
+         call getarg(1, initial_file)
+         call getarg(2, final_file)
+      else
+         stop 'Usage: $gggpath/bin/list_maker initial_file final_file'
+      endif
       lfi=fnbc(initial_file)
       if(lfi.gt.1) initial_file=initial_file(lfi:)
-
-      write(*,*) 'Enter final file (e.g. pa20061231saaaab.500)'
-      read(*,'(a)') final_file
       lff=fnbc(final_file)
       if(lff.gt.1) final_file=final_file(lff:)
       
-      read(initial_file,'(2x,i4,i2,i2,5x,a1,1x,i3)')iyyyy,imm,idd,
-     & det_initial,iext_initial
+c      read(initial_file,*) firstline
+c      ldot = lloc(firstline, ".")
+c      lf=lnbc(firstline)
+c      nextdigit = lf - ldot
+c      write(fmt, '("(I", I1, ")")') nextdigit
+c      write(*,*) 'fmt=',fmt
+c      read(firstline,'(2x,i4,i2,i2,5x,a1)') iyyyy,imm,idd,det_initial
+c      read(firstline(ldot+1:lf), fmt) iext_initial
+c      idet_initial=ichar(det_initial)
+c      call julian(iyyyy,imm,idd,j1)
+
+      ldot = lloc(initial_file, ".")
+      lf=lnbc(initial_file)
+      nextdigit = lf - ldot
+      write(fmt, '("(I", I1, ")")') nextdigit
+      write(*,*) 'fmt=',fmt
+      read(initial_file,'(2x,i4,i2,i2,5x,a1)') iyyyy,imm,idd,det_initial
+      read(initial_file(ldot+1:lf), fmt) iext_initial
       idet_initial=ichar(det_initial)
       call julian(iyyyy,imm,idd,j1)
 
-      read(final_file,'(2x,i4,i2,i2,5x,a1,1x,i3)')iyyyy,imm,idd,
-     & det_final,iext_final
+c      read(final_file,*) firstline
+c      ldot = lloc(firstline, ".")
+c      lf=lnbc(firstline)
+c      read(firstline,'(2x,i4,i2,i2,5x,a1)') iyyyy,imm,idd,det_final
+c      read(firstline(ldot+1:lf), fmt) iext_final
+c      idet_final=ichar(det_final)
+c      call julian(iyyyy,imm,idd,j2)
+
+      ldot = lloc(final_file, ".")
+      lf=lnbc(final_file)
+      read(final_file,'(2x,i4,i2,i2,5x,a1)') iyyyy,imm,idd,det_final
+      read(final_file(ldot+1:lf), fmt) iext_final
       idet_final=ichar(det_final)
       call julian(iyyyy,imm,idd,j2)
 
@@ -53,12 +89,18 @@ c
       lf=lnbc(filename)
       ncount=0
       nquery=0
+c      write(fmt, '(i1)') nextdigit
       do jul=j1,j2
          call caldat(jul,iyyyy,imm,idd)
          write(filename(3:10),'(i4,i2.2,i2.2)')iyyyy,imm,idd
          do iext=iext_initial,iext_final
             do idet=idet_initial,idet_final
-               write(filename(lf-4:lf),'(2a1,i3.3)') char(idet),'.',iext
+               write(filename(lf-(nextdigit+1):lf-nextdigit),'(2a1)')
+     &           char(idet),'.'
+               write(filename(lf-(nextdigit-1):lf),
+     &          "(I" // char(48+nextdigit) // "." //
+     &         char(48+nextdigit) // ")") iext
+c     &          "(I" // ADJUSTL(fmt) // "." // ADJUSTL(fmt) // ")") iext
                call gindfile(gggdir,filename,path)
                nquery=nquery+1
                if(lnbc(path).gt.0) then

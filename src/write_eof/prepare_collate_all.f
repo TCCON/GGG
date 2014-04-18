@@ -80,6 +80,7 @@ c  Find the number of windows/columns (NCOL)
       do icol=1,mcol  
  1351    read(lun_mul,'(a)',end=99) tabel
         if(tabel(1:1).eq.':') go to 1351
+        if(lnbc(tabel).le.0) go to 1351  ! blank line
          temp_lun=0
          call getlun(temp_lun)
          if (temp_lun .ne. 0) then 
@@ -104,9 +105,10 @@ c  Read in the retrieved absorber amounts (YOBS+-YERR)
         trms=0.0d0
 135     read(lun_mul,'(a)') tabel
         if(tabel(1:1).eq.':') go to 135
+        if(lnbc(tabel).le.0) go to 135  ! blank line
         lun_col = luns(icol)
 
-        colfile=tabel(index(tabel,'<')+1:index(tabel,'.ggg'))//'col'
+        colfile=tabel(index(tabel,' ')+1:index(tabel,'.ggg'))//'col'
         open(lun_col,file=colfile,status='old') ! .col file
         idot=index(colfile,'.')
         i1=index(colfile(:idot),'_')

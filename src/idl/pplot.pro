@@ -51,9 +51,9 @@ print,format='(a21,a14,f7.3,a3,f7.3)',strmid(text(ntgas),0,21),": Delta ZOFF =",
 !x.thick=2
 !y.thick=2
 !p.charthick=2
-xboxmin=0.09
+xboxmin=0.14
 xboxmax=0.93
-yboxmin=0.22
+yboxmin=0.10
 yboxmax=0.90
 reswid=0.16 ; Width of the residual box
 
@@ -113,7 +113,7 @@ endfor
 ;oplot,freq(0:npoints-1),calc/datarray(3+tg1,0:npoints-1),linestyle=3
 ;
 ; Write filename and time in lower left corner
-xyouts,0,0,text(ntgas+1),alignment=0.0,charsize=1.,/normal
+; xyouts,0,0,text(ntgas+1),alignment=0.0,charsize=1.,/normal
 ;
 ; Write text captions
 for itxt=ntgas+2,ntxt-1 do  xyouts,xtxt(itxt),ytxt(itxt),text(itxt)

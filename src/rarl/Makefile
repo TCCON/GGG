@@ -9,7 +9,8 @@ SOURCES := \
  $(TSRC)/$(TARGET).f \
  $(TSRC)/cdsubstr.f \
  $(COMN)/file_size_in_bytes.f \
- $(COMN)/write_runlog.f \
+ $(COMN)/write_runlog_header.f \
+ $(COMN)/write_runlog_data_record.f \
  $(COMN)/gindfile.f \
  $(COMN)/fbc.f \
  $(COMN)/fnbc.f \

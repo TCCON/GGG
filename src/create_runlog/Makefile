@@ -8,6 +8,7 @@ COMN = $(GGGPATH)/src/comn
 SOURCES := \
  $(TSRC)/$(TARGET).f \
  $(TSRC)/rdsphead.f \
+ $(TSRC)/read_DA8_header.f \
  $(COMN)/read_opus_header.f \
  $(COMN)/getopusparval.f \
  $(COMN)/read_mkiv_header.f \
@@ -22,7 +23,8 @@ SOURCES := \
  $(COMN)/subsolar.f \
  $(COMN)/substr.f \
  $(COMN)/read_sunrun.f \
- $(COMN)/write_runlog.f \
+ $(COMN)/write_runlog_header.f \
+ $(COMN)/write_runlog_data_record.f \
  $(COMN)/wlimit.f \
  $(COMN)/zenaz.f \
  $(COMN)/get_ggg_environment.f

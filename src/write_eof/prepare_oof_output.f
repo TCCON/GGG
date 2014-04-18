@@ -1,10 +1,10 @@
 c  subroutine: prepare_oof_output.f
 c
       subroutine prepare_oof_output(inputfile,inputlun,
-     & outfmt1, oof_flag, irow, 
+     & outfmt1, oof_flag, irow,nrow_qc, 
      & vmin, vmax, pindex, 
      & eflag, kflag, flag,
-     & nrow, ncol, mchar, scale, ofmt, headout,naux)
+     & nrow, ncol, mchar, scale,rsc,ofmt, headout,naux)
      
 
       implicit none
@@ -34,7 +34,7 @@ c
      & headout*8000,
      & specfmt*3,
      & ssss*800
-      real*4 scale(mrow_qc),
+      real*4 scale(mrow_qc),rsc(mrow_qc),
      & vmin(mrow_qc),vmax(mrow_qc)
       integer mrow_qc_return, mcol_return
       integer inputlun
@@ -127,6 +127,9 @@ c        write(*,*)'unit: ',unit(krow_qc)(2:lnbc(unit(krow_qc))-1)
       end do
       close(lun_qc)
 
+      do krow_qc=1,nrow_qc
+         rsc(krow_qc)=scale(krow_qc)
+      end do
 c  Read the header of the .aia file and figure out the
 c  mapping between the gases in the corrections.dat
 c  and those in the .vav file header

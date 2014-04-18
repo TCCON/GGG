@@ -15,7 +15,7 @@ c  1) If the actual number of sub-strings (NSS) exceeds the delared dimension
 c     of OUTPUTARRAY (MSS), only the first MSS sub-strings will be copied to
 c     OUTPUTARRAY, avoiding the possibility of array-bound violations.
 c     It is therefore reccommended that each call of substr be followed by
-c     an if statement such as:
+c     an if-statement such as:
 c     if(nss.gt.mss) write(*,*) 'SUBSTR warning: Increase parameter MSS to',nss
 c  2) If the length of any of the sub-strings exceeds LEN(OUTPUTARRAY) 
 c     a warning is printed, showing the full oversized sub-string,
@@ -45,6 +45,7 @@ c
 c         write(*,*)'substr: ',nss,ibeg,iend-1,inputstring(ibeg:iend-1)
          if(iend-ibeg.gt.lenout) then
            write(6,*) ' Warning from SUBSTR.F: sub-string too long:'
+           write(*,*) ' nlen, mlen=',iend-ibeg,lenout
            write(6,*) inputstring(ibeg:iend-1)
          endif
          if(nss.le.mss) outputarray(nss)=inputstring(ibeg:iend-1)

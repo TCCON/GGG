@@ -4,30 +4,39 @@ c  Writes out a nice version of the mav file for data users.
       implicit none
       include "../ggg_int_params.f"
 
-      integer*4 lun_mav,lun_out,nlev,nspeci,mvmr,lr,lnbc,lcolon,i,
-     & j,ii,lspace,ii1,jj,ico2,ico,ich4,in2o,ih2o,ihdo,flag,nlhead
+      integer*4 lun_mav,lun_out,nlev,nspeci,lnbc,lcolon,ldot,i,
+     & j,ii,lspace,ii1,jj,ico2,ico,ich4,in2o,ih2o,ihdo,ihf,flag,nlhead
       parameter (lun_mav=12)      ! input file (.mav)
       parameter (lun_out=14)      ! output file (.map)
-      parameter (mvmr=28000)
-      real*4 z(mlev),t(mlev),p(mlev),d(mlev),vmr(mvmr),
+c      parameter (mvmr=28000)
+      real*4 z(mlev),t(mlev),p(mlev),d(mlev),vmr(mspeci*mlev),
      & gravity,oblat
       character version*62,mavfile*80,outfile*80,mavstring*64,
      & runlabmav*57,string*48,head*1800,hdr(mlev)*(11),string1*25,
-     & mav_version*64
+     & mav_version*64,oblat_str*20,vmrfile*1800,modfile*1800
 
       version=
-     &' WRITE_AUX                Version 1.1.0    23-Mar-2012    DW'
+     &' WRITE_AUX                Version 1.11     27-May-2013    DW'
       write(*,*) version
 
-      write(*,'(a)')
-     & 'Enter name of .mav file'
-      read(*,'(a)')mavfile
+      oblat=0.0d0
+      if (iargc() == 0 ) then
+         write(*,'(a)') 'Enter name of .mav file'
+         read(*,'(a)')mavfile
+      elseif (iargc() == 2) then
+         call getarg(1, mavfile)
+         call getarg(2, oblat_str)
+         read(oblat_str,*) oblat
+      else
+         stop 'Usage: $gggpath/bin/write_aux mavfilename latitude'
+      endif
 c     lr=lnbc(mavfile)
 
-      oblat=0.0d0
-      write(*,'(a)')
-     & 'Enter latitude of site (default: 0 degrees)'
-      read(*,'(f7.4)')oblat
+      if (iargc() == 0) then
+         write(*,'(a)')
+     &    'Enter latitude of site (default: 0 degrees)'
+         read(*,'(f8.4)')oblat
+      endif
 c     write(*,*)'oblat=',oblat
 
 c  Read the entire contents of the .mav file
@@ -39,7 +48,13 @@ c  Read the entire contents of the .mav file
 
       do i=1,9999
           call read_mav_head(lun_mav,nlev,nspeci,nlhead)
-          call read_mav_aux(lun_mav,nlhead,nlev,nspeci,z,t,p,d,vmr,head)
+          call read_mav_aux(lun_mav,nlhead,nlev,nspeci,z,t,p,d,vmr,
+     & vmrfile,modfile,head)
+c         write(*,*)modfile(:lnbc(modfile))
+          ldot=index(modfile,'.')
+          outfile=runlabmav(1:2)//modfile(ldot-17:ldot-10)//'.map'
+c The outfile will be in the form: pa20040721.map
+c         write(*,*)outfile
 c         write(*,*)runlabmav
 c         write(*,*)head
 c         write(*,*)mav_version
@@ -47,10 +62,11 @@ c         outfile=runlabmav(:lr-13)//'.map'
 c         lr=lnbc(runlabmav)
 
 c  Figure out where the date ends (usually has an 's' for TCCON spectrum names).
-          lr=index(runlabmav,'s')
-          if (lr.lt.3) lr=11 ! To avoid problems with station names with s in the site id or no site id at all
+c         lr=index(runlabmav,'s')
+c         if (lr.lt.3) lr=11 ! To avoid problems with station names with s in the site id or no site id at all
 c         write(*,*)lr
-          outfile=runlabmav(:lr-1)//'.map'
+c         outfile=runlabmav(:lr-1)//'.map'
+c         write(*,*)'old=',outfile
 
 c  Figure out what is in the mav file and select out the appropriate columns
           ii1=1
@@ -61,6 +77,7 @@ c  Figure out what is in the mav file and select out the appropriate columns
           in2o=0
           ih2o=0
           ihdo=0
+          ihf =0
           flag=0
           do ii=1,99999
 c             write(*,*)ii1
@@ -86,6 +103,8 @@ c             write(*,*)ii1
                        in2o = jj
                   elseif(hdr(jj).eq.'1ch4') then
                        ich4 = jj
+                  elseif(hdr(jj).eq.'1hf') then
+                       ihf  = jj
                   endif
                   ii1=lspace+1
                   jj=jj+1
@@ -118,16 +137,20 @@ c    &               ico2,ico,ih2o,ihdo,ich4,in2o
           if(ihdo.eq.0) then
               write(*,*)'Warning, 1hdo was not found.'
           endif
+          if(ihf .eq.0) then
+              write(*,*)'Warning, 1hf was not found.'
+          endif
 
 c Determine which columns to output
           string1=hdr(ih2o)(2:4)//','//hdr(ihdo)(2:4)//','
      &    //hdr(ico2)(2:4)//','
-     &    //hdr(in2o)(2:4)//','//hdr(ico)(2:3)//','//hdr(ich4)(2:4)
+     &    //hdr(in2o)(2:4)//','//hdr(ico)(2:3)//','
+     &    //hdr(ich4)(2:4)//','//hdr(ihf)(2:3)
 c         write(*,*)string1
 
 c Write new .map file
           open(lun_out,file=outfile,status='unknown')
-          write(lun_out,'(1x,i2,1x,i2)')11,11
+          write(lun_out,'(1x,i2,1x,i2)')11,12
           write(lun_out,'(1x,a)')outfile(:lnbc(outfile))
           write(lun_out,'(a)')mav_version
           write(lun_out,'(a)')version
@@ -147,12 +170,12 @@ c Write new .map file
 
 c Match units to string1
           write(lun_out,'(1x,a,a)')'km,K,hPa,molecules_cm3,',
-     & 'parts,parts,ppm,ppb,ppb,ppb,m_s2'
+     & 'parts,parts,ppm,ppb,ppb,ppb,ppt,m_s2'
 
 c    Note that the pe11.3 format without 0p affects the subsequent f11.3 format.
 c    It multiplies it by 10!
 10        format ((2(f7.2,","),1p,4(e10.3,","),0p,1(f8.3,","),
-     & 1p,1(e10.3,","),0p,1(f8.3,","),1(f7.1,","),f6.3))
+     & 1p,1(e10.3,","),0p,1(f8.3,","),1(f7.1,","),1(f8.2,","),f6.3))
           do j=1,nlev
              if(z(j).ge.0) then ! Skip cell levels
              write(lun_out,10)z(j),t(j),
@@ -163,6 +186,7 @@ c    It multiplies it by 10!
      & vmr(in2o-4+(j-1)*nspeci)*1e9,       ! N2O in ppb
      & vmr(ico -4+(j-1)*nspeci)*1e9,       ! CO  in ppb
      & vmr(ich4-4+(j-1)*nspeci)*1e9,       ! CH4 in ppb
+     & vmr(ihf -4+(j-1)*nspeci)*1e12,      ! HF  in ppt
      & gravity(oblat,z(j))                 ! gravity in m/s^2
             endif
           enddo ! do j=1,nlev

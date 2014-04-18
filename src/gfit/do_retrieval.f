@@ -1,6 +1,9 @@
       subroutine do_retrieval(obsrvd,nmp,apx,apu,slit,nii,
-     & ldec,rdec,spts,spxv,vac,splos,nlev,ncp,ntg,nfp,snr,
-     & corrld,sssss,winfo,debug,mit,nit,calcul,rms,cx,ex,pd,ssnmp)
+     & iptg,ipcl,ipfs,ipzo,ipcf,xzo,
+     & cont_level,cont_tilt,cont_curv,
+     & ldec,rdec,spts,spxv,vac,splos,nlev,ncp,ntg,ncbf,nfp,snr,
+     & corrld,sssss,debug,mit,nit,cont,calcul,rmsocl,cx,ex,
+     & slpd,pd,ssnmp)
 
 c  Adjusts the state vector (cx) to get the best fit to measured spectrum (y).
 c  Performs an iterative solution to the optimal estimation equation
@@ -24,21 +27,24 @@ c     rdec          R*8  Ratio:  GINT/GRID (used by FM)
 c     spxv(ncp,ntg) R*4  Extinction: VAC integrated along slant path
 c     ncp           I*4  Number of primative spectral points (FM)
 c     ntg           I*4  Number of target gases
-c     nfp           I*4  Number of fitted parameter (NTG+5)
+c     nfp           I*4  Number of fitted parameters
 c     snr           R*8  Nominal signal-to-noise ratio of OBSRVD
 c     corrld        R*4  Noise amplification factor (non-independence of spectra points) 
-c     ssssss        R*8  Offset from start of primitive spectrum
-c     winfo         C**  Command line from .ggg file
+c     ssssss        R*8  Offset from start of primitive spectrum (fraction of GINT)
 c     debug         L    Activates diagnostic write-statements when .true.
 c     mit           I*4  Maximum permitted number of iterations
 c
 c   Outputs:
 c     nit           I*4  Number of iterations performed
 c     calcul(nmp)   R*4  Calculated spectrum (f(x)) at final iteration
-c     rms           R*4  RMS difference between OBSRVD & CALCUL
+c     rmsocl        R*4  RMS difference between OBSRVD & CALCUL divided by CONT
 c     cx(nfp)       R*4  State vector (x)
 c     ex(nfp)       R*4  State vector uncertainties
 c     pd(nmp,ntg)   R*4  Individual gas transmittance spectra
+c
+c   Notes/Explanations:
+c    if nit>mit, then it didn't converge
+c    if nit=mit, then it converged on the last iteration
 
 
       implicit none
@@ -51,7 +57,8 @@ c     pd(nmp,ntg)   R*4  Individual gas transmittance spectra
      & cf        !  Fits channel fringes when .true.
 
       integer*4
-     & n1,n2,n3,n4,n5,
+     & ncbf,
+     & iptg,ipcl,ipfs,ipzo,ipcf,
      & nconv,kconv, ! Number of convergences
      & ncp,         ! Number of precomputed absorption frequencies in SPXV
      & krank,
@@ -60,28 +67,32 @@ c     pd(nmp,ntg)   R*4  Individual gas transmittance spectra
      & nmp,nii,ldec,nmpfp,
      & ntg,jtg,
      & nfp,kfp,jfp,i,j,
+     & k,
      & mit,nit,
-     & jva,jpd,kn2
+     & jva,jpd,knn
 
       real*4
+c     & sflag,
      & slit(nii),
      & cx(nfp),dx(mfp),ex(nfp),
-     & obsrvd(nmp),calcul(nmp),resids(mmp+nfp),
+     & obsrvd(nmp),calcul(nmp),cont(nmp),resids(mmp+nfp),
      & apx(nfp),apu(nfp),
      & wk(mfp),
-     & rms, rwas,
-     & thresh,
+     & rmsocl, rmswas,
+     & thresh, cont_level, cont_tilt, cont_curv, xzo,
      & ti,cc,oc,sum_oc,sum_toc,sum_cc,sum_tcc,sum_ttcc,denom,
      & ynoise,
      & tau,
      & corrld,
+     & rnfac,
      & cmin,cmax,omin,omax,
      & var,
+     & slpd(nmp,nlev),
      & vac(ncp,nlev,0:ntg),splos(nlev),ssnmp(nmp),
      & pd((mmp+mfp)*mfp),spts(ncp),
      & spxv(ncp*(ntg+3)), 
      & fs,fr,tt,eps,esat(0:mfp),
-     & rdum,
+     & rdum,tbar,
      & dxlimit,xfr,
      & sumr2
 
@@ -92,19 +103,19 @@ c     pd(nmp,ntg)   R*4  Individual gas transmittance spectra
       integer*4
      & ip(mfp)
 
-      character winfo*(*)
+c      logical prf_flag(ntg)
+
+c      character winfo*(*),ss(nfp)*4
       parameter (tau=6.e-06,eps=0.01)
-c
-      n1=ntg+1
-      n2=ntg+2
-      n3=ntg+3
-      n4=ntg+4
-      n5=ntg+5
-c      nfp=ntg+5
+
+      cont_level=1.0
+      cont_tilt=0.0
+      cont_curv=0.0
       nmpfp=nmp+nfp
 
-c      call vdot(obsrvd,1,obsrvd,1,sumr2,nmp)
-c      if(debug) write(*,*)' rms obsrvd=',sqrt(sumr2/nmp)
+c      do j=1,ntg
+c        prf_flag(j)=.false.
+c      end do
 
 c  Check that static array dimensions are adequate
       if(nfp.gt.mfp) then
@@ -116,7 +127,7 @@ c  Check that static array dimensions are adequate
          stop 'do_retrieval: Increase parameter MMP'
       endif
 
-      if( index(winfo,' cf ') .gt. 0 ) then
+      if( ipcf .gt. 0 ) then
          nconv=3
          cf=.true.
       else
@@ -124,39 +135,51 @@ c  Check that static array dimensions are adequate
          cf=.false.
       endif
 
-      rwas=big
+      if (debug) write(*,*)'do_retrieval: ntg,ncbf,nfp=',ntg,ncbf,nfp
+      rmswas=big
       kconv=nconv
       do nit=0,mit     ! Spectral fitting iteration loop
 
 c  Limit frequency shift to 1.8*GINT
-         if(abs(cx(n4)) .gt. 1.8) then
-            cx(n4)=sign(1.8,cx(n4))
+         if(ipfs.gt.0) then
+         if(abs(cx(ipfs)).gt.1.8) then
+            cx(ipfs)=sign(1.8,cx(ipfs))
 c            write(6,*)' Warning: Limiting Frequency shift'
          endif
+         endif
 c  Limit TILT if it exceeds 1.0
-c        if( abs(cx(n2)) .ge. 1.0 ) then
+c        if( abs(cx(ipct)) .ge. 1.0 ) then
 c          if(debug) write(6,*)' Limiting TILT'
-c          cx(n2)=sign(1.0,cx(n2))
+c          cx(ipct)=sign(1.0,cx(ipct))
 c        endif
 
 c  Calculate spectrum & PD's
          if(debug) write(*,*)'do_retrieval calling fm: cx=',cx
 
-         call fm(0,winfo,slit,nii,ldec,spts,spxv,
-     &   vac,splos,nlev,ncp,rdec,sssss,cx,ntg,nfp,calcul,pd,nmp)
-c
+         call fm(0,slit,nii,
+     &   iptg,ipcl,ipfs,ipzo,ipcf,
+     &   ldec,spts,spxv,
+     &   vac,splos,nlev,ncp,rdec,sssss,
+     &   cont_level,cont_tilt,cont_curv,xzo,
+     &   cx,ntg,ncbf,nfp,cont,calcul,slpd,pd,nmp)
+c     &   cx,ntg,ncbf,nfp,cont,calcul,slpd,pd,nmp,prf_flag,sflag)
+
+         if (debug) write(*,*)'calcul=',calcul(1),calcul(2),
+     &   calcul(nmp-1),calcul(nmp)
+         call vdot(calcul,1,unity,0,tbar,nmp)
+         tbar=tbar/nmp/(abs(cont_level)+0.0001)
 c  In the zeroth iteration, estimate CL & CT using the ratio of
-c  The measured to calculated spectra.
-         if(index(winfo,' cl ').gt.0) then  ! Estimate CL and CT
+c  the measured to calculated spectra.
+         if(ncbf.gt.0) then  ! Estimate CL and CT
          if (nit.eq.0) then
             sum_oc=eps
             sum_cc=eps
             sum_toc=eps
             sum_tcc=eps
-c           sum_ttcc=eps
             sum_ttcc=0.0
+            rnfac=sqrt(3*float(nmp-1)/(nmp+1))
             do i=1,nmp
-               ti=float(i-1)/(nmp-1)-0.5
+               ti=(1.0-2*float(i-1)/(nmp-1))*rnfac
                cc=calcul(i)*calcul(i)
                oc=obsrvd(i)*calcul(i)
                sum_oc=sum_oc+oc
@@ -166,81 +189,78 @@ c           sum_ttcc=eps
                sum_ttcc=sum_ttcc+cc*ti**2
             end do
             denom=sum_tcc**2-sum_cc*sum_ttcc
-            if(index(winfo,' ct ').gt.0 .and. denom.ne.0.0) then
-               cx(n1)=(sum_tcc*sum_toc-sum_oc*sum_ttcc)/denom
-               if(cx(n1).ne.0) then
-                  cx(n2)=(sum_tcc*sum_oc-sum_cc*sum_toc)/denom/cx(n1)
-               else
-                  cx(n2)=0.0
-               endif
+            if(denom.ne.0.0 .and. ncbf.ge.2) then
+               cont_level=(sum_tcc*sum_toc-sum_oc*sum_ttcc)/denom
+               cont_tilt=(sum_tcc*sum_oc-sum_cc*sum_toc)/denom/
+     &         cont_level
             else
-               cx(n1)=sum_oc/sum_cc
-               cx(n2)=0.0
+               cont_level=sum_oc/sum_cc
+               cont_tilt=0.0
             endif
-            if(debug) write(*,*)'cx(n1), cx(n2) =',cx(n1),cx(n2)
+c            write(*,*)
+c     &    'do_retrieval: cx(ipcl),cx(ipct) =',cont_level,cont_tilt
+            if(debug) write(*,*)
+     &    'do_retrieval: cx(ipcl),cx(ipct) =',cont_level,cx(ipcl+1)
 c
 c  Apply the derived CL and CT to the calculated spectra and PD's
             do i=1,nmp
-               ti=float(i-1)/(nmp-1)-0.5
-               calcul(i)=calcul(i)*cx(n1)*(1+cx(n2)*ti)
+               ti=(1.0-2*float(i-1)/(nmp-1))*rnfac
+               cont(i)=cont_level*(1+cont_tilt*ti)
+               calcul(i)=calcul(i)*cont(i)
             end do
-c            call vmul(calcul,1,cx(n1),0,calcul,1,nmp)
-            call vmul(pd,1,cx(n1),0,pd,1,nfp*(nmp+nfp))
+            call vmul(pd,1,cont_level,0,pd,1,nfp*(nmp+nfp))
          endif    !  (nit.eq.0)
-         endif    !  (index(winfo,' cl ').gt.0)
+         endif    !  (ncbf.gt.0)
 
-c  Calculate residuals
-c         if(kconv.eq.nconv) then ! use log residuals 1'st convergence
-c            do imp=1,nmp
-c               if(calcul(imp).le.tiny*obsrvd(imp).or.
-c     &         obsrvd(imp).le.tiny*calcul(imp)) then
-c                  resids(imp)=obsrvd(imp)-calcul(imp)
-c               else
-c                  resids(imp)=calcul(imp)*log(obsrvd(imp)/calcul(imp))
-c               endif
-c            end do   ! imp=1,nmp
-c         else  !      use linear residuals for subsequent convergences
-c            call vsub(obsrvd,1,calcul,1,resids,1,nmp) ! residuals
-c         endif   !  kconv.eq.nconv
+         if(ncbf.ge.1) cx(ipcl)=cont_level
+         if(ncbf.ge.2) cx(ipcl+1)=cont_tilt
+         if(ncbf.ge.3) cx(ipcl+2)=cont_curv
+
          if(debug) then
             cmin=calcul(1)
             cmax=calcul(1)
             omin=obsrvd(1)
             omax=obsrvd(1)
             do i=2,nmp
-               if(calcul(i).gt.cmin) cmin=calcul(i)
+               if(calcul(i).lt.cmin) cmin=calcul(i)
                if(calcul(i).gt.cmax) cmax=calcul(i)
-               if(obsrvd(i).gt.omin) omin=obsrvd(i)
+               if(obsrvd(i).lt.omin) omin=obsrvd(i)
                if(obsrvd(i).gt.omax) omax=obsrvd(i)
             end do
-            write(*,*) 'cmin, cmax=',cmin,cmax
-            write(*,*) 'omin, omax=',omin,omax
+            write(*,*) 'calmin, calmax=',cmin,cmax
+            write(*,*) 'obsmin, obsmax=',omin,omax
          endif
 
+c  Calculate residuals
          call compute_residual(kconv,obsrvd,calcul,resids,nmp)
 
 c Calculate RMS fit
          call vdot(resids,1,resids,1,sumr2,nmp)
-         rms=sqrt(sumr2/nmp)
-         if(debug) write(*,*)'sumr2,nmp,%rms=',sumr2,nmp,100*rms
-         if(abs(rms).gt.1.E+15) rms=sign(1.E+15,rms) ! prevents rms=Inf
+         rmsocl=sqrt(sumr2/nmp)/cont_level
+         if(abs(rmsocl).gt.1.E+15) rmsocl=sign(1.E+15,rmsocl) ! prevents rmsocl=Inf
 
-         if (rms.gt.9*rwas) then  ! Fit got much worse,
-            if(debug) write(6,*)'Retracing step',rms,rwas
+         if (rmsocl.gt.9*rmswas) then  ! Fit got much worse,
+            if(debug)write(*,*)'nit,rmswas,rms='
+     &         ,nit,rmswas,rmsocl,thresh,kconv
+            if(debug) write(6,*)'Retracing 90%',kconv,rmsocl,rmswas
             call vmul(dx,1,-0.9,0,dx,1,nfp)
          else
-            if(debug) write(6,*)'Continuing',rms,rwas
-            thresh=(64*kconv-63)*(rms+0.01*abs(cx(n1)))/100000
-            if(abs(rms-rwas).lt.thresh .or. nit+2*kconv-1.gt.mit) then
+            if(debug) write(6,*)'Continuing',kconv,rmsocl,rmswas
+            thresh=(64*kconv-63)*(rmsocl+0.005)/100000
+c            thresh=(64*kconv-63)*(rmsocl+0.01)/100000
+            if(debug)write(*,*)'nit,rmswas,rms=',
+     &        nit,rmswas,rmsocl,thresh,kconv
+            if(abs(rmsocl-rmswas).lt.thresh.or.nit+2*kconv-1.gt.mit)then
                kconv=kconv-1
-               rwas=big
+               rmswas=big
                if(kconv.ge.1) then
+c                  if(cf) write(*,*) 'call subtract_cf',nit,kconv
                   if(cf) call subtract_cf(obsrvd,calcul,resids,nmp,mmp)
                   call vsub(obsrvd,1,calcul,1,resids,1,nmp) ! residuals
                endif
-            endif ! abs(rms-rwas).lt.thresh .or. nit+2*kconv-1.gt.mit
+            endif ! abs(rmsocl-rmswas).lt.thresh .or. nit+2*kconv-1.gt.mit
 
-            ynoise=2.5*cx(n1)*corrld/sngl(0.1d0+snr)
+            ynoise=2.5*cont_level*corrld/sngl(0.1d0+snr)
 c   The last few (i>NMP) elements of RESID & PD contains A PRIORI info
 c   RESIDS(nmp+i) holds the values of (AX(i)-CX(i))*YNOISE/APU(i)
 c   PD(nmp+i,i) holds YNOISE/APU(i), with off-diagonal elements of zero.
@@ -248,9 +268,9 @@ c   PD(nmp+i,i) holds YNOISE/APU(i), with off-diagonal elements of zero.
             call vsub(apx,1,cx,1,wk,1,nfp)              ! APX(i)-CX(i)
             call vmul(wk,1,pd(nmp+1),nmpfp+1,resids(nmp+1),1,nfp)
             if(debug) then
-               write(*,122)'apx=',(apx(j),j=n1,n5),(apx(j),j=1,ntg)
-               write(*,122)'cx =',(cx(j),j=n1,n5),(cx(j),j=1,ntg)
-122            format(a4,20f10.5)
+              write(*,122)'apx=',(apx(j),j=ntg+1,nfp),(apx(j),j=1,ntg)
+              write(*,122)'cx =',(cx(j),j=ntg+1,nfp),(cx(j),j=1,ntg)
+122           format(a4,20f10.5)
             endif
 c  Solve matrix equation PD.dx=resids
             call vmov(zero,0,wk,1,nfp)
@@ -261,53 +281,52 @@ c            write(*,*)'called shfti...',(ip(j),j=1,nfp)
 
             call vmov(resids,1,dx,1,nfp)
             if(debug) then
-              write(*,122)'dx =',(dx(jtg),jtg=n1,n5),(dx(jtg),jtg=1,ntg)
+               write(*,122)'dx =',(dx(jtg),jtg=ntg+1,nfp),
+     &        (dx(jtg),jtg=1,ntg)
                if(krank.lt.nfp) then
                   write(6,*)'Rank Deficient:',krank,'  /',nfp
                else
                   write(6,*)'Full Rank:',krank,'  /',nfp
                endif
             endif
-            if(dx(n1).gt.9.21) then
+            if(ipcl.gt.0) then
+            if(dx(ipcl).gt.9.21) then
                fs=10000.
-            elseif(dx(n1).lt.-9.21) then
+            elseif(dx(ipcl).lt.-9.21) then
                fs=.0001
             else
-               fs=exp(dx(n1))
+               fs=exp(dx(ipcl))
             endif
-            dx(n1)=cx(n1)*(fs-1)
-         endif  ! (rms.gt.9*rwas)
+            dx(ipcl)=cx(ipcl)*(fs-1)
+            endif
+         endif  ! (rmsocl.gt.9*rmswas)
 
          if(kconv.eq.0 .or. mit.eq.0) go to 63   ! convergence
 c  Limit maximum step size for fitted gases (non-linear).
-c       do jtg=1,ntg
-c       dxlimit=0.2+abs(cx(jtg))
-c       if(abs(dx(jtg)) .gt. dxlimit) dx(jtg)=sign(dxlimit,dx(jtg))
-c       end do
-c       write(*,*)'nit,dx=',nit,dx
-c       call vadd(cx,1,dx,1,cx,1,nfp)
          fr=1.0
          do jfp=1,nfp
-            dxlimit=0.2+abs(cx(jfp))
+            dxlimit=0.25+0.5*abs(cx(jfp))
             xfr=abs(dxlimit/(tiny+abs(dx(jfp))))
             if(fr .gt. xfr) then
                fr=xfr
                kfp=jfp
             endif
          end do
-         if(nit.eq.0) fr=min(fr,0.3)
-         if(nit.eq.1) fr=min(fr,0.6)
+         if(nit.eq.0) fr=min(fr,0.4)
+         if(nit.eq.1) fr=min(fr,0.8)
          if(debug .and. fr.lt.1.)
      &   write(*,*)'Limited step size: kfp,fr=',kfp,fr
          call vsma(dx,1,fr,cx,1,cx,1,nfp)
-         rwas=rms
+         rmswas=rmsocl
       end do   ! do nit=0,mit     ! Spectral fitting iteration loop
 
 c  Compute upper-triangle of covariance matrix & move diagonal elements into EX
-63    var=(rms*corrld)**2/(1.-float(nfp)/(float(nmp)+0.1))
-      var=var+tau**2  ! fudge to prevent EX=0 when rms=0
+63    var=(tbar*cont_level*rmsocl*corrld)**2/
+     & (1.-float(nfp)/(float(nmp)+0.1))
+      var=var+(tbar*tau)**2  ! fudge to prevent EX=0 when rmsocl=0
       call scov2(pd,nmpfp,nfp,ip,var,ierr)
       if(debug) then
+         write(*,*) 'SCOV2: ierr=',ierr
          write(*,*)' Upper triangle of correlation matrix:'
          write(*,'(8(a,i1))')('  Target_',j,j=1,ntg),
      &   '   Cntuum     Tilt      Shift     ZOff'
@@ -319,9 +338,9 @@ c  Compute upper-triangle of covariance matrix & move diagonal elements into EX
       if(ierr.eq.0 .and. krank.gt.0) then
          call vmov(pd,nmpfp+1,ex,1,nfp)
       else
-         call vmov(1/tau**2,0,ex,1,nfp)
+         call vmov(1/(tbar*tau)**2,0,ex,1,nfp)
       endif
-      ex(n1)=ex(n1)*cx(n1)**2
+      if(ipcl.gt.0) ex(ipcl)=ex(ipcl)*cx(ipcl)**2
 c      write(6,*)'cx=',(cx(j),j=1,nfp)
 c      write(6,*)'dx=',(dx(j),j=1,nfp)
 c      write(6,*)'ex=',(sqrt(ex(j)),j=1,nfp)
@@ -331,16 +350,22 @@ c  Compute transmittances (convolved with ILS) of individual target gases.
 c  Place them in PD, which just so happens to be exactly the right size.
       jva=1
       jpd=1
-      kn2=1+ncp*(n1) ! Start address of workspace
-      sh=rdec*(cx(n4)+sssss)
+      knn=1+ncp*(ntg+1) ! Start address of workspace
+
+c  SH is shift expressed as fraction of primative GRID.
+      if(ipfs.gt.0) then
+         sh=rdec*(cx(ipfs)+sssss)
+      else
+         sh=rdec*sssss
+      endif
       do jtg=0,ntg
          if(jtg.eq.0) then ! non-target gases
-            call vexp(spxv(jva),1,spxv(kn2),1,ncp)
+            call vexp(spxv(jva),1,spxv(knn),1,ncp)
          else        ! target gases
-            call vmul(spxv(jva),1,cx(jtg),0,spxv(kn2),1,ncp)
-            call vexp(spxv(kn2),1,spxv(kn2),1,ncp)
+            call vmul(spxv(jva),1,cx(jtg),0,spxv(knn),1,ncp)
+            call vexp(spxv(knn),1,spxv(knn),1,ncp)
          endif
-         call newdec(spxv(kn2),ncp,slit,nii,ldec,rdec,sh,pd(jpd),nmp)
+         call newdec(spxv(knn),ncp,slit,nii,ldec,rdec,sh,pd(jpd),nmp)
 c
 c  Compute saturation error (ESAT)
          tt=0.0
@@ -361,22 +386,22 @@ c  Determine the average optical depth of the first target gas
 c  Add RSS error contributions from change in zero level (ZERR) and RMS fit
 c      call vmul(dx,1,dx,1,dx,1,nfp)
 c      call vadd (dx,1,ex,1,ex,1,nfp)
-c      call vadd (ex,1,(3*rms/cx(n1))**2,0,ex,1,nfp)   !  This is a fudge
+c      call vadd (ex,1,(3*rmsocl)**2,0,ex,1,nfp)   !  This is a fudge
 c      call vsqrt(ex,1,ex,1,nfp)
-      if(abs(cx(n1)).lt.tiny) cx(n1)=tiny
-c      write(*,*)'ex=',sqrt(abs(ex(1))),(3*rms/cx(n1)),
-c     & 5*mit*dx(1)/(mit+1)
+      if(abs(cont_level).lt.tiny) cont_level=tiny
+c      write(*,*)'ex=',sqrt(abs(ex(1))),(3*rmsocl),
+c     & 5*mit*dx(1)/(mit+1),tbar
       do jfp=1,nfp
-         ex(jfp)=sqrt(abs(ex(jfp))
-c     &    +dx(jfp)**2      ! perturbation from adding ERROFF to residuals
-     &   +(3*rms/cx(n1))**2   ! fudge
-c     &    +(100*(cx(jfp)-apx(jfp))*rms/cx(n1))**2   ! fudge
-c     &    +25*dxwas(jfp)**2   ! fudge
-     &   +(5*mit*dx(jfp)/(mit+0.0001))**2   ! fudge
-c     &   +0.5*esat(jfp)**2   ! fudge to increase error for saturated target lines
-c     &    +0.04*(cx(n1)**2+1./cx(n1)**2)*(cx(jfp)-apx(jfp))**4  ! fudge
-     &   )
+         ex(jfp)=dsqrt(
+     &  dabs(dble(ex(jfp)))/(abs(tbar)+0.0001d0)/(tbar**2+1.0E-36)
+c     &     +dx(jfp)**2      ! perturbation from adding ERROFF to residuals
+     &     +(3*rmsocl)**2   ! fudge
+c     &     +(100*(cx(jfp)-apx(jfp))*rmsocl)**2   ! fudge
+c     &     +25*dxwas(jfp)**2   ! fudge
+     &     +(5*mit*dx(jfp)/(mit+0.0001))**2   ! fudge
+c     &     +0.5*esat(jfp)**2   ! fudge to increase error for saturated target lines
+c     &     +0.04*(cx(ipcl)**2+1./cx(ipcl)**2)*(cx(jfp)-apx(jfp))**4  ! fudge
+     &     )
       end do
-c      write(*,*)'ex=',ex(1)
       return
       end

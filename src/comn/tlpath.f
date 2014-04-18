@@ -1,8 +1,8 @@
       subroutine tlpath(nlev,z,t,p,asza_in,fovr,roc,zobs,wavtkr,
      & wavmic,zmin,bend,sp,ifail)
-c  calculates the geometrical slant paths sp(nlev), averaged over a circular
+c  Calculates the geometrical slant paths sp(nlev), averaged over a circular
 c  field of view of radius fovr degrees, for a ray of zenith
-c  angle asza_in degrees, hitting an observer at an altitude hobs km,
+c  angle asza_in degrees, hitting an observer at an altitude Zobs km,
 c  at the lowest point along the ray trajectory the latitude is tlat degrees
 c  and the ray direction has a bearing azim degrees.
 c
@@ -17,12 +17,12 @@ c    p(nlev)      real*4   model level pressures.
 c    asza_in(+ve)  real*4   astronomical solar zenith angle (unrefracted).
 c    asza_in(-ve)  real*4   apparent solar zenith angle (refracted).
 c    fovr         real*4   angular radius of instrumental field of view.
-c    hobs         real*4   altitude of instrument above sea level.
+c    zobs         real*4   geometric altitude of instrument above sea level.
 c    wavtkr       real*4   mean wavenumber of suntracker sensor sensitivity.
 c    wavmic       real*4   central wavenumber of microwindow.
 c
 c  output parameters:
-c    hmin         real*4   minimum altitude encountered along ray path.
+c    zmin         real*4   minimum geometric altitude encountered along ray path.
 c    bend         real*4   angle through which ray is bend by refraction.
 c    sp(nlev)     real*4   total geometrical slant paths.
 c    ifail        integer*4   error flag:
@@ -49,7 +49,9 @@ c     & wavmic,zmin,bend,sp,ifail)
       real*8 opcon_tkr,opcon_mic,calc_opcon,d2r,ri,rizobs,riztan,
      & droc,rtnt
       parameter (d2r=dpi/180.d0,maxiter=22)
+
       ifail=0
+      dbdt=0.0  ! avoid compiler warning (may be used uninitialized)
       if(nlev.eq.1) then
         write(*,*) 'TLPATH exiting due to NLEV<=1'
         sp(1)=0.0

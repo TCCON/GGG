@@ -40,7 +40,7 @@ c      write(*,*)'compute_columns: nlev=',nlev
          if(z(klev).gt.zmin) go to 777
       end do
       klev=nlev
-      write(6,*) 'Warning: zmin exceeds z(nlev)',zmin,z(klev)
+c      write(6,*) 'Warning: zmin exceeds z(nlev)',zmin,z(klev)
  777  dz=z(klev)-z(klev-1)
       xo=(zmin-z(klev-1))/dz
       if(d(klev).le.0.0) then

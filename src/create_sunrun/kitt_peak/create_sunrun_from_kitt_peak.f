@@ -34,7 +34,7 @@ c
      & version*64                 !current program version
 c
       version=
-     &' create_sunrun_from_kp     Version 1.2.2    18-Dec-2011    GCT'
+     &' create_sunrun_from_kp     Version 1.23     2014-01-27     GCT'
       write(6,*) version
 c
       col1=' '
@@ -42,8 +42,15 @@ c
       lrt=lnbc(gggdir)               ! Length of root
       lr=0
       do while(lr.eq.0)
-         write(6,'(a)') 'Enter name of input file (e.g. pa2004.gnd): '
-         read(*,'(a)') logfile
+         if (iargc() == 0) then
+            write(6,'(a)') 'Enter name of input file (e.g. pa2004.gnd):'
+            read(*,'(a)') logfile
+         elseif (iargc() == 1) then
+            call getarg(1, logfile)
+         else
+            stop 'Usage: $gggpath/bin/create_sunrun pa2004.gnd'
+         endif
+
          lr=lnbc(logfile)
       end do
       ext(1:1)=logfile(lr-2:lr-2)
@@ -56,6 +63,7 @@ c
 
       open(luns,file=logfile,status='old')
       outfile=gggdir(:lrt)//'sunruns'//dl//ext//dl//logfile(:lr-2)//'fi'
+      write(*,*) 'outfile= ',outfile
       open(lunt,file=outfile,status='unknown')
       write(lunt,*)3,23
       write(lunt,'(a)') version
@@ -70,7 +78,7 @@ c
       object=2          ! Sun=2; Moon=1
       tcorr=7*3600.0d0  ! Kitt peak is 7 hours behind UT
       wavtkr=9900.0d0
-      fsf=1.00000000d0
+      fsf=1.00000000d0  ! 2014-01-27
       aipl=0.226        ! Airmass-Independent Path Length (km)
       tel_mag=50.       ! Telescope Magnification
 
@@ -90,13 +98,14 @@ c  find the spectral file, return the PATH to the spectrum
             stop
          endif
 
-      write(*,*)'Calling read_fits_header...',path
+c      write(*,*)'Calling read_fits_header...',path
       call read_fits_header(path,iend,dtype,nsp,nus,nue,iy,im,id,
      & hh,mm,ss,apt,dur,vel,apf,phr,res,lasf,nip,pkl,prl,
      & possp,oblat,oblon,obalt,tins,pins,hins,tout,pout,hout)
 
-      write(*,*)'Called read_fits_header.'
+c      write(*,*)'Called read_fits_header.'
 c YZH frequency shift adjustments:
+      if(ext(1:1).eq.'g') then
       fsf=1.0d0
       if(iy.lt.1978) then
          fsf=0.999999d0
@@ -169,14 +178,10 @@ c         fsf=0.999996d0
       else if(iy.eq.1997.and.im.eq.11) then
          fsf=0.9999997d0
       endif
-c
-c      if(iy.gt. 1985 .or. iy .lt. 1979) then
-c        fsf=0.999999d0
-c      else
-c        fsf=0.999996d0
-c      endif
 
-       write(*,*)'Calling write_sunrun...',specname
+      endif  !  if(ext(1:1).eq.'g') 
+c
+c       write(*,*)'Calling write_sunrun...',specname
        fvsi=0.0d0
        sia=0.0d0
        wspd=0.0d0
@@ -189,7 +194,7 @@ c       write_sunrun(lun,col1,specname,obj,tcorr,oblat,
 c     &   oblon,obalt,tins,pins,hins,tout,pout,hout,sia,fvsi,
 c     &   wspd,wdir,nus,nue,fsf,lasf,wavtkr,aipl,tel_mag,istat)
 
-       write(*,*)'Called write_sunrun.'
+c       write(*,*)'Called write_sunrun.'
 c
       end do ! -------------Main loop over spectra----------------
 c

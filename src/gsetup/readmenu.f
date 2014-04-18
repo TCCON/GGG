@@ -1,9 +1,9 @@
-      subroutine readmenu(lunr,path,filename)
+      subroutine readmenu(lunr,path,lun_stdin,filename)
 c  Reads and displays menu files and prompts user for their selection
 c  Returns the name of the file (filename) chosen by the user.
       implicit none
       character header*80,string*76,path*(*),filename*(*)
-      integer nmax,lunr,fbc,lnbc,k,kt,ls
+      integer nmax,lunr,fbc,lnbc,k,kt,ls,lun_stdin
       parameter (nmax=999)
       write(*,*)'Readmenu:',path
       open(lunr,file=path,status='old')
@@ -19,7 +19,7 @@ c  Returns the name of the file (filename) chosen by the user.
  113  rewind(lunr)
       write(*,9915)
  9915 format(' Enter # of file to be used ',$)
-      read(*,*,err=119) kt
+      read(lun_stdin,*,err=119) kt
       if(kt.ge.k .or. kt.le.0) go to 119
       read(lunr,88) header
       do k=1,kt

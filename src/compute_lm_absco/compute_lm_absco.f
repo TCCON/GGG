@@ -64,7 +64,7 @@ C Results (Absorption Coefficients)
      & path_to_wfile*(mpath+80),
      & path_to_sfile*(mpath+80)
 
-      version=' compute_lm_absco     V1.0.6    GCT  2012-03-30'
+      version=' compute_lm_absco    Version 1.07   GCT  2012-12-18'
       write(*,*) version
       MixFull=.false.
       MixFull=.true.
@@ -77,8 +77,14 @@ C----------
 c
 c T and P vertical profile
 c
-      write(*,'(a)')' Enter name of input .ggg file:'
-      read(*,'(a)') input_ggg
+      if (iargc() == 0) then
+         write(*,'(a)')' Enter name of input .ggg file:'
+         read(*,'(a)') input_ggg
+      elseif (iargc() == 1) then
+         call getarg(1, input_ggg)
+      else
+         stop 'Usage: $gggpath/bin/compute_lm_absco gggfile'
+      endif
       open(lunr,file=input_ggg, status='old')
       read(lunr,*)nlhead
       do j=2,nlhead
@@ -151,12 +157,12 @@ c
       kcol_pres=0
       kcol_temp=0
       do icol=1,ncol
-        if(index(header_vector(icol),'Temp').gt.0) kcol_temp=icol
-        if(index(header_vector(icol),'Pres').gt.0) kcol_pres=icol
-        if(index(header_vector(icol),'1h2o').gt.0) kcol_h2o=icol
-        if(index(header_vector(icol),'1co2').gt.0) kcol_co2=icol
-        if(index(header_vector(icol),'1ch4').gt.0) kcol_ch4=icol
-        if(index(header_vector(icol), '1o2').gt.0) kcol_o2 =icol
+        if(index(header_vector(icol),'Temp ').gt.0) kcol_temp=icol
+        if(index(header_vector(icol),'Pres ').gt.0) kcol_pres=icol
+        if(index(header_vector(icol),'1h2o ').gt.0) kcol_h2o=icol
+        if(index(header_vector(icol),'1co2 ').gt.0) kcol_co2=icol
+        if(index(header_vector(icol),'1ch4 ').gt.0) kcol_ch4=icol
+        if(index(header_vector(icol), '1o2 ').gt.0) kcol_o2 =icol
       end do
 
       write(outfile,'(a10,a1,a,a1,i5.5,a1,i5.5,a3)')  next_spectrum,'_',

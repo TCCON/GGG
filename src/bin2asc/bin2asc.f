@@ -16,18 +16,18 @@ c
       include "../ggg_int_params.f"
 
       integer*4
-     & lunr,   ! LUN to read input runlogs from
-     & luns,   ! LUN to read binary spectras from
-     & lunw,   ! LUN to write ascii spectra to
-     & mem,    ! maximum buffer size in bytes
+     & lunr_rl,   ! LUN to read input runlogs from
+     & luns,      ! LUN to read binary spectras from
+     & lunw_asc,  ! LUN to write ascii spectra to
+     & mem,       ! maximum buffer size in bytes
      & i,j,
-     & iabpw,  ! absolute values of the bytes per word
-     & lnbc,   ! function Last Non-Blank Character
-     & iend,   ! Endianess of host computer
-     & npts,   ! Number of spectral values
-     & lr      ! 
+     & iabpw,     ! absolute values of the bytes per word
+     & lnbc,      ! function Last Non-Blank Character
+     & iend,      ! Endianess of host computer
+     & npts,      ! Number of spectral values
+     & lr         ! 
 
-      parameter (lunr=25,luns=15,lunw=16)
+      parameter (lunr_rl=25,luns=15,lunw_asc=16)
       parameter (mem=4*1024*2048)
       real*4 bufr4(mem/4)
       integer*2  bufi2(mem/2)
@@ -35,9 +35,10 @@ c
 
       character 
      & fullrlgfile*120,   ! runlog file name with absolute path
-     & inpath*80,chead*1,
-     & col1,
-     & apf,
+     & inpath*190,chead*1,
+     & data_fmt_read_rl*256,col_labels_rl*320,
+     & col1*1,
+     & apf*2,
      & dl*1,
      & gggdir*(mpath),
      & specname*(nchar),
@@ -45,7 +46,6 @@ c
 
       integer*4
      & istat,        ! status flag (0=success, 1=EOF)
-     & nlhead,       ! 
      & iyr,          ! year
      & iset,         ! day of year
      & ifirst,       ! index of first spectral point in disk file
@@ -88,16 +88,24 @@ c
 
       write(6,*)
       version=
-     &' BIN2ASC                   Version 1.4.3    31-Aug-2009    GCT'
+     &' BIN2ASC                   Version 1.51     18-Dec-2012    GCT'
       call getendian(iend)  ! Find endian-ness of host computer
 
-      write(*,*)'Enter path to input file/runlog:'
-      read(*,'(a)') fullrlgfile
-      open(lunr,file=fullrlgfile,status='old')
-      read(lunr,*) nlhead         ! Skip header line of runlog
-      do i=2,nlhead
-         read(lunr,*)
-      end do
+      if (iargc() == 0) then
+         write(*,*)'Enter path to input file/runlog:'
+         read(*,'(a)') fullrlgfile
+      elseif (iargc() == 1) then
+         call getarg(1, fullrlgfile)
+      else
+         stop 'Usage: $gggpath/bin/bin2asc path/runlog'
+      endif
+c      open(lunr_rl,file=fullrlgfile,status='old')
+c      read(lunr_rl,*) nlhead         ! Skip header line of runlog
+c      do i=2,nlhead
+c         read(lunr_rl,*)
+c      end do
+      open(lunr_rl,file=fullrlgfile,status='old')
+      call read_runlog_header(lunr_rl,data_fmt_read_rl,col_labels_rl)
 
       write(*,*)'Enter Starting & Ending frequencies:'
       write(*,*)'Enter 0 99999 to retain original spectral limits'
@@ -112,7 +120,8 @@ c
       do while (istat.eq.0)     ! Main loop over spectra
 
 c  Read input runlog
-1        call read_runlog(lunr,col1,specname,iyr,iset,zpdtim,
+1        call read_runlog_data_record(lunr_rl,data_fmt_read_rl,
+     &   col1,specname,iyr,iset,zpdtim,
      &   oblat,oblon,obalt,asza,zenoff,azim,osds,
      &   opd,fovi,fovo,amal,ifirst,ilast,graw,possp,bytepw,zoff,snr,apf,
      &   tins,pins,hins,tout,pout,hout,
@@ -152,38 +161,33 @@ c  If necessary, byte-reverse data
   
 c  Write ASCI spectrum
          write(6,*)inpath(:lnbc(inpath))
-         open(lunw,file='./asc_'//specname,status='unknown')
-         write(lunw,*)5,2
-         write(lunw,'(a)') version
-         write(lunw,'(a)')
-     &  '  Spectrum_File_Name                    Year  Day  Hour'//
-     &  '   oblat    oblon   obalt    ASZA   POFF    AZIM   OSDS'//
-     &  '    OPD   FOVI  FOVO'//
-     &  '  AMAL  IFIRST   ILAST    DELTA_NU   POINTER  BPW ZOFF SNR'//
-     &  '  APF  tins  pins  hins   tout   pout  hout'//
-     &  '  sia  fvsi  wspd  wdir  lasf    wavtkr  aipl'
+         open(lunw_asc,file='./asc_'//specname,status='unknown')
+         write(lunw_asc,*)5,2
+         write(lunw_asc,'(a)') version(:lnbc(version))
+         write(lunw_asc,'(a)') col_labels_rl(:lnbc(col_labels_rl))
 
-         call write_runlog(lunw,col1,specname,iyr,iset,zpdtim,oblat,
+         call write_runlog_data_record(lunw_asc,data_fmt_read_rl,
+     &   col1,specname,iyr,iset,zpdtim,oblat,
      &   oblon,obalt,asza,zenoff,azim,osds,opd,fovi,fovo,amal,m1,m2,
      &   graw,possp,bytepw,zoff,snr,apf,tins,pins,hins,tout,
      &   pout,hout,sia,fvsi,wspd,wdir,lasf,wavtkr,aipl,istat)         
 
-         write(lunw,*)' Frequency_(cm-1)  Signal'
+         write(lunw_asc,*)' Frequency_(cm-1)  Signal'
          if(iabpw.eq.2) then
             do i=1,npts
-              write(lunw,'(f12.6,f9.4)') graw*(i+m1-1),
+              write(lunw_asc,'(f12.6,f9.4)') graw*(i+m1-1),
      &                         float(bufi2(i))/15000.
             end do
          elseif(iabpw.eq.4) then
             do i=1,npts
-              write(lunw,'(f12.6,1pe12.4)') graw*(i+m1-1),bufr4(i)
+              write(lunw_asc,'(f12.6,1pe12.4)') graw*(i+m1-1),bufr4(i)
             end do
          else
             stop 'unknown format'
          endif
-         close(lunw)
+         close(lunw_asc)
 
       end do        ! Main loop over spectra
-      close(lunr)
+      close(lunr_rl)
       stop
       end

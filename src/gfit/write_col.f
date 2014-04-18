@@ -1,21 +1,20 @@
       subroutine write_col(lun_col,colfile_format,specname,lrmax,nit,
-     & rms,sgshift,gint,zmin,oloscol,overcol,cx,ex,ntg,nfp)
+     & ncbf,xzo,xfs,
+     & cont_level,cont_tilt,cont_curv,
+     & rmsocl,sgshift,gint,zmin,oloscol,overcol,cx,ex,ntg,nfp)
 c  Writes one line to the already-opened .col file.
 
       implicit none
-      integer*4 lun_col,nit,
-     & n1,n2,n3,n4,n5,
+      integer*4 lun_col,nit,i,
+     & ncbf,
      & jtg,ktg,ntg,nfp,lrmax
       character specname*(*),colfile_format*(*)
-      real*4 rms,sgshift,zmin,
+      real*4 rmsocl,sgshift,zmin,xzo,xfs,
+c     & xcx(0:nfp+1),
+     & cont_level,cont_tilt,cont_curv,
      & oloscol(ntg),overcol(ntg),cx(nfp),ex(nfp)
       real*8 gint,wlimit
 
-      n1=ntg+1
-      n2=ntg+2
-      n3=ntg+3
-      n4=ntg+4
-      n5=ntg+5
       if(lun_col.eq.6) then
          ktg=min0(1,ntg) ! write only first target gas
       else
@@ -23,13 +22,13 @@ c  Writes one line to the already-opened .col file.
       endif
 
        write(lun_col,colfile_format) specname(:lrmax),nit,
-     & wlimit(dble(cx(n1)),'f5.3'),       ! CL
-     & wlimit(100*dble(cx(n2)),'f5.1'),   ! CT
-     & wlimit(1000*dble(cx(n3)),'f4.1'),  ! CC
-     & wlimit(1000*gint*dble(cx(n4)),'f4.1'),
-     & wlimit(dble(sgshift),'f4.1'),
-     & wlimit(dble(cx(n5)),'f5.3'),
-     & wlimit(dble(100*abs(rms/cx(n1))),'f6.4'), 
+     & wlimit(dble(cont_level/1.0),'f5.3'),       ! CL
+     & wlimit(-200*1.732*dble(cont_tilt),'f5.1'), ! CT
+     & wlimit(2000*dble(cont_curv),'f4.1'),       ! CC
+     & wlimit(1000*gint*dble(xfs),'f4.1'),        ! FS
+     & wlimit(dble(sgshift),'f5.2'),
+     & wlimit(dble(xzo),'f5.3'),
+     & wlimit(dble(100*abs(rmsocl)),'f6.4'), 
      & wlimit(dble(zmin),'f8.3'),
      &(wlimit(dble(oloscol(jtg)/overcol(jtg)),'f7.3'),
      & overcol(jtg),

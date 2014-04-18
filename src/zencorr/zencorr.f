@@ -4,11 +4,12 @@ c
       implicit none
       include "../ggg_int_params.f"
 
-      integer*4 lunr,lunw,lunz,lnbc,lr,istat,ndet,jdet,
-     & ifirst,ilast,iyr,iset,possp,bytepw,ispe,ntot,nhl,ncol,i
-      parameter (lunr=14,lunw=15,lunz=16)
+      integer*4 lunr_rlg,lunw_rlg,lunz,lnbc,lr,istat,ndet,jdet,iflag,
+     & ifirst,ilast,iyr,iset,possp,bytepw,ispe,ntot
+      parameter (lunr_rlg=14,lunw_rlg=15,lunz=16)
 c
       real*8 year,yearz,aszaz,poutz,totcon,del,
+     & td,td2,
      & totwas,totzen,
      & totwas2,totzen2
 
@@ -44,7 +45,12 @@ c    & sis,              ! Solar Intensity (SD)
      & wavtkr            ! suntracker operating frequency (e.g. 9900 cm-1)
 
 c
-      character title*240,
+      character
+c     & title*240,
+     & data_fmt_read_rl*256,
+     & data_fmt_write_rl*256,
+     & version*52,
+     & col_labels_rl*320,
      & col1*1,                    !first column of runlog record
      & apf*2,                     !apodization function (e.g. BX N2, etc)
      & dl*1,
@@ -53,88 +59,107 @@ c
      & rlgfile*120                !name of runlog file
 
 c
-      write(6,*) 'ZENCORR    Version 1.3.3     18-Aug-2008     GCT'
+      iflag=0  ! avoid compiler warning (may be used uninitialized)
+      write(6,*) version
+      version=' ZENCORR     Version 1.51      15-Jan-2013      GCT '
       call get_ggg_environment(gggdir, dl)
 
- 1    write(6,'(a)') 'Enter runlog (e.g. flt93avg.brl) '
-      read(5,'(a)') rlgfile
+      if (iargc() == 0) then
+         write(6,'(a)') 'Enter runlog (e.g. flt93avg.brl) '
+         read(5,'(a)') rlgfile
+      elseif (iargc() == 1) then
+         call getarg(1, rlgfile)
+      else
+         stop 'Usage: $gggpath/bin/zencorr runlogname'
+      endif
       lr=lnbc(rlgfile)
-      if(lr.le.0) go to 1
+      if(lr.le.0) stop ' Empty runlog name'
 c
-c  Open the original runlog and read the first record.
+c  Open the original runlog
       if(rlgfile(lr-2:lr-2).eq.'b') then
-         open(lunr,file=gggdir(:lnbc(gggdir))//'runlogs'//dl//'bal'
+         open(lunr_rlg,file=gggdir(:lnbc(gggdir))//'runlogs'//dl//'bal'
      &    //dl//rlgfile, status='old')
          ndet=2
       elseif (rlgfile(lr-2:lr-2).eq.'o') then
-         open(lunr,file=gggdir(:lnbc(gggdir))//'runlogs'//dl//'orb'
+         open(lunr_rlg,file=gggdir(:lnbc(gggdir))//'runlogs'//dl//'orb'
      &    //dl//rlgfile, status='old')
          ndet=1
       else
          stop 'unknown extention'
       endif
+
+      call read_runlog_header(lunr_rlg,data_fmt_read_rl,col_labels_rl)
+c      read(lunr_rlg,*) nhl,ncol
 c
 c  Open the new runlog
-      read(lunr,*) nhl,ncol
-      open(lunw,file='new_rl.out',status='unknown')
-      write(lunw,*) nhl,ncol
-      
-      do i=2,nhl
-         read(lunr,'(a)') title
-         write(lunw,'(a)') title(:lnbc(title))
-      end do
+      open(lunw_rlg,file='new_rl.out',status='unknown')
+      call write_runlog_header(lunw_rlg,version,data_fmt_write_rl)
+c      write(lunw_rlg,*) nhl,ncol
+c      
+c      do i=2,nhl
+c         read(lunr_rlg,'(a)') title
+c         write(lunw_rlg,'(a)') title(:lnbc(title))
+c      end do
 c
 c  Also open the ZENANG.OUT file containing the pointing offsets
       open(lunz,file='zenang.out',status='old')
 
       ntot=0
-      totwas2=0.0
-      totzen2=0.0
+      td=0.0d0
+      td2=0.0d0
+      totwas=0.0d0
+      totwas2=0.0d0
+      totzen=0.0d0
+      totzen2=0.0d0
+      read(lunz,*) yearz,totcon,poutz,aszaz,del
       do ispe=1,999999
-         read(lunz,*,end=99) yearz,totcon,poutz,aszaz,del
          do jdet=1,ndet
-c        call read_runlog(lunr,col1,specname,iyr,iset,zpdtim,
-c    &    oblat,oblon,obalt,asza,zenoff,opd,fovi,fovo,amal,ifirst,
-c    &    ilast,graw,possp,bytepw,zoff,snr,apf,tins,pins,hins,
-c    &    tout,pout,hout,lasf,wavtkr,sia,sis,aipl,istat)
-         call read_runlog(lunr,col1,specname,iyr,iset,zpdtim,
-     &    oblat,oblon,obalt,asza,zenoff,azim,osds,
-     &    opd,fovi,fovo,amal,ifirst,ilast,
-     &    graw,possp,bytepw,zoff,snr,apf,tins,pins,hins,
-     &    tout,pout,hout,sia,fvsi,wspd,wdir,lasf,wavtkr,aipl,istat)
-c         write(*,*)'specname ',specname,totcon,aszaz,asza+zenoff
-c         write(*,*)specname,istat,totcon,aszaz,asza+zenoff
-          year=iyr+(iset+zpdtim/24)/366.00
-         if(abs(abs(year)-abs(yearz)).gt.0.000001) then
-            write(*,*)'Year mismatch: ',
-     &      specname,year,yearz
+         call read_runlog_data_record(lunr_rlg,data_fmt_read_rl,
+     &   col1,specname,iyr,iset,zpdtim,
+     &   oblat,oblon,obalt,asza,zenoff,azim,osds,
+     &   opd,fovi,fovo,amal,ifirst,ilast,
+     &   graw,possp,bytepw,zoff,snr,apf,tins,pins,hins,
+     &   tout,pout,hout,sia,fvsi,wspd,wdir,lasf,wavtkr,aipl,istat)
+         if(istat.gt.0) go to 99
+c        write(*,*)'specname ',specname,totcon,aszaz,asza+zenoff
+c        write(*,*)specname,istat,totcon,aszaz,asza+zenoff
+         year=iyr+(iset+zpdtim/24)/366.00
+         write(*,*) ispe,jdet,year,yearz,asza+zenoff,aszaz
+         if(abs(abs(year)-abs(yearz)).lt.0.000001 .and.
+     &   abs(asza+zenoff-aszaz).lt.0.0001) then
+            iflag=0
+            ntot=ntot+1
+            td=td+del
+            td2=td2+del**2
+            totwas=totwas+zenoff
+            totwas2=totwas2+zenoff**2
+            if(col1.ne.'-') zenoff=zenoff+del
+            totzen=totzen+zenoff
+            totzen2=totzen2+zenoff**2
+         else
+            iflag=1
+            write(*,*) 'Spectrum mismatch',abs(year),abs(yearz)
+            write(*,*) 'Spectrum mismatch',asza+zenoff,aszaz
          endif
-         if(abs(asza+zenoff-aszaz).ge.0.0001) then
-            write(*,*)'Zenith angle mismatch: ',
-     &      specname,asza+zenoff,aszaz
-         endif
-         ntot=ntot+1
-         totwas=totwas+zenoff
-         totwas2=totwas2+zenoff**2
-         if(col1.ne.'-') zenoff=zenoff+del
-         totzen=totzen+zenoff
-         totzen2=totzen2+zenoff**2
-c         call write_runlog(lunw,col1,specname,iyr,iset,zpdtim,
-c     &   oblat,oblon,obalt,asza,zenoff,opd,fovi,fovo,amal,
-c     &   ifirst,ilast,graw,possp,bytepw,zoff,snr,apf,tins,pins,
-c     &   hins,tout,pout,hout,lasf,wavtkr,sia,sis,aipl,istat)
-         call write_runlog(lunw,col1,specname,iyr,iset,zpdtim,
+         call write_runlog_data_record(lunw_rlg,data_fmt_write_rl,
+     &   col1,specname,iyr,iset,zpdtim,
      &   oblat,oblon,obalt,asza,zenoff,azim,osds,opd,fovi,fovo,amal,
      &   ifirst,ilast,graw,possp,bytepw,zoff,snr,apf,tins,pins,
      &   hins,tout,pout,hout,sia,fvsi,wspd,wdir,lasf,wavtkr,aipl,istat)
          end do  ! jdet=1,ndet
+         if(iflag.eq.0) read(lunz,*,end=67) yearz,totcon,poutz,aszaz,del
+67       continue
       end do  ! ispe=1,99999
 c
  99   close(lunz)
-      close(lunr)
-      close(lunw)
+      close(lunr_rlg)
+      close(lunw_rlg)
       write(*,*)'NTOT = ',ntot,ispe-1
-      write(*,*)'ZENOFF was = ',totwas/ntot,' +/- ',sqrt(totwas2/ntot)
-      write(*,*)'ZENOFF now = ',totzen/ntot,' +/- ',sqrt(totzen2/ntot)
+      write(*,*)'Average ZENOFF was = ',totwas/ntot,' +/- ',
+     & sqrt(ntot*totwas2-totwas**2)/ntot
+      write(*,*)'Average ZENOFF now = ',totzen/ntot,' +/- ',
+     & sqrt(ntot*totzen2-totzen**2)/ntot
+      write(*,*)'Average DEL now = ',td/ntot,' +/- ',
+     & sqrt(ntot*td2-td**2)/ntot
       stop
       end

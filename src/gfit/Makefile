@@ -7,6 +7,7 @@ COMN = $(GGGPATH)/src/comn
 
 SOURCES := \
   $(TSRC)/$(TARGET).f \
+  $(TSRC)/compute_dlpbf.f \
   $(TSRC)/fetch.f \
   $(TSRC)/solar_gas_shift.f \
   $(TSRC)/write_col.f \
@@ -24,6 +25,7 @@ SOURCES := \
   $(COMN)/read_mavfile_body.f \
   $(COMN)/get_ggg_environment.f \
   $(COMN)/abscoj.f \
+  $(COMN)/clistindex.f \
   $(COMN)/gasdev.f \
   $(COMN)/gct2_humlik.f \
   $(COMN)/getendian.f \
@@ -43,9 +45,9 @@ SOURCES := \
   $(COMN)/profzl.f \
   $(COMN)/ran1.f \
   $(COMN)/rbyte.f \
-  $(COMN)/read_runlog.f \
+  $(COMN)/read_runlog_header.f \
+  $(COMN)/read_runlog_data_record.f \
   $(COMN)/skiprec.f \
-  $(COMN)/solar_pseudo_trans_spec.f \
   $(COMN)/solar_pts.f \
   $(COMN)/subsolar.f \
   $(COMN)/substr.f \

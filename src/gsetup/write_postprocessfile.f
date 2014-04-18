@@ -32,149 +32,112 @@ c
 c     'gnd' geometry
       if (ext(1:3).eq.'gnd') then
         write(lunw_pp,'(a)')
-     &  gggdir(:lrt)//'bin'//dl//'collate_results < collate_t.input'
-        open(lunw,file='collate_t.input', status='unknown')
-        write(lunw,'(a)') 't'
-        close(lunw)
+     &  gggdir(:lrt)//'bin'//dl//'collate_results t'
 
         write(lunw_pp,'(a)')
-     &  gggdir(:lrt)//'bin'//dl//'collate_results < collate_v.input'
-        open(lunw,file='collate_v.input', status='unknown')
-        write(lunw,'(a)') 'v'
-        close(lunw)
+     &  gggdir(:lrt)//'bin'//dl//'collate_results v'
 
         write(lunw_pp,'(a)')gggdir(:lrt)//'bin'//dl//
      &  'average_results '//
-     &  '< average_results_t.input'
-        open(lunw,file='average_results_t.input',status='unknown')
-        write(lunw,'(a)') rlgfile(:lr-3)//'tsw'
-        close(lunw)
+     &  rlgfile(:lr-3)//'tsw'
 
         write(lunw_pp,'(a)')gggdir(:lrt)//'bin'//dl//
      &  'average_results '//
-     &  '< average_results_v.input'
-        open(lunw,file='average_results_v.input',status='unknown')
-        write(lunw,'(a)') rlgfile(:lr-3)//'vsw'
-        close(lunw)
+     &  rlgfile(:lr-3)//'vsw'
 
         write(lunw_pp,'(a)')
-     &  gggdir(:lrt)//'bin'//dl//'apply_airmass_correction < '//
-     &  'apply_airmass_correction.input'
-        open(lunw,file='apply_airmass_correction.input',
-     &  status='unknown')
-        write(lunw,'(a)') rlgfile(:lr-3)//'vav'
-        close(lunw)
+     &  gggdir(:lrt)//'bin'//dl//'apply_airmass_correction '//
+     &  rlgfile(:lr-3)//'vav'
 
         write(lunw_pp,'(a)')
-     &  gggdir(:lrt)//'bin'//dl//'apply_insitu_correction < '//
-     &  'apply_insitu_correction.input'
-        open(lunw,file='apply_insitu_correction.input',
-     &  status='unknown')
-        write(lunw,'(a)') rlgfile(:lr-3)//'vav.ada'
-        close(lunw)
+     &  gggdir(:lrt)//'bin'//dl//'apply_insitu_correction '//
+     &  rlgfile(:lr-3)//'vav.ada'
+
+c apply_ghost_correction is no longer needed if the LSE resampling IPP
+c version is used!
+c        write(lunw_pp,'(a)')
+c     &  gggdir(:lrt)//'bin'//dl//'apply_ghost_correction '//
+c     &  rlgfile(:lr-3)//'vav.ada.aia'
 
         write(lunw_pp,'(a)')
-     &  gggdir(:lrt)//'bin'//dl//'apply_ghost_correction < '//
-     &  'apply_ghost_correction.input'
-        open(lunw,file='apply_ghost_correction.input',
-     &  status='unknown')
-        write(lunw,'(a)') rlgfile(:lr-3)//'vav.ada.aia'
-        close(lunw)
+     &  gggdir(:lrt)//'bin'//dl//'error_scale_factor '//
+     &  rlgfile(:lr-3)//'vav.ada.aia'
 
         write(lunw_pp,'(a)')
-     &  gggdir(:lrt)//'bin'//dl//'write_official_output_file < '//
-     &  'write_official_output_file.input'
-        open(lunw,file='write_official_output_file.input',
-     &  status='unknown')
-        write(lunw,'(a)') rlgfile(:lr-3)//'vav.ada.aia.gaa'
-        close(lunw)
+     &  gggdir(:lrt)//'bin'//dl//'write_official_output_file '//
+     &  rlgfile(:lr-3)//'vav.ada.aia'
 
         write(lunw_pp,'(a)')
-     &  gggdir(:lrt)//'bin'//dl//'write_eof < '//'write_eof.input'
-        open(lunw,file='write_eof.input',status='unknown')
-        write(lunw,'(a)') rlgfile(:lr-3)//'tav'
-        close(lunw)
+     &  gggdir(:lrt)//'bin'//dl//'write_eof '//rlgfile(:lr-3)//'tav'
 
-        write(lunw_pp,'(a)')
-     &  gggdir(:lrt)//'bin'//dl//'write_aux < '//'write_aux.input'
-        open(lunw,file='write_aux.input',status='unknown')
-        write(lunw,'(a)') rlgfile(:lr-3)//'mav'
-        write(lunw,'(f8.4)') oblat
-        close(lunw)
+        write(lunw_pp,'(a,f8.4)')
+     &  gggdir(:lrt)//'bin'//dl//'write_aux '//
+     &  rlgfile(:lr-3)//'mav ',oblat
 
 c     'bal' or 'orb' geometry
       elseif (ext(1:3).eq.'bal' .or. ext(1:3).eq.'orb') then
         write(lunw_pp,'(a)')
-     &  gggdir(:lrt)//'bin'//dl//'collate_results < collate_t.input'
-        open(lunw,file='collate_t.input', status='unknown')
-        write(lunw,'(a)') 't'
-        close(lunw)
+     &  gggdir(:lrt)//'bin'//dl//'collate_results t'
 
         write(lunw_pp,'(a)')
-     &  gggdir(:lrt)//'bin'//dl//'collate_results < collate_l.input'
-        open(lunw,file='collate_l.input', status='unknown')
-        write(lunw,'(a)') 'l'
-        close(lunw)
+     &  gggdir(:lrt)//'bin'//dl//'collate_results l'
 
         write(lunw_pp,'(a)')gggdir(:lrt)//'bin'//dl//
      &  'average_results '//
-     &  '< average_results_t.input'
-        open(lunw,file='average_results_t.input',status='unknown')
-        write(lunw,'(a)') rlgfile(:lr-3)//'tsw'
-        close(lunw)
+     &  rlgfile(:lr-3)//'tsw'
 
         write(lunw_pp,'(a)')gggdir(:lrt)//'bin'//dl//
      &  'average_results '//
-     &  '< average_results_l.input'
-        open(lunw,file='average_results_l.input',status='unknown')
-        write(lunw,'(a)') rlgfile(:lr-3)//'lsw'
-        close(lunw)
+     &  rlgfile(:lr-3)//'lsw'
 
         write(lunw_pp,'(a)')
-     &  gggdir(:lrt)//'bin'//dl//'zenang < '//'zenang.input'
-        open(lunw,file='zenang.input',status='unknown')
-        write(lunw,'(a)') rlgfile(:lr-3)//'tav'
-        close(lunw)
+     &  gggdir(:lrt)//'bin'//dl//'zenang '//
+     &  rlgfile(:lr-3)//'tav'
 
         write(lunw_pp,'(a)')
-     &  gggdir(:lrt)//'bin'//dl//'zencorr < '//'zencorr.input'
-        open(lunw,file='zencorr.input',status='unknown')
-        write(lunw,'(a)') rlgfile(:lr)
-        close(lunw)
+     &  gggdir(:lrt)//'bin'//dl//'zencorr '//
+     &  rlgfile(:lr)
+
+        write(lunw_pp,'(a)')'# cp '//gggdir(:lrt)//
+     & 'runlogs/'//ext(1:3)//dl//rlgfile(:lr)//' '//
+     &  gggdir(:lrt)//'runlogs/'//ext(1:3)//dl//rlgfile(:lr)//'.bak'
+
+        write(lunw_pp,'(a)')'# cp new_rl.out '//gggdir(:lrt)//
+     & 'runlogs/'//ext(1:3)//dl//rlgfile(:lr)
 
         write(lunw_pp,'(a)')
-     &  gggdir(:lrt)//'bin'//dl//'diurnret < '//'diurnret.input'
-        open(lunw,file='diurnret.input',status='unknown')
-        write(lunw,'(a)') rlgfile(:lr-3)//'lav'
-        close(lunw)
+     &  gggdir(:lrt)//'bin'//dl//'diurnret '//
+     &  rlgfile(:lr-3)//'lav'
+     
+        write(lunw_pp,'(a)')'# cp '//gggdir(:lrt)//
+     & 'vmrs/'//ext(1:3)//dl//rlgfile(:lr-3)//'vmr '//
+     &  gggdir(:lrt)//'vmrs/'//ext(1:3)//dl//rlgfile(:lr-3)//'vmr.bak'
+
+        write(lunw_pp,'(a)')'# cp '//gggdir(:lrt)//
+     & 'vmrs/'//ext(1:3)//dl//rlgfile(:lr-3)//'vmr.new '//
+     &  gggdir(:lrt)//'vmrs/'//ext(1:3)//dl//rlgfile(:lr-3)//'vmr'
+
+        write(lunw_pp,'(a)')'# '//
+     &  gggdir(:lrt)//'bin'//dl//'gsetup < '//'gsetup.input'
+
+        write(lunw_pp,'(a)') '# cp mmm multiggg.sh'
+
 
 c     'lab' geometry
       elseif (ext(1:3).eq.'lab') then
         write(lunw_pp,'(a)')
-     &  gggdir(:lrt)//'bin'//dl//'collate_results < collate_t.input'
-        open(lunw,file='collate_t.input', status='unknown')
-        write(lunw,'(a)') 't'
-        close(lunw)
+     &  gggdir(:lrt)//'bin'//dl//'collate_results t'
 
         write(lunw_pp,'(a)')
-     &  gggdir(:lrt)//'bin'//dl//'collate_results < collate_l.input'
-        open(lunw,file='collate_l.input', status='unknown')
-        write(lunw,'(a)') 'l'
-        close(lunw)
+     &  gggdir(:lrt)//'bin'//dl//'collate_results l'
 
         write(lunw_pp,'(a)')gggdir(:lrt)//'bin'//dl//
      &  'average_results '//
-     &  '< average_results_t.input'
-        open(lunw,file='average_results_t.input',status='unknown')
-        write(lunw,'(a)') rlgfile(:lr-3)//'tsw'
-        close(lunw)
+     &  rlgfile(:lr-3)//'tsw'
 
         write(lunw_pp,'(a)')gggdir(:lrt)//'bin'//dl//
      &  'average_results '//
-     &  '< average_results_l.input'
-        open(lunw,file='average_results_l.input',status='unknown')
-        write(lunw,'(a)') rlgfile(:lr-3)//'lsw'
-        close(lunw)
+     &  rlgfile(:lr-3)//'lsw'
 
       endif
       close(lunw_pp)

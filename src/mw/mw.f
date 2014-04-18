@@ -18,12 +18,12 @@ c
       include "../ggg_const_params.f"
       include "../ggg_int_params.f"
 
-      integer*4 j,lunr,nlhead,ncol,igas,ngas,mgas,ilev,nlev,
+      integer*4 j,lunr,nlhead,ncol,igas,ngas,ilev,nlev,
      & kgas,kiso,reclen,jline,kline1,kline2,nlines,posnall,molno,iso,
-     & lmax,mmp,nmp,ip,lunw,lunt,linelist,kk,i,nfft,fsib,
-     & file_size_in_bytes
+     & lmax,mmp,nmp,ip,lunw,lunt,linelist,kk,i,nfft
+      integer*8 fsib,file_size_in_bytes
       parameter (lunr=14,lunw=16,lunt=17)
-      parameter (mgas=65,mmp=512*1024)
+      parameter (mmp=512*1024)
 
       real*4 z(mlev),sp(mlev),t(mlev),p(mlev),d(mlev),
      & vmr(mgas,mlev),tfac(mgas),slp,slpv,roc,zobs,zmin,
@@ -38,24 +38,41 @@ c
      & d2r=dpi/180.0d0)
 c
       character string*1000,llformat*53,rotate*24,llname*80,version*50
+      character menuinputfile*40
 c
       version=' MW         Version 4.1.0     25-Jan-2002     GCT '
 c
 c  Read vmr profiles.
       write(*,*) version
-      write(*,*)'Enter frequency range (Fmin, Fmax)'
-      read(*,*) fmin,fmax
+      if (iargc() == 0) then
+         write(*,*)'Enter frequency range (Fmin, Fmax)'
+         read(*,*) fmin,fmax
+      elseif (iargc() == 1) then
+         call getarg(1, menuinputfile)
+         open(10, file=menuinputfile, status='old')
+         read(10,*) fmin,fmax
+      else
+         stop 'Usage: $gggpath/bin/mw inputfile containing selections'
+      endif
       nmp=(fmax-fmin)/dnu
       if(nmp.gt.mmp) then
         write(*,*)' Increase parameter MP to ',nmp
+        close(10)
         stop
       endif
-      write(*,*)'Enter target gas id & isotope (-ve = all)'
-      read(*,*)kgas,kiso
-      write(*,*)'Enter minimum altitude (km) along ray path '
-      read(*,*)zmin
-      write(*,*)'Enter zenith angle (deg) at observer '
-      read(*,*)theta
+      if (iargc() == 0) then
+         write(*,*)'Enter target gas id & isotope (-ve = all)'
+         read(*,*)kgas,kiso
+         write(*,*)'Enter minimum altitude (km) along ray path '
+         read(*,*)zmin
+         write(*,*)'Enter zenith angle (deg) at observer '
+         read(*,*)theta
+      elseif (iargc() == 1) then
+         read(10,*)kgas,kiso
+         read(10,*)zmin
+         read(10,*)theta
+      endif
+      close(10)
       if(theta.gt.90) then
         zobs=(zmin+dble(roc))/dsin(theta*d2r)-dble(roc)
       else

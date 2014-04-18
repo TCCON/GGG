@@ -10,15 +10,17 @@ c      file_size_in_bytes I*4  File size (bytes)
 c
 c  Performs direct-access reads to detect the EOF location.
 c  Keeps track of which reads are within the file and which
-c  fall off the end.
-c  For a large file such as the atm.101 linelist (117 Mbytes)
-c  It will take 27 reads to fall off the EOF and then another
-c  27 reads to determine the exact EOF position. This is much
+c  fall off the end.  For a large file such as hitran_2012.161
+c  (7.6M lines, 1224 Mbytes)
+c  it will take 23 reads to fall off the EOF and then another
+c  23 reads to determine the exact EOF position. This is much
 c  faster than reading the entire file from beginning to end.
 c
       implicit none
-      integer*4 file_size_in_bytes, lunr, new, nhi, nlo, istat
+      integer*8 file_size_in_bytes, new, nhi, nlo
+      integer*4 lunr, istat
       character file_path*(*),string*1
+
       open(lunr,file=file_path,access='direct',
      $form='unformatted',status='old',recl=1)
 c

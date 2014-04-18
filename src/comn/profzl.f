@@ -2,19 +2,24 @@
 c  Convolves a SINC function (SIN(X)/X) of half-width RESNOG with a rectangle
 c  (box-car) of full-width RECTOG in order to represent the Instrumental Line
 c  Shape (ILS) of a perfect FTIR spectrometer.
-cc
+c
 c  Since the SINC function is infinite in extent, the result must be truncated
-c  to some finite number (NS) of points, and must therefore also be apodized
-c  to avoid discontinuities at the ends of the operator.  Various apodization
-c  functions can be selected including the Norton-Beer ones. However, note that
-c  even if APO=0 is chosen, slight apodization will still be applied.
+c  to some finite number (NS) of points. To minimize the discontinuities, a
+c  Connes-like windowing is applied to the ILS
+c      (1.d0-(x/a)^2)^2  
+c
+c  Various apodization functions can be selected including the Norton-Beer
+c  ones. 
 c
 c  In normal use, PROFZL will be called twice: Once for the synthetic spectrum
 c  with the actual values of RESNOG and RECTOG, and once for the measured
 c  spectrum with RECTOG=0. Convolving the measured spectrum with its own
 c  (infinite) SINC function would be a do-nothing operation. However, convolving
-c  the measured spectrum with a finite and weakly apodized version of its own
-c  SINC function will improve the agreement with the synthetic spectrum.
+c  the measured spectrum with a finite/truncated and windowed  version of its
+c  own SINC function will improve the agreement with the synthetic spectrum.
+c  In other words, you should apply the same apodization to the measured
+c  spectrum as is appled to the calculated spectrum, to maintain an apples-
+c  apples comparison.
 c
 c  INPUTS:
 c      APO  I*4  Desired apodization function (0, 1, 2, 3, 4)
@@ -26,7 +31,7 @@ c
 C  OUTPUT:
 c     A(NS) R*4  Array containing resulting operator
 c
-c  OPD is the Optical Path Difference (cm)
+c  OPD  is the Optical Path Difference (cm)
 c  GRID is the desired point spacing (cm-1) of the resulting slit function
 c  FREQ is the frequency (cm-1) of interest 
 c  FOVD is the diameter of the field-of-view (radians)
@@ -38,6 +43,8 @@ c
       REAL*4 a(ns)
       REAL*8 resnog,rectog,off,c(0:3,0:3),del,can,xx,hwid
       real*8 p,t,t2,t4,t6,t8,q0,q1,q2,q4,tr
+c
+c  Array C contains the coefficients for the Norton-Beer apodization
       SAVE C
       data c/1.0,0.5480,0.2600,0.0900,
      &       0.0,-.0833,-.154838,0.00,
@@ -59,7 +66,7 @@ c         a((ns+1)/2)=1.0
 c         return
 c      endif
       
-c  NP= number of (equally weighted) points used to represent the rectangular
+c  NP = number of (equally weighted) points used to represent the RECT
 c  contribution of the ILS. Their point spacing DEL is chosen to match the first
 c  three moments of the continuous distribution (area, position, and hwidth).
       np=2+int(4*rectog/resnog)
@@ -69,10 +76,10 @@ c      write(*,*)'np=',np,resnog,rectog
 c
 c  Calculate truncated instrumental function (sinx/x for apo=0)
       can=dpi/resnog
-      DO 1040 k=1,ns
+      DO 1040 k=1,ns  ! Loop over SINC samples
       a(k)=0.0
       xx=dble(k)-1.d0-hwid
-      do 1041 jp=-np+1,np-1,2
+      do 1041 jp=-np+1,np-1,2  ! Loop over RECT samples
       T=can*(xx-off+jp*del/2)
       T2=T*T
       t4=t2*t2

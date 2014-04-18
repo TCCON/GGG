@@ -8,7 +8,7 @@ c     Extended from readvmr.f to also read FASCODE format vmr files
 c     DG Sept00
 
       implicit none
-      include "../ggg_const_params.f"
+c      include "../ggg_const_params.f"
 
       INTEGER*4 lunr,klev,nlev,jcol,ncol,mgas,ngas,mg,nlheader,nss,
      & k,pos,idoy, minlvl, ninlvl, igas, i, ii, lnbc

@@ -5,7 +5,7 @@ c     DG Jan03
 c     Revised Jun2007 as subroutine for new sunrun/runlog split
 
       implicit none
-      include "../ggg_const_params.f"
+      include "../../ggg_const_params.f"
 
       character   specname*(*),spfmt*2,path*(*),apf*2
       integer*4   i,hedlen,luns,iy,im,id,hh,mm,ss,
@@ -27,7 +27,7 @@ c     Revised Jun2007 as subroutine for new sunrun/runlog split
       logical*1   pcat
 
 
-      equivalence (chhedr,i2hedr,i4hedr,r4hedr,r8hedr)	
+      equivalence (chhedr,i2hedr,i4hedr,r4hedr,r8hedr)
       equivalence (bombin,i2bombin,i4bombin,r4bombin,r8bombin)
 
 c     DG 4/7/2002  - define actual bandpass for NDSC filters to avoid GFIT

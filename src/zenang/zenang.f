@@ -1,21 +1,27 @@
 c  Program computes zenith angle offsets from the CO2 VSF factors.
-      integer*4 j,k,mgas,ngas,kgas,jgas,luns,lunq,
+      integer*4 j,k,mwin,ngas,kgas,jgas,luns,lunq,
      $ mobs,iobs,naux,ncol,lnbc,lr,ncomm
       parameter (luns=13)
       parameter (lunq=14)
       parameter (mobs=1500)
-      parameter (mgas=120)
+      parameter (mwin=120)
       parameter (naux=19)
-      character pabel*800,tavfile*12,clabel(naux+2*mgas)*32
+      character pabel*800,tavfile*12,clabel(naux+2*mwin)*32
       real*8 yval(naux),totcon,toterr,pobs,asza,del,dsbydt
 c
-      write(6,*)'ZENANG   Version 2.1.4   19 Jul 2011   GCT'
- 1    write(6,101)
- 101  format('Enter name of .tav file (e.g.  fts93rat.tav, etc) ',$)
-      read(*,85) tavfile 
+      write(6,*)'ZENANG   Version 2.15    15-Jan-2013   GCT'
+      if (iargc() == 0) then
+         write(6,101)
+ 101     format('Enter name of .tav file (e.g.  fts93rat.tav, etc) ',$)
+         read(*,85) tavfile 
+      elseif (iargc() == 1) then
+         call getarg(1, tavfile)
+      else
+         stop 'Usage: $gggpath/bin/zenang tavfilename'
+      endif
  85   format(a)
       lr=lnbc(tavfile)
-      if(lr.le.0) go to 1
+      if(lr.le.0) stop 'Empty tav file name'
 c=====================================================================
 c  Read in TOTCONS from SUNRUN.TAV
       open(luns,file=tavfile(:lr-3)//'tav',status='old')
@@ -24,7 +30,7 @@ c  Read in TOTCONS from SUNRUN.TAV
         read(luns,*)
       end do
       read(luns,'(a)') pabel
-      call substr(pabel,clabel,naux+2*mgas,ncol)
+      call substr(pabel,clabel,naux+2*mwin,ncol)
       ngas=(ncol-naux)/2
       do kgas=1,ngas
         if(index(clabel(naux+2*kgas-1),'co2').eq.1)goto 301

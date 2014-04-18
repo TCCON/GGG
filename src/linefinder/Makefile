@@ -8,15 +8,17 @@ COMN = $(GGGPATH)/src/comn
 SOURCES := \
   $(TSRC)/$(TARGET).f \
   $(COMN)/gindfile.f \
-  $(COMN)/legendre_polynomial.f \
   $(COMN)/hfti.f \
+  $(COMN)/fbc.f \
+  $(COMN)/fnbc.f \
   $(COMN)/lnbc.f \
   $(COMN)/lloc.f \
   $(COMN)/rbyte.f \
   $(COMN)/getendian.f \
-  $(COMN)/write_runlog.f \
+  $(COMN)/substr.f \
   $(COMN)/wlimit.f \
-  $(COMN)/read_runlog.f \
+  $(COMN)/read_runlog_header.f \
+  $(COMN)/read_runlog_data_record.f \
   $(COMN)/get_ggg_environment.f
 
 OBJECTS := $(patsubst %.f, %.o, $(SOURCES))

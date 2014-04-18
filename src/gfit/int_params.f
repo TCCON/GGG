@@ -4,7 +4,7 @@
      & mfp,
      & mmp
 
-      parameter(mtg=17)
-      parameter(mfp=mtg+5)
+      parameter(mtg=20)
+      parameter(mfp=32)
       parameter(mmp=1250000)
 

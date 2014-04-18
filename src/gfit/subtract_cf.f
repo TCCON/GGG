@@ -1,5 +1,5 @@
       subroutine subtract_cf(obsrvd,calcul,resids,nmp,mmp)
-c  Does a Fourier transfor of RESIDS
+c  Does a Fourier transform of RESIDS.
 c  Determines the amplitude, frequency & phase of any channel fringes.
 c  Subtracts the resulting sine/cosine wave from OBSRVD.
 
@@ -19,6 +19,7 @@ c
       call vdot(calcul,1,unity,0,tcbar,nmp)
       tcbar=tiny+tcbar/nmp
       call fringes(cfamp,cffreq,cfphase,resids,nmp,mmp)
+c      write(*,*) 'cf amp, freq, phase = ',cfamp,cffreq,cfphase
       call vramp(resids,1,nmp)
       call vsma(resids,1,cffreq,cfphase,0,resids,1,nmp)
       call vcos(resids,1,resids,1,nmp)

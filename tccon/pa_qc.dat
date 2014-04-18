@@ -42,8 +42,8 @@ to the #-value of the variable that was furthest out of range.
  "xn2o_error"  1  0.3E+09 "f7.2" "(ppb) "   0        50       one-sigma precision
  "xch4"        1  1.0E+06 "f8.3" "(ppm) "   0        2        0.2095*column_ch4/column_o2
  "xch4_error"  1  1.2E+05 "f7.3" "(ppm) "   0        0.1      one-sigma precision
- "xco2"        1  1.0E+06 "f8.1" "(ppm) "   350      400      0.2095*column_co2/column_o2
- "xco2_error"  1  1.3E+05 "f7.1" "(ppm) "   0        10       one-sigma precision
+ "xco2"        1  1.0E+06 "f9.2" "(ppm) "   350      450      0.2095*column_co2/column_o2
+ "xco2_error"  1  1.3E+05 "f8.2" "(ppm) "   0        10       one-sigma precision
  "xo2"         1  1.0E+00 "f7.4" "      "   0.20     0.22     0.2095*column_o2/column_o2=0.2095
  "xo2_error"   1  0.3E+00 "f7.4" "      "   0        0.05     one-sigma precision
  "xhcl"        1  1.0E+09 "f7.1" "(ppb) "   0        5        0.2095*column_hcl/column_o2

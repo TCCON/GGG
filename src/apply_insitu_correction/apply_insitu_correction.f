@@ -3,7 +3,7 @@ c
 c  Purpose: To apply the (airmass-independent) in situ correction to the data
 c  in the selected runlog.vav.ada file
 c  
-c  yout(i,j) = AICF(j) * yin(i,j)
+c  yout(i,j) = yin(i,j) / AICF(j)
 c
 c  where
 c   yin(i,j) is the DMF of the j'th gas from the i'th spectrum
@@ -22,12 +22,12 @@ c
       include "../ggg_int_params.f"
 
       integer*4 lunr,luns,lunw,ncoml,ncolvav,kcolvav,icol,j,
-     & kgas,lnbc,irow,naux,mgas,ngas,nrow,li,k,ncolcorr
-      parameter (lunr=14,luns=15,lunw=16,mgas=9)
+     & kgas,lnbc,irow,naux,ngas,nrow,li,k,ncolcorr
+      parameter (lunr=14,luns=15,lunw=16)
       real*8 yrow(mcolvav),adcf(mgas),adcf_err(mgas),ymiss,
      & aicf(mgas),aicf_err(mgas),cf(mcolvav)
 
-      character header*800,headarr(mcolvav)*40,gasname(mgas)*20,dl*1,
+      character header*1000,headarr(mcolvav)*40,gasname(mgas)*20,dl*1,
      & gggdir*(mpath),inputfile*40,outputfile*40, version*62,gaserr*32
       character output_fmt*40, input_fmt*40, specname*(nchar), c1*1
       
@@ -35,7 +35,7 @@ c
       specflag=0
 
       version=
-     & ' apply_insitu_correction      Version 1.3.4   2011-11-05   GCT'
+     & ' apply_insitu_correction      Version 1.35    2012-12-18   GCT'
 
       call get_ggg_environment(gggdir, dl)
 
@@ -64,8 +64,14 @@ c  Factors (AICF) for each gas. Only the former is used by this prog.
       stop 'increase parameter MGAS'
 88    ngas=k-1
 
-      write(*,*)'Enter name of input file (e.g. paIn_1.0lm.vav.ada):'
-      read(*,'(a)') inputfile
+      if (iargc() == 0) then
+         write(*,*)'Enter name of input file (e.g. paIn_1.0lm.vav.ada):'
+         read(*,'(a)') inputfile
+      elseif (iargc() == 1) then
+         call getarg(1, inputfile)
+      else
+          stop 'Usage: $gggpath/bin/apply_insitu_correction adafile'
+      endif
       li=lnbc(inputfile)
       if(inputfile(li-3:li).ne.'.ada') write(*,*)
      & 'Warning: input file is not of expected type (.ada)'
@@ -94,8 +100,8 @@ c  and those in the .vav.ada file header
 
       read(lunr,*) ymiss
       write(lunw,*) ymiss
-      read(lunr,'(a)') input_fmt
-      write(lunw,'(a)') input_fmt
+      read(lunr,'(7x,a)') input_fmt
+      write(lunw,'(a)') 'format='//input_fmt
       read(lunr,'(a)') header
       write(lunw,'(a)') header(:lnbc(header))
       if (index(header,'spectrum') .gt. 0) specflag=1
@@ -109,7 +115,7 @@ c         write(*,*)kgas,icol,gasname(kgas),headarr(icol),aicf(kgas),cf(icol)
            if( headarr(icol) .eq. gasname(kgas) ) cf(icol)=aicf(kgas)
            if( headarr(icol) .eq. gaserr        ) cf(icol)=aicf(kgas)
          end do
-         if(icol.gt.naux+specflag) write(*,'(i4,a16,f8.3)')
+         if(icol.gt.naux+specflag) write(*,'(i4,1x,a16,1x,f9.4)')
      &   icol,headarr(icol),cf(icol)
       end do
 

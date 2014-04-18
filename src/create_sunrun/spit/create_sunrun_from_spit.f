@@ -14,12 +14,12 @@ c
       integer*4 iy,im,id,hh,mm,ss,ms,pkl,prl,gfw,gbw,
      & fnbc,lnbc,fbc,ispe,iend,dtype,nsp,nip,dfr,
      & lr,lrt,ls,
-     & possp,istat,object
+     & possp,istat,object,lst
 c
       real*8 tins,pins,hins,tout,pout,hout,
      & wavtkr,oblat,oblon,obalt,lfl,hfl,foc,
-     & fsf,tcorr,nus,nue,lwn,sia,sis,aipl,
-     & fxv,lxv,apt,dur,vel,phr,res
+     & fsf,tcorr,nus,nue,lwn,sia,sis,vdc,aipl,
+     & fxv,lxv,apt,dur,vel,phr,res,lse,lsu
 c
       character
      & spfmt*2,
@@ -34,12 +34,19 @@ c
       write(6,*)'SUNRUN     Version 1.1.1    28-Nov-2007    GCT'
       col1=' '
 c
-      get_ggg_environment(gggdir, dl)
+      call get_ggg_environment(gggdir, dl)
       lrt=lnbc(gggdir)       !Length of root
       lr=0
       do while(lr.eq.0)
-         write(6,'(a)') 'Enter name of input file (e.g. pa2004.gnd): '
-         read(*,'(a)') logfile
+         if (iargc() == 0) then
+            write(6,'(a)') 'Enter name of input file (e.g. pa2004.gnd):'
+            read(*,'(a)') logfile
+         elseif (iargc() == 1) then
+            call getarg(1, logfile)
+         else
+            stop 'Usage: $gggpath/bin/create_sunrun pa2004.gnd'
+         endif
+
          lr=lnbc(logfile)
       end do
       ext(1:1)=logfile(lr-2:lr-2)
@@ -97,7 +104,7 @@ c  find the spectral file, return the PATH to the spectrum
        call read_opus_header(path,iend,dtype,nsp,fxv,lxv,iy,im,
      &  id,hh,mm,ss,ms,apt,dur,vel,apf,phr,res,lwn,foc,nip,dfr,
      &  pkl,prl,gfw,gbw,lfl,hfl,possp,oblat,oblon,obalt,
-     &  tins,pins,hins,tout,pout,hout,sia,sis)
+     &  tins,pins,hins,tout,pout,hout,sia,sis,vdc,lst,lse,lsu)
 
          call write_sunrun(lunt,col1,specname,object,tcorr,oblat,
      &   oblon,obalt,tins,pins,hins,tout,pout,hout,nus,nue,fsf,

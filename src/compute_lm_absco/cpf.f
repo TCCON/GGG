@@ -1,35 +1,35 @@
 C*********************************************************************
       Subroutine CPF(X,Y,WR,WI)
 C*********************************************************************
-C	"CPF": Complex Probability Function
-C	.................................................
-C	.	Subroutine to Compute the Complex           .
-C	.	Probability Function W(z=X+iY)              .
-C	.	W(z)=exp(-z**2)*Erfc(-i*z) with Y>=0        .
-C	.	Which Appears when Convoluting a Complex    .
-C	.	Lorentzian Profile by a Gaussian Shape      .
-C	.................................................
+C   "CPF": Complex Probability Function
+C.................................................
+C   Subroutine to Compute the Complex           .
+C   Probability Function W(z=X+iY)              .
+C   W(z)=exp(-z**2)*Erfc(-i*z) with Y>=0        .
+C   Which Appears when Convoluting a Complex    .
+C   Lorentzian Profile by a Gaussian Shape      .
+C.................................................
 C
-C	WR	 : Real Part of W(z)
-C	WI	 : Imaginary Part of W(z)
+C   WR	 : Real Part of W(z)
+C   WI	 : Imaginary Part of W(z)
 C
-C	This Routine was Taken from the Paper by J. Humlicek, which 
-C	is Available in Page 309 of Volume 21 of the 1979 Issue of
-C	the Journal of Quantitative Spectroscopy and Radiative Transfer
-C	Please Refer to this Paper for More Information
+C   This Routine was Taken from the Paper by J. Humlicek, which 
+C   is Available in Page 309 of Volume 21 of the 1979 Issue of
+C   the Journal of Quantitative Spectroscopy and Radiative Transfer
+C   Please Refer to this Paper for More Information
 C
-C	Accessed Files:  None
-C	--------------
+C   Accessed Files:  None
+C--------------
 C
-C	Called Routines: None                               
-C	---------------                                 
+C   Called Routines: None                               
+C---------------                                 
 C
-C	Called By: 'CompAbs' (COMPute ABSorpton)
-C	---------
+C   Called By: 'CompAbs' (COMPute ABSorpton)
+C---------
 C
-C	Double Precision Version
+C   Double Precision Version
 C
-C	J.-M. Hartmann, last change 06 March 1997
+C   J.-M. Hartmann, last change 06 March 1997
 C*********************************************************************
 C      
       Implicit None

@@ -72,91 +72,102 @@ c
       implicit none
       include "../ggg_int_params.f"
       
-      integer*4 lunr,luns,lunw,mmp,nmp,imp,mfp,nntgfp,j,
+      integer*4 lunr_pd,lunr_col,lunw_wtf,lunw_aks,mmp,nmp,imp,mfp,j,
      & ntg,itg,nlev,ilev,nfp,fbc,fnbc,lnbc,lf,i,ispe,nlhead
-      parameter (lunr=12,luns=13,lunw=14,mmp=32000,mfp=10,
-     & nntgfp=5)
+      parameter (lunr_pd=12,lunr_col=13,lunw_wtf=14,lunw_aks=15,
+     & mmp=32000,mfp=10)
       integer*4 krank,ip(mfp)
       real*4 a(mmp,mfp),b(mmp,mlev),work(mfp),rnorm(mlev),
      & tau,psc(mlev),pres(mlev),ps,pwas,tsc,
-     & ak1,ak2,ak,akwas,tak,tb
+     & ak1,ak2,ak,akwas,tak,tb,kwtf
       character colfile*128,filename*128,akpath*128,spectrum*80,
      & version*60
 
-      version=' avg_ker   Version 1.2.1    2011-01-05   GCT'
+      version=' avg_ker   Version 1.31     2014-02-06   GCT'
 
       tau=1.e-7
+      kwtf=1   ! Write out the .wtf file
+      kwtf=0   ! Do not write out the .wtf file
 
 c  Find out what window the AK's are to be calculated for.
       write(*,*) version
-      write(*,*)'Enter name of most recent .col file'
-      read(*,'(a)') colfile
-      open(luns,file=colfile,status='old')
-      read(luns,*) nlhead
+      if (iargc() == 0) then
+         write(*,*)'Enter name of most recent .col file'
+         read(*,'(a)') colfile
+      elseif (iargc() == 1) then
+         call getarg(1, colfile)
+      else
+         stop 'Usage: $gggpath/bin/avg_ker colfile'
+      endif
+      open(lunr_col,file=colfile,status='old')
+      read(lunr_col,*) nlhead
       do i=2,nlhead-5
-         read(luns,'(34x,a)') akpath
+         read(lunr_col,'(34x,a)') akpath
       end do
       do i=nlhead-4,nlhead
-         read(luns,*)
+         read(lunr_col,*)
       end do
 
       write(*,*)'   Spectrum Path/Name              '//
      &'         p-averaged AK   c-averaged AK'
 c  Main loop over spectra.
       do ispe=1,99999
-      read(luns,'(a)',end=99) spectrum
+      read(lunr_col,'(a)',end=99) spectrum
       filename=akpath(:lnbc(akpath))//spectrum(fnbc(spectrum):)
       lf=fbc(filename)-1
 c
 c  Read total column partial differentials
-      open (lunr, file=filename(:lf), status='old')
-      read(lunr,*)nmp,ntg
+      open (lunr_pd, file=filename(:lf), status='old')
+      read(lunr_pd,*)nmp,ntg,nfp
       if(nmp.gt.mmp) then
          write(*,*)'NMP, MMP = ',nmp,mmp
          stop 'increase MMP'
       endif
-      nfp=ntg+nntgfp
       if(nfp.gt.mfp) stop 'increase MFP'
-      do itg=1,ntg
-         read(lunr,*) (a(imp,itg),imp=1,nmp)
+      do itg=1,ntg           ! Target Gas PDs
+         read(lunr_pd,*) (a(imp,itg),imp=1,nmp)
       end do
 c
 c  Read single-level partial differentials of first target gas.
-      read(lunr,*)nmp,nlev
+      read(lunr_pd,*)nmp,nlev
       if(nmp.gt.mmp) stop 'increase MMP'
       if(nlev.gt.mlev) stop 'increase MLEV'
       do ilev=1,nlev
-         read(lunr,*) (b(imp,ilev),imp=1,nmp) ! Single-Level PDs of First Target gas
+         read(lunr_pd,*) (b(imp,ilev),imp=1,nmp) ! Single-Level PDs of First Target gas
       end do
 c
-      do j=1,nntgfp
-         read(lunr,*) (a(imp,ntg+j),imp=1,nmp)  ! CL partial differential
-c     read(lunr,*) (a(imp,ntg+2),imp=1,nmp)  ! CT partial differential
-c     read(lunr,*) (a(imp,ntg+3),imp=1,nmp)  ! CC partial differential
-c     read(lunr,*) (a(imp,ntg+4),imp=1,nmp)  ! FS partial differential
-c     read(lunr,*) (a(imp,ntg+5),imp=1,nmp)  ! ZO partial differential
+      do j=ntg+1,nfp
+         read(lunr_pd,*) (a(imp,j),imp=1,nmp)  !  Cl, CT, CC, FS, ZO partial differential
       enddo
-      read(lunr,*) (psc(ilev),ilev=1,nlev)   ! partial slant columns
-      read(lunr,*)  ps                       ! surface pressure (atm)
-      read(lunr,*) (pres(ilev),ilev=1,nlev)  ! pressure
-      close(lunr)
+c     read(lunr_pd,*) (a(imp,ntg+1),imp=1,nmp)  ! CL partial differential
+c     read(lunr_pd,*) (a(imp,ntg+2),imp=1,nmp)  ! CT partial differential
+c     read(lunr_pd,*) (a(imp,ntg+3),imp=1,nmp)  ! CC partial differential
+c     read(lunr_pd,*) (a(imp,ntg+4),imp=1,nmp)  ! FS partial differential
+c     read(lunr_pd,*) (a(imp,ntg+5),imp=1,nmp)  ! ZO partial differential
+      read(lunr_pd,*) (psc(ilev),ilev=1,nlev)   ! partial slant columns
+      read(lunr_pd,*)  ps                       ! surface pressure (atm)
+      read(lunr_pd,*) (pres(ilev),ilev=1,nlev)  ! pressure
+      close(lunr_pd,status='delete')
       call vdot(psc,1,1.0,0,tsc,nlev)        ! total slant column
 c
 c  Write out the PD's in a form that can be easily plotted (e.g. xyplot)
 c  This is for trouble-shooting/illustrative purposes only.
-      open(lunw,file=filename(:lf)//'.wtf', status='unknown')
-      write(lunw,*)2,1+nfp+nlev
-      write(lunw,'(a22,999(9x,a1,i2.2))')
-     & 'i  CL  CT  CC  FS  ZO ',
+      if (kwtf.gt.0) then
+      open(lunw_wtf,file=filename(:lf)//'.wtf', status='unknown')
+      write(lunw_wtf,*)2,1+nfp+nlev
+      write(lunw_wtf,'(a4,999(9x,a1,i2.2))')
+     & ' i  ',
+     & ('C',j,j=1,nfp-ntg),
      & ('T',itg,itg=1,ntg),
      & ('S',ilev,ilev=0,nlev-1)
       do imp=1,nmp
-         write(lunw,'(i5,999(1pe12.4))') imp,
-     &    (a(imp,itg),itg=ntg+1,ntg+nntgfp),  ! CL, CT, CC, FS, ZO
+         write(lunw_wtf,'(i5,999(1pe12.4))') imp,
+     &    (a(imp,itg),itg=ntg+1,nfp),  ! CL, CT, CC, FS, ZO
      &    (a(imp,itg),itg=1,ntg),
      &    (b(imp,ilev),ilev=1,nlev)
       end do
-      close(lunw)
+      close(lunw_wtf)
+      endif
 
 c  Solve the equation A.x=b
       call shfti(a,mmp,nmp,nfp,b,mmp,nlev,tau,krank,rnorm,work,ip)
@@ -164,10 +175,10 @@ c  Solve the equation A.x=b
 c
 c  Write out the Averaging Kernels.
 c  Also, calculate the pressure- and density-weighted kernels.
-      open(lunw,file=filename(:lf)//'.aks', status='unknown')
-      write(lunw,*)3,3
-      write(lunw,*) version
-      write(lunw,*)  'Level   AK   Pressure_(atm)'
+      open(lunw_aks,file=filename(:lf)//'.aks', status='unknown')
+      write(lunw_aks,*)3,3
+      write(lunw_aks,*) version
+      write(lunw_aks,*)  'Level   AK   Pressure_(atm)'
       ak1=b(1,1)*tsc/psc(1)
       ak2=b(1,2)*tsc/psc(2)
 c FIX ME: the following line assumes that Ps lies between p(1) and p(2)
@@ -178,17 +189,17 @@ c FIX ME: the following line assumes that Ps lies between p(1) and p(2)
       do ilev=1,nlev
          tb=tb+b(1,ilev)
          ak=b(1,ilev)*tsc/psc(ilev)
-         write(lunw,*)ilev-1,ak,pres(ilev)
+         write(lunw_aks,*)ilev-1,ak,pres(ilev)
          tak=tak+0.5*(ak+akwas)*(pwas-pres(ilev))
          akwas=ak
          pwas=pres(ilev)
       end do
-      close(lunw)
+      close(lunw_aks)
 c      write(*,'(a,f9.6)')filename(:lf),tak/pres(1)
       write(*,'(a,2f15.5)')filename(:lf),tak/ps,tb
       end do ! ispe=1,999999
       write(*,*) 'Warning: Loop limit exceeded'
-99    close(luns)
+99    close(lunr_col)
       write(*,*)'Number of Measured Points =',nmp
       write(*,*)'Number of Target Gases    =',ntg
       write(*,*)'Number of Model Levels    =',nlev

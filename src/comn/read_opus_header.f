@@ -1,7 +1,8 @@
       subroutine read_opus_header(path,iend,dtype,nsp,fxv,lxv,iy,im,
      & id,hh,mm,ss,ms,apt,dur,vel,apf,phr,res,lwn,foc,nip,dfr,
      & pkl,prl,gfw,gbw,lfl,hfl,possp,oblat,oblon,obalt,
-     & tins,pins,hins,tout,pout,hout,wspd,wdir,sia,sis)
+     & tins,pins,hins,tout,pout,hout,wspd,wdir,sia,sis,vdc,
+     & lst,lse,lsu)
 c
 c  Subroutine to extract information from OPUS headers.
 c
@@ -37,6 +38,23 @@ c       gbw,   I*4  ! Number of Good BackWard scans
 c       lfl,   R*8  ! Low Folding Limit (cm-1)
 c       hfl,   R*8  ! High Folding Limit (cm-1)
 c       possp  I*4  ! Position Of Starting Spectral Point (bytes)
+c       oblat  R*8  ! Latitude of observing location (degrees N)
+c       oblon  R*8  ! longitude of observing location (degrees E)
+c       obalt  R*8  ! Altitude of observation (km)
+c       tins   R*8  ! Internal temperature of spectrometer (°C) 
+c       pins   R*8  ! Internal pressure of spectrometer (hPa)
+c       hins   R*8  ! Internal humidity of spectrometer (%)
+c       tout   R*8  ! External temperature of spectrometer (°C) 
+c       pout   R*8  ! External pressure of spectrometer (hPa)
+c       hout   R*8  ! External humidity of spectrometer (%)
+c       wspd   R*8  ! Wind speed (m/s)
+c       wdir   R*8  ! Wind direction (deg clockwise of N)
+c       sia    R*8  ! Average amplitude of solar tracker intensity
+c       sis    R*8  ! Standard deviation of solar tracker intensity
+c       vdc    R*8  ! Variation in DC intensity of igm (relative)
+c       lst    I*4  ! The type of LSE correction applied (2=Si)
+c       lse    R*8  ! The laser sampling error (shift)
+c       lsu    R*8  ! The laser sampling error uncertainty
 c
       implicit none
       character path*(*),apf*2,cval*36,instname*7
@@ -48,9 +66,9 @@ c
       integer*4 nsp,iy,im,id,hh,mm,ss,ms,nip,pkl,prl,possp,i4val,lc,lnbc
       real*8 fxv,lxv,vel,phr,res,apt,lwn,foc,dur,r8val,sia,sis,lfl,hfl,
      & velocity(10),oblat,oblon,obalt,tins,pins,hins,tout,pout,hout,
-     & wspd,wdir
+     & wspd,wdir,vdc,lse,lsu
       integer*4 i,ndb,mdb,magic,prog,ip,ivel,ldot,btype,bpointer,
-     & itype(mc),ilen(mc),ipoint(mc),reclen,dfr,gfw,gbw
+     & itype(mc),ilen(mc),ipoint(mc),reclen,dfr,gfw,gbw,lst
 
 c----------------------------------------------------------
       equivalence (i2val,i4val,r8val,cval)
@@ -100,6 +118,10 @@ c  and therefore not set inside rdopushead.
         prl=0
         nip=0
         dfr=1
+        vdc=0.d0    ! 2013/07/17 NMD
+        lst=0  
+        lse=0.d0
+        lsu=0.d0 
         reclen=2
         open(luns,file=path,form='unformatted',status='old',
      &  access='direct',recl=reclen)
@@ -208,6 +230,14 @@ c            write(*,*) 'rs, VEL=',rs,' ',cval(:4),vel
              if(rs.gt.0) apf=cval(:2)
              call getopusparval(luns,bpointer,'PHR',iend,mrs,i2val,rs)
              if(rs.eq.4) phr=r8val
+             call getopusparval(luns,bpointer,'VDC',iend,mrs,i2val,rs)
+             if(rs.eq.4) vdc=r8val
+             call getopusparval(luns,bpointer,'LST',iend,mrs,i2val,rs)
+             if(rs.eq.2) lst=i4val
+             call getopusparval(luns,bpointer,'LSE',iend,mrs,i2val,rs)
+             if(rs.eq.4) lse=r8val
+             call getopusparval(luns,bpointer,'LSU',iend,mrs,i2val,rs)
+             if(rs.eq.4) lsu=r8val
           elseif(btype.eq.48) then  !  AQPAR block
              call getopusparval(luns,bpointer,'RES',iend,mrs,i2val,rs)
              if(rs.eq.4) res=r8val

@@ -47,6 +47,8 @@ c
      & inh2ovmr(minlvl),inheight(minlvl) !temp storage
       real*8 ztrop_ncep,ptrop_ncep,fr,ztrop_gct,lr,lrwas,zlr,zlrwas
 c
+      lr=0.0d0 ! avoid compiler warning (may be used uninitialized)
+      zlr=0.0d0 ! avoid compiler warning (may be used uninitialized)
 c      write(*,'(a,a)')' readmodFC: modname = ',modname
       radius=6378.137  ! Equatorial radius (km)
       ztrop_gct=0.0  ! initial values
@@ -256,7 +258,7 @@ c           write(*,*)'p(k)=', p(k),told,tnew,hk,hold,hnew,gas,w(k),gs,x
 c       write(*,*)zold,pold,told,z(k),t(k),p(k),h2ovmr(k)
       end do
 
-c  Convert NCEP tropopause pressure to altitude
+c  Convert NCEP tropopause pressure to geometric altitude
       if(ptrop_ncep.gt.0 .and. nlev.gt.1) then
          do k=2,nlev                ! loop over levels
            if(p(k).lt.ptrop_ncep/pfact) exit

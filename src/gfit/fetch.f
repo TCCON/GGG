@@ -18,7 +18,7 @@ c  Data is assumed IEEE binary, except bytepw=5,7,9 which is assumed ASCII.
       character specpath*(*),rformat*12
       byte bdum(4),bb
       INTEGER*2 i2dum
-      REAL*4 buf(npts),r4dum,freq,tm
+      REAL*4 buf(npts),r4dum,freq,fwas,tm
       integer*4 iscale    !DG000909
       real*4 xscale,simag
 c
@@ -38,6 +38,7 @@ c
 c     bytepw=+/-3 indicates Grams I*4 format spectra
 c
       if(iabs(bytepw).eq.+4) then         !  R*4
+c         write(*,*)'iskip,npts=',iskip,npts
          open(19,file=specpath,access='direct',status='old',
      &   recl=iskip+4*npts,form=rformat)
          read(19,rec=1) (bb,j=1,iskip),(buf(j),j=1,npts)
@@ -107,21 +108,27 @@ c            write(*,*) freq,buf(jpts)
 c
 c  The spectral signal is in the second column and there's a header
       elseif(bytepw.eq.9) then 
+         fwas=0.0
          open(19,file=specpath,status='old')
          read(19,*) nlhead, ncol
          call skiprec(19,nlhead-1+iskip/9)  !  Skip header & unwanted data
          do jpts=1,npts  !
             read(19,*)freq,buf(jpts)  ! read wanted data
+            if(freq.le.fwas) write(*,*) 'Warning: FETCH',fwas,freq
+            fwas=freq
          end do
 c
 c  The spectral signal is in the second column but there's no header
       elseif(bytepw.eq.10) then 
          nlhead=0
+         fwas=0.0
          open(19,file=specpath,status='old')
 c         read(19,*) nlhead, ncol
-         call skiprec(19,nlhead-1+iskip/9)  !  Skip header & unwanted data
+         call skiprec(19,nlhead-1+iskip/10)  !  Skip header & unwanted data
          do jpts=1,npts  !
             read(19,*)freq,buf(jpts)  ! read wanted data
+            if(freq.le.fwas) write(*,*) 'Warning: FETCH',fwas,freq
+            fwas=freq
 c            write(*,*) freq,buf(jpts)
 c            if(jpts.eq.1) write(*,*)freq,buf(jpts)
 c            if(jpts.eq.npts) write(*,*)freq,buf(npts)

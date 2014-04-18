@@ -11,21 +11,22 @@ c  and are treated as such in the averaging_with XXX_bias subroutines
       include "../ggg_int_params.f"
 
       integer irow,jj,k,lnbc,mlabel,mval,navg,iav,lr,
-     & lunr_xsw,lunw_xav,lunw_outlier,lunw_cew,mwin,nwin,iwin,ngas,kgas,
+     & lunr_xsw,lunw_xav,lunw_outlier,lunw_cew,lunw_rpt,
+     & mwin,nwin,iwin,ngas,kgas,
      & mrow,
-     & nauxcol,nlhead,mgas,ncol,jcol,icol,cwas,jav,
-     & nrow,nss,locnaux,loc,lwas
+     & nauxcol,nlhead,ncol,jcol,icol,cwas,jav,
+     & nrow,nss,loc_,loc,lwas
       parameter (lunr_xsw=51)      ! input file (.xsw)
       parameter (lunw_xav=54)      ! output file (.xav)
       parameter (lunw_cew=56)      ! wincomp file (.cew)
+      parameter (lunw_rpt=57)      ! averages file (.rpt)
       parameter (lunw_outlier=58)  ! outlier file (.outlier)
-      parameter (mgas=80)          ! Max number of gases
       parameter (mwin=600)         ! Total number of columns/windows
-      parameter (mrow=240000)      ! Max number of output records/spectra
-      parameter (mval=12000000)    ! Max number of values (NROW * NCOL)
+      parameter (mrow=360000)      ! Max number of output records/spectra
+      parameter (mval=20000000)    ! Max number of values (NROW * NCOL)
       parameter (mlabel=18000)     ! Max Number of column lable characters
 
-      integer avindx(mgas+1), spectrum_flag
+      integer avindx(mgas+1), spectrum_flag,ntot(mgas)
       character
      & version*64,
      & gfit_version*64,
@@ -36,14 +37,14 @@ c  and are treated as such in the averaging_with XXX_bias subroutines
      & collabel*(mlabel),
      & sign(mrow)*1,
      & ftype*1,
-     & clab(2*mwin+mauxcol)*17,
+     & clab(2*mwin+mauxcol)*24,
      & spectrum(mrow)*57, 
      & avlabel(mgas+1)*8,
      & data_fmt*40,
      & input_fmt*40,
      & output_fmt*40
 
-      real*8 year(mrow)
+      real*8 year(mrow),ty(mgas),t2(mgas),te(mgas),wt
 
       real*4
      & ymiss,rew(mrow),cew(mwin),tew,error_sigma,
@@ -53,14 +54,20 @@ c  and are treated as such in the averaging_with XXX_bias subroutines
      & bias(mwin),ebias(mwin)
 
       version=
-     &' average_results              Version 1.1.7   2011-07-09   GCT'
+     &' average_results              Version 1.21    2012-10-05   GCT'
       write(*,*) version
       spectrum_flag=0
       loc=0
 
-      write(*,'(a)')
-     & 'Enter name of .?sw file whose contents are to be averaged'
-      read(*,'(a)')swfile
+      if (iargc() == 0) then
+         write(*,'(a)')
+     &    'Enter name of .?sw file whose contents are to be averaged'
+          read(*,'(a)') swfile
+      elseif (iargc() == 1) then
+          call getarg(1, swfile)
+      else
+          stop 'Usage: $gggpath/bin/average_results xswfile'
+      endif
       lr=lnbc(swfile)
       avfile=swfile(:lr-2)//'av'
       ftype=swfile(lr-2:lr-2)
@@ -68,14 +75,14 @@ c  and are treated as such in the averaging_with XXX_bias subroutines
 c  Read the entire contents of the .xsw disk file
 
       open(lunr_xsw,file=swfile,status='old')
-      open(lunw_xav,file=avfile,status='unknown')
+c      open(lunw_xav,file=avfile,status='unknown')
       read(lunr_xsw,'(i2,i4,i7,i4)') nlhead,ncol,nrow,nauxcol
       if(nrow.gt.mrow) stop 'increase parameter mrow'
       read(lunr_xsw,'(a)') collate_version
       read(lunr_xsw,'(a)') gfit_version
       read(lunr_xsw,'(a)') gsetup_version
-      read(lunr_xsw,*) ymiss
-      read(lunr_xsw,'(a)') data_fmt
+      read(lunr_xsw,'(8x,e12.5)') ymiss
+      read(lunr_xsw,'(7x,a)') data_fmt
       read(lunr_xsw,'(a)') collabel
       if (index(collabel, 'spectrum') .gt. 0) spectrum_flag=1
       nwin=(ncol-nauxcol)/2
@@ -111,14 +118,21 @@ c      write(*,*) 'input format =  ',input_fmt
 c
       open(lunw_cew,file=avfile(:lr)//'.cew',status='unknown')
       write(lunw_cew,'(2i3)') 2,4
-      write(lunw_cew,'(a)')' Window     Mean_Col   Std_Dev   Chi2/N'
+      write(lunw_cew,'(a)')'  Window      Mean_Col   Std_Dev   Chi2/N'
 
       open(lunw_outlier,file=avfile(:lr)//'.outliers',status='unknown')
       call substr(collabel,clab,2*mwin+mauxcol,nss)
       if(nss.ne.ncol) stop 'NSS .NE. NCOL'
-      write(*,*)nrow,nwin,nss
-      locnaux=index(clab(nauxcol+1),'_')
-      locnaux=index(collabel,clab(nauxcol+1)(:locnaux-1))-1
+      write(*,*)'nrow=',nrow
+      write(*,*)'ncol=',ncol
+      write(*,*)'naux=',nauxcol
+      write(*,*)'nwin=',nwin
+      write(*,*)
+c
+c  Find location in collable of first _ (usually 'air_4444')
+c  beyond the auxiliary variables.
+      loc_=index(clab(nauxcol+1),'_')
+      loc_=index(collabel,clab(nauxcol+1)(:loc_-1))
       cwas=nauxcol-1
       icol=nauxcol+1
       lwas=1
@@ -140,9 +154,11 @@ c
       avindx(kgas)=iwin
       avlabel(kgas)=clab(icol)(:loc-1)
 
+      write(*,*) '        Col1        Col2        Nwin   Gas'
       do kgas=1,ngas
          navg=avindx(kgas+1)-avindx(kgas)
-         write(*,*)avindx(kgas),avindx(kgas+1)-1,navg,' '//avlabel(kgas)
+         write(*,*)avindx(kgas),avindx(kgas+1)-1,navg,
+     &   '   '//avlabel(kgas)
          jj=1+nrow*(avindx(kgas)-1)
          if(ftype.eq.'l' .or. ftype.eq.'v' .or. ftype.eq.'t') then
            call average_with_mul_bias(ymiss,nrow,navg,yobs(jj),yerr(jj),
@@ -191,7 +207,7 @@ c  the earlier stuff that has already been averaged.
 c
          if(navg.gt.1) then
          do iav=1,navg
-            write(lunw_cew,'(a10,3f10.5)')
+            write(lunw_cew,'(a12,3f10.5)')
      &      clab(nauxcol+2*(avindx(kgas)+iav-1)-1),
      &      bias(iav),ebias(iav)*sqrt(float(nrow)),cew(iav)
          end do
@@ -199,6 +215,8 @@ c
          endif
 
       end do   ! do kgas=1,ngas
+      close(lunw_outlier)
+      close(lunw_cew)
 
 c
       if (spectrum_flag .eq. 1) then
@@ -219,27 +237,53 @@ c  Write averaged values to file
       write(lunw_xav,'(a)') collate_version(:lnbc(collate_version))
       write(lunw_xav,'(a)') gfit_version(:lnbc(gfit_version))
       write(lunw_xav,'(a)') gsetup_version(:lnbc(gsetup_version))
-      write(lunw_xav,'(1pe12.4,a)') ymiss,'   ! missing value'
-      write(lunw_xav,'(a)') output_fmt
-      write(lunw_xav,'(a,60(a8,2x,a14))') collabel(:locnaux),
-     & (avlabel(kgas)(:lnbc(avlabel(kgas))),
+      write(lunw_xav,'(a8,1pe12.4,a)') 'missing:',ymiss
+      write(lunw_xav,'(a)') 'format='//output_fmt
+      write(lunw_xav,'(a,4x,60(2x,a8,a14))') collabel(:loc_-4),
+     & (avlabel(kgas),
      &  avlabel(kgas)(:lnbc(avlabel(kgas)))//'_error',kgas=1,ngas)
-      do irow=1,nrow
-        if (spectrum_flag .eq. 1) then   ! Spectrum names are included
-           write(lunw_xav,output_fmt)
-     &     spectrum(irow),sign(irow),year(irow),
-     &     (yaux(k,irow),k=3,nauxcol),
-     &     (yobs(irow+nrow*(k-1)),yerr(irow+nrow*(k-1)),k=1,ngas)
-        else
-c           write(lunw_xav,'(a1,f13.8,22f13.5,200(1pe12.4))')
-           write(lunw_xav,output_fmt)
-     &     sign(irow),year(irow),
-     &     (yaux(k,irow),k=2,nauxcol),
-     &     (yobs(irow+nrow*(k-1)),yerr(irow+nrow*(k-1)),k=1,ngas)
-        endif
+      do k=1,ngas
+         ty(k)=0.0d0
+         t2(k)=0.0d0
+         te(k)=0.0d0
+         ntot(k)=0
       end do
+      do irow=1,nrow
+         if (spectrum_flag .eq. 1) then   ! Spectrum names are included
+            write(lunw_xav,output_fmt)
+     &      spectrum(irow),sign(irow),year(irow),
+     &      (yaux(k,irow),k=3,nauxcol),
+     &      (yobs(irow+nrow*(k-1)),yerr(irow+nrow*(k-1)),k=1,ngas)
+         else
+c            write(lunw_xav,'(a1,f13.8,22f13.5,200(1pe12.4))')
+            write(lunw_xav,output_fmt)
+     &      sign(irow),year(irow),
+     &      (yaux(k,irow),k=2,nauxcol),
+     &      (yobs(irow+nrow*(k-1)),yerr(irow+nrow*(k-1)),k=1,ngas)
+         endif
+         do k=1,ngas
+           if( yerr(irow+nrow*(k-1)).gt.1.0E-36) then
+           wt=(1.0d0/yerr(irow+nrow*(k-1)))**2
+           ty(k)=ty(k)+wt*yobs(irow+nrow*(k-1))
+           t2(k)=t2(k)+wt*(dble(yobs(irow+nrow*(k-1))))**2
+           te(k)=te(k)+wt
+           ntot(k)=ntot(k)+1
+           endif
+c        write(*,*)irow,k,yobs(irow+nrow*(k-1)),yerr(irow+nrow*(k-1)),wt
+         end do
+      end do  ! do irow=1,nrow
       close(lunw_xav)
-      close(lunw_cew)
-      close(lunw_outlier)
+c
+c  Write means for each gas and their standard errors and std deviations.
+      open(lunw_rpt,file='average_results.rpt',status='unknown')
+      write(lunw_rpt,*) '  k   ntot   gas         ybar       sterr
+     &  stdev       Chi-2/N'
+      do kgas=1,ngas
+       write(lunw_rpt,'(i4,i8,2x,a,3(1pe12.4),0pf10.2)')kgas,ntot(kgas),
+     &  avlabel(kgas), ty(kgas)/te(kgas),sqrt(ntot(kgas)/te(kgas)),
+     & sqrt(t2(kgas)/te(kgas)-(ty(kgas)/te(kgas))**2),
+     & sqrt(t2(kgas)/ntot(kgas)-ty(kgas)**2/te(kgas)/ntot(kgas))
+      end do
+      close(lunw_rpt)
       stop
       end

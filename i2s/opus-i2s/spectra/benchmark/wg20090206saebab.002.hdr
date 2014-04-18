@@ -1,0 +1,88 @@
+Type 0 [unknown:52] offset 24 length 96
+Instrument Parameters 
+  DUR: 72.53845
+  PKA: 6409
+  PKL: 28677
+  PRA: 6428
+  PRL: 1422090
+  HFL: 15798.022
+  LFL: 0
+  LWN: 15798.022
+  SSP: 1
+  SSM: 1
+  INS: IFS125 HR
+  FOC: 418
+  ASS: 1
+  GFW: 0
+  GBW: 1
+  BFW: 0
+  BBW: 0
+  RSN: 27322
+  HFF: 15798.022
+  LFF: 0
+  HUM: 0
+  TLP: 21.7
+  PIM: 2.044
+  TSC: 21.7
+  END: 
+Acquisition Parameters 
+  AQM: SD
+  SGN: 1
+  RES: 0.0199962306183153
+  OPL: 45.0084827075187
+  OPS: 0.907676923098347
+  NSS: 1
+  END: 
+FT Parameters 
+  APF: BX
+  PHR: 55.53992109375
+  SVF: 6000
+  PCL: 1024
+  PCT: 0.02
+  ZFF: 2
+  ZPL: 28678
+  SCF: 2
+  DCL: 0.126634090497538
+  ZPA: 0.0715199410915375
+  VER: 20140302
+  VDC: 0.0111503638327122
+  LST: 2
+  LSE: 0.000411838729633018
+  LSU: 0.000249983335379511
+  END: 
+Optic Parameters 
+  SRC: Sun Tracker
+  APT: 1.0 mm
+  FOV: 2.39234449760766
+  BMS: CaF2
+  VEL: 10.0 kHz
+  DTC: Si + InGaAs  DC [Internal Pos.1]
+  HPF: 0
+  LPF: 10.0
+  END: 
+Sample Parameters 
+  SFM: Solar
+  LAT: -34.4061
+  LON: 150.8793
+  ALT: 30
+  TOU: 20.6
+  POU: 1004.2
+  HOU: 0
+  SIA: 2190
+  SIS: 16.206
+  WSA: 0
+  WDA: 0
+  END: 
+Data Parameters SpSm
+  DPF: 1
+  NPT: 769674
+  FXV: 10000.0031702595
+  LXV: 15798.0144669161
+  CSF: 1
+  MXY: 0.0555387102067471
+  MNY: -0.00523657537996769
+  DXU: WN
+  DAT: 06/02/2009
+  TIM: 06:42:14.650 (UTC+0)
+  END: 
+Data Block SpSm length 769674

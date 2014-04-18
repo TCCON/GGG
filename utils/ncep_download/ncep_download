@@ -100,7 +100,7 @@ if [ -n "${SITE_LAT}" -a -n "${SITE_LON}" ]; then
 	echo -e "${SITE_LAT} ${SITE_LON}\t; Latitude/Longitude"
 fi
 
-for par in AT GH TP SH
+for par in AT GH SH
 do
 	# set variable-dependent parameters
 	case $par in
@@ -113,11 +113,6 @@ do
 			dataset="NCEP+Reanalysis+Pressure+Level"
 			variable="Geopotential+Height"
 			levels=${std_plvl}
-			;;
-		TP)
-			dataset="NCEP+Reanalysis+Tropopause+Level"
-			variable="Pressure"
-			levels="&dim0=time"
 			;;
 		SH)
 			dataset="NCEP+Reanalysis+Pressure+Level"

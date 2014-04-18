@@ -13,11 +13,17 @@ c    CALC_AOA  R*8  Calculated Age for Air
 
 
       implicit none
-      real*8 alat,zobs,ztrop,aa
+      real*8 alat,zobs,ztrop,fl
 
-      aa=alat/21
-      calc_aoa=0.320-0.085*exp(-((alat-46)/19)**2)
-     & -0.27*exp(-1.60*zobs/(zobs+ztrop))*aa/sqrt(1+aa**2)
-      if(zobs.gt.ztrop) calc_aoa=calc_aoa+5.5*(zobs-ztrop)/zobs
+c      fl=alat/21
+c      calc_aoa=0.320-0.085*exp(-((alat-46)/19)**2)
+c     & -0.27*exp(-1.60*zobs/(zobs+ztrop))*fl/sqrt(1+fl**2)
+c      if(zobs.gt.ztrop) calc_aoa=calc_aoa+5.5*(zobs-ztrop)/zobs
+
+       fl=alat/22
+       calc_aoa=0.313-0.085*exp(-((alat-49)/18)**2)
+     & -0.268*exp(-1.42*zobs/(zobs+ztrop))*fl/sqrt(1+fl**2)
+       if(zobs.gt.ztrop) calc_aoa=calc_aoa+7.0*(zobs-ztrop)/zobs
+
       return
       end

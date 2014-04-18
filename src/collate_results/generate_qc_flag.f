@@ -8,7 +8,7 @@
       character spectrum(nrow)*38   ! runlog spectrum names intent in
 
       integer i,i1,idot,icol,jtg,k,ktg,mcol,lunm,lunc,nit,nss,
-     & mit, l2,l3,l4, fnbc, fbc, nlhead, date(nrow), selday,
+     & mit, l2,l3,l4, lnbc, fnbc, fbc, nlhead, date(nrow), selday,
      & istart, istop, j, jj  
       parameter (lunm=11)      ! multiggg.sh
       parameter (lunc=14)      ! .col file
@@ -38,7 +38,8 @@ c Find the o2_7885 col file in multiggg.sh
       do icol=1,mcol     !  main loop (over windows)
 135     read(lunm,'(a)') tabel
         if(tabel(1:1).eq.':') go to 135
-        colfile=tabel(index(tabel,'<')+1:index(tabel,'.ggg'))//'col'
+        if(lnbc(tabel).le.0) go to 135  ! non-blank line
+        colfile=tabel(index(tabel,' ')+1:index(tabel,'.ggg'))//'col'
         idot=index(colfile,'.')
         i1=index(colfile(:idot),'_')
         if(i1.eq.0) i1=index(colfile(:idot),'^')   !  new format

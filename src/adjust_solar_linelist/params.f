@@ -13,5 +13,5 @@
 
       integer*4
      & mmp
-      parameter(mmp=120000)
+      parameter(mmp=145000)
 

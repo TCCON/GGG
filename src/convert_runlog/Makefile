@@ -7,10 +7,15 @@ COMN = $(GGGPATH)/src/comn
 
 SOURCES := \
  $(TSRC)/$(TARGET).f \
- $(COMN)/read_runlog.f \
- $(COMN)/write_runlog.f \
+ $(COMN)/read_runlog_data_record.f \
+ $(COMN)/read_runlog_header.f \
+ $(COMN)/write_runlog_header.f \
+ $(COMN)/write_runlog_data_record.f \
  $(COMN)/wlimit.f \
- $(COMN)/lnbc.f
+ $(COMN)/substr.f \
+ $(COMN)/lnbc.f \
+ $(COMN)/fnbc.f \
+ $(COMN)/fbc.f
 
 OBJECTS := $(patsubst %.f, %.o, $(SOURCES))
 

@@ -9,6 +9,7 @@ SOURCES := \
   $(TSRC)/$(TARGET).f \
   $(COMN)/lnbc.f \
   $(COMN)/lloc.f \
+  $(COMN)/read_isotop.f \
   $(COMN)/hitran_to_atmos_gas_numbering.f \
   $(COMN)/file_size_in_bytes.f \
   $(COMN)/posnall.f \

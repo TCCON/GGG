@@ -1,5 +1,5 @@
-         subroutine rravgcom(mode,nus,nue,lun_rlg,lun_wav,lun_rpt,
-     &   ntype,jtype,nspe,krec,istat)
+         subroutine rravgcom(mode,nus,nue,lunr_ss_rl,lunw_av_rl,lun_rpt,
+     &   data_fmt_read_rl,data_fmt_write_rl,ntype,jtype,nspe,krec,istat)
 
 c  Reads the runlog-format input file from the current position down
 c  to the next "average" marker.
@@ -32,10 +32,10 @@ c----------------------------------------------------------
 
       integer*4
      & mode,        ! What to do with the spectra: average or compare
-     & lun_rlg,     ! LUN to read input runlogs from
+     & lunr_ss_rl,     ! LUN to read input runlogs from
      & lun_rbs,     ! LUN to read binary spectra from
      & lun_wbs,     ! LUN to write binary spectra to
-     & lun_wav,     ! LUN to write average runlog
+     & lunw_av_rl,     ! LUN to write average runlog
      & lun_rpt,     ! lun_rpt+jtype = LUN of file to write rms deviations
      & nmax,        ! maximum buffer size in bytes
      & iabpw,       ! absolute values of the bytes per word
@@ -60,6 +60,7 @@ c----------------------------------------------------------
 
       character 
      & cdum*1,
+     & data_fmt_read_rl*256,data_fmt_write_rl*256,
      & specpath*120,strl*512
 
       integer*4
@@ -77,46 +78,46 @@ c----------------------------------------------------------
       real*8 tiyrrl,tidoy,tbytepw,taa,tad,tdd,del,d2r,
      & ttotp, taltd, tpout, ttout, thout, tpott, tsoze, tsfct,
      & tspwn, tpspv, tfovr, tzpdtim, talat, talon, tstnr, trzero,
-     & toblat, oblat,        ! observation latitude (deg).
-     & toblon, oblon,        ! observation longitude (deg)
-     & tobalt, obalt,        ! observation altitude (km)
-     & tasza,  asza,         ! astronomical solar zenith angle (unrefracted)
-     & tazim,  azim,         ! solar azimuth angle (deg)
-     & tosds,  osds,         ! observer-sun doppler stretch (ppm)
-     & topd,   opd,          ! Optical path difference (cm) of interferogram
-     & tgraw,  graw,         ! spacing of raw spectrum (cm-1) from GETINFO
-     & tzpdtimrl,zpdtimrl,   ! Time of ZPD (UT hours)
-     & tzenoff,zenoff,       ! Zenith angle pointing offset (deg)
-     & tfovi,  fovi,         ! Internal angular diameter of FOV (radians)
-     & tfovo,  fovo,         ! External angular diameter of FOV (radians)
-     & tamal,  amal,         ! angular misalignment of interferometer (radians)
-     & tzoff,  zoff,         ! Zero level offset (dimensionless fraction)
-     & tsnr,   snr,          ! Signal-to-Noise Ratio (dimensionless)
-     & tr8tins, r8tins,      ! Inside temperature
-     & tr8pins, r8pins,      ! Inside pressure
-     & tr8hins, r8hins,      ! Inside humidity
-     & tr8tout, r8tout,      ! Outside temperature
-     & tr8pout, r8pout,      ! Outside pressure
-     & tr8hout, r8hout,      ! Outside humidity
-     & tsia,   sia,          ! Solar Intensity (Average)
-     & tfvsi,  fvsi,         ! Solar Intensity (SD)
-     & r8wspd,               ! Wind Speed (m/s)
-     & r8wdir,               ! Wind Direction (deg.)
-     & twe,    twn,          ! Wind vectors (East & North)
-     & taipl,  aipl,         ! Airmass-Independent Path Length (km)
-     & tlaserf,  laserf,     ! Laser Frequency (e.g. 15798 cm-1)
-     & twavtkr,wavtkr,       ! suntracker frequency (active tracking)
-     & nus, nue              ! selected frequency range of interest
+     & toblat, oblat,       ! observation latitude (deg).
+     & toblon, oblon,       ! observation longitude (deg)
+     & tobalt, obalt,       ! observation altitude (km)
+     & tasza,  asza,        ! astronomical solar zenith angle (unrefracted)
+     & tazim,  azim,        ! solar azimuth angle (deg)
+     & tosds,  osds,        ! observer-sun doppler stretch (ppm)
+     & topd,   opd,         ! Optical path difference (cm) of interferogram
+     & tgraw,  graw,        ! spacing of raw spectrum (cm-1) from GETINFO
+     & tzpdtimrl,zpdtimrl,  ! Time of ZPD (UT hours)
+     & tzenoff,zenoff,      ! Zenith angle pointing offset (deg)
+     & tfovi,  fovi,        ! Internal angular diameter of FOV (radians)
+     & tfovo,  fovo,        ! External angular diameter of FOV (radians)
+     & tamal,  amal,        ! angular misalignment of interferometer (radians)
+     & tzoff,  zoff,        ! Zero level offset (dimensionless fraction)
+     & tsnr,   snr,         ! Signal-to-Noise Ratio (dimensionless)
+     & tr8tins, r8tins,     ! Inside temperature
+     & tr8pins, r8pins,     ! Inside pressure
+     & tr8hins, r8hins,     ! Inside humidity
+     & tr8tout, r8tout,     ! Outside temperature
+     & tr8pout, r8pout,     ! Outside pressure
+     & tr8hout, r8hout,     ! Outside humidity
+     & tsia,   sia,         ! Solar Intensity (Average)
+     & tfvsi,  fvsi,        ! Solar Intensity (SD)
+     & r8wspd,              ! Wind Speed (m/s)
+     & r8wdir,              ! Wind Direction (deg.)
+     & twe,    twn,         ! Wind vectors (East & North)
+     & taipl,  aipl,        ! Airmass-Independent Path Length (km)
+     & tlaserf,  laserf,    ! Laser Frequency (e.g. 15798 cm-1)
+     & twavtkr,wavtkr,      ! suntracker frequency (active tracking)
+     & nus, nue             ! selected frequency range of interest
 
       character
-     & col1*1,         ! first column of runlog record
+     & col1*1,              ! first column of runlog record
      & specname*(nchar),    ! spectrum name
      & avgspecname*(nchar), ! average spectrum name
-     & last_valid*38,  ! last valid spectrum name
-     & gggdir*(mpath), ! path to the ggg directories
+     & last_valid*57,       ! last valid spectrum name
+     & gggdir*(mpath),      ! path to the ggg directories
      & dl*1,
-     & dplist*80,      ! Data Partition list (~/ggg/config/data_part.lst)
-     & apf*2           ! apodization function (e.g. BX N2, etc)
+     & dplist*80,           ! Data Partition list (~/ggg/config/data_part.lst)
+     & apf*2                ! apodization function (e.g. BX N2, etc)
 
       equivalence (bbuf,bufi2,bufi4,bufr4)
 
@@ -127,7 +128,7 @@ c----------------------------------------------------------
 c  Interrogate environmental variable GGGPATH to find location
 c  of root partition (e.g. "/home/toon/ggg/" ).
       call get_ggg_environment(gggdir, dl)
-      lr=lnbc(gggdir)     ! length of root string (e.g. 14)
+      lr=lnbc(gggdir)       ! length of root string (e.g. 14)
       dplist=gggdir(:lr)//'config'//dl//'data_part.lst'
 
       d2r=dpi/180
@@ -192,18 +193,19 @@ c
       n1=0
       n2=0
       krec=0     ! Number of runlog reads
-      nspe=0      ! number of valid spectra read
+      nspe=0     ! number of valid spectra read
       do         ! Loop over single spectra
 c         write(*,*) 'mode, krec, nspe=', mode,krec,nspe
-            read(lun_rlg,'(a)',end=99) strl
+            read(lunr_ss_rl,'(a)',end=99) strl
 c         irec=irec+1
 c         write(*,*)'strl=',strl(:22)
          krec=krec+1
          if (index(strl,'average').gt.0) exit 
          if(mod(krec-1,ntype).eq.jtype-1) then  ! the right flavor detector
             if(strl(1:1).eq.':') cycle
-            backspace(lun_rlg)
-            call read_runlog(lun_rlg,col1,specname,
+            backspace(lunr_ss_rl)
+            call read_runlog_data_record(lunr_ss_rl,data_fmt_read_rl,
+     &      col1,specname,
      &      iyrrl,idoy,zpdtimrl,oblat,oblon,obalt,asza,
      &      zenoff,azim,osds,opd,fovi,fovo,amal,
      &      ifirst,ilast,graw,possp,bytepw,zoff,snr,apf,
@@ -424,7 +426,9 @@ c  MkIV header parameters
         stnr=sqrt(tstnr)
         rzero=trzero/nspe
 
-         call write_runlog(lun_wav,col1,avgspecname,iyrrl,idoy,zpdtimrl,
+         call write_runlog_data_record(lunw_av_rl,data_fmt_write_rl,
+     &   col1,avgspecname,
+     &   iyrrl,idoy,zpdtimrl,
      &   oblat,oblon,obalt,asza,zenoff,azim,osds,opd,fovi,fovo,amal,
      &   n1,n2,graw,hedlen,iabpw*iend,zoff,snr,apf,
      &   r8tins,r8pins,r8hins,r8tout,r8pout,r8hout,
@@ -448,7 +452,7 @@ c  Write headerless binary average spectrum
             spsv=npts
             ippver=6.0    ! version number
             rund='A '
-            ippnam='sp_avg6'
+            ippnam='spavg6'
             com='avg of ## : '//specname
             write(com(8:9),'(i2.2)') nspe
             comments=com

@@ -7,7 +7,7 @@
       REAL*8 resnog,rectog,off,can,xx,hwid
       real*8 ss,t,sinc,alpha
 c
-      write(*,*)'prof:',apo,ns,resnog,rectog
+c      write(*,*)'prof:',apo,ns,resnog,rectog
       hwid=0.5d0*(ns-1)
       if(abs(off)+resnog.gt.hwid) then
          write(*,*)'Warning from PROFZL: offset exceeds NK'
@@ -17,8 +17,7 @@ c
       
 c  Calculate truncated instrumental function (sinx/x for apo=0)
       alpha=0.0
-c      if(rectog.gt.0.0) alpha=0.095
-      if(rectog.gt.0.0) alpha=0.095
+      if(rectog.gt.0.0) alpha=0.12
       can=dpi/resnog
       do k=1,ns
           xx=dble(k)-1.d0-hwid

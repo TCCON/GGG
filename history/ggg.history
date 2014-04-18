@@ -1,5 +1,1089 @@
   GGG spectral fitting program.
 
+ GFIT                     Version 4.38       2014-03-23    GCT 
+Fixed bug that caused NaN in the VSF_error whenever OPD=0.00
+This was accomplished by simplifying the expression for
+CORRLD to remove the term (resn-0.5/opd)**2, simplifying
+the expression to
+      corrld=sqrt(rect**2+((1.+0.4*apo_c)*resn)**2)/gint
+This partially undoes the change made on 20-Sep-2012 (the
+ last sentence).
+
+ GFIT                     Version 4.37       2014-03-21    GCT 
+  Fixed a bug that was causing NaN in the uncertainty in
+blacked out windows.
+Replaced
+       ex(jfp)=dsqrt(
+-     &   dabs(dble(ex(jfp)))/(tbar+0.0001d0)/(tbar**2+1.0E-36)
+by
+       ex(jfp)=dsqrt(
++     &  dabs(dble(ex(jfp)))/(abs(tbar)+0.0001d0)/(tbar**2+1.0E-36)
+
+ apply_airmass_correction     Version 1.31    2014-03-17   GCT
+Program was producing NaNs in output file for the Xgas_error
+whenever the column amount was zero. This happened because
+the Xgas_error was computed by first computing the fractional
+uncertainty (fu=infinity) and then multiplying this by the gas
+column (col_gas=zero), and dividing by the total column of air.
+
+Xgas_error = Xgas*fu
+where
+Xgas=col_gas/col_air
+fu=SQRT[col_gas_error/col_gas)**2+(col_o2_error/col_o2)**2]
+
+This ineedless singularity introduced wheniever col_gas=0 can
+be completely avoided by multiplying the SQRT term by the
+col_gas from Xgas, such that now:
+
+Xgas_error=SQRT[col_gas_error**2+(col_gas*col_o2_error/col_o2)**2]/col_air
+
+This new formulation is well-behaved for all values of col_gas,
+although it will still produce problems if col_o2 is zero.
+
+
+ GFIT                     Version 4.36       2014-03-17    GCT 
+
+Fixed a problem which was occasionally causing VSF_error to be Inf
+in highly saturated windows where all the PDs were small (~1.E-25).
+
+This was not really a bug, rather it was an insufficient dynamic
+range of the single-precision code to manipulate such small
+numbers without under/over-flow. Three separate things had to
+be done to remove all the Infs in the Darwin dataset.
+
+1) the function SDOT called by SCOV2 was performing single
+precision dot-products of rows of the PD array, whose elements
+had values of ~1.E-25. Even though the resulting dot-product
+was immediately divided by the diagonal element of PD, creating
+an in-range value, it was too late: the dot-product had already
+under-flowed. To correct this, I created a double precision
+version of the dot product function called DSDOT. This allowed
+SCOV2 to output sensible (i.e. non-Inf) values for the variances
+of the target gas VSFs.
+
+2) The VAR scalar passed to SCOV2 needs to be pre-conditioned
+by multiplying by a small value before the call to SCOV2.
+Otherwise the multiplation of VAR by DSDOT causes overflow
+inside SCOV2. The subsequent EX values outputted from SCOV2
+must then be divided by the same pre-conditioning scalar to
+get the true uncertainties. Basically this is just a "gain change"
+before SCOV2, to keep the values within the single-precision range,
+and a compensating gain reduction afterwards. The pre-conditioning
+scalar was chosen to be the square of the mean transmittance of the
+window, TBAR.
+
+
+3) But this wasn't enough to fix the Inf problem, because further
+downstream in do_retrieval.f, the now-sensible EX values produced
+by SCOV2 (the squares of the uncertainties) are divided by TBAR^2,
+before being square-rooted. For a saturated window Tbar is very
+small, so if single-precision EX is already close to 1.E+38, the
+division by 0.0001 causes the Inf. To avoid this, DBLE(EX(j)) is
+used in the division and a DSQRT is used to produce the final
+uncertainties.
+
+These three changes don't guarantee that there won't be Inf's in
+the future, but they reduce the risk.
+
+
+
+Added extra integer (INDFSP) to the argument list for the
+calls to do_retrieval.f and fm.f
+
+apply_airmass_correction     Version 1.30    2014-03-06   GCT
+ Redefined Xair in the .ada file such that it is now the DRY
+value (previously it was wet). This was performed by subtracting
+the H2O column from the air column prior to division by VC_O2
+       yrow(kair)=yrow(kair)-yrow(kh2o)*18.02/28.964
+We decided that the dry Xair was more useful in looking for
+long-term drifts in the data record because changes due to
+H2O variations have been mostly removed.
+
+ GFIT                     Version 4.35       2014-03-04    GCT
+Added the 15NO2 isotopolog in order to be able to fit
+lab NO2 spectra. This forced an increase im MSPECI.
+
+Also implemented a check in fetch.f to ensure that the
+frequencies of ascii spectra always increase (or decrease)
+monotonically, to guard against ascii spectra having
+duplicated points.
+
+ avg_ker   Version 1.31     2014-02-06   GCT
+The Jacobian files, written by GFIT when the AK option
+is invoked, are now deleted after being read by avg_ker.
+Also, the .wtf files are now not created (by default).
+These changes allows avg_ker to be run on a long runlog
+of spectra without filling up the disk.
+
+ GFIT                     Version 4.34       2014-01-09    GCT 
+Changes to abscoj.f to correctly handle self-broadening
+in cases of large isotopic enrichment. Currently, the
+isotopologs are treated as if they were seperate gases
+each with its own vmr. In the absense of isotopic
+fractionation, the vmr of each isotopolog is equal to
+the total vmr of all isotopologs, so the vmr used to
+calculate the self broadening is correct. But when there
+is large isotopic fractionation (different from that
+assumed by IUPAC/HITRAN) then the vmr of the individual
+isotopolog does not represent the total for the gas.
+For example, HDO is hugely enhanced relative to H2O in
+spectra of Mars, Venus, and in several lab spectra.
+In these circimstances, HDO lines will be over-broadened
+because the current code implicitly assumes that the
+H2O is also enhanced, but in fact it is reduced because
+the HDO enhancement displaces H2O.
+
+Remember that the HITRAN line intensities are all scaled
+by the IUPAC isotopic ratios.  This allows/requires the
+total vmr be used for every isotopolog.
+
+To remedy this problem, it is necessary to compute the
+total vmr of each gas for each level. This is done by
+multipling the vmr of each isotopolog by the Fractional
+Isotopic Abundance (FIA) to get the true vmr, and then
+summing these over the isotopologs of each gas. Since
+the sum of the FIAs is 1.000, it is not necessary to
+subsequently re-normalize back to HITRAN-compatible VMRs.
+
+Below is the code installed into abscoi.f.
+
+c  Compute total vmr for each gas (used for self-broadening).
+c  This is done by adding the true vmrs (FIA*VMR) for each isotopolog
+        do ilev=1,nlev   ! Loop over Levels
+           jgas=1
+           jspeci=1
+           vmr_tot(jgas,ilev)=fia(jspeci)*vmr(jspeci,ilev)
+           do jspeci=2,nspeci   ! Loop over Gases
+c  Sum over isotopologs of each gas
+              if(jgas.eq.gasindex(jspeci)) then
+                 vmr_tot(jgas,ilev)=vmr_tot(jgas,ilev)+
+     &           fia(jspeci)*vmr(jspeci,ilev)
+              else
+                 jgas=jgas+1
+                 vmr_tot(jgas,ilev)=fia(jspeci)*vmr(jspeci,ilev)
+              end if
+           end do
+c  Water vapour is a special case, H2O, HDO & D2O have to be added.
+c  And the FIA of D2O are currently those of H2O (format issue)
+c  and so must be multiplied by the square of the IUPAC D/H ratio.
+           vmr_tot(1,ilev)=vmr_tot(1,ilev)+vmr_tot(49,ilev)+
+     &     9.653449e-08*vmr_tot(71,ilev)     ! H2O
+           vmr_tot(49,ilev)=vmr_tot(1,ilev)  ! HDO
+           vmr_tot(71,ilev)=vmr_tot(1,ilev)  ! D2O
+        end do
+
+
+This change should only significantly affect results
+when there are large isotopic fractionations of a
+self-broadened gas and the SBHW differs from the ABHW.
+This change does nothing if:
+ - SBHW=ABHW
+ - VMR << 1
+ - VMR(jspeci)=VMR(jspeci+n)
+
+
+ GSETUP                   Version 3.92     2013-12-20    GCT 
+Tweaks to the a priori vmr profiles in gnd_summer.gnd
+and to the subroutines that define the age of air, 
+latitude gradient, secular trends, and seasonal cycle.
+These were done to improve the agreement with
+in situ profiles (including 2013 aircore data).
+
+Also tweaked the HF profile and the secular trend of HF
+to improve agreement with ground-based observations
+which previously showed a mean VSF of ~1.25 for recent
+observations. Also included an increasing HF trend in
+the 1980's and 1990's.
+
+ GFIT                     Version 4.33       2013-11-22    GCT
+ Changed the way that the FS Jacobians are calculated
+ inside fm.f.
+
+ Previously, a 9-point, windowed, SINC operator was used
+ (actually the differential of the SINC function), but
+ this left artifacts at the edges of the window, which
+ had the potential to perturb the retrieved FS value if
+ there were large anti-symmetric residuals near the edges
+ of the window.
+
+ The new method differentiates the Lagrange polynomial
+ fitted to the data points. This seems to do much better
+ at the edges of the window.
+
+
+isotopologs_20131008.dat
+ Changed C2H6 over to the new fundamental assignments.
+ Increased the number of fundamental modes from 11 to 12
+ and added back the nu4 torsional mode (with degeneracy of 0).
+
+
+collate_results             Version 1.70     2013-10-08   GCT
+ Added if-statement to skip blank lines in multiggg.sh file.
+ Subroutines generate_qc_flag.f, and  prepare_collate_all.f
+ also needed a similar if-statements.
+
+GFIT                     Version 4.32       2013-08-13    GCT 
+ Modified read_mavfile_body.f to use the column headers to index
+ the vmrs, rather than isotopologs.dat. This provides more flexibilty
+ and backward compatibility with old .mav files that pre-date changes
+ to isotopologs.dat.
+
+ For example, if the isotopologs.dat file has been modified (new gas
+ added) the old .mav files will still work, avoiding the "Mismatch"
+ error message.
+
+ The content (i.e. column headers) of the .mav file can now even
+ change between data blocks (delimited by "Next Spectrum") within
+ the same .mav file. This could be useful for lab spectra.
+
+ The column headers of the .mav file are now checked for:
+  - species not present in isotopologs.dat (Error)
+  - differences in the order of species from isotopologs.dat (warning)
+  - duplicated specie names (Error)
+
+ This revealed an error in isotopologs.dat in which the second COF2
+ isotopolog (13COF2) was numbered kiso=1. Changed this to kiso=2.
+
+ A benefit of this is that the isotopologs_local.dat file is no
+ longer needed, and so gsetup.f has been modified to eliminate
+
+ Also moved clistindex.f from src/gsetup/ to src/comn/  since it is
+ now used by read_mavfile_body.f, in addition to gsetup/write_mav.f
+
+ The downside of all this is that read_mavfile_body.f now needs to
+ know the path to isotopologs.dat and needs to read it.
+
+
+GFIT                     Version 4.31       2013-08-07    GCT 
+ Added an if-statement to spectrum_loop.f to check that the body
+ of the .mav file (containing Z/P/T/VMR profiles) had actually
+ been read in, before calling absco.  If not, the program stops.
+
+ Without this check, if the "Next Spectrum:" string in the .mav
+ file doesn't match the first spectrum in the runlog (e.g. due
+ to manual editing of the .mav file), then spectrum_loop will 
+ proceed to call abscoj without the Z/P/T/VMR arrays ever having
+ been initialized, which produces lots of NaNs :-(  without any
+ warning that anything was amiss.
+
+ Also increased mfp from 30 to 32.
+
+DAYAV    Version 7.80    2013-06-27   GCT
+ Modified dayav.f to read the format from the input file,
+ instead of using a hard-wired format. Also removed the
+ "navg"  variable from the output file.
+
+collate_results             Version 1.66     2013-06-02   GCT
+ Modified code so that it only pre-pends the spectrum names
+ for non-MkIV ground-based runlogs (i.e. TCCON).
+ 
+GSETUP                   Version 3.90     2013-06-04    GCT 
+ Expanded the number of gases for which latitude gradients
+ are accounted in the a priori profilea to include several
+ hydrocarbons and freons. Added NGAS to the argument list
+ in the call to sunroutine apply_vmr_latitude_gradients.
+
+ Same changes to stand_alone_a priori/*.f
+
+GFIT                     Version 4.30       2013-05-27    GCT
+  Eliminated the MVMR (=28000) parameter from spectrum_loop.f
+ and from write_aux.f and replaced it with MSPECI*MLEV.
+
+ Also modified the state vector step size limit from:
+   dxlimit=0.10+0.5*abs(cx(jfp))
+ to
+   dxlimit=0.25+0.5*abs(cx(jfp))
+ This allows the state vector values to pass more quickly
+ through zero, speeding up iteration in some cases.
+
+VLL    Version 2.22    2013-05-22    GCT 
+Modified VLL to call the read_isotop.f subroutine
+to read isotopologs.dat, rather than reading it
+directly. This has the advantage that the species
+-specific gas names are returned, rather than the
+name of the last isotopolog.
+
+ adjust_pll_se       Version 1.56        2013-05-21       GCT
+The name of the runlog is now read from the .col file header,
+rather than being hard-coded into the program.
+This should make it more flexible.
+
+summarize_linelist   version 1.07   2013-05-21
+Changed the name of the anomaly report from "anomaly.rpt'
+to 'anomaly_'//inputfilename
+This way, when used in batch mode, the output files don't
+over-write eachother.
+Also, assume linelists are local, not in $GGGPATH/linelist.
+
+GFIT                     Version 4.29       2013-05-21    GCT
+Modified all programs that use the file_size_in_bytes.f
+function to define the function (and fsib) as integer*8
+to be able to handle files larger than 2^30 characters,
+such as hitran1012.161. Also modified the function itself.
+
+Also modified isotopologs.dat, summarize_linelist.f, 
+abscoj.f and hitran_to_atmos_gas_numbering.f to handle
+the new isotopologs present in HITRAN2012, especially
+the tenth CO2 isotopolog which is denoted by kiso=0
+in the linelist and in isotopologs.dat.
+
+GFIT                     Version 4.28       2013-05-18    GCT
+ Fixed a bug in do_retrieval.f by which the tilt computed
+during the zero'th iteration hadn't been normalized by the
+factor rnfac=SQRT(3(N-1)/N+1)) which became necessary when
+we decided to normalize the DLPBFs to have an L2-norm of N, 
+rather than the first value being 1.0
+
+This bug led to the 1st iteration often having a much worse
+RMS than the 0th iteration, since the tilt was overestimated
+by a factor of ~1.73 in the statevector, although it had been
+correctly accounted for in the zeroth iteration. When fitting
+channel fringes, this could cause irreversible damage.
+
+ GFIT                     Version 4.27       2013-02-18    GCT
+Moved the code to find unrecognized/duplicated gas names
+into gfit.f, instead of spectrum_loop.f where it was called
+over and over.
+
+In do_retrieval.f, tightened the constraint on the
+maximum step size by a factor 2 from:
+-            dxlimit=0.2+abs(cx(jfp))
+to
++            dxlimit=0.1+0.5*abs(cx(jfp))
+
+This seems to prevent occasional NaNs in the .col file
+when fitting saturated spectra without convergence.
+
+
+ extract_pth     Version 1.14   2013-03-01    GCT 
+Modifications to find and use new NCEP_xxxx.mod
+models and to use new runlog-reading subroutines:
+(read_runlog_header; read_runlog_data_record)
+Also now convert the "hout" humidity from %RH
+into a vmr to match the units in the model.
+
+adjust_solar_linelist    2013-02-18   GCT
+ Several notable improvements:
+- Supports Minnaert correction, when using the solar_minnaert.108
+  linelist, while still supporting the old solar_merged.108 linelist.
+- Allow the exponential width to go to zero (w_min=0.0), allowing the
+  doppler width to be correctly fitted on the next iteration.
+- Switched from retrieving absolute line intensties to fractional line
+  intensities. This means that the SDC and SDI terms must be the same sign.
+- Increase frstep from 0.5 to 0.666.
+- Modified the calculation of the residuals, changing
+     res(kk)=(tm-tc)/(abs(rms)+0.02)
+ to
+     res(kk)=(tm-tc)*tc/(abs(rms)+0.005)
+ The extra factor Tc de-weights saturated spectra with good RMS fits.
+ Reducing the 0.02 to 0.005 increases the weight of spectra with RMS
+ resiudauls < 2% and leads to faster convergence.
+ There are corresponding changes to solar_pts.f
+
+ GFIT                     Version 4.26       2013-02-18    GCT 
+Previously LSPMAX was the length of the longest spectrum name in
+the runlog, regardless of whether it was fitted in the current
+window or not. LSPMAX was used in an adjustable format statement
+to minimize white space in the .col file by not writing the full
+57 characters of each spectrum name. But LSP was not written into
+the format statement in the .col file header. Instead it just had
+an "a" to represent the spectrum name.
+
+In the new version two improvements are made.
+1) Only the size of the fitted spectrum names are used to determine LSPMAX.
+   So that unfitted spectra with long names don't create white-space.
+2) LSPMAX is now written into the colfile_format character string,
+   which is then written into the header of the .col file.
+
+This required adding LSPMAX to the argumant list of spectrum_loop.f
+
+
+Added LSPMAX to the call to spectrum_loop so the
+ GFIT                     Version 4.25       2013-02-15    GCT 
+In spectrum_loop.f, introduced a new flag: oaflag. When:
+oaflag=0  the absorption coefficients currently in memory are valid
+oaflag=1  the absorption coefficients currently in memory are obsolete
+
+Previously, abscoj was called whenever the current spectrum name from
+the runlog matched the name in the "Next Spectrum" line of the .mav file.
+But in runlogs containing spectra with very different spectral coverages
+measured on different days (e.g. Kitt Peak) only ~25% of the spectra might
+encompass a fitted window. So ~75% of calls to absco were unnecessary
+because on these days the spectra didn't cover the window to be fitted.
+
+And you couldn't simply call abscof when kspflag=0 only, because if
+you are fitting a window present only in pinxxx, and phgxxx is named
+in the .mav file, then abscoj would then not be called for either.
+
+This change complicates the logic, but much improves execution speed
+for runlogs containing a wide assortment of spectra.
+
+This change has no effect on MkIV or TCCON processing, since these
+spectra have the exact same coverage every day.
+
+
+mod_maker_9.5  08-Feb-2013  GCT
+Changed the equation for converting the NCEP Specific Humidity (MMR)
+into a mole fraction (VMR) from
+  rmm=28.964/18.02             ; Ratio of Moleculas Masses (Dry_Air/H2O)
+  ssh=ssh*rmm                  ; Convert Mass Mixing Ratio to VMR
+to
+  rmm=28.964/18.02             ; Ratio of Moleculas Masses (Dry_Air/H2O)
+  ssh=ssh*rmm/(1-ssh*(1-rmm))  ; Convert Mass Mixing Ratio to VMR
+
+This makes little difference. Differences of ~1% under warm humid conditions.
+The old equation produced VMR = 1.607 when MMR = 1.0 which is nonsense.
+The new equation produces VMR = 1.0 when MMR = 1.0
+
+ GFIT                     Version 4.24       2013-01-22    GCT 
+In do_retrieval.f, tightened up the convergence criterion by changing:
+            thresh=(64*kconv-63)*abs(cont_level)*(rmsocl+0.010)/100000
+to
+            thresh=(64*kconv-63)*abs(cont_level)*(rmsocl+0.003)/100000
+
+This was in response to seeing convergence in just 2 iterations
+with a very good fit (rms/cl = 0.13%) but with a large VSF_error.
+I think that the problem was that it passed the convergence criterion
+but dx was still changing, even though it didn't affect the fit much.
+Since the last dx is added to the VSF_error, this blows up the error.
+This change will have no effect on poor fits (rmsocl >> 0.003).
+It will increase the number of iterations on very good fits but
+reduce the error bar.
+
+ GFIT                     Version 4.24       2013-01-22    GCT 
+Fixed a few more bugs in the new representation of the state vector.
+
+ spectrum_averaging   Version 0.31    21-Jan-2013   GCT 
+Got fed up with typing 
+0 9999
+runlog_name
+2
+every time I ran the spectrum averaging program.
+So I modified the code such that when getargs () detects one
+argument on the command line, it assumes that this is the
+runlog name, that the start/end frequencies are 0 999999,
+and that there are two detectors.
+If this is not the case, then simply run the executable with
+no command line arguments and it will prompt the user for the
+runlog_name, start/end frequencies, and number of detectors,
+as before.
+
+ GFIT                     Version 4.23       2013-01-19    GCT
+Fized a bug by which the Zero Offset from the runlog was not
+getting through to the FM subroutine when ZO was not fitted.
+This was not a problem with the old SV scheme.
+
+GFIT                     Version 4.22       2013-01-18    GCT
+ Changed code (mainly fm.f) to account for the fact that the
+ new CT & CC basis functions are normalized from +1 to -1
+ instead of -0.5 to +0.5 previously. This change also required
+ halving the a priori uncertainties and editing write_col.f to
+ double the reported values, keeping the .col files unchanged.
+
+avg_ker   Version 1.30     2013-01-10   GCT'
+ Changes to accomodate the new, flexible, state-vector format.
+ Also required change to fm.f, adding additional parameter (NFP)
+ to output file, rendering all old AK files incompatible with
+ the new code. previously there were NTG+5 Jacobians computed
+ and read (some of which may gave been zero). Now there are
+ NFP Jacobians read: NTG target gases and NFP-NTG others
+ representing CL, CT, FS, ZO, etc.
+
+GFIT                     Version 4.21       2013-01-08    GCT
+ Major changes to all the main subroutines to allow more
+ flexibility in the structure of the state vector (SV),
+ to better handle higher order fits to the continuum level.
+ In the previous version, the SV structure was fixed. The
+ first NTG elements were the target gas and the next 5 were
+ reserved for CL, CT, CC, FS, ZO.  If CC or ZO weren't fitted,
+ then these elements of CX we set to the a priori values, and
+ the corresponding columns of the PD array, were set to zero.
+ The matrix solution was found using the full NTG+5 elements,
+ which represents a loss of efficiency.
+
+ If we allowed for fitting windows/spectra requiring 20 continuum
+ parameters, this loss of efficiency would becomes severe when
+ fitting just a few, especially considering that the numerical
+ solution of the matrix eqiation takes a time proportional to
+ the square of the number of unknowns.
+ 
+ So in this latest version we have eliminated the empty SV elements.
+ So the SV contains only the parameters actually being fitted,
+ not all the parameters that could have been fitted. This required
+ the addition of a lot of if-statements and pointers to the SV elements.
+
+ We have also moved the reading of the a priori file to gfit.f,
+ instead of spectrum_loop.f, where it was re-read for every spectrum.
+ This allows the SV to be completely defined in gfit.f along
+ with pointers to the SV elements (ipcl, ipfs, ipzo).
+ This eliminates the need for the SS(NFP)*4 character vector
+ and the need for WINFO below spectrum_loop.f
+
+ Also replaced the variable "rms" by "rmsocl" = rms/cl.
+ This simplifies the code.
+
+
+GFIT                     Version 4.20       2012-12-30    GCT
+ Installed the subroutine compute_dlpbf.f, which computes
+Discrete Legendre Polynomial Basis Functions (DLPBF).
+This replaces the old code in fm.f that computed them using the
+vramp function. For the case of fitting CL, CT, and CC, the
+results are identical within rounding error.  The advantage
+of the new code it that it is extendable to any order polynomial
+without additional complexity.
+
+ newspect    Version 1.90     2010-12-28    gct 
+Added loop to correctly read runlog headers of different lengths
+by using NLHEAD -- the first number in the runlog.
+Previously assumed always 3 header lines.
+Also reads the runlog format from the header, when present.
+
+ PFIT   Version 4.60     26-Dec-2012    GCT 
+Added loop to correctly read runlog headers of different lengths.
+Assumes that the first integer in runlog file is header length.
+Previously assumed always 3 header lines.
+
+ compute_lm_absco    Version 1.07   GCT  2012-12-18
+The pointer to the H2O profile in the .mav file was incorrectly
+pointing to the H2O2 profile. This was fixed by adding spaces after
+the gas names, changing:
+      do icol=1,ncol
+        if(index(header_vector(icol),'Temp').gt.0) kcol_temp=icol
+        if(index(header_vector(icol),'Pres').gt.0) kcol_pres=icol
+        if(index(header_vector(icol),'1h2o').gt.0) kcol_h2o=icol
+        if(index(header_vector(icol),'1co2').gt.0) kcol_co2=icol
+        if(index(header_vector(icol),'1ch4').gt.0) kcol_ch4=icol
+        if(index(header_vector(icol), '1o2').gt.0) kcol_o2 =icol
+      end do
+to
+      do icol=1,ncol
+        if(index(header_vector(icol),'Temp ').gt.0) kcol_temp=icol
+        if(index(header_vector(icol),'Pres ').gt.0) kcol_pres=icol
+        if(index(header_vector(icol),'1h2o ').gt.0) kcol_h2o=icol
+        if(index(header_vector(icol),'1co2 ').gt.0) kcol_co2=icol
+        if(index(header_vector(icol),'1ch4 ').gt.0) kcol_ch4=icol
+        if(index(header_vector(icol), '1o2 ').gt.0) kcol_o2 =icol
+      end do
+
+Since we are not doing H2O line mixing yet, this bug has little effect.
+But in the future it could have been important.
+Thanks to Joseph Mendonca for pointing out this bug.
+
+CREATE_RUNLOG    Version 8.80      26-Dec-2012   GCT
+  Made four new subroutines to handle I/O with runlogs.
+   - read_runlog_header.f
+   - write_runlog_header.f
+   - read_runlog_data_record.f
+   - write_runlog_data_record.f
+
+ The first two handle the reading/writing of the four header lines
+ of the runlog, which now may include the data format statement.
+ The second two handle the reading/writing of the data in the body
+ of the runlog.
+
+ An important difference is that the new subroutines assume that
+ the runlog data format may be written into the runlog header.
+ If it is found there, it is used.
+
+ This affects all programs that use runlogs (e.g. collate_results.f.
+ texo.f, bin2asc.f convert_runlog.f rarl.f solar_ratio.f, reverse_spectrum.f,
+ spectrum_averaging.f spectrum_ratioing.f, gsetup.f, texo.f, zencorr.f,
+ linefinder.f, spectrum_loop.f, pfit.pro, newspect.pro)
+ 
+ Also, changed the name of the write_runlog.f subroutine to
+ write_runlog_data_record.f
+ This is more descriptive and so less likely to be confused with write_runlog_header.f
+
+
+GFIT                     Version 4.13       6-Dec-2012    GCT 
+Removed the indices:
+n1=ntg+1
+n2=ntg+2
+n3=ntg+3
+n4=ntg+4
+n5=ntg+5
+from do_retrieval.f and spectrum_loop.f.
+
+Unfortunately, these indices were being used for two different purposes:
+1) To denote a slice of workspace (e.g. in SPXV; or in a loop j=n1,n5)
+2) to denote a particular element of CX or section of PD pertaining to
+a particular variable.
+Previously the slices of workspace in SPXV used (for convenience)
+the exact same indices as the CX and PD arrays, but they don't have to.
+In fact, it is confusing and makes the code inflexible.
+
+Replaced n1,n2,n3,n4,n5 with either:
+   ipcl instead of n1
+   ipct instead of n2
+   ipcc instead of n3
+   ipfs instead of n4
+   ipzo instead of n5
+or
+   ntg+1 instead of n1
+   ntg+2 instead of n2
+   ntg+3 instead of n3
+   ntg+4 instead of n4
+   ntg+5 instead of n5
+as appropriate, depending on the situation.
+
+The new system offers more flexibility, in the sense that the order of
+the SV elements of CX or PD can now be changed or new SV elements added
+without disrupting the indexing of the workspace (SPXV).
+
+Removed the duplicated code:
+      n1=ntg+1
+      n2=ntg+2
+      n3=ntg+3
+      n4=ntg+4
+      n5=ntg+5
+which was in several different places (spectrum_loop.f, do_retrieval.f, 
+do_retrieval3.f, fm.f, fm3.f, write_col.f)
+These variables are now passed down from spectrum_loop.f through the argument lists.
+
+Also, instead of having the character vector SS containing the mnemonics
+(cl,ct,cc,fs,zo) were also hardwired in fm.f, fm3.f, they are now read from
+the apriori file (they were always there, but not read) and then passed down
+from spectrum_loop.f.  So if these are changed (re-named or re-ordered) then
+it need only be done in one place.
+
+
+DIURNRET    Version 4.14.14    9-Nov-2012   GCT
+Can now reads the .ray file format from the file itself (if present),
+rather than rely on the format hard-wired in the code.
+Got rid of the skiprec subroutine -- replacing with do-loops.
+Also changed several variable names to be more descriptive
+(e.g., asza() to asza_lav(); lun_ray to lunr_ray, 
+runlab to spectrum_ray, etc.).
+
+GFIT                     Version 4.12       8-Nov-2012    GCT 
+Included the vector CONT(NMP) in the argument list to write_spt.f.
+So write_spt no longer has to calculate the continuum basis functions,
+it simply uses CONT which was previously calculated in FM.f.
+No changes to the results.
+
+GFIT                     Version 4.11      28-Oct-2012    GCT 
+Fixed a bug in abscoj.f when simulating Venus spectra (T=700K)
+The HITRAN2008 linelist contains NO lines like this:
+NO       8 1  2788.770790 1.240E-86 30788.0822 .0460 .0630 .70  -.004 
+The line strength is 1.E-86 and the E"=30788 cm-1.
+Although the line intensity is about 50 orders of magnitude smaller
+than we could ever see in absorption, when GFIT computs its
+Boltzmann factor Exp[ -hcE"/k (1/296 - 1/T)
+it gets an Inf becuase hcE"/k (1/296 - 1/T) exceeds 89.
+This happens for Venus (and not Earth or Mars) because
+(1/296-1/T)  is positive rather than zero or negative.
+
+These NO lines can then pass through the if-statement
+    if(abs(tnu).ge.1.e-11) then
+because tnu is Inf (or NaN)
+
+Subsequently, since sxcgsorpidw=Inf, the statement
+    sqrt(abs(y*sxcgsorpidw/srpi/tnulst))))/godw)
+creates a NaN. This poisons everything else, causing
+the spectral to be nothing but NaNs for all frequencies.
+ The fix is to define eptf = hcE"/k (1/296 - 1/T)
+and then force eptf < 85
+
+collate_results              Version 1.57    2012-10-05   GCT
+Changes to make the column header titles line up better with the auxiliary data.
+The .rpt files has been expanded to include the VSF_min, VSF_bar, VSF_max,
+VERR_min and VERR_max.
+A file collate_results.missing is now created, rather than writing
+all the missing windows/spectra to the terminal.
+
+
+ average_results              Version 1.21    2012-10-05   GCT
+Adjusted the positions of the column labels so that they line up
+better with the data below. Now "gas" lines up with the beginning
+of the column value and "gas_error" lines up with the end of the
+error value. This makes it easier, when browsing the file with an
+editor, to deternine which column of numbers are the HF.
+
+ GFIT                     Version 4.10.0    28-Sep-2012    GCT 
+Modified the error bar calculation.
+Previously, when fitting gases in high airmass spectra with
+almost-blacked-out windows, I might achieve a scale factor of
+0.35 +/- 0.06
+whereas all the adjacent low-airmass windows would be getting
+0.99 +/- 0.01
+this produces a huge outlier (10-sigma).
+
+So I divided the EX uncertainties returned by do_retrieval by the
+SQRT of the mean transmittance over the window. For a window with
+1% transmittance (e.g. N2O 2443 cm-1 at 87 deg SZA), this increases
+the final error bar by a factor 10. So the new retrieved VSFs are
+0.35 +/- 0.60, which easily prevents this point from becoming an outlier.
+
+
+DAYAV    Version 7.7.0    23-Sep-2012   GCT
+Modified DAYAV to make it functional once again.
+Removed the need for the spectrum name to be present in the input file (.vav)
+Accomodate the format statement in the penultimate line of the header.
+Removed the T2 array, which was used to calculate the standard deviations.
+This caused problems when there was only one observation to average.
+Now the error bars are the standard errors, which are simpler to compute.
+ Changed the fixed format statement into a dynamically-written format that
+depends on the value of NAUX. Also improved the averaging code to be more careful to avoid overflow when squaring larger error bars.
+
+ZENCORR    Version 1.4.0     21-Sep-2012     GCT
+ Fixed a bug that occurred when the runlog had records that were commented out.
+In this situation, the .col files and subsequent files such as .tav and zenang.out
+have no record of the commented out spectra. So when zencorr was trying to create
+a new version of the runlog with the updated zenith angles, the spectra wouldn't
+match up causing zenith angle mismatches. Furthermore, zencorr would terminate
+as soon as EOF was detected in the zenang.out file. So each time that the retrieval
+was iterated and zencorr was re-run, the runlog would get shorter.
+
+ GFIT                     Version 4.9.4    20-Sep-2012    GCT 
+Changes mainly to spectrum_loop.f to better handle erroneous OPD values in runlog.
+GFIT no longer stops when an erroneous OPD value is detected (unless IMODE > 0).
+Values outside the range OPDmin to OPDmax are trapped and the resn calculated
+from 0.5/OPDmin or 0.5/OPDmax, whichever is nearer to the runlog OPD value.
+The value of the OPD variable is no longer changed after it is read from the
+runlog, which required that RESN be passed to jetspe instead of OPD.
+Finally, the expression for CORRLD was altered to prevent the error bar from
+ever decreasing as a result of RESN being reduced from 0.5/OPD to 0/5/OPDmax.
+
+DIURNRET    Version 4.14.13   14-Sep-2012   GCT
+Now outputs the constrained vmrs retrievals (in addition to the usual unconstrained). And it outputs a vmr-format file in which the a priori profiles have been replaced/averaged with the retrieved profiles (requiring that the a priori .vmr file be read in).
+
+
+ collate_results              Version 1.5.3   2012-08-20   GCT
+Added code to compute the number of different sites represented
+in a runlog and report the number of observations at each site
+and its lat/long/altitude.
+
+collate_results              Version 1.5.2   2012-08-16   GCT'
+Added if-statement to skip spectra that are commented out in runlog
+(with a ":" or ";" in column 1). Otherwise spectra are included in
+output file with a spurious ":" in column 58.
+              if(col1.eq.':' .or. col1.eq.';') cycle
+
+GFIT                     Version 4.9.2    11-Aug-2012    GCT
+read_isotop.f now stops if there is a format error 
+while reading the isotoplogs.dat file.
+Previously there was no distinction between a format error
+and an EOF. Now there is.
+
+vexp inside vsubs.f
+Used a higher order Taylor expansion for x>0 to produce
+a closer approximation to Exp. Specifically, changed from
+     vecout(k)=1.+x*(1.+0.5*x) 
+to
+     vecout(k)=1.+x*(1.+x*(1+x*(1+x/4)/3)/2)
+
+The former expression produced a result of 2.500 for x=1.
+The new expression produces 2.708 [Exp(1.0) = 2.718].
+Since VEXP is used only to compute transmittances from
+optical depths, the x-values are nearly always -ve,
+so this approximation isn't used very much. This change
+will only makes a difference in spectral regions with
+large absorption coefficients and -ve absorber amounts
+being retrieved. In this situation, the use of the
+Taylor expansion rather and Exp reduces the risk of Infs.
+
+Of course, the downside of this change is that the new
+Taylor expansion produces Inf's for x>1.0E+10, whereas
+the previous expression was good until x > 3E+19
+But this is still much better than Exp, which produces
+Inf's for x>88
+
+July 30, 2012    solar_pts.f
+Improved the representation of the solar rotational doppler broadening as a
+function of the fraction of the solar diameter observed (frac):
+-         srot=5.E-06*freq*sqrt(frac)    ! broadening due to solar rotation
+to
++         aa=0.538
++         srot=3.95E-06*freq*frac/sqrt(aa+(1-aa)*frac**2.5)    ! broadening due to solar rotation
+
+after modelling work (sds.f) indicated that the new/latter
+expression is more accurate than the former expression.
+
+The new expression produces smaller broadenings as tabulated below
+
+   Frac    Old Expression   New Expression
+               (ppm)           (ppm)
+------------------------------------------
+    0.0         0.00            0.00
+    0.1         1.58            0.54
+    0.25        2.50            1.33
+    0.50        3.50            2.50
+    1.0         5.00            3.95
+------------------------------------------
+
+Since the new values are smaller, this means that the tabulated doppler
+widths in the solar linelist will need to be larger for the DI case.
+The natural doppler widths of the solar lines add added in quadrature to
+the solar rotational broadening.  For the narrower solar lines (e.g.,
+CO at 4300 cm-1) the natural solar doppler widths are around 0.031 cm-1
+or 7.2 ppm. So if the DI total width was previously SQRT[7.2^2 + 5.0^2],
+to match the same line width, the new line width must be X where
+SQRT[7.2^2 + 5.0^2] = SQRT[X^2 + 3.95^2] 
+Hence X=7.82 ppm, an 8% increase.
+But this is a worse-case scenario -- broader solar lines will be less affected.
+And the DC Doppler widths will be completely unaffected (Frac=0.0).
+
+
+So to compensate for the change in the solar model, the following change
+Needs to be made to the DI solar Doppler widths
+
+DOPP_DI_new^2 + (3.95E-06*freq)^2 = DOPP_DI_old^2 + (5.0E-6*freq)^2
+DOPP_DI_new   = SQRT [ DOPP_DI_old^2 + (5.0E-6*freq)^2 - (3.95E-06*freq)^2]
+
+DOPP_DC_new^2 + (0.0E-06*freq)^2 = DOPP_DC_old^2 + (0.0E-6*freq)^2
+DOPP_DC_new   =  DOPP_DC_old
+
+[I think that this analysis is probably naive because most of the spectra fitted
+to derive the solar linelist are intermediate cases (frac=0.1 to 0.2), when the
+new expression is a factor 2-3 time smaller than the old one.]
+
+mod_maker_9.3  29-Jul-2012  GCT
+
+I realized that the longitudes were confusing. There are three
+different flavors:
+- NCEP requires longitudes that range 0-360 deg
+- The time equation requires longitudes that range -180 to +180
+- The runlog longitudes generally conform to the latter definition,
+  but there's no guarantee. 
+The new version of the code therefore has three different variables
+representing the three different flavors of the site longitude:
+
+Resulting from this confusion, there was a mistake in the code that
+calculates the local date from the runlog info (year,doy,zpdtim,oblon)
+To fix this changed
+  julian=julday(1,idoy,iyr,zpdtim)-Site_Lon_360/360
+to
+  julian=julday(1,idoy,iyr,zpdtim)+Site_Lon_180/360   
+
+For a site over the US (oblon=-120) this makes no difference
+because  -Site_Lon_360/360 = -0.66
+and      +Site_Lon_180/360 = -0.33
+so the same julian date is chosen.
+For a site at 120E, however, the former gives -0.33 whereas the
+latter gives +0.33, resulting in different dates.
+
+
+
+ GFIT                     Version 4.9.2    23-Jul-2012    GCT
+Changed the header line of the $GGGPATH/spt/zXXXXXXXX
+files containing the spectral fits. Instead of the column amounts
+and their uncertainties (2 values per gas), it now contains
+the original column, VSF, and VSF_err (3 values per gas).
+pfit.pro was modified to be able to correctly read the new files.
+This change was made to give programs that read the spt/ files
+access to the VSF value (e.g. adjust_pll_se.f).
+
+derive_airmass_correction        1.2.0     2012-07-10     GCT
+Modified the program in two ways:
+1) To compute grand average values for the derived coefficients
+  in addition to the daily values.
+2) To process all the relevant gases in one execution, rather
+ than do it gas-by-gas with the user entering the name of the gas.
+
+The program still computes daily values for the derived coefficients,
+which are still written to the file dac_runlog.vav_gas.out
+But the program now additionally computes a weighted grand average,
+from the individual daily values and their uncertainties. The
+grand-average coefficients are written to the screen twice: in
+vmr units and as fractions of the mean vmr. Previously the users
+were left to derive grand average coefficient values for themselves.
+
+A concern that motivated this change was that on days when the
+distribution of observations was not symmetrical about solar noon
+(e.g. cloudy mornings), the symmetrical (SDC) and anti-symmetical
+components (ADC) of the diurnal variation couldn't be separated,
+and that this would cause spurious results which would bias the
+grand-averages.  It turns out that (luckily!) the errors assigned
+to the daily values "blow up" when the SDC and ADC coefficients are
+corrupted by asymmetry in the observation times (because their basis
+functions are no longer orthogonal). So provided that the daily
+values of the SDC and ADC coefficient are weighted by their error
+bars, in the computation of the grand averages, all is well.  So
+it is not necessary to explicitly filter out days with asymmetrical
+sampling of observations, prior to computing a grand average.
+
+
+GFIT                     Version 4.9.1    29-May-2012    GCT 
+  Fixed bug in write_spt.f by which the CC option
+had been correctly implemented in the "solar" part
+of the code but had been overlooked in the non-solar
+part of the code.  This didn't affect the results or
+the residuals, but distorted the appearance of the
+measured spectrum (uncorrected for CC) in the non-solar
+case (e.g. when fitting solar spectra).
+
+mod_maker9.pro         GCT  2012-06-01
+The raw NCDF data are 16-bit integers (I*2). In order
+to maintain adequate precision and dynamic range, gains
+and offsets have been derived and removed by NCEP and
+must be re-applied by the user. Unfortunately, application
+of the gains and offsets doubles the memory footprint
+because the data are floated from I*2 to R*4.
+Previously, this was done immediately following reading
+the NCDF file, which means that the gains and offsets
+can then be discarded -- they are not needed again.
+
+In the new version, the gains and offsets are applied *after*
+the raw data have been interpolated. This has two advantages:
+1) The large arrays containing the raw data stay as I*2
+2) The gains and offsets are only applied to the data to be used,
+   not the entire dataset
+
+The disadvantage is that the vectors containing the gains and offsets
+for each parameter must be passed from read_global_data.pro, through
+the main program and down into the trilinear_interp.pro subroutines.
+Thanks to Debra and Chris for this suggestion.
+
+mod_maker9.pro         GCT  2012-05-07
+Converted mod_maker to make it driven either:
+1) from a user-specified runlog, or
+2) the ncdf files listed in mod_maker.input.
+So the user can either enter the name of a runlog
+or hit CR and mod_maker will operate in the old way.
+
+The main advantage of the new option (1) is that the
+model files are created based on the lat, long, and dates
+in the runlog. This provides much greater flexibility, for
+example, for instruments that move around (e.g., MkIV) you
+can create all the nescssary models from a single input file
+(the runlog). Ditto for a runlog containing spectra from
+different TCCON sites (e.g., an aircraft overpass runlog).
+This also makes it simpler to generate models on a per
+spectrum basis, if we decide to go this way in the future.
+
+Another advantage is that you can run the new mod_maker
+over multiple years of data, and it will automatically
+switch from one year's NCEP data file to the next year's.
+
+A less important advantage is that model files are created
+only for the days for which spectra exist in the runlog,
+whereas previously they were created for every day of the year. 
+ 
+I've also converted the code that reads the NCDF input
+data into a subroutine. So instead of having four blocks
+of nearly identical code in the main program, there are
+now just four subroutine calls.
+
+Also the "Dec 31" problem is fixed/kludged in the new version,
+in both operating modes. This problem occurs for observations
+(local solar noon) between 18 UT on Dec 31 and 00 UT on Jan 1. 
+This happens in the Western USA when measurements made at
+local solar noon on Dec 31 are at ~20UT.  Theoretically, there
+could also be a Jan 1 problem on an island in the Western Pacific,
+12+ hours East of the Greenwich meridian, and this possibility is
+covered too.
+
+Anyway, since these NCEP data typically exist in different annual
+files, it is not easy to interpolate between the last (18UT) entry
+on Dec 31 2004 and the first (00UT) entry on Jan 1 2005. This would
+require holding data from both years in memory simultaneously.
+The not-entirely-satisfactory solution to this problem is to
+extrapolate in time by inserting the two following if-statements
+into the code (trilinear_interp) that does the time interpolation
+  index_tt=fix(tt)
+  if index_tt+1 gt nt-1 then index_tt=nt-2  ; Prevent Dec 31 problem
+  if index_tt lt 0 then index_tt=0          ; Prevent Jan 1 problem
+  fr_tt=tt-index_tt
+
+I also decided to stop using the NCDF tropopause pressure
+(TP) file as input. For several years, the GGG code has
+calculated its own tropopause altitudes, which seems just
+as good (if not better) than the values provided by NCEP.
+Omitting the TP files helps simplify the subroutines that
+reads the input data and do the interpolation because the
+site TP is a scalar, whereas the other quantities (AT, GH,
+SH) are vectors (vertical profiles). The only down-side
+of this is that the write_mod subroutine uses the NCEP
+tropopause pressure to compute the H2O profile above the
+highest NCEP level (300 mbar). This is now done depending
+the latitude:
+  efflat=oblat+15*cos(2*3.14159265*(idoy-50)/365.25)
+  xx=(efflat/32.5)^2
+  Site_Noon_TP = 100*(95.0+175.0*xx/(1+xx)) ; Pa
+This changes the water profile for p<300 mbar especially
+when the tropopause pressure is far from climatology.
+But the impact on ground-based H2O retrievals is minimal.
+
+The down side of this more flexible approach is that the
+memory footprint increases because you can no longer
+immediately interpolate the global data to the lat/long
+of the observation site, because there might be multiple
+sites in the runlog.  This means that you can't re-use
+the same global data array for the three data input files
+(AT, GH, SH).  You have to store *all* the global data
+in memory all the time. This more than doubles the total
+memory usage.
+
+If you are running mod_maker on a 32-bit computer and are
+using annual, global, NCDF files as input, this will be a
+problem because IDL has a 2GB memory limit on 32-bit machines.
+[Since the annual, global, NCDF files total only 1.3GB, I'm
+not sure why the memory limit of 2GB is exceeded.  Possibly
+some inefficiency/duplication]. Anyway, on a 64-bit machine,
+there is no memory problem with the new version.
+ 521829976  Aug  5  2010  air.2006.nc
+  30708976  Aug  5  2010  pres.tropp.2006.nc
+ 245574588  Aug  5  2010  shum.2006.nc
+ 521829984  Aug  5  2010  hgt.2006.nc
+
+There is no speed penalty with the new version. It still
+has to do the same interpolation. But whereas previously
+it did it in two steps (immediate bi-linear interpolation
+in lat/long followed by linear interpolation in time),
+it now does it all in a single tri-linear interpolation
+(lat/long/time)
+
+Although the contents of the .mod files will be virtually
+identical (tropopause altitude is missing), the file names
+will no longer have a two-letter site prefix identifying the
+site. Instead, the lat/longitude is built into the name of
+the model file, e.g., instead of pa20041222.mod we now have
+NCEP_20041222_46N_090W.mod
+Separating the model from a specific site will give us more
+flexibility in the future and less chance of an error (e.g.,
+putting an incorrect lat/long in the mod_maker.input file).
+The mod_maker.input file will no longer even be necessary
+since the runlog will be the driving input file.
+
+
+ GSETUP                   Version 3.4.5    07-May-2012    GCT
+Read_refvmrs.f was able to return to the main program without
+closing LUNR (via statement 110). When this happened, then the
+next call to refvmr caused an "end of file during read' error
+which crashed the program. This problem was not manifested in
+the GGG distribution benchmark.
+
+gfit.f     V1.0.6    GCT  2012-04-27
+Major revision in which fm2 now calls fm. It is hoped that this
+will lead to easier management of the profile retrieval code,
+of which fm2 is a part.
+
+To facilitate this re-structuring, several modifications of the
+argument list was needed. The vector cont(nmp) representing the
+continuum is now needed in fm to store intermediate values in
+the calculation of CALC and PD. To avoid defining CONT dynamically
+inside FM, it now gets passed down through spectrum_loop,
+do_retrieval, do_prf_retrieval, fm2.
+
+To minimize occurences of "ntg+5", the variable nfp is
+defined nfp=ntg+5 in gfit.f and is passed down to all lower
+subroutines along-side NTG. This means that if we increase
+the number of non-gas retrieval parameters (i.e., cl,ct,cc,fs,zo)
+from 5 to 6, only one value (in gfit.f) need be changed.
+
+The 3-D array SLPD has been reduced to 2-D to reduce memory use.
+This means that it doesn't cater to multiple gases undergoing
+simultaneous profile retrievals. But the supporting code never
+handled this situation anyway, so why not reduce the memory
+footprint until it does.
+
+Inside fm.f, the integer pointers:
+n1, n2, n3, n4, n5
+are re-defined as
+ipcl, ipct, ipcc, ipfs, ipzo
+This should make it clearer that they are pointers and which
+physical quantity they are pointing to.
+
 compute_lm_absco     V1.0.6    GCT  2012-03-30
 Updated some of the comment fields.
 dimensioned some of the path character variables to xxx*(mpath)
@@ -58,7 +1142,7 @@ and to write it (option "n") into the .nsw file.
  GFIT
 Added the "cc" option (continuum curvature) to the fitting variables.
 The continuum is now represented by the function
-    cl.[1+ct.(i-ibar)+cc.(i-i1).(i-i2)i+cf....]  i=1,N
+    cl.[1+ct.(i-ibar)+cc.(i-i1).(i-i2)+cf....]  i=1,N
 where
 N is the number of measured spectral points across the window
 ibar = 0.5*(N+1) 
@@ -714,7 +1798,7 @@ gnd_summer_20091116.vmr
   by 16% in the latest HITRAN uopdate. So the depth of unfitted
   nu3 OCS lines will now be 33% larger than before.
 
-modmaker6  16-Nov-2009  GCT
+mod_maker6  16-Nov-2009  GCT
   The conversion from geopotential to geometric altitudes
   was being done incorrectly. Also, I was using inconsistent
   values for the earth radius between mod_maker6 and readmodFC.f
@@ -758,7 +1842,7 @@ GSETUP  Version 2.7.13   03-Oct-2009    GCT
   This required calling the julian and the caldat subroutines which
   therefore had to be added to the Makefile.
 
-modmaker6.1  03-Oct-2009  GCT
+mod_maker6.1  03-Oct-2009  GCT
   Re-organized the if-statements that check that the .nc files
   downloaded from the NCEP/NCAR website contain sufficient levels.
   The error messages are now more specific in stating which NCEP

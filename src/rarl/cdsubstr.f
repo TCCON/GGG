@@ -1,6 +1,9 @@
       subroutine cdsubstr(inputstring,outputarray,mss,nss)
 c  Converts a comma-delimited character string (INPUTSTRING),
 c  into an array of its NSS sub-string components (OUTPUTARRAY).
+c  [The regular SUBSTR subroutine can handle commas, but not
+c  consecutive commas with nothing between them, as occurs in
+c  ACE-format runlogs]
 c
 c  Inputs:
 c       INPUTSTRING   The character string to be parsed.

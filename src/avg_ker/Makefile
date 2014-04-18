@@ -16,9 +16,7 @@ SOURCES := \
   $(COMN)/lloc.f \
   $(COMN)/rbyte.f \
   $(COMN)/getendian.f \
-  $(COMN)/write_runlog.f \
   $(COMN)/wlimit.f \
-  $(COMN)/read_runlog.f \
   $(COMN)/get_ggg_environment.f
 
 OBJECTS := $(patsubst %.f, %.o, $(SOURCES))

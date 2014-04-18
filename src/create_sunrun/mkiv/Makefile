@@ -19,6 +19,7 @@ SOURCES := \
  $(COMN)/fbc.f \
  $(COMN)/rbyte.f \
  $(COMN)/write_sunrun.f \
+ $(COMN)/substr.f \
  $(COMN)/get_ggg_environment.f
 
 OBJECTS := $(patsubst %.f, %.o, $(SOURCES))

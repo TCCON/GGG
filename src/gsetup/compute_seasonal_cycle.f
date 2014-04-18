@@ -17,8 +17,8 @@ c
 c  Note the input VMR matrix is over-written by the output vmr matrix.
 c
       implicit none
-      integer*4 kgas,ngas
-      parameter (ngas=6)
+      integer*4 jgas,kgas,ngas
+      parameter (ngas=80)
 
       real*4 calc_aoa,compute_seasonal_cycle
 
@@ -31,21 +31,20 @@ c
 
 c  Amplitude at surface at 50N
       seasonal(1)=0.00   ! H2O
-      seasonal(2)=0.008  ! CO2
+      seasonal(2)=0.0081 ! CO2
       seasonal(3)=0.00   ! O3
       seasonal(4)=0.00   ! N2O
       seasonal(5)=0.25   ! CO
       seasonal(6)=0.00   ! CH4
-
-      compute_seasonal_cycle=1.0
-      if(kgas.gt.ngas) return
+      do jgas=7,ngas
+         seasonal(jgas)=0.0
+      enddo
       aoa=calc_aoa(alat_obs,zobs,ztrop)
-c      write(*,*)alat_obs,zobs,ztrop,aoa,exp(-aoa/0.30)
       if(kgas.eq.2) then
-      sv=dsin(twopi*(fryr-0.84-aoa))  ! seasonal variation
-      svnl=sv+1.25*exp(-((alat_obs-75)/40)**2)*(0.5-sv**2)  ! seasonal variation
-      sca=svnl*exp(-aoa/0.205)*
-     & (1+1.25*exp(-((alat_obs-75)/48)**2)*(zobs+6.0)/(zobs+1.2))
+        sv=dsin(twopi*(fryr-0.834-aoa))  ! seasonal variation
+        svnl=sv+1.80*exp(-((alat_obs-74)/41)**2)*(0.5-sv**2)  ! seasonal variation
+        sca=svnl*exp(-aoa/0.20)*
+     &  (1+1.33*exp(-((alat_obs-76)/48)**2)*(zobs+6.0)/(zobs+1.4))
       else
         sv=dsin(twopi*(fryr-0.89))      ! basic seasonal variation
         svl=sv*(alat_obs/15)/sqrt(1+(alat_obs/15)**2) ! latitude dependence 
@@ -53,8 +52,34 @@ c      write(*,*)alat_obs,zobs,ztrop,aoa,exp(-aoa/0.30)
       endif
       compute_seasonal_cycle=1.0+sca*seasonal(kgas)
 
+cc  Amplitude at surface at 50N
+c      seasonal(1)=0.00   ! H2O
+c      seasonal(2)=0.008  ! CO2
+c      seasonal(3)=0.00   ! O3
+c      seasonal(4)=0.00   ! N2O
+c      seasonal(5)=0.25   ! CO
+c      seasonal(6)=0.00   ! CH4
+c
+c      compute_seasonal_cycle=1.0
+c      if(kgas.gt.ngas) return
+c      aoa=calc_aoa(alat_obs,zobs,ztrop)
+cc      write(*,*)alat_obs,zobs,ztrop,aoa,exp(-aoa/0.30)
+c      if(kgas.eq.2) then
+c      sv=dsin(twopi*(fryr-0.84-aoa))  ! seasonal variation
+c      svnl=sv+1.25*exp(-((alat_obs-75)/40)**2)*(0.5-sv**2)  ! seasonal variation
+c      sca=svnl*exp(-aoa/0.205)*
+c     & (1+1.25*exp(-((alat_obs-75)/48)**2)*(zobs+6.0)/(zobs+1.2))
+c      else
+c        sv=dsin(twopi*(fryr-0.89))      ! basic seasonal variation
+c        svl=sv*(alat_obs/15)/sqrt(1+(alat_obs/15)**2) ! latitude dependence 
+c        sca=svl*exp(-aoa/1.60)              ! altitude dependence
+c      endif
+c      compute_seasonal_cycle=1.0+sca*seasonal(kgas)
+
+
 c      sdma=sin(2*pi*(float(iday+75)/365.25-age))
 c      sdma=(1.45-exp(-(1.11*sdma)))
 c      co2vmr(ilev)=vmr0*(1+fasc*exp(-(age/0.25))*sdma)
+
       return
       end

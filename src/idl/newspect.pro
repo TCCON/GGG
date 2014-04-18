@@ -28,7 +28,7 @@ nocl=1
 ttyp=0
 possp=0l
 ulim=string('f')
-version=string('programme newspect   v.1.8.1    2010-10-01    gct')
+version=string(' newspect    Version 1.90     2010-12-28    gct ')
 
 !p.charsize=1.5
 !p.thick=3
@@ -80,17 +80,25 @@ if dwas ne ' ' and dwas ne strmid(occul,strlen(occul)-2,2) then begin
 endif
 
 on_ioerror,rtn5
-j=0l
-readf,unit,names
-readf,unit,names
-readf,unit,names
-print,strpos(names,'Year')
+
+readf,unit,nhl,ncol   ; title line
+ihl=1
+while(ihl lt nhl) do begin
+readf,unit,names   ; skip title line
+ihl=ihl+1
+endwhile
+
+;readf,unit,names
+;readf,unit,names
+;readf,unit,names
+;print,strpos(names,'Year')
 ll_year=strpos(names,'Year')
-;rlformat=string('(1x,a',ll_year-2,',42x,f8.3,f7.4,f7.2,3f6.4,2i8,f15.11,i8,i3,39x,f8.2)')
 rlformat=string('(1x,a',ll_year-2,',34x,2f8.3,f7.4,f8.3,f7.3,f7.2,3f6.4,2i9,f15.11,i9,i3,39x,f8.2)')
-print,rlformat
+;print,rlformat
+j=0l
 while(eof(unit) eq 0) do begin
   readf,unit,names
+  if strmid(names,0,7) eq 'Format=' then rlformat=strmid(names,7)
   runlogstr(j)=names
   j=j+1
 endwhile
@@ -322,7 +330,7 @@ case ll(0) of
           strmid(systime(0),20,4)+'/'+strmid(systime(0),11,8)
         xyouts,930,10,time,charsize=0.8,/device
         device,/close
-        spawn,'lp '+filenm
+;        spawn,'lp '+filenm
         set_plot,idl_device
         goto,rtn4a
       end

@@ -15,7 +15,6 @@ SOURCES := \
   $(COMN)/fndlun.f \
   $(COMN)/getlun.f \
   $(COMN)/fnbc.f \
-  $(COMN)/read_runlog.f \
   $(COMN)/lloc.f \
   $(COMN)/substr.f \
   $(COMN)/fnbc.f \

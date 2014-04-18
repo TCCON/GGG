@@ -19,8 +19,12 @@ SOURCES := \
   $(COMN)/lnbc.f \
   $(COMN)/profzl.f \
   $(COMN)/rbyte.f \
-  $(COMN)/read_runlog.f \
-  $(COMN)/write_runlog.f \
+  $(COMN)/read_runlog_header.f \
+  $(COMN)/read_runlog_data_record.f \
+  $(COMN)/write_runlog_header.f \
+  $(COMN)/write_runlog_data_record.f \
+  $(COMN)/substr.f \
+  $(COMN)/fbc.f \
   $(COMN)/wlimit.f \
   $(COMN)/vsubs.f \
   $(COMN)/get_ggg_environment.f

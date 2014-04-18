@@ -46,7 +46,7 @@ psn=1
 idn=0
 ttyp=0
 vbar_was=0.
-version=string('pfit  v.4.5.1a   24-Feb-2010    GCT')
+version=string(' PFIT   Version 4.60     26-Dec-2012    GCT ')
 print,version
 
 disk=getenv('GGGPATH')+'/'
@@ -82,9 +82,13 @@ case strmid(occul,idot+1,1) of
    'l': openr,unit,string(disk+'runlogs/lab/'+occul),/get_lun
 endcase
 
+readf,unit,nhl,ncol   ; title line
+ihl=1
+while(ihl lt nhl) do begin
 readf,unit,names   ; skip title line
-readf,unit,names   ; skip title line
-readf,unit,names   ; skip title line
+ihl=ihl+1
+endwhile
+
 ll_year=strpos(names,'Year')
 nspec=0l
 print, 'locating SPT files.....'
@@ -130,19 +134,21 @@ two:
   ntgas=ncol-3  ; the first 3 columns are Freq, Tm, Tc, Other, Solar
   print,nhl,ncol,path(kspec),ntgas
   if(ntgas gt 2) then begin
-     readf,unit,format='(2f14.6,i7,3f8.3,1x,2f7.4,f7.3,1x,i3,f4.1,1x,i3)',$
-     fmin,fmax,npoints,asza,zobs,tang,rms,frac,colmant,colexp,errmant,errexp
+     readf,unit,format='(2f14.6,i7,3f8.3,1x,2f7.4,3(f7.3,1x,i3))',$
+     fmin,fmax,npoints,asza,zobs,tang,rms,frac,colmant,colexp,vsfmant,vsfexp,errmant,errexp
      print,fmin,fmax,npoints,asza,zobs,tang,rms,frac,colmant,colexp,errmant,errexp
-     expont=max([colexp,errexp])
-     burden=colmant*(10^(colexp-expont))
-     berr=errmant*(10^(errexp-expont))
-     print,'column=',burden,berr
+;     expont=max([colexp,errexp])
+;     burden=colmant*vsfmant*(10^(colexp-expont))
+;     berr=colmant*vsfmant*errmant*(10^(errexp-expont))
+     burden=colmant*vsfmant*10^(vsfexp)
+     berr=colmant*errmant*10^(errexp)
+;     print,'column=',burden,berr,colexp
   endif else begin
      readf,unit,format='(2f14.6,i7,3f8.3,1x,2f7.4)',$
      fmin,fmax,npoints,asza,zobs,tang,rms,frac
      burden=0.0
      berr=0.0
-     expont=0
+     colexp=0
   endelse
   print,'path,npoints=',path(kspec),npoints
   if npoints le 0 then goto,two
@@ -195,14 +201,14 @@ closeunit:
   string(format='("  !7r!6!drms!n=",(f7.4),"%")',rms)+$
   string(format='("  !9i!6dz=",(f6.3))',burden)+$
   '!9+!6'+string(format='((f5.3))',berr)+$
-  string(format='("x10!u",(i2))',expont)
+  string(format='("x10!u",(i2))',colexp)
 ;
 ;  find the highest and lowest data point for each category
   yloarr=fltarr(ntgas+3)
   yhiarr=fltarr(ntgas+3)
-  print,'npoints,ntgas=',npoints,ntgas
+;  print,'npoints,ntgas=',npoints,ntgas
   for tt=0,ntgas+2 do begin
-    print,tt,npoints,datarray(tt,0),datarray(tt,npoints-1)
+;    print,tt,npoints,datarray(tt,0),datarray(tt,npoints-1)
     yloarr(tt)=min(datarray(tt,0:npoints-1))
     yhiarr(tt)=max(datarray(tt,0:npoints-1))
   endfor

@@ -31,7 +31,7 @@ c       prl,   I*4  ! Interferogram Peak (ZPD) location: reverse scan
 c       possp  I*4  ! Position Of Starting Spectral Point (bytes)
 c
       implicit none
-      character path*(*),apf*2,hst*80,date*8
+      character path*(*),apf*2,hst*80,date*8,comment*40
       integer*4 dtype,hedlen,luns,iend,
      & npoints,ncenter,ic
       integer*4 nsp,iy,im,id,hh,mm,ss,nip,pkl,prl,possp
@@ -79,9 +79,10 @@ c==================================================================
               elseif(hst(:9).eq.'RESOLUTN=') then
                  read(hst(10:),*)resn
               elseif(hst(:9).eq.'ID      =') then
-                 write(*,'(a)') hst(10:)
+                 read(hst(10:),'(a)') comment
               elseif(hst(:9).eq.'DAY     =') then
                  read(hst(10:),*) date
+                 if(date(1:1).eq.' ') read(hst(10:),'(3x,a)') date
                  read(date,'(i2,1x,i2,1x,i2)')im,id,iy 
               elseif(hst(:9).eq.'ZENSTRT =') then
                  read(hst(10:),*)sza1 
@@ -146,5 +147,7 @@ c  Compute mean ASZA as the average of the ZPD SZAs of the individual interferog
         end do
         gmt=tgmt/nscan ! airmass-weighted average GMT
 
+        write(*,'(a,f9.1,2x,a)') path(46:58),
+     &  90*(sza1+sza2)/3.14159,comment
       return
       end

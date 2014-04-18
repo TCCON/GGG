@@ -24,74 +24,159 @@ c  consistent with the scatter of the measured values. The average value
 c  of this ratio is calculated for each gas, the weights being given by
 c  a Lorentzian with a 5 minute half-width.
 c
+c  Uncertainties are also computes for the daily error scale factors.
+c  These are based on the sum of the weights for each day. For a day
+c  with a single pair of observation very close in time, the ESF
+c  uncertainty is assumed to be 100%. The uncertainty reduces as the
+c  number of comparable observations increases, The uncertainty
+c  increases as the comparable observations are less simultaneous.
+c  The fractional uncertainty is the same for every gas, because it
+c  depends only on the number and the timing of the observations.
+c
       implicit none
       include "../ggg_int_params.f"
 
-      integer*4 lunr,ncoml,ncol,mcol,kcol,j,
-     & lnbc,irow,naux,nrow,li,k, mchar
-      parameter (lunr=14,mcol=150)
-      character header*800,headarr(mcol)*20,specname*(nchar),
-     & inputfile*40,version*62
-      real*8 yrow(mcol),ywas(mcol),dt,wt,twt,tot(mcol)
+      integer*4 lunr,ncoml,ncol,mcol,kcol,j,icount,
+     & lunw_d,lunw_g,
+     & lnbc,naux,nrow,li,k,kspflag,kday,kwas,istat
+      parameter (lunr=14,lunw_d=15,lunw_g=16,mcol=150)
+      character header*1200,headarr(mcol)*12,specname*(nchar),
+     & inputfile*60,alloutputfile*80,dailyoutputfile*80,version*62
+      real*8 yrow(mcol),ywas(mcol),dt,wt,
+     & tdwt,totd(mcol),yy,dtiny,
+     & tgwt,totg(mcol)
 
       version=
-     &' error_scale_factor           Version 1.1.2   2009-03-03   GCT'
+     &' error_scale_factor           Version 1.21    2013-05-03   GCT'
+      dtiny=0.000001d0
 
-      mchar=0
+      kspflag=0
+      icount=1  ! avoid compiler warnings (may be uninitialized)
+      kwas=0    ! avoid compiler warnings (may be uninitialized)
+      tdwt=0.0  ! avoid compiler warnings (may be uninitialized)
+      tgwt=0.0
 
-      write(*,*)'Enter name of input file (e.g. paIn_1.0lm.vav.ada):'
-      read(*,'(a)') inputfile
+      if (iargc() == 0) then
+         write(*,*)'Enter name of input file (e.g. paIn_1.0lm.vav.ada):'
+         read(*,'(a)') inputfile
+      elseif (iargc() == 1) then
+         call getarg(1, inputfile)
+      else
+         stop 'Usage: $gggpath/bin/error_scale_factor adafile'
+      endif
+
       li=lnbc(inputfile)
       open(lunr,file=inputfile, status='old')
 
 c  Read the header of the .ada file and figure out the
       read(lunr,'(i2,i4,i7,i4)') ncoml,ncol,nrow,naux
       if(ncol.gt.mcol) stop 'increase mcol'
+      do k=1,ncol
+         totd(k)=0.0
+         totg(k)=0.0
+      end do
       do j=2,ncoml
          read(lunr,'(a)') header
       end do
       call substr(header,headarr,mcol,kcol)
       call lowercase(header)
-      if (index(header,'spectrum') .gt. 0) mchar=1
+      if (index(header,'spectrum') .gt. 0) kspflag=1
       if(kcol.ne.ncol ) stop 'ncol/kcol mismatch'
+
+      alloutputfile=inputfile(:li)//'.all_error.out'
+      open(lunw_g,file=alloutputfile,status='unknown')
+      write(lunw_g,*) 2,1+(ncol-naux)/2
+      write(lunw_g,'(6x,64a12)')' Year       ',
+     & (headarr(k),k=naux+1,ncol-1,2)
+
+      dailyoutputfile=inputfile(:li)//'.daily_error.out'
+      open(lunw_d,file=dailyoutputfile,status='unknown')
+      write(lunw_d,*) 2,3+(ncol-naux)
+      write(lunw_d,'(6x,2a12,a5,40(a12,a20))')' Year       ',
+     & ' DOY       ',' N   ',
+     & (headarr(k),headarr(k)(:lnbc(headarr(k)))//'_error  ',
+     & k=naux+1,ncol-1,2)
 
 c  Read each day of data into memory and divide XGas values by the
 c  appropriate correction factors.
       dt=0.00001  ! years (=5 minutes)
-      twt=0.0
-      do k=1,ncol
-         tot(k)=0.0
-      end do
-      if (mchar .eq. 1) then
-         read(lunr,*) specname, (ywas(j),j=1+mchar,ncol)
+      if (kspflag .eq. 1) then
+         read(lunr,*) specname, (ywas(j),j=1+kspflag,ncol)
       else
          read(lunr,*) (ywas(j),j=1,ncol)
       endif
-      do irow=1,9999999
-         if (mchar .eq. 1) then
-            read(lunr,*,end=99) specname, (yrow(j),j=1+mchar,ncol)
-         else
-            read(lunr,*,end=99) (yrow(j),j=1,ncol)
-         endif
+      kwas = nint(ywas(2+kspflag)-ywas(3+kspflag)/24)
 
-         wt=1/(1+((yrow(1+mchar)-ywas(1+mchar))/dt)**2)  ! Lorentzian Weighting
-         twt=twt+wt
-         do k=naux+1,ncol-1,2
-            tot(k)=tot(k)+wt*(yrow(k)-ywas(k))**2/
-     &      (yrow(k+1)**2+ywas(k+1)**2)
-         end do
-         do k=1+mchar,ncol
+      istat=0
+      do while (istat.eq.0)
+         if (kspflag .eq. 1) then
+            read(lunr,*,iostat=istat)specname,(yrow(j),j=1+kspflag,ncol)
+         else
+            read(lunr,*,iostat=istat) (yrow(j),j=1,ncol)
+         endif
+         kday = nint(yrow(2+kspflag)-yrow(3+kspflag)/24)
+c         write(*,*) specname(:22),
+c     &   yrow(2+kspflag),yrow(3+kspflag),kday,kwas
+
+         if(kday+istat.eq.kwas) then
+            icount=icount+1
+c  Lorentzian weights based on time difference (first column).
+            wt=1/(1+((yrow(1+kspflag)-ywas(1+kspflag))/dt)**2)  ! Lorentzian Weights
+            tdwt=tdwt+wt
+            do k=naux+1,ncol-1,2
+               yy=(yrow(k)-ywas(k))**2/(yrow(k+1)**2+ywas(k+1)**2)
+               totd(k)=totd(k)+wt*yy
+            end do
+         else
+c  Output daily results. If there's only one observation, 
+c  skip because the ESF will be indeterminate (NaN)
+c  Don't let ESF fall below SQRT(0.0001) = 0.01
+c  for days when the measured columns are all identical
+c            if(icount.ge.2) then
+               write(lunw_d,'(2f12.6,1x,i4,64f12.6)')
+     &         ywas(1+kspflag),
+     &         ywas(2+kspflag),icount,
+     &         (sqrt(0.0001+totd(k)/tdwt),
+     &         sqrt(0.01+totd(k)/tdwt)/sqrt(tdwt),
+     &         k=naux+1,ncol-1,2)
+c            endif
+
+c  Augment global totals
+            tgwt=tgwt+tdwt
+            do k=1,ncol
+               totg(k)=totg(k)+totd(k)
+            end do
+
+c  Reset daily totals
+            icount=1
+            tdwt=dtiny
+            do k=1,ncol
+               totd(k)=dtiny
+            end do
+
+         endif     !  if(kday.eq.kwas) then
+
+c  Copy current data to YWAS
+         kwas=kday
+         do k=1+kspflag,ncol
             ywas(k)=yrow(k)
          end do
-      end do         ! do irow=1,9999999
-      stop ' irow exceeded 9999999'
-99    close(lunr)
+
+      end do         ! do while (istat.eq.0)
+      close(lunr)
+      close(lunw_d)
+
+c  Output global results.
+      write(lunw_g,'(64f12.6)')ywas(1+kspflag),
+     & (min(9999.0,sqrt(totg(k)/tgwt)),k=naux+1,ncol-1,2)
+      close(lunw_g)
 
 c  Output results to the screen.
       do k=naux+1,ncol-1,2
          if(headarr(k).ne.'air') then ! avoid writing out the error
 c     scale factor for column air which isn't terribly meaningful
-         write(*,'(i4,2x,a,f9.3)') k,headarr(k),sqrt(tot(k)/twt)
+         write(*,'(i4,2x,a,f9.3)') k,headarr(k),sqrt(totg(k)/tgwt)
+c         write(55,'(i4,2x,a,f9.3)') k,headarr(k),sqrt(totg(k)/tgwt)
          endif
       end do
 

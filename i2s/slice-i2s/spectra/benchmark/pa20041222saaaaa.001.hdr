@@ -1,0 +1,111 @@
+Type 0 [unknown:52] offset 24 length 96
+Instrument Parameters 
+  DUR: 104.2674
+  PKA: -15344
+  PKL: 142065
+  PRA: -15408
+  PRL: 1421944
+  HFL: 15798.0138
+  LFL: 0
+  LWN: 15798.0138
+  SSP: 1
+  SSM: 1
+  INS: IFS 125
+  FOC: 418
+  ASS: 1
+  GFW: 1
+  GBW: 0
+  BFW: 0
+  BBW: 0
+  RSN: 385734
+  HFF: 15798.0138
+  LFF: 0
+  HUM: 100
+  TLP: 27
+  PIM: 0.60017
+  TSC: 28.4
+  IDA: -4.9
+  ISS: OK
+  END: 
+Acquisition Parameters 
+  AQM: SD
+  SGN: 1
+  RES: 0.0199982171218638
+  OPL: 45.0040118334369
+  OPS: 4.49622977288449
+  NSS: 1
+  END: 
+FT Parameters 
+  APF: BX
+  PHR: 55.539892265625
+  SVF: 2500
+  PCL: 1024
+  PCT: 0.02
+  ZFF: 2
+  ZPL: 142062
+  SCF: 0
+  DCL: 4.89515139534547e-09
+  ZPA: 0.54558002948761
+  VER: 20140302
+  VDC: 0
+  LST: 2
+  LSE: 0.00145908107515424
+  LSU: 0.000388987071346492
+  END: 
+Optic Parameters 
+  SRC: Sun Tracker
+  APT: 1.0 mm
+  FOV: 2.39234449760766
+  BMS: CaF2
+  VEL: 7.5 kHz
+  DTC: Si- Diode & Slave [Internal Pos.2]
+  PGR: 3090
+  HPF: 1
+  LPF: 10.0
+  END: 
+Sample Parameters 
+  SFM: Solar
+  LAT: 45.9448
+  LON: -90.2732
+  ALT: 442
+  TOU: -23.1
+  POU: 964.4
+  HOU: 80
+  SIA: 177.4
+  SIS: 1.2
+  WSA: 0
+  WDA: 0
+  WSA: 0
+  WSS: 0
+  WSM: 0
+  WDA: 0
+  WDS: 0
+  ZSA: 158.7
+  ZSS: 1.1
+  ZRM: 0
+  ZLM: 0
+  ZVA: 15
+  DAA: 134.8
+  DSM: 0
+  SAA: 135.1
+  SEA: 7.3
+  STM: 0
+  SIA: 177.4
+  SIS: 1.2
+  SOA: 0
+  SOE: 0
+  SDA: 1.1
+  END: 
+Data Parameters SpSm/2.Chn.
+  DPF: 1
+  NPT: 955785
+  FXV: 3800.00194420795
+  LXV: 10999.9992843241
+  CSF: 1
+  MXY: 0.572100043296814
+  MNY: -0.00230326130986214
+  DXU: WN
+  DAT: 22/12/2004
+  TIM: 14:39:54.520 (UTC+0)
+  END: 
+Data Block SpSm/2.Chn. length 955785

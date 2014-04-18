@@ -1,13 +1,13 @@
 c  Program spectrum_ratioing.f
 c
-c  Ratios series of binary spectra which are read in from
+c  Ratios series of binary spectra whose names are read in from
 c  a runlog-format input file (which must include the header lines).
 c  Numerator spectra are denoted by a "n", denominator spectra by a "d"
 c
 c  There can be multiple numerator spectra and/or denominator spectra.
 c  Typically, there might be two denominator spectra: acquired before
 c  and after the single cell/numerator spectrum. The two denominator
-c  spectra will c  be averaged before use. But there is flexibility
+c  spectra will be averaged before use. But there is flexibility
 c  to handle multiple numerator spectra also.
 c
 c  The string "ratio" in the input file triggers the ratioing.
@@ -35,8 +35,8 @@ c
       include "../ggg_int_params.f"
 
       integer*4
-     & lunr_rlg,   ! LUN to read input runlogs from
-     & lunw_rlg,   ! LUN to write new runlogs to
+     & lunr_rl,   ! LUN to read input runlogs from
+     & lunw_rl,   ! LUN to write new runlogs to
      & luns,       ! LUN to read binary spectra from
      & lunw_asc,   ! LUN to write ascii spectra to
      & lun_wbs,    ! LUN to write binary spectrum to
@@ -44,14 +44,14 @@ c
      & nnum,   ! Number of numerator spectra
      & nden,   ! Number of Denominator spectra
      & i,j,
-     & nhl, ncol,
+c     & nhl, ncol,
      & iabpw,  ! absolute values of the bytes per word
      & lnbc,   ! function Last Non-Blank Character
      & iend,   ! Endianess of host computer
      & npts,   ! Number of spectral values
      & lr      ! 
 
-      parameter (lunr_rlg=25,lunw_rlg=26,luns=15,lunw_asc=16,lun_wbs=17)
+      parameter (lunr_rl=25,lunw_rl=26,luns=15,lunw_asc=16,lun_wbs=17)
       parameter (mem=4*1024*2048)
       real*4 bufr4(mem/4),buf_num(mem/4),buf_den(mem/4),
      & eps,rat
@@ -109,34 +109,55 @@ c
      & nus, nue      ! selected frequency range of interest
 
       character
-     & specname_num*57,  ! spectrum name
-     & runlog_header*512, strl*300
+     & specname_num*(nchar),  ! spectrum name
+     & data_fmt_write_rl*256,data_fmt_read_rl*256,
+     & col_labels_rl*320,
+     & strl*300,
+     & nus_str*40,nue_str*40
 c
       equivalence (bbuf,bufi2,bufr4)
 
       write(6,*)
       version=
-     &' spectrum_ratioing         Version 1.0.1    29-Jan-2010    GCT'
+     &' spectrum_ratioing         Version 1.11     15-Jan-2013    GCT'
       call getendian(iend)  ! Find endian-ness of host computer
 
-      write(*,*)'Enter path to input file/runlog:'
-      read(*,'(a)') rlgfile
+      if (iargc() == 0) then
+         write(*,*)'Enter path to input file/runlog:'
+         read(*,'(a)') rlgfile
+      elseif (iargc() == 3) then
+         call getarg(1, rlgfile)
+         call getarg(2, nus_str)
+         read(nus_str,*)nus
+         call getarg(3, nue_str)
+         read(nue_str,*)nue
+      else
+        write(*,*)'Usage: $gggpath/bin/spectrum_ratioing path/runlog '//
+     & 'start_frequency end_frequency (0 99999 to retain limits)'
+        stop
+      endif
 
       eps=0.01
-      open(lunr_rlg,file=rlgfile,status='old')
-      open(lunw_rlg,file='new_runlog.grl',status='unknown')
-      read(lunr_rlg,*) nhl,ncol
-      write(lunw_rlg,*) nhl,ncol
-      do i=2,nhl-1
-         read(lunr_rlg,'(a)') strl
-         write(lunw_rlg,'(a)') strl(:lnbc(strl))
-      end do
-      read(lunr_rlg,'(a)') runlog_header
-      write(lunw_rlg,'(a)') runlog_header(:lnbc(runlog_header))
 
-      write(*,*)'Enter Starting & Ending frequencies:'
-      write(*,*)'Enter 0 99999 to retain original spectral limits'
-      read(*,*) nus,nue
+      open(lunr_rl,file=rlgfile,status='old')
+      call read_runlog_header(lunr_rl,data_fmt_read_rl,col_labels_rl)
+
+      open(lunw_rl,file='new_runlog.grl',status='unknown')
+      call write_runlog_header(lunw_rl,version,data_fmt_write_rl)
+c      read(lunr_rl,*) nhl,ncol
+c      write(lunw_rl,*) nhl,ncol
+c      do i=2,nhl-1
+c         read(lunr_rl,'(a)') strl
+c         write(lunw_rl,'(a)') strl(:lnbc(strl))
+c      end do
+c      read(lunr_rl,'(a)') runlog_header
+c      write(lunw_rl,'(a)') runlog_header(:lnbc(runlog_header))
+
+      if (iargc() == 0) then
+         write(*,*)'Enter Starting & Ending frequencies:'
+         write(*,*)'Enter 0 99999 to retain original spectral limits'
+         read(*,*) nus,nue
+      endif
 
 c  Interrogate environmental variable GGGPATH to find location
 c  of root partition (e.g. "/home/toon/ggg/" ).
@@ -153,22 +174,15 @@ c
       istat=0
       do while (istat.eq.0)     ! Main loop over spectra
 c  Read input runlog
-         read(lunr_rlg,'(a)',end=99) strl
+         read(lunr_rl,'(a)',end=99) strl
          if (index(strl,'ratio').gt.0) then
 c  Write ratio spectrum
             write(6,*) nnum,nden,specname_num
             specname_num(1:1)='r'
             col1=' '
             open(lunw_asc,file='./asc_'//specname_num,status='unknown')
-c            write(lunw_asc,*)5,2
-c            write(lunw_asc,'(a)') version
-c            write(lunw_asc,'(a)') runlog_header
-c            write(lunw_asc,'(a)')' Frequency_(cm-1)  Signal'
-c           call write_runlog(lunw_asc,col1,specname_num,iyr,iset,zpdtim,
-c     &      oblat,oblon,obalt,asza,zenoff,azim,osds,opd,fovi,fovo,amal,
-c     &      m1,m2,graw,possp,bytepw,zoff,snr,apf,tins,pins,hins,tout,
-c     &      pout,hout,sia,fvsi,wspd,wdir,lasf,wavtkr,aipl,istat)    
-           call write_runlog(lunw_rlg,col1,specname_num,iyr,iset,zpdtim,
+            call write_runlog_data_record(lunw_rl,data_fmt_write_rl,
+     &      col1,specname_num,iyr,iset,zpdtim,
      &      oblat,oblon,obalt,asza,zenoff,azim,osds,opd,fovi,fovo,amal,
      &      m1,m2,graw,possp,bytepw,zoff,snr,apf,tins,pins,hins,tout,
      &      pout,hout,sia,fvsi,wspd,wdir,lasf,wavtkr,aipl,istat)    
@@ -204,10 +218,11 @@ c     &      pout,hout,sia,fvsi,wspd,wdir,lasf,wavtkr,aipl,istat)
                buf_den(i)=0
             end do
          else
-            backspace(lunr_rlg)
+            backspace(lunr_rl)
          endif     !  if(index(strl,'ratio').gt.0)
          if(strl(1:1).eq.':') cycle
-         call read_runlog(lunr_rlg,col1,specname,iyr,iset,zpdtim,
+         call read_runlog_data_record(lunr_rl,data_fmt_read_rl,
+     &   col1,specname,iyr,iset,zpdtim,
      &   oblat,oblon,obalt,asza,zenoff,azim,osds,
      &   opd,fovi,fovo,amal,ifirst,ilast,graw,possp,bytepw,zoff,snr,apf,
      &   tins,pins,hins,tout,pout,hout,
@@ -277,7 +292,7 @@ c  If necessary, byte-reverse data
          endif
 
       end do        ! Main loop over spectra
-99    close(lunr_rlg)
-      close(lunw_rlg)
+99    close(lunr_rl)
+      close(lunw_rl)
       stop
       end

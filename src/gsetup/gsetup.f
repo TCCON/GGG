@@ -28,10 +28,10 @@ c
      & lunr_vmr,
      & lunr_iso,lunw_iso,
      & iday,jgas,
-     & nlev,nlhead_rlg,nlhead_ray,nlhead_ggg,nspeci,ngas,
-     & lr,lspn,i,ncol,doy,iyyyy,imm,idd,jul,
+     & nlev,nlhead_ray,nlhead_ggg,nspeci,ngas,
+     & lr,lspn,i,doy,iyyyy,imm,idd,jul,
      & multipath, nspe,possp,rc,istat,lm,lv,
-     & lmn,lvn,lunr_men
+     & lmn,lvn,lunr_men, lun_stdin
       parameter (lunw_ggg=56)    ! for writing the .ggg files
       parameter (lunr_iso=57)    ! for reading isotopologs.dat
       parameter (lunw_iso=58)    ! for writing isotopologs_local.dat
@@ -43,8 +43,9 @@ c
       parameter (lunr_rlg=69)    ! for reading the runlog
       parameter (lunw_rpt=72)    ! for writing gsetup.rpt
       parameter (lunr_vmr=73)    ! for reading the .vmr file (readvmrFC)
-      parameter (nlhead_ray=3)   ! Number of header lines in .ray file.
+      parameter (nlhead_ray=4)   ! Number of header lines in .ray file.
       parameter (nlhead_ggg=18)  ! Number of header lines in .ggg file.
+
       real*4 erroff
       parameter (erroff=0.004,apo=2,interp=1)
       logical*4 newmod,newvmr,vmr_found
@@ -54,97 +55,113 @@ c
 
       real*4 dum,freq,frqcen,height,tlat,
      & zmin,zpres,compute_seasonal_cycle,
-     & p_cell(ncell),t_cell(ncell),vmr_cell(ncell),
-     & zobs,             ! the geocentric radius of the observer fed to TLPATH
-     & bend,             ! total ray bending due to refraction
-     & d(mlev),          ! number densities at levels (molec.cm-3)
-     & h2ovmr(mlev),     ! h2o profile from model file
+     & pfill,p_cell(ncell),t_cell(ncell),vmr_cell(ncell),
+     & zobs,              ! the geocentric radius of the observer fed to TLPATH
+     & bend,              ! total ray bending due to refraction
+     & d(mlev),           ! number densities at levels (molec.cm-3)
+     & h2ovmr(mlev),      ! h2o profile from model file
 c     & co2vmr(mlev),     ! co2 profile from simulate_co2_vmr
-     & fovr,             ! External angular radius of FOV in degrees
-     & mmw(mlev),        ! mean molecular weights
-     & p(mlev),          ! pressures of levels (atm.)
-     & r(mlev),          ! radii of levels (km) = z + roc
-     & roc,              ! radius of curvature (km)
+     & fovr,              ! External angular radius of FOV in degrees
+     & mmw(mlev),         ! mean molecular weights
+     & p(mlev),           ! pressures of levels (atm.)
+     & r(mlev),           ! radii of levels (km) = z + roc
+     & roc,               ! radius of curvature (km)
      & cell_length(ncell),      ! Length of cell permanently in solar beam
-     & solzen,           ! solar zenith angle used (may be refracted)
-     & splos(mlev),      ! array of line-of-sight slant paths
-     & t(mlev),          ! temperatures of levels (K)
+     & solzen,            ! solar zenith angle used (may be refracted)
+     & splos(mlev),       ! array of line-of-sight slant paths
+     & t(mlev),           ! temperatures of levels (K)
      & refvmr(mgas,mlev), ! buffer for reference vmr's
-     & apvmr(mgas,mlev), ! buffer for a priori vmr's
-     & z(mlev)           ! altitudes of levels (km)
+     & apvmr(mgas,mlev),  ! buffer for a priori vmr's
+     & z(mlev)            ! altitudes of levels (km)
 
-      real*8  fryr,z8,
+      real*8  fryr,z8,doywas,latwas,lonwas,diff,
      & reflat_vmr,date_mod,date_vmr,ztrop_vmr
 
       real*8  zpbl, ztrop_ncep,ztrop_gct, delta_p, wlimit,
-     & oblat,            ! observation latitude (deg).
-     & oblon,            ! observation longitude (deg).
-     & obalt,            ! observation altitude (km)
-     & asza,             ! astronomical solar zenith angle (unrefracted)
-     & opd,              ! Optical path difference (cm) of interferogram
-     & graw,             ! spacing of raw spectrum (cm-1) from GETINFO
-     & zpdtim,           ! Time of ZPD (UT hours)
-     & zenoff,           ! Zenith angle pointing offset (deg)
-     & azim,             ! Solar Azimuth Angle
-     & osds,             ! Observer-Sun Doppler Stretch (ppm_
-     & fovi,             ! Internal angular diameter of FOV (radians)
-     & fovo,             ! External angular diameter of FOV (radians)
-     & amal,             ! angular misalignment of interferometer (radians)
-     & zoff,             ! Zero level offset (dimensionless fraction)
-     & snr,              ! Signal-to-Noise Ratio (dimensionless)
-     & tins,             ! Inside temperature
-     & pins,             ! Inside pressure
-     & hins,             ! Inside humidity
-     & tout,             ! Outside temperature
-     & pout,             ! Outside pressure
-     & hout,             ! Outside humidity
-     & sia,              ! Solar Intensity Average (arbitrary units)
-     & fvsi,             ! Fractional Variation in Solar Intensity
-     & wspd,             ! Wind Speed (m/s)
-     & wdir,             ! Wind Direction (deg)
-     & aipl,             ! Airmass-Independent Path length (km)
-     & lasf,             ! Laser Frequency (e.g. 15798 cm-1)
-     & wavtkr            ! Frequency of the sun-tracker (actively-tracked)
+     & frdoy,frwas,       ! Fractional Julian day numbers
+     & oblat,             ! observation latitude (deg).
+     & oblon,             ! observation longitude (deg).
+     & obalt,             ! observation altitude (km)
+     & asza,              ! astronomical solar zenith angle (unrefracted)
+     & opd,               ! Optical path difference (cm) of interferogram
+     & graw,              ! spacing of raw spectrum (cm-1) from GETINFO
+     & zpdtim,            ! Time of ZPD (UT hours)
+     & zenoff,            ! Zenith angle pointing offset (deg)
+     & azim,              ! Solar Azimuth Angle
+     & osds,              ! Observer-Sun Doppler Stretch (ppm_
+     & fovi,              ! Internal angular diameter of FOV (radians)
+     & fovo,              ! External angular diameter of FOV (radians)
+     & amal,              ! angular misalignment of interferometer (radians)
+     & zoff,              ! Zero level offset (dimensionless fraction)
+     & snr,               ! Signal-to-Noise Ratio (dimensionless)
+     & tins,              ! Inside temperature
+     & pins,              ! Inside pressure
+     & hins,              ! Inside humidity
+     & tout,              ! Outside temperature
+     & pout,              ! Outside pressure
+     & hout,              ! Outside humidity
+     & sia,               ! Solar Intensity Average (arbitrary units)
+     & fvsi,              ! Fractional Variation in Solar Intensity
+     & wspd,              ! Wind Speed (m/s)
+     & wdir,              ! Wind Direction (deg)
+     & aipl,              ! Airmass-Independent Path length (km)
+     & lasf,              ! Laser Frequency (e.g. 15798 cm-1)
+     & wavtkr             ! Frequency of the sun-tracker (actively-tracked)
 
         
       character
-     & window*140,         ! name of window
-     & filnam*48,          ! general purpose character buffer
-     & filnamwas*48,       ! general purpose character buffer
-     & header*92,          ! general purpose character buffer
-     & levels*24,          ! name of file containing levels
-     & listof*24,          ! the selected list of windows
-     & newmkivname*10,     ! path to new model
-     & modname*80,         ! path to new model
-     & newmodname*80,      ! path to new model
-     & vmrname*80,         ! path to new vmr
-     & newvmrname*80,      ! path to new vmr
+     & window*140,          ! name of window
+     & filnam*48,           ! general purpose character buffer
+     & filnamwas*48,        ! general purpose character buffer
+     & header*92,           ! general purpose character buffer
+     & data_fmt_read_rl*256,
+     & col_labels_rl*320,
+     & levels*24,           ! name of file containing levels
+     & listof*24,           ! the selected list of windows
+     & newmkivname*10,      ! path to new model
+     & modname*80,          ! path to new model
+     & newmodname*80,       ! path to new model
+     & vmrname*80,          ! path to new vmr
+     & newvmrname*80,       ! path to new vmr
      & menuinput*(mfilepath),       ! path to xxx.men file
-     & prvwin*14,          ! name of previous window (i.e. GAS_1234)
-     & slk*1,              ! symbol which links gas name and frequency
-     & ccell*1,            ! Character in specname denoting internal cell 
-c    & user*8,             ! investigator
-     & ray_fmt*26,
-     & isofile*(mfilepath),         ! path to "isotopolog.dat"
-     & vmrlabel*1024,      ! column labels from vmr file
-     & str_isotop*294      ! line from isotopologs.dat file
+     & prvwin*14,           ! name of previous window (i.e. GAS_1234)
+     & slk*1,               ! symbol which links gas name and frequency
+     & ccell*1,             ! Character in specname denoting internal cell 
+c    & user*8,              ! investigator
+     & ray_header_fmt*26,
+     & isofile*(mfilepath), ! path to "isotopolog.dat"
+     & vmrlabel*1024,       ! column labels from vmr file
+     & str_isotop*294       ! line from isotopologs.dat file
+
       character
-     & col1*1,             !first column of runlog record
-     & apf*2,              !apodization function (e.g. BX N2, etc)
-     & dl*1,               !forward or backward slash
-     & ext*3,              !geometry ['air','bal','gnd','lab',orb','syn']
-     & gggdir*(mpath),     !ggg directory path (GGGPATH?)
-     & specname*(nchar),   !spectrum name
-     & version*64,         !current program version
-     & rlgfile*120         !name of runlog file
+     & col1*1,              !first column of runlog record
+     & apf*2,               !apodization function (e.g. BX N2, etc)
+     & dl*1,                !forward or backward slash
+     & ext*3,               !geometry ['air','bal','gnd','lab',orb','syn']
+     & ns*1, ew*1,
+     & gggdir*(mpath),      !ggg directory path (GGGPATH?)
+     & specname*(nchar),    !spectrum name
+     & version*64,          !current program version
+     & ray_data_fmt*19,
+     & rlgfile*120,         !name of runlog file
+     & menuinputfile*20     !gsetup.input
 
 
       version=
-     & ' GSETUP                   Version 3.4.4    15-Mar-2012    GCT '
+     & ' GSETUP                   Version 3.92     2013-12-20    GCT '
       modname='                                                '
       vmrname='                                                '
       filnamwas='qwertyuioqwertyuioqwertyuioqwertyuio'
       vmr_found=.false.
+      ray_data_fmt='(a57,260(1x,f11.5))'
+      lmn=0  ! to stop compiler warnings!
+      lvn=0  ! to stop compiler warnings!
+      oblat=-9999.9
+      oblon=-9999.9
+      frdoy=-9999.9
+      frwas=frdoy  ! avoid compiler warning (may be used uninitialized)
+      latwas=oblat ! avoid compiler warning (may be used uninitialized)
+      lonwas=oblon ! avoid compiler warning (may be used uninitialized)
 
 c     Platform specification:      DG090519
       call get_ggg_environment(gggdir, dl)
@@ -153,14 +170,14 @@ c
 c  Find NSPECI and copy isotopologs.dat to the local directory
       isofile=gggdir(:lrt)//'isotopologs/isotopologs.dat'
       open(lunr_iso,file=isofile,status='old')
-      open(lunw_iso,file='./isotopologs_local.dat',status='unknown')
+c      open(lunw_iso,file='./isotopologs_local.dat',status='unknown')
       do i=1,999
          read(lunr_iso,'(a)',end=76) str_isotop
-         write(lunw_iso,'(a)') str_isotop(:lnbc(str_isotop))
+c         write(lunw_iso,'(a)') str_isotop(:lnbc(str_isotop))
       end do
 76    nspeci=i-1
       close(lunr_iso)
-      close(lunw_iso)
+c      close(lunw_iso)
 
       slk='_'
       ext(1:3)='   '
@@ -168,16 +185,28 @@ c  Find NSPECI and copy isotopologs.dat to the local directory
 
 c  choose an observation geometry
       write(6,*) version
- 3    write(6,9913)
- 9913 format(' Geometry (a=air,b=bal,g=gnd,l=lab,o=orb,s=syn) ? ',$)
-      read(5,'(a)') ext(1:1)
+      if (iargc() == 0) then
+         write(6,9913)
+ 9913    format(' Geometry (a=air,b=bal,g=gnd,l=lab,o=orb,s=syn) ? ',$)
+         read(5,'(a)') ext(1:1)
+         lun_stdin = 5
+      elseif (iargc() == 1) then
+         call getarg(1, menuinputfile)
+         lun_stdin = 10
+         open(lun_stdin, file=menuinputfile, status='old')
+         read(lun_stdin,'(a)') ext(1:1)
+      else
+         write(*,*) 'Usage: $gggpath/bin/gsetup inputfile_containing_'//
+     &   'selections'
+         stop
+      endif
       if(ext(1:1).eq.'a') ext(1:3)='air'
       if(ext(1:1).eq.'b') ext(1:3)='bal'
       if(ext(1:1).eq.'g') ext(1:3)='gnd'
       if(ext(1:1).eq.'l') ext(1:3)='lab'
       if(ext(1:1).eq.'o') ext(1:3)='orb'
       if(ext(1:1).eq.'s') ext(1:3)='syn'
-      if(ext(2:3).eq.'  ') go to 3
+      if(ext(2:3).eq.'  ') stop 'unknown geometry'
 
 c      if(ext(1:1).eq.'b' .or. ext(1:1).eq.'b') then
 c          og='l'
@@ -187,12 +216,12 @@ c      endif
 c------------------------------------------------------------------
 c  Choose which runlog to analyze
       menuinput=gggdir(:lrt)//'runlogs'//dl//ext//dl//'runlogs.men'
-      call readmenu(lunr_men,menuinput,rlgfile)
+      call readmenu(lunr_men,menuinput,lun_stdin,rlgfile)
       lr=lnbc(rlgfile)
 c------------------------------------------------------------------
 c  choose which levels to use
       menuinput=gggdir(:lrt)//'levels'//dl//'levels.men'
-      call readmenu(lunr_men,menuinput,levels)
+      call readmenu(lunr_men,menuinput,lun_stdin,levels)
 c  Read chosen level altitudes
       open(lunr,file=gggdir(:lrt)//'levels'//dl//levels(:lnbc(levels)),
      $status='old')
@@ -207,7 +236,7 @@ c  Read chosen level altitudes
 c------------------------------------------------------------------
 c  choose which list of windows to analyze
       menuinput=gggdir(:lrt)//'windows'//dl//ext//dl//'windows.men'
-      call readmenu(lunr_men,menuinput,listof)
+      call readmenu(lunr_men,menuinput,lun_stdin,listof)
 
 c  read the individual microwindows and create the xxxxxxxx.ggg input files
       if(dl.eq.char(92))then  ! Back-Slash (\)
@@ -258,7 +287,8 @@ c        write(lunw_ggg,'(a)') version
         write(lunw_ggg,'(a)') gggdir(:lrt)//'vmrs'//dl//ext//dl
         write(lunw_ggg,'(a)') rlgfile(:lr-3)//'mav'
         write(lunw_ggg,'(a)') rlgfile(:lr-3)//'ray'
-        write(lunw_ggg,'(a)') 'isotopologs_local.dat'
+c        write(lunw_ggg,'(a)') 'isotopologs_local.dat'
+        write(lunw_ggg,'(a)') isofile(:lnbc(isofile))
         write(lunw_ggg,'(a)')
      &      gggdir(:lrt)//'windows'//dl//ext//dl//listof
 
@@ -266,7 +296,9 @@ c  write names of linelists
 c        write(lunw_ggg,'(a)')      ! llsize
         write(lunw_ggg,'(a)')
      &  gggdir(:lrt)//'linelist'//dl//'atm.101 '//
+c     &  gggdir(:lrt)//'linelist'//dl//'hitran04.162 '//
      &  gggdir(:lrt)//'linelist'//dl//'gct.101 '//
+c     &  gggdir(:lrt)//'linelist'//dl//'leftover12_gct.101 '//
      &  gggdir(:lrt)//'linelist'//dl//'fcia.101 '//
      &  gggdir(:lrt)//'linelist'//dl//'scia.101'
         write(lunw_ggg,'(a)')
@@ -284,10 +316,10 @@ c        write(lunw_ggg,'(a)') filnam(lnbc(filnam)-11:lnbc(filnam)-3)//'col'
         close(lunw_ggg)
 c
         if(dl.eq.char(92))then    ! Back-Slash (\)
-          write(lunw_mul,'(a)') gggdir(:lrt)//'bin'//dl//'gfit<'//
+          write(lunw_mul,'(a)') gggdir(:lrt)//'bin'//dl//'gfit '//
      $    filnam(:lnbc(filnam))
         else
-          write(lunw_mul,'(a)') gggdir(:lrt)//'bin'//dl//'gfit<'//
+          write(lunw_mul,'(a)') gggdir(:lrt)//'bin'//dl//'gfit '//
      $    filnam(:lnbc(filnam))//'>/dev/null'
         endif
       end do   !  k=1,999999
@@ -304,14 +336,15 @@ c  Compute the slant paths and write them to disk.
       open(lunw_mav,file=rlgfile(:lr-3)//'mav',status='unknown')
 c  Open the file which will contain the slant paths
       write(lunw_mav,'(a)')version
+c      write(lunw_mav,'(a)') mav_data_fmt  ! GCT 20121107
       write(*,*)' Opening: ',rlgfile(:lr-3)//'ray'
       open(lunw_ray,file=rlgfile(:lr-3)//'ray',status='unknown')
       write(lunw_ray,'(i2,i4)') nlhead_ray,7+ncell+nlev
       write(lunw_ray,'(a)') version
-c      ray_fmt='(a,2(a5,i1),250(a2,i3.3))'
-      write(ray_fmt,'(a3,i1,a9,i3.3,a10)')
+      write(lunw_ray,'(a)') 'format='//ray_data_fmt
+      write(ray_header_fmt,'(a3,i1,a9,i3.3,a10)')
      &  '(a,',ncell,'(a10,i1),',nlev,'(a8,i3.3))'
-      write(lunw_ray,ray_fmt)
+      write(lunw_ray,ray_header_fmt)
      &' SpectrumName                           '//
      &'   Zobs       Pobs       ASZA       Bend       FOV       Zmin  ',
      & ('     Cell_',jcell,jcell=1,ncell),
@@ -321,20 +354,53 @@ c  Get the header/runlog information pertaining to RUNLAB
      & rlgfile(:lr)
       open(lunr_rlg,file=gggdir(:lrt)//'runlogs'//dl//ext//dl//
      & rlgfile,status='old')
-      read(lunr_rlg,*,err=888) nlhead_rlg,ncol           ! read runlog header line
-      do i=2,nlhead_rlg
-         read(lunr_rlg,*)
-      end do
-888   continue  !  supports older runlog formats
-1     call read_runlog(lunr_rlg,col1,specname,iyr,idoy,zpdtim,oblat,
+      call read_runlog_header(lunr_rlg,data_fmt_read_rl,col_labels_rl)
+1     continue
+      call read_runlog_data_record(lunr_rlg,data_fmt_read_rl,
+     & col1,specname,iyr,idoy,zpdtim,oblat,
      & oblon,obalt,asza,zenoff,azim,osds,
      & opd,fovi,fovo,amal,ifirst,ilast,
      & graw,possp,bytepw,zoff,snr,apf,tins,pins,hins,
      & tout,pout,hout,sia,fvsi,wspd,wdir,lasf,wavtkr,aipl,istat)
-       lspn=lnbc(specname)
+
 c       write(*,*)'read_runlog:',istat,la,' '//specname(:20)
        if(istat.ne.0) go to 99   !  EOF
        if(col1.eq.':') go to 1
+
+c  The following 20 lines of code determine the name of the
+c  new model file, which will currently be overwritten.
+       if(oblat.gt.0.0) then
+         ns='N'
+       else
+         ns='S'
+       endif
+       if(oblon.gt.0.0) then
+         ew='E'
+       else
+         ew='W'
+       endif
+
+       call julian(iyr,1,idoy,jul)
+       frdoy=jul+zpdtim/24+oblon/360
+       diff=abs(int(frdoy)-int(frwas))+0.075*dabs(oblat-latwas)+
+     & 0.025*dabs(oblon-lonwas)
+       if( diff.gt.0.65) then
+       jul=int(frdoy)
+       call caldat(jul,iyyyy,imm,idd)
+       write(newmodname,'(a5,i4.4,i2.2,i2.2,a1,i2.2,a1,a1,i3.3,a1,a4)')
+     &  'NCEP_',iyyyy,imm,idd,'_',nint(abs(oblat)),ns,
+     & '_',nint(abs(oblon)),ew,'.mod'
+c       write(*,'(5f14.4,2x,a14,a28)')frdoy,frwas,oblat,oblon,diff,
+c     & specname(:14),newmodname(:28)
+      frwas=frdoy
+      latwas=oblat
+      lonwas=oblon
+       else
+c       write(*,'(5f14.4,2x,a14)')frdoy,frwas,oblat,oblon,diff,
+c     & specname(:14)
+       endif
+
+       lspn=lnbc(specname)
        frqcen=(ifirst+ilast)*graw/2
 c
 c  Fudge to allow nadir viewing (double path)
@@ -375,8 +441,6 @@ c  Figure out whether the spectrum was through an internal cell.
 c
       if(specname(2:3).eq.'hg' .or. specname(2:3).eq.'in') then
          if(lspn.lt.8) stop 'lspn<8'
-c         newmodname=rlgfile(1:5)//specname(4:8)//'.mod'  ! MkIV
-c         newvmrname=rlgfile(1:5)//specname(4:8)//'.vmr'  ! MkIV
          if(ext.eq.'bal') then
             newmodname=ext//specname(4:8)//'.mod'  ! MkIV
             newvmrname=ext//specname(4:8)//'.vmr'  ! MkIV
@@ -387,62 +451,75 @@ c            cell_length(1)=0.002  ! km (1m)
 c            p_cell(1)=655.0       ! mbar !
 c            gas_in_cell(1)=1      ! H2O
 c            vmr_cell(1)=-0.02     ! mole fraction
-         else
-         read(specname(4:8),'(i2,i3)')iyyyy,doy
+         else                          ! ground-based MkIV
+            read(specname(4:8),'(i2,i3)')iyyyy,doy
 c  Convert YYDDD-style date to YYYYMMDD
-         if(iyyyy.lt.80) then
-            iyyyy=iyyyy+2000
-         else
-            iyyyy=iyyyy+1900
-         endif
-         call julian(iyyyy,1,doy,jul)
-         call caldat(jul,iyyyy,imm,idd)
-         write(newmkivname,'(a2,i4,i2.2,i2.2)')
+            if(iyyyy.lt.80) then
+               iyyyy=iyyyy+2000
+            else
+               iyyyy=iyyyy+1900
+            endif
+            call julian(iyyyy,1,doy,jul)
+            call caldat(jul,iyyyy,imm,idd)
+            write(newmkivname,'(a2,i4,i2.2,i2.2)')
      &        rlgfile(1:2),iyyyy,imm,idd
-         newmodname=newmkivname//'.mod'  ! MkIV
-         newvmrname=newmkivname//'.vmr'  ! MkIV
-         gas_in_cell(1)=19       ! ocs
-         cell_length(1)=0.00000  ! km (10 cm)
-         p_cell(1)=1.37+0.08*(idoy-279)   ! Total Pressure (mbar). OCS cell filled on day 279
-         vmr_cell(1)=1.37/p_cell(1)
-         if(specname(4:16).eq.'09289.025_032'
-     &   .or. specname(4:16).eq.'09292.066_073'
-     &   .or. specname(4:16).eq.'09292.100_107'
-     &   .or. specname(4:16).eq.'09293.068_075'
-     &   .or. specname(4:16).eq.'09295.072_079'
-     &   .or. specname(4:16).eq.'09297.068_075'
-     &   .or. specname(4:16).eq.'09298.064_071'
-     &   .or. specname(4:16).eq.'09301.046_049'
-     &   .or. specname(4:16).eq.'09301.054_057'
-     &   .or. specname(4:16).eq.'09343.001_005'
-     &   .or. specname(4:16).eq.'09343.006.009') cell_length(1)=0.00010
+c            newmodname=newmkivname//'.mod'  ! MkIV
+            newvmrname=newmkivname//'.vmr'  ! MkIV
+c
+c  Account for leaking OCS cell filled on day 279
+            if(iyyyy.eq.2009) then
+            gas_in_cell(1)=19       ! ocs
+            pfill=1.37  ! Fill Pressure (mbar)
+            p_cell(1)=pfill+0.060*(idoy-279+17)   ! Total Pressure (mbar).
+            vmr_cell(1)=pfill/p_cell(1)
+            endif
+            if(  specname(4:16).eq.'09289.025_032'
+     &      .or. specname(4:16).eq.'09290.034_041'
+     &      .or. specname(4:16).eq.'09292.066_073'
+     &      .or. specname(4:16).eq.'09292.100_107'
+     &      .or. specname(4:16).eq.'09293.068_075'
+     &      .or. specname(4:16).eq.'09295.072_079'
+     &      .or. specname(4:16).eq.'09297.068_075'
+     &      .or. specname(4:16).eq.'09298.064_071'
+     &      .or. specname(4:16).eq.'09301.046_049'
+     &      .or. specname(4:16).eq.'09301.054_057'
+     &      .or. specname(4:16).eq.'09343.001_005'
+     &      .or. specname(4:16).eq.'09343.006_009') then
+c               write(*,*) 'here ',specname(4:16)
+               cell_length(1)=0.0001  ! km (=10 cm)
+            else
+               cell_length(1)=0.00000  ! km 
+            endif
          endif
+
+c  NDSC HBr cell (no leaks)
          if(ncell.ge.2) then
-         gas_in_cell(2)=16       ! HBr
-         cell_length(2)=0.00000  ! km (2 cm)
-         p_cell(2)=2.25          ! Total Pressure (mbar)
-         vmr_cell(2)=0.8         ! mole fraction
-         if(specname(4:16).eq.'09289.062_069'
-     &   .or. specname(4:16).eq.'09292.082_091'
-     &   .or. specname(4:16).eq.'09293.084_091'
-     &   .or. specname(4:16).eq.'09295.088_095'
-     &   .or. specname(4:16).eq.'09297.084_091'
-     &   .or. specname(4:16).eq.'09298.081_087'
-     &   .or. specname(4:16).eq.'09301.066_069'
-     &   .or. specname(4:16).eq.'09301.066_069') cell_length(2)=0.00002
+            gas_in_cell(2)=16       ! HBr
+            p_cell(2)=2.25          ! Total Pressure (mbar)
+            vmr_cell(2)=0.8         ! mole fraction
+            if(  specname(4:16).eq.'09289.062_069'
+     &      .or. specname(4:16).eq.'09290.050_057'
+     &      .or. specname(4:16).eq.'09292.082_091'
+     &      .or. specname(4:16).eq.'09293.084_091'
+     &      .or. specname(4:16).eq.'09295.088_095'
+     &      .or. specname(4:16).eq.'09297.084_091'
+     &      .or. specname(4:16).eq.'09298.081_087'
+     &      .or. specname(4:16).eq.'09301.066_069') then
+               cell_length(2)=.00002  ! km (=2 cm)
+            else
+               cell_length(2)=0.00000  ! km (2 cm)
+            endif
          endif
-      elseif(specname(7:9).eq.'R0.') then  ! Kitt Peak
-         if(specname(1:1).eq.'7' .or. specname(1:1).eq.'8' .or.
-     &   specname(1:1).eq.'9' ) then
-         if(lspn.lt.8) stop 'lspn<8'
-c           newmodname=specname(1:8)//'.mod'
-c           newvmrname=specname(1:8)//'.vmr'
-           newmodname='kp19'//specname(1:6)//'.mod'
-           newvmrname='kp19'//specname(1:6)//'.vmr'
-         else
-           newmodname='kp20'//specname(1:6)//'.mod'
-           newvmrname='kp20'//specname(1:6)//'.vmr'
-         endif
+c      elseif(specname(7:9).eq.'R0.') then  ! Kitt Peak
+c         if(specname(1:1).eq.'7' .or. specname(1:1).eq.'8' .or.
+c     &   specname(1:1).eq.'9' ) then
+c         if(lspn.lt.8) stop 'lspn<8'
+c           newmodname='kp19'//specname(1:6)//'.mod'
+c           newvmrname='kp19'//specname(1:6)//'.vmr'
+c         else
+c           newmodname='kp20'//specname(1:6)//'.mod'
+c           newvmrname='kp20'//specname(1:6)//'.vmr'
+c         endif
       elseif(specname(1:2).eq.'ss' .or. specname(1:2).eq.'sr') then
          if(lspn.lt.6) stop 'lspn<6'
          newmodname=specname(1:6)//'.mod'    ! ACE
@@ -458,25 +535,25 @@ c           newvmrname=specname(1:8)//'.vmr'
          if(lspn.lt.6) stop 'lspn<6'
          newmodname=specname(2:6)//'.zpt' ! Wollongong spectra
          newvmrname=specname(2:6)//'.ref' ! Wollongong spectra
-      elseif(specname(1:2).eq.'iz') then
-         if(lspn.lt.6) stop 'lspn<6'
-         newmodname='pt_'//specname(1:10)//'.prf' ! Izana
-         newvmrname='vmr_'//specname(1:10)//'.ref' ! Izana
+c      elseif(specname(1:2).eq.'iz') then
+c         if(lspn.lt.6) stop 'lspn<6'
+c         newmodname='pt_'//specname(1:10)//'.prf' ! Izana
+c         newvmrname='vmr_'//specname(1:10)//'.ref' ! Izana
       elseif(specname(1:2).eq.'o2') then
          if(lspn.lt.6) stop 'lspn<6'
          newmodname=specname(1:6)//'av.mod' ! TMF FTUVS O2 A-band spectra
          newvmrname=specname(1:6)//'av.vmr' ! TMF FTUVS O2 A-band spectra
-      elseif(specname(1:1).eq.'9' .or. specname(1:1).eq.'0') then
-         if(lspn.lt.6) stop 'lspn<6'
-         newmodname=specname(1:6)//'.mod'
-         newvmrname=specname(1:6)//'.vmr'
+c      elseif(specname(1:1).eq.'9' .or. specname(1:1).eq.'0') then
+c         if(lspn.lt.6) stop 'lspn<6'
+c         newmodname=specname(1:6)//'.mod'  ! Kitt Peak
+c         newvmrname=specname(1:6)//'.vmr'  ! Kitt Peak
       elseif(specname(1:3).eq.'j60' ) then
          newmodname=specname(1:lspn)//'.mod'
          newvmrname=specname(1:lspn)//'.vmr'
       else
          if(lspn.lt.10) stop 'lspn<10'
-         newmodname=specname(1:10)//'.mod' !  CIT
-         newvmrname=specname(1:10)//'.vmr' !  CIT
+c         newmodname=specname(1:10)//'.mod' !  CIT/TCCON
+         newvmrname=specname(1:10)//'.vmr' !  CIT/TCCON
       endif
       lm=lnbc(newmodname)
       lv=lnbc(newvmrname)
@@ -490,37 +567,31 @@ c         write(6,*) ' Searching for ZPT model ',newmodname
          lmn=lnbc(modname)
          if(newmod) then
             modname=newmodname
-            lmn=lnbc(modname)
+c            lmn=lnbc(modname)
+            lmn=lm
             write(lunw_rpt,*)'Reading ',modname(:lmn),' for ',specname
 
-c           read(modname,'(2x,i4,i2,i2)') iyyy,im,id
-c           date_mod=iyyy+float(im-1)/12.0+id/365.25
-c           iday=nint(30.5*float(im-1)+id)
-c           write(*,*)'date_mod=',date_mod
             date_mod=iyr+idoy/365.25 !from the runlog
             iday=idoy !from the runlog
 c           write(*,*)'Setting date_mod to runlog value: ',date_mod
 
             call read_model_fc(lunr_mod,
      &      gggdir(:lrt)//'models'//dl//ext//dl//modname,
-c     $      z,t,p,d,h2ovmr,mmw,roc,nlev,ztrop_ncep,ztrop_gct)
      $      z,mmw,nlev,t,p,d,h2ovmr,roc,ztrop_ncep,ztrop_gct,tlat)
          elseif(lmn.eq.0) then        !first spectrum in runlog
-            write(lunw_rpt,*)'Unable to find ZPT model '//newmodname
-            write(*,*)'Unable to find ZPT model '//newmodname
+            write(lunw_rpt,*)'Cannot find ZPT model '//newmodname(:lm)
+            write(*,*)'Cannot find ZPT model '//newmodname(:lm)
             menuinput=gggdir(:lrt)//'models'//dl//ext//dl//'models.men'
-            call readmenu(lunr_men,menuinput,modname)
+            call readmenu(lunr_men,menuinput,lun_stdin,modname)
             write(lunw_rpt,*)'Reading ',modname(:lmn),' for ',specname
             call read_model_fc(lunr_mod,
      &      gggdir(:lrt)//'models'//dl//ext//dl//modname,
-c     $      z,t,p,d,h2ovmr,mmw,roc,nlev,ztrop_ncep,ztrop_gct)
      $      z,mmw,nlev,t,p,d,h2ovmr,roc,ztrop_ncep,ztrop_gct,tlat)
             newmod=.true.
             date_mod=iyr+idoy/365.25 ! Set to runlog value 
-c           write(*,*)'Setting date_mod to runlog value: ',date_mod
          else
-            write(lunw_rpt,*) ' Cannot find ZPT model '//newmodname//
-     &      '  Will re-use: '//modname
+            write(lunw_rpt,*) ' Cannot find ZPT model '
+     &      //newmodname(:lm)//'   re-using: '//modname(:lmn)
          endif
       endif  !  (newmodname.ne.modname)
 c
@@ -541,20 +612,19 @@ c         write(6,*) ' Searching for vmr profiles ',newvmrname
      &            ' Unable to find vmr profiles '//newvmrname
             write(*,*) ' Unable to find vmr profiles '//newvmrname
             call readmenu(lunr_men,
-     &      gggdir(:lrt)//'vmrs'//dl//ext//dl//'vmrs.men',vmrname)
+     &      gggdir(:lrt)//'vmrs'//dl//ext//dl//'vmrs.men',
+     &      lun_stdin,vmrname)
+            lvn=lnbc(vmrname)
           write(lunw_rpt,*)'Reading ',vmrname(:lvn),' for ',specname
             newvmr=.true.
             vmr_found=.false.
          else
             write(lunw_rpt,*) ' Cannot find vmr profile '//
      &      newvmrname(:lnbc(newvmrname))//
-     &      '  Will re-use: '//vmrname(:lvn)
+     &      '   re-using: '//vmrname(:lvn)
             vmr_found=.false.
          endif
-c         call read_vmrs_fc(lun_vmr,
-c     &   root(:lrt)//'vmrs'//dl//ext//dl//vmrname,z,nlev,vmrlabel,
-c     &  ztrop_gct,apvmr,mgas,root(:lrt)//'models'//dl//ext//dl//modname,
-c     &  tlat,idoy,vmr_found)
+c         write(*,*)'Calling read_refvmr:',vmrname
         call read_refvmrs(lunr_vmr,
      &   gggdir(:lrt)//'vmrs'//dl//ext//dl//vmrname,nlev,z,mgas,
      &   gggdir(:lrt)//'models'//dl//ext//dl//modname,
@@ -563,9 +633,10 @@ c     &  tlat,idoy,vmr_found)
 c If there's only 1 level (i.e. lab), or the vmr file for that particular
 c measurement already exists, don't try to modify the .vmr file
         if ((nlev.gt.1).and.(vmr_found.eqv..false.)) then
+c           write(*,*)'resample_vmrs_at_effective_altitudes...'
            call resample_vmrs_at_effective_altitudes(nlev,z,mgas,
      &     ngas,refvmr,ztrop_gct,ztrop_vmr,oblat,reflat_vmr,apvmr)
-           call apply_vmr_latitude_gradients(nlev,z,mgas,apvmr,
+           call apply_vmr_latitude_gradients(nlev,z,mgas,ngas,apvmr,
      &     ztrop_gct,reflat_vmr,oblat,apvmr)
            call apply_secular_trends(nlev,z,mgas,apvmr,
      &     ztrop_gct,reflat_vmr,oblat,date_mod,date_vmr,apvmr)
@@ -586,14 +657,19 @@ c measurement already exists, don't try to modify the .vmr file
         endif
 
       endif   !  if(newvmrname.ne.vmrname) then
+      close(lun_stdin)
 c
 c  Output model information (SUNRUN.MAV)
       if(newvmr.or.newmod) then
          t_cell(1)=tins+273.16
          write(lunw_mav,'(a)')'Next Spectrum:'//specname
-         write(lunw_mav,'(3i4)') 3, nspeci+4, nlev+ncell
+         write(lunw_mav,'(3i4)') 5, nspeci+4, nlev+ncell
          write(lunw_mav,'(a,2f9.3)') 'Tropopause Altitudes (NCEP/GCT):',
      &    ztrop_ncep,ztrop_gct
+         write(lunw_mav,'(a)')
+     &   gggdir(:lrt)//'vmrs'//dl//ext//dl//vmrname(:lvn)
+         write(lunw_mav,'(a)')
+     &   gggdir(:lrt)//'models'//dl//ext//dl//modname(:lmn)
          zpbl=0.0
          if (vmr_found) then
 c             Do nothing when the vmr file is found.
@@ -617,11 +693,13 @@ c               write(*,*) 'Replacing H2O & HDO vmrs with NCEP profiles'
             endif
          endif
 
-c              call setvmr(apvmr,mgas,z,h2ovmr,co2vmr,nlev,iyr,idoy,
-c     &        zpdtim,oblat,oblon,obalt,tout,pout,hout,ztrop_gct,zpbl)
          endif
+c         write(*,*) 'write_mav: t_cell',(t_cell(j),j=1,ncell)
+c         write(*,*) 'write_mav: p_cell',(p_cell(j),j=1,ncell)
+c         write(*,*) 'write_mav: vmr_cell',(vmr_cell(j),j=1,ncell)
+c         write(*,*) 'write_mav: gas_in_cell',(gas_in_cell(j),j=1,ncell)
          call write_mav(z,t,p,d,apvmr,nlev,lunw_mav,ncell,
-     &   t_cell,p_cell,vmr_cell,gas_in_cell,vmrlabel,isofile,mgas)
+     &   t_cell,p_cell,vmr_cell,gas_in_cell,vmrlabel,isofile)
       endif
 c------------------------------------------------------------------
       if(pout.eq.0.0) then
@@ -668,10 +746,10 @@ c         if(nlev.gt.1) stop 'vmrs dont extend high enough'
          splos(ilev)=splos(ilev)+aipl*(p(ilev-1)-pout/1013.25)/delta_p
        endif
 c
-      write(lunw_ray,'(a57,260(1x,f10.5))')specname,obalt,pout,
+      write(lunw_ray,ray_data_fmt)specname,obalt,pout,
      & solzen,bend,fovo,zmin,(cell_length(jcell),jcell=1,ncell),
      & (wlimit(dble(multipath)*splos(j),'f10.5'),j=1,nlev)
-      write(lunw_rpt,'(a57,16f11.5)')specname,obalt,pout,solzen,
+      write(lunw_rpt,'(a57,16f12.5)')specname,obalt,pout,solzen,
      & bend,fovo,zmin,(cell_length(jcell),jcell=1,ncell) 
       go to 1
  99   close(lunr_rlg)

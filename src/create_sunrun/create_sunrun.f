@@ -16,14 +16,14 @@ c
      & fnbc,lnbc,fbc,ispe,iend,dtype,nsp,nip,dfr,bytepw,
      & mdet,ndet,idet,             ! Number of detectors
      & ifirst,ilast,
-     & lr,lrt,ls,lunr,
-     & possp,istat,object,mcol,ncol
+     & lr,lrt,ls,lunr,doy,
+     & possp,istat,object,mcol,ncol,instr,lst
       parameter (lunr=14,mcol=40,mdet=4)
 c
       real*8 tins,pins,hins,tout,pout,pout_corr,hout,
      & wspd,wdir,gmt,fovi,opd,snr,asza,delwav,
      & wavtkr,oblat,oblon,obalt,lfl,hfl,foc,
-     & fsf,tcorr,
+     & fsf,tcorr,vdc,lse,lsu,
      & nus(mdet),nue(mdet),
      & lasf,sia,sis,fvsi,aipl,tel_mag,
      & fxv,lxv,apt,dur,vel,phr,res,ptrue
@@ -32,7 +32,7 @@ c
 
       character 
      & sss(mdet)*2,
-     & parfile*80,
+     & parfile*(mfilepath),
      & header*512,outarr(mcol)*20
       character
      & col1*1,                    !first column of runlog record
@@ -44,17 +44,24 @@ c
      & version*64                 !current program version
 
 c
-      version=' create_sunrun     Version 2.1.1      6-Jan-2012     GCT'
+      version=' create_sunrun     Version 2.1.2     12-Apr-2012     GCT'
       write(6,'(a)') version
 
       col1=' '
       call getendian(iend)  ! iend=+1 on Sun; iend=-1 on PC
+      vdc =0.d0  ! initialize VDC
 
 c  Prompt user for name of input list
       lr=0
       do while(lr.eq.0)
-         write(6,'(a)') 'Enter name of input file (e.g. pa2004.gnd): '
-         read(*,'(a)') logfile
+         if (iargc() == 0) then
+            write(6,'(a)') 'Enter name of input file (e.g. pa2004.gnd):'
+            read(*,'(a)') logfile
+         elseif (iargc() == 1) then
+            call getarg(1, logfile)
+         else
+            stop 'Usage: $gggpath/bin/create_sunrun pa2004.gnd'
+         endif
          lr=lnbc(logfile)
       end do
       ext=logfile(lr-2:lr)
@@ -63,7 +70,7 @@ c  Prompt user for name of input list
       lrt=lnbc(gggdir)       !Length of root
 c
 c  Read file containing the invariant parameters.
-      parfile=gggdir(:lrt)//logfile(1:2)//'_sunrun.dat'
+      parfile=gggdir(:lrt)//'tccon/'//logfile(1:2)//'_sunrun.dat'
       write(*,*) parfile
       open(luns,file=parfile,status='old')
 c
@@ -85,6 +92,7 @@ cxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
       do irec=2,nhead
          read(luns,*)
       end do
+      read(luns,*) instr
       read(luns,*) object
       read(luns,*) tcorr
       read(luns,*) oblat
@@ -111,9 +119,11 @@ cxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
       read(luns,*) aipl
       read(luns,*) tel_mag 
       close(luns)
+      write(*,*) 'Closed xx_sunrun.dat file'
       lsss=lnbc(sss(1))
 
-      outfile=gggdir(:lrt)//'sunruns'//dl//ext//dl//logfile(:lr-2)//'m4'
+c      outfile=gggdir(:lrt)//'sunruns'//dl//ext//dl//logfile(:lr-2)//'m4'
+      outfile=gggdir(:lrt)//'sunruns'//dl//ext//dl//logfile(:lr-2)//'op'
       open(lunt,file=outfile,status='unknown')
       write(lunt,*)3,ncol
       write(lunt,'(a)') version
@@ -122,6 +132,7 @@ c
       open(lunr,file=logfile,status='old')
       do ispe=1,999999  !---------Main loop over spectra----------
          read(lunr,'(a)',end=99) string 
+c         write(*,*) string(:lnbc(string))
 
 c  Remove any leading spaces/blanks.
          string=string(fnbc(string):)
@@ -139,7 +150,8 @@ c  find the spectral file, return the PATH to the spectrum
              stop
           endif
 
-          if(logfile(1:2).eq.'m4') then
+c          if(logfile(1:2).eq.'m4') then
+          if(instr.eq.1) then
             call read_mkiv_header(specname,path,iend,ifirst,ilast,possp,
      &      bytepw,apf,delwav,opd,fovi,snr,oblat,oblon,obalt,pout,
      &      tout,hout,asza,iy,im,id,gmt,wavtkr,tins,pins,hins,lasf)
@@ -147,11 +159,54 @@ c  find the spectral file, return the PATH to the spectrum
             call read_opus_header(path,iend,dtype,nsp,fxv,lxv,iy,im,
      &      id,hh,mm,ss,ms,apt,dur,vel,apf,phr,res,lasf,foc,nip,dfr,
      &      pkl,prl,gfw,gbw,lfl,hfl,possp,oblat,oblon,obalt,
-     &      tins,pins,hins,tout,pout,hout,wspd,wdir,sia,sis)
+     &      tins,pins,hins,tout,pout,hout,wspd,wdir,sia,sis,vdc,
+     &      lst,lse,lsu)
           endif
 
 c  Apply correction to measured surface pressure.
           ptrue = pout + pout_corr
+
+c  Calculate fvsi as sis/sia if sia is not zero or missing, and if
+c  it's not a lamp run:
+          if(sia.le.0.0 .or. ext(:1).eq.'l') then
+            if(vdc.gt.0) then
+              fvsi=vdc
+            else
+c             Use the missing value in xx_sunrun.dat
+            endif
+          else
+            fvsi=sis/sia
+          endif
+          if(fvsi.ge.1.0)fvsi=1.
+c  moving it here assumes the default value is set to something <1
+
+c  If the TCCON spectrum has no red filter, limit the upper
+c  frequency (nue) to 13500.0d0
+          if(instr.eq.2) then ! TCCON spectrum
+             if(specname(15:15).eq.'0') then ! no Si red filter
+                  nue=min(nue,13500.0d0)
+             endif
+          endif
+
+c  Site-dependent corrections should go in here. For example, to correct 
+c  a timing error in Lamont:
+
+c  Apply correction for timing errors from July 15 - October 24, 2010
+          if(instr.eq.2 .and. logfile(1:2).eq.'oc') then ! Lamont
+            if(iy.eq.2010 .and. ((im.eq.7 .and. id.ge.15) .or.
+     &        im.eq.8 .or. im.eq.9 .or.
+     &        (im.eq.10 .and. id.le.24))) then
+c              write(*,*)'Applying Lamont timing error correction.'
+c              doy 181 is June 30, 196 is July 15, 297 is October 24
+c              31 is approximate length of month in days
+               doy = 181 + (im-7)*31 + id
+c              linearly decreasing tcorr from 0 to -37 seconds
+               tcorr = (doy-196)*37/(196-297)
+            else
+               tcorr = 0.0d0
+            endif
+          endif
+
 
           call write_sunrun(lunt,col1,specname,object,tcorr,oblat,
      &    oblon,obalt,tins,pins,hins,tout,ptrue,hout,sia,fvsi,wspd,wdir,

@@ -1,7 +1,6 @@
-      subroutine write_runlog(lun,col1,specname,iyr,iset,zpdtim,
-     & oblat,oblon,obalt,asza,zenoff,azim,osds,
-     & opd,fovi,fovo,amal,ifirst,
-     & ilast,graw,possp,bytepw,zoff,snr,apf,tins,pins,hins,
+      subroutine write_runlog(lun,rlg_fmt,col1,specname,iyr,iset,zpdtim,
+     & oblat,oblon,obalt,asza,zenoff,azim,osds,opd,fovi,fovo,amal,
+     & ifirst,ilast,graw,possp,bytepw,zoff,snr,apf,tins,pins,hins,
      & tout,pout,hout,sia,fvsi,wspd,wdir,lasf,wavtkr,aipl,istat)
 c
 c  Writes a single record to a runlog file.
@@ -68,19 +67,19 @@ c    istat
       character
      & col1*1,           ! first column
      & specname*(*),     ! spectrum name
+     & rlg_fmt*(*),      ! runlog data format
      & apf*2             ! apodization function (e.g. BX N2, etc)
 
-      write(lun,34,err=99) col1,specname,iyr,iset,zpdtim,oblat,oblon,
-     & obalt,asza,zenoff,azim,osds,
-     & wlimit(opd,'f7.2'),
+      write(lun,rlg_fmt,err=99) col1,specname,iyr,iset,zpdtim,
+     & oblat,oblon,obalt,asza,zenoff,azim,osds,wlimit(opd,'f7.2'),
      & fovi,fovo,amal,ifirst,ilast,graw,possp,
      & bytepw,zoff,nint(snr),apf,tins,pins,hins,tout,pout,hout,
      & sia,fvsi,wspd,wdir,lasf,wavtkr,aipl
- 34   format(a1,a57,1x,2i4,f8.4,f8.3,f9.3,
-     & 2f8.3,1x,f6.4,f8.3,f7.3,
-     & f7.2,3(1x,f5.4),
-     & 2i9,1x,f14.11,i9,i3,1x,f5.3,i5,1x,a2,2(f6.1,f8.2,f5.1),
-     & f7.1,f7.4,f6.1,f6.0,f10.3,f7.0,f7.3)
+c 34   format(a1,a57,1x,2i4,f8.4,f8.3,f9.3,
+c     & 2f8.3,1x,f6.4,f8.3,f7.3,
+c     & f7.2,3(1x,f5.4),
+c     & 2i9,1x,f14.11,i9,i3,1x,f5.3,i5,1x,a2,2(f6.1,f8.2,f5.1),
+c     & f7.1,f7.4,f6.1,f6.0,f10.3,f7.0,f7.3)
       istat=0
       return
 99    istat=1

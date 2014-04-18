@@ -196,6 +196,7 @@ pro read2mem,nfile,fname,gmissing,header,ncol,nrow,buf
          readf, unit, ccc
          print, ccc
          lcolon=strpos(ccc,":")+1
+      if(strpos(ccc,"missing:") ge 0)then reads,strmid(ccc,lcolon,9999),zmiss
       if(strpos(ccc,"MISSING:") ge 0)then reads,strmid(ccc,lcolon,9999),zmiss
       if(strpos(ccc,"SCALING:") ge 0)then reads,strmid(ccc,lcolon,9999),zscal
       if(strpos(ccc,"LABELS:") ge 0)then substr,strmid(ccc,lcolon,9999),ztitl,ndcol,jj

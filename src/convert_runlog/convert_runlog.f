@@ -1,11 +1,12 @@
-c  Program to cenvert old runlogs into new runlogs.
+c  Program to convert old-format runlogs into new runlogs.
 c
       implicit none
+      include "../ggg_int_params.f"
 
       real*8 
-     & oblat,            ! observation latitude (deg).
-     & oblon,            ! observation longitude (deg).
-     & obalt,             ! observation altitude (km)
+     & oblat,            ! observation latitude (deg)
+     & oblon,            ! observation longitude (deg)
+     & obalt,            ! observation altitude (km)
      & asza,             ! astronomical solar zenith angle (unrefracted)
      & azim,             ! solar azimuth angle (unrefracted)
      & osds,             ! object-source doppler stretch
@@ -34,14 +35,18 @@ c
 
       character
      & col1*1,           ! first column
-     & specname*57,      ! spectrum name
+     & specname*(nchar), ! spectrum name
      & apf*2,            ! apodization function (e.g. BX N2, etc)
+     & version*50,
+     & data_fmt_read_rl*256,
+     & data_fmt_write_rl*256,
+     & col_headers_rl*320,
      & infile*24,
-     & outfile*24 
+     & outfile*24
 
-      integer*4 ispec,nlhead,ncol,j,
-     & lunw,
-     & lunr,lunr2,      ! Logical unit number
+      integer*4 ispec,
+     & lunw_rlg,         ! Logical Unit Number
+     & lunr_rlg,         ! Logical Unit Number
      & istat,            ! status flag (0=success, 1=EOF)
      & iyr,              ! year
      & iset,             ! day of year
@@ -50,46 +55,56 @@ c
      & possp,            ! Length of attached header in bytes
      & bytepw            ! Bytes per data word, usually 2 (I*2) or 4 (R*4)
 
-      parameter (lunr=14,lunr2=15,lunw=16)
+      parameter (lunr_rlg=14,lunw_rlg=16)
 
+      version =' convert_runlog   Version 0.10   2012-12-28   GCT '
       col1=' '
       outfile='convert_runlog.out'
-      infile='cruise94.grl'
-      write(*,'(a)')'Name of old runlog:'
-      read (*,'(a)') infile
-      open(lunr,file=infile,status='old')
-      read(lunr,*)nlhead,ncol
-      do j=2,nlhead
-         read(lunr,*)
-      enddo
+      if (iargc() == 0) then
+         write(*,'(a)')'Name of old runlog:'
+         read(*,'(a)') infile
+      elseif (iargc() == 1) then
+         call getarg(1, infile)
+      else
+         stop 'Usage: $gggpath/bin/convert_runlog old_runlog'
+      endif
+      open(lunr_rlg,file=infile,status='old')
+      call read_runlog_header(lunr_rlg, data_fmt_read_rl,col_headers_rl)
+c      read(lunr_rlg,*)nlhead,ncol
+c      do j=2,nlhead
+c         read(lunr_rlg,*)
+c      enddo
 
-      open(lunw,file=outfile,status='unknown')
+      open(lunw_rlg,file=outfile,status='unknown')
+      call write_runlog_header(lunw_rlg,version,data_fmt_write_rl)
 
-      write(lunw,*) ' 3   36'
-      write(lunw,*) 'convert_runlog'
-      write(lunw,'(a)')' Spectrum_File_Name                     Year'//
-     &  '  Day   Hour   oblat    oblon   obalt    ASZA    POFF   AZIM'//
-     &  '  OSDS    OPD   FOVI  FOVO  AMAL   IFIRST    ILAST'//
-     &  '    DELTA_NU    POINTER  BPW ZOFF SNR  APF tins  pins'//
-     &  '  hins   tout   pout  hout  sia    fvsi   wspd  wdir'//
-     &  '  lasf    wavtkr  aipl'
+c      write(lunw_rlg,*) ' 3   36'
+c      write(lunw_rlg,*) 'convert_runlog'
+c      write(lunw_rlg,'(a)')' Spectrum_File_Name                     Year'//
+c     &  '  Day   Hour   oblat    oblon   obalt    ASZA    POFF   AZIM'//
+c     &  '  OSDS    OPD   FOVI  FOVO  AMAL   IFIRST    ILAST'//
+c     &  '    DELTA_NU    POINTER  BPW ZOFF SNR  APF tins  pins'//
+c     &  '  hins   tout   pout  hout  sia    fvsi   wspd  wdir'//
+c     &  '  lasf    wavtkr  aipl'
 
       do ispec=1,9999999
 
-          call read_runlog(lunr,col1,specname,iyr,iset,zpdtim,
+          call read_runlog_data_record(lunr_rlg,data_fmt_read_rl,
+     &    col1,specname,iyr,iset,zpdtim,
      &    oblat,oblon,obalt,asza,zenoff,azim,osds,opd,fovi,fovo,amal,
      &    ifirst,ilast,graw,possp,bytepw,zoff,snr,apf,tins,pins,hins,
      &    tout,pout,hout,sia,fvsi,wspd,wdir,lasf,wavtkr,aipl,istat)
 
           if (istat.ne.0) exit
 
-          call write_runlog(lunw,col1,specname,iyr,iset,zpdtim,
+          call write_runlog_data_record(lunw_rlg,data_fmt_write_rl,
+     &    col1,specname,iyr,iset,zpdtim,
      &    oblat,oblon,obalt,asza,zenoff,azim,osds,opd,fovi,fovo,amal,
      &    ifirst,ilast,graw,possp,bytepw,zoff,snr,apf,tins,pins,hins,
      &    tout,pout,hout,sia,fvsi,wspd,wdir,lasf,wavtkr,aipl,istat)
       end do  !  ispec=1,9999999
 
-      close(lunr)
-      close(lunw)
+      close(lunr_rlg)
+      close(lunw_rlg)
       stop
       end

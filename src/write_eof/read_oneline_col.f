@@ -22,8 +22,8 @@ c
       character
      & col_string*500,
      & specname_col*(nchar),
-     & out_string*9000,
-     & output_string*10000,
+     & out_string*20000,
+     & output_string*22000,
      & varr(5)*16,
      & frmt*50,
      & gfit_version_number*10,
@@ -100,8 +100,30 @@ c      write(*,*)'csformat=',csformat(:lnbc(csformat))
               endif
        enddo ! jj=1,nss
 c      write(*,*)'csform_condensed=',csform_condensed
-
-        if (index(gfit_version,'4.8.') .ne. 0) then ! assume new col file format
+        if (index(gfit_version,'4.8.') .ne. 0 .or. 
+     & index(gfit_version,'4.9.') .ne. 0 .or.
+     & index(gfit_version,'4.10.') .ne. 0 .or. 
+     & index(gfit_version,'4.12') .ne. 0 .or.
+     & index(gfit_version,'4.13') .ne. 0 .or.
+     & index(gfit_version,'4.14') .ne. 0 .or.
+     & index(gfit_version,'4.20') .ne. 0 .or.
+     & index(gfit_version,'4.21') .ne. 0 .or.
+     & index(gfit_version,'4.22') .ne. 0 .or.
+     & index(gfit_version,'4.23') .ne. 0 .or.
+     & index(gfit_version,'4.24') .ne. 0 .or.
+     & index(gfit_version,'4.25') .ne. 0 .or.
+     & index(gfit_version,'4.26') .ne. 0 .or.
+     & index(gfit_version,'4.27') .ne. 0 .or.
+     & index(gfit_version,'4.28') .ne. 0 .or.
+     & index(gfit_version,'4.29') .ne. 0 .or.
+     & index(gfit_version,'4.30') .ne. 0 .or.
+     & index(gfit_version,'4.31') .ne. 0 .or.
+     & index(gfit_version,'4.32') .ne. 0 .or.
+     & index(gfit_version,'4.33') .ne. 0 .or.
+     & index(gfit_version,'4.34') .ne. 0 .or.
+     & index(gfit_version,'4.35') .ne. 0 .or.
+     & index(gfit_version,'4.36') .ne. 0 .or.
+     & index(gfit_version,'4.37') .ne. 0) then ! assume new col file format
            read(col_string,csformat) specname_col(:lnit-3),nit,cl,
      &     tilt,cc,
      &     fqshift,

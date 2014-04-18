@@ -7,7 +7,7 @@ c
 c  Inputs:
 c      CL           R*4  Continuum Level
 c      CT           R*4  Continuum Tilt
-c      OBSRCD(NMP)  R*4  Measured spectrum
+c      OBSRVD(NMP)  R*4  Measured spectrum
 c      CALCUL(NMP)  R*4  Calculated spectrum
 c      STS(NMP)     R*4  Solar Pseudo Transmittance Spectrum (at the
 c                        grid spacing of the measured spectrum)

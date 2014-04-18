@@ -9,9 +9,10 @@ SOURCES := \
   $(TSRC)/$(TARGET).f \
   $(TSRC)/newnnls.f \
   $(TSRC)/nnls.f \
+  $(COMN)/get_ggg_environment.f \
   $(COMN)/lowercase.f \
-  $(COMN)/skiprec.f \
   $(COMN)/subsolar.f \
+  $(COMN)/get_ggg_environment.f \
   $(COMN)/twodint.f \
   $(COMN)/zenaz.f \
   $(COMN)/julian.f \

@@ -1,5 +1,16 @@
 echo " Installing GGG"
 echo " Using GGGPATH =" $GGGPATH
+if [ ! $GGGPATH/install == `pwd` ] ; then
+   echo " Your current directory: `pwd`"
+   echo " Does not match the GGGPATH install directory."
+   read -p " Continue? (Y/N) " req
+   if [[ $req == 'Y' || $req == 'y' ]] ; then
+      echo " Continuing..."
+   else
+      echo " Quitting install. Please change your GGGPATH."
+      exit
+   fi
+fi
 
 ./compile_ggg.sh
 
@@ -30,6 +41,18 @@ if [ ! -e ../models/gnd/models.men ]; then
 fi
 if [ ! -e ../windows/gnd/windows.men ]; then 
     cp gnd_windows.men ../windows/gnd/windows.men
+fi
+if [ ! -d ../lse ]; then
+    mkdir ../lse
+    mkdir ../lse/gnd
+    mkdir ../lse/lab
+elif [ ! -d ../lse/gnd ]; then
+    mkdir ../lse/gnd
+    if [ ! -d ../lse/lab ]; then
+       mkdir ../lse/lab
+    fi
+elif [ ! -d ../lse/lab ]; then
+    mkdir ../lse/lab
 fi
 # lab
 if [ ! -e ../runlogs/lab/runlogs.men ]; then 
@@ -118,6 +141,10 @@ if [ ! -e ../src/idl/mod_maker.input ]; then
    echo "Change your site abbreviation, lat/lon and filenames as appropriate." >> ../src/idl/mod_maker.input
 fi
 echo " Finished copying menus..."
+# Check to ensure that the ak directory exists; if not, make it
+if [ ! -d ../ak ]; then
+    mkdir ../ak
+fi 
 # Check to ensure that the current_results directory exists
 if [ ! -d current_results ]; then
     mkdir current_results
@@ -133,27 +160,19 @@ echo " "
 echo "GFIT is fitting some benchmark spectra to"
 echo "check that the installation was successful."
 echo "This will take ~15 minutes."
+time_start=`date +%s`
+
 chmod u+x multiggg.sh
 ./multiggg.sh
 chmod u+x post_processing.sh
 ./post_processing.sh
 cd ../
 
-echo " Computing and displaying any differences from the benchmark installation"
-diff --brief --new-file current_results/pa_ggg_benchmark.mav benchmark_results/pa_ggg_benchmark.mav > differences.out
-diff --brief --new-file current_results/pa_ggg_benchmark.ray benchmark_results/pa_ggg_benchmark.ray >> differences.out
-diff --brief --new-file current_results/pa_ggg_benchmark.vav benchmark_results/pa_ggg_benchmark.vav >> differences.out
-diff --brief --new-file current_results/pa_ggg_benchmark.vsw benchmark_results/pa_ggg_benchmark.vsw >> differences.out
+time_end=`date +%s`
+time_exec=`expr $(( ($time_end - $time_start)/60 ))`
+time_exec_s=`expr $(( ($time_end - $time_start) - $time_exec*60 ))`
 echo " "
-ls -lt differences.out
-echo "If the size of the 'differences.out' file is zero (line above),"
-echo "then the installation has completed successfully."
+echo " Execution time was about $time_exec minutes and $time_exec_s second(s)"
+echo " "
 
-echo "Check difference between current_results/pa_ggg_benchmark.mav and benchmark_results/pa_ggg_benchmark.mav" >> differences.out
-./ggg_mav_diff.pl current_results/pa_ggg_benchmark.mav benchmark_results/pa_ggg_benchmark.mav >> differences.out
-echo "Check difference between current_results/pa_ggg_benchmark.ray and benchmark_results/pa_ggg_benchmark.ray" >> differences.out
-./gggdiff.pl current_results/pa_ggg_benchmark.ray benchmark_results/pa_ggg_benchmark.ray >> differences.out
-echo "Check difference between current_results/pa_ggg_benchmark.vav and benchmark_results/pa_ggg_benchmark.vav" >> differences.out
-./gggdiff.pl current_results/pa_ggg_benchmark.vav benchmark_results/pa_ggg_benchmark.vav >> differences.out
-echo "Check difference between current_results/pa_ggg_benchmark.vsw and benchmark_results/pa_ggg_benchmark.vsw" >> differences.out
-./gggdiff.pl current_results/pa_ggg_benchmark.vsw benchmark_results/pa_ggg_benchmark.vsw >> differences.out
+./diff_versions current_results benchmark_results

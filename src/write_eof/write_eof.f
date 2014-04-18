@@ -4,63 +4,74 @@ c  Writes out a version of the oof file but with the kitchen sink.
       include "../ggg_int_params.f"
       include "params.f"
       integer*4 lun_tav,lun_vav,lun_ada,lun_out,lun_outc,lun_aia,
-     & li,lnbc,ncoml,ncolt,ncolv,ncola,nrow,naux,j,lnit,
+     & li,lnbc,ncoml,ncolt,ncolv,ncola,nrow,naux,j,lnit,lun_esf,
      & lspace,jj,mhead,ncomlc,ncolc,ngas,lun_cor,flag,lun_asw,
      & k,maux,mwin,nwin,NN2,NN3,NN4,NN5,NN0,NN6,NN7,gaa_naux,
-     & col_ncol, mcsv,kcol,gh
+     & col_ncol, mcsv,kcol,gh,nlhead_esf,ncol_esf,nrow_qc,
+     & nheaders,ncolumns,lunr_lse,ndum
       integer i
       parameter (lun_tav=12)      ! input file (.tav)
       parameter (lun_vav=13)      ! input file (.vav)
       parameter (lun_cor=14)      ! input file (corrections.dat)
       parameter (lun_ada=15)      ! input file (.ada)
 c      parameter (lun_gaa=31)      ! input file (.gaa)
+      parameter (lunr_lse=99)     ! input file (.lse)
       parameter (lun_aia=32)      ! input file (.aia)
       parameter (lun_asw=17)      ! input file (.asw)
       parameter (lun_out=16)      ! output file (.eof)
       parameter (lun_outc=18)     ! output file (.eof.csv)
+      parameter (lun_esf=29)     ! output file (.eof.csv)
       parameter (maux=25)
       parameter (mwin=20)
       parameter (mhead=110)
       parameter (mcsv=99999)
       character we_version*62,tavfile*80,vavfile*80,adafile*90,
-     & aiafile*90,outfile*80,specname*(nchar),tavheader*550,
-     & vavheader*550,outfilec*80,
-     & adaheader*550,gaafile*90,aiaheader*550,
-     & inputfmt*1024,adafmt*1024,
+     & aiafile*90,outfile*80,specname*(nchar),tavheader*800,
+     & vavheader*800,outfilec*80,lsefile*(mfilepath),lseformat*100,
+     & adaheader*800,gaafile*90,aiaheader*800,esffile*90,
+     & inputfmt*1024,adafmt*1024,dum1*(nchar),
      & outfmt*1024,hdr(mhead)*(24),headaux(mhead)*(24),
      & corfmt*1024,ssss*16584,sarr(mrow)*(nchar),csvarr(mrow)*(nchar),
      & headtav(mhead)*(24),headvav(mhead)*(24),headada(mhead)*(24),
+     & headlse(mhead)*(24),lseheader*600,
      & gasname(mwin)*20,gggdir*(mpath),corr_head*300,cc*(nchar),dl*1,
      & ooffmt*512,oof_header*8000,oof_out*800,aswfile*80,
-     & col_header*20000,col_out*10000,headercsv*20000,
-     & ghost_head(mhead)*(24),specfmt*3
+     & col_header*22000,col_out*24000,headercsv*22000,
+     & ghost_head(mhead)*(24),specfmt*3,esf_header*8000
       real*4 yauxt(maux),yobst(mwin),yerrt(mwin),yauxv(maux),
      & yobsv(mwin),yerrv(mwin),
      & yauxi(maux),yobsi(mwin),yerri(mwin),yauxai(maux),yobsai(mwin),
      & yerrai(mwin),yobs_ghost(maux),yobsga(mwin)
 
-      real*8 year,adcf(mwin),adcf_err(mwin),aicf(mwin),aicf_err(mwin)
-      integer*4 oof_flag(mrow),ktg(mcol)
-      integer*4 ncol, mchar, eflag, irow, nflag
+      real*8 year,adcf(mwin),adcf_err(mwin),aicf(mwin),aicf_err(mwin),
+     & dum4,lse,lsu
+      integer*4 oof_flag(mrow),ktg(mcol),lst
+      integer*4 ncol, mchar, eflag, irow, nflag,dum2,dum3
       integer*4 kflag(mrow_qc), oflag(mrow_qc), 
      & pindex(mrow_qc)
       real*4 vmin(mrow_qc), vmax(mrow_qc)
-      real*4 scale(mrow_qc)
+      real*4 scale(mrow_qc), yesf(mcol),rsc(mrow_qc)
       character ofmt(mrow_qc)*4
       integer*4 inputlun
       integer*4 percent_complete, percent_complete_target
      
       integer*4 luns(mluns)
+      save yesf
 
-      call getlun(inputlun)
+c      call getlun(inputlun)
       we_version=
-     & ' WRITE_EOF                Version 0.4.2    30-Mar-2012     DW '
+     & ' WRITE_EOF                Version 0.4.4    17-Feb-2014     DW '
 
       write(*,*) we_version
 
-      write(*,'(a)')
-     & 'Enter name of .tav file'
-      read(*,'(a)')tavfile
+      if (iargc() == 0) then
+         write(*,'(a)') 'Enter name of .tav file'
+         read(*,'(a)')tavfile
+      elseif (iargc() == 1) then
+         call getarg(1, tavfile)
+      else
+         stop 'Usage: $gggpath/bin/write_eof tavfilename'
+      endif
       li=lnbc(tavfile)
       if(tavfile(li-3:li).ne.'.tav') write(*,*)
      &  ' Warning: input file is not of expected type (.tav) '
@@ -68,30 +79,40 @@ c      parameter (lun_gaa=31)      ! input file (.gaa)
 c Set the names of the input files to be read, and the output files to be written
       vavfile=tavfile(:li-3)//'vav'
       aiafile=vavfile(:li)//'.ada.aia'
-      gaafile=vavfile(:li)//'.ada.aia.gaa'
+c      gaafile=vavfile(:li)//'.ada.aia.gaa'
+      esffile=vavfile(:li)//'.ada.aia.daily_error.out'
 
       adafile=vavfile(:li)//'.ada'
       aswfile=vavfile(:li-3)//'asw'
 
-      outfile=vavfile(:li)//'.ada.aia.gaa.eof'
-      outfilec=vavfile(:li)//'.ada.aia.gaa.eof.csv'
+      outfile=vavfile(:li)//'.ada.aia.eof'
+      outfilec=vavfile(:li)//'.ada.aia.eof.csv'
      
 c Open the other files
       open(lun_vav,file=vavfile,status='old')
       open(lun_tav,file=tavfile,status='old')
-      open(lun_aia,file=aiafile,status='old')
+c     open(lun_aia,file=aiafile,status='old')
 c     open(lun_gaa,file=gaafile,status='old')
       open(lun_ada,file=adafile,status='old')
       open(lun_out,file=outfile,status='unknown')
       open(lun_outc,file=outfilec,status='unknown')
 
+      open(lun_esf,file=esffile,status='old')
+      read(lun_esf,*) nlhead_esf,ncol_esf
+      do i=2,nlhead_esf
+         read(lun_esf,'(a)') esf_header
+      end do
+      do j=1,mcol
+         yesf(j)=0.0
+      end do
+
 C prepare oof and col files for reading
 
-       call prepare_oof_output(gaafile,inputlun,
-     & ooffmt, oof_flag, irow, 
+       call prepare_oof_output(aiafile,lun_aia,
+     & ooffmt, oof_flag, irow,nrow_qc, 
      & vmin, vmax, pindex, 
      & eflag, kflag, oflag,
-     & nrow, ncol, mchar, scale, ofmt, oof_header,gaa_naux)
+     & nrow, ncol, mchar, scale,rsc, ofmt, oof_header,gaa_naux)
 CC
        call prepare_collate_all(col_header, luns, col_ncol,ktg, 
      & gfit_version,gsetup_version, atmsum, gctsum, fciasum, 
@@ -178,8 +199,8 @@ c Write the headers for the output files
           if(index(hdr(k),'_error').gt.0) then
           else  ! we only have corrections for the values, not the errors
           gh = gh+1
-          write(ghost_head(gh),'(a)')'x'//hdr(k)(:lnbc(hdr(k)))//
-     &    '_ghost_corr'
+c          write(ghost_head(gh),'(a)')'x'//hdr(k)(:lnbc(hdr(k)))//
+c     &    '_ghost_corr'
           endif
       enddo
       
@@ -201,11 +222,23 @@ c Read the .vav, .vav.ada files for inclusion
       end do
       read(lun_ada,'(a)') adaheader
       
-      read(lun_aia,'(i2,i4,i7,i4)') ncoml,ncola,nrow,naux
-      do j=2,ncoml-1
-         read(lun_aia,'(a)') aiaheader
-      end do
-      read(lun_aia,'(a)') aiaheader
+      lsefile=gggdir(:lnbc(gggdir))//'lse'//dl
+     & //'gnd'//dl//tavfile(:li-3)//'lse'
+c     write(*,*)'lsefile=',lsefile
+      open(lunr_lse,file=lsefile,status='old')
+      read(lunr_lse,'(i2,i4)') nheaders,ncolumns
+      do j=2,nheaders-1
+         read(lunr_lse,'(a)') lseformat
+      enddo
+      read(lunr_lse,'(a)') lseheader
+      call substr(lseheader,headlse,ncolumns,ndum)
+c     write(*,*)'headlse=',(headlse(k)(:lnbc(headlse(k))),k=1,ncolumns)
+
+c     read(lun_aia,'(i2,i4,i7,i4)') ncoml,ncola,nrow,naux
+c     do j=2,ncoml-1
+c        read(lun_aia,'(a)') aiaheader
+c     end do
+c     read(lun_aia,'(a)') aiaheader
 
 c     write(*,*)'lun_gaa=',lun_gaa
 c     read(lun_gaa,'(a)') gaaheader
@@ -222,7 +255,8 @@ c Create the output header from the various file headers
      & (headvav(k)(:lnbc(headvav(k))+1),k=1,jj-naux-1),
      & (headada(k)(:lnbc(headada(k))+1),k=1,jj-naux-1),
      & corr_head(:lnbc(corr_head)),' ',
-     & (ghost_head(k)(:lnbc(ghost_head(k))+1),k=1,gh),
+     & (headlse(k)(:lnbc(headlse(k))+1),k=5,7),
+c    & (ghost_head(k)(:lnbc(ghost_head(k))+1),k=1,gh),
      & col_header(:lnbc(col_header))
 c Create the output csv header
       headercsv=header
@@ -269,11 +303,11 @@ c Read in each line of the files, and write the string to the output file
           oof_out(:)=""
 
 c read one line of the oof file
-         call read_oneline_oof(inputlun, oof_out,
-     & ooffmt, oof_flag, irow,
+         call read_oneline_oof(lun_aia, oof_out,
+     & ooffmt, oof_flag, irow, lun_esf, yesf,ncol_esf,nrow_qc,
      & vmin, vmax, pindex,
      & nflag, eflag, kflag, oflag,
-     & ncol, mchar, scale, ofmt, gaa_naux,yobsga
+     & ncol, mchar, scale,rsc, ofmt, gaa_naux,yobsga
      & )
 
 c read one line of the col file(s)
@@ -286,8 +320,9 @@ c set the output file format
          outfmt='(aNNX,'
      &    //'NN(1pe12.4),'
      &    //'NN(1pe12.4),'
-     &    //'NN(1pe12.4),0p,NN(f8.4),1x,NN(e10.3)'
-     &    //'aNNXX)'!,1x,a32,1x,a32,1x,a32,1x,a32,1x,a32)'
+     &    //'NN(1pe12.4),0p,NN(f8.4),1x,'
+     &    //lseformat(21:38)//',1x,'
+     &    //'aNNXXX)'!,1x,a32,1x,a32,1x,a32,1x,a32,1x,a32)'
          NN0 = index(outfmt,'NN')
          write(outfmt(NN0:NN0+2),'(i3.3)')lnbc(oof_out)
          NN2 = index(outfmt(NN0+2:),'NN')+NN0+1
@@ -304,10 +339,11 @@ c set the output file format
              write(outfmt(NN5:NN5+1),'(i2.2)')ngas*4
          endif
 
-         NN6 = index(outfmt(NN5+2:),'NN')+NN5+1
-         write(outfmt(NN6:NN6+1),'(i2.2)')nwin
+c         NN6 = index(outfmt(NN5+2:),'NN')+NN5+1
+c         write(outfmt(NN6:NN6+1),'(i2.2)')nwin
+         NN6 = NN5
          NN7 = index(outfmt(NN6+2:),'NN')+NN6+1
-         write(outfmt(NN7:NN7+3),'(i4.4)')lnbc(col_out) 
+         write(outfmt(NN7:NN7+4),'(i5.5)')lnbc(col_out)
 c        write(*,*)'outfmt=',outfmt
 
 c The above assumes that all the oof and col file lines are the same length!
@@ -326,10 +362,13 @@ c The above assumes that all the oof and col file lines are the same length!
      &   (yauxi(k),k=1,naux-2),
      &   (yobsi(k),yerri(k),k=1,nwin)
 
-         read(lun_aia,adafmt) 
-     &   specname,year,
-     &   (yauxai(k),k=1,naux-2),
-     &   (yobsai(k),yerrai(k),k=1,nwin)
+         read(lunr_lse,lseformat) 
+     &   dum1,dum2,dum3,dum4,
+     &   lst,lse,lsu
+c        read(lun_aia,adafmt) 
+c    &   specname,year,
+c    &   (yauxai(k),k=1,naux-2),
+c    &   (yobsai(k),yerrai(k),k=1,nwin)
 
 c        read(lun_gaa,adafmt) 
 c    &   specname,year,
@@ -337,9 +376,9 @@ c    &   (yauxga(k),k=1,naux-2),
 c    &   (yobsga(k),yerrga(k),k=1,nwin)
 
 C differences between the aia file and the gaa file are the additional ghost corrections
-      do k=1,nwin
-         yobs_ghost(k) = yobsga(k) - yobsai(k)
-      enddo
+c      do k=1,nwin
+c         yobs_ghost(k) = yobsga(k) - yobsai(k)
+c      enddo
 c      write(*,*)'yobs_ghost=',yobs_ghost(:nwin)
 
 c Write the output to a string for parsing into csv later
@@ -350,7 +389,8 @@ c Write the output to a string for parsing into csv later
      &   (yobsv(k),yerrv(k),k=1,nwin),
      &   (yobsi(k),yerri(k),k=1,nwin),
      &   (adcf(k),aicf(k),k=1,ngas),
-     &   (yobs_ghost(k),k=1,nwin),
+     &   lst,lse,lsu,
+c     &   (yobs_ghost(k),k=1,nwin),
      &   col_out(:lnbc(col_out))
       elseif(ncolc.eq.5) then
          write(ssss,outfmt)oof_out(:lnbc(oof_out)),
@@ -358,7 +398,8 @@ c Write the output to a string for parsing into csv later
      &   (yobsv(k),yerrv(k),k=1,nwin),
      &   (yobsi(k),yerri(k),k=1,nwin),
      &   (adcf(k),adcf_err(k),aicf(k),aicf_err(k),k=1,ngas),
-     &   (yobs_ghost(k),k=1,nwin),
+     &   lst,lse,lsu,
+c     &   (yobs_ghost(k),k=1,nwin),
      &   col_out(:lnbc(col_out))
       endif 
          write(lun_out,'(a)')ssss(:lnbc(ssss))
@@ -386,7 +427,7 @@ c Close files
 c      close(lun_oof)
 c      close(lun_col)
 
-      call freelun(inputlun)
+c      call freelun(inputlun)
       do j=1, mluns
          if (luns(j) .gt. 0) call freelun(luns(j))
       end do
@@ -396,6 +437,7 @@ c      close(lun_col)
       close(lun_ada)
       close(lun_aia)
 c     close(lun_gaa)
+      close(lunr_lse)
       close(lun_out)
       close(lun_outc)
       end

@@ -1,6 +1,6 @@
-      subroutine do_retrieval2(obsrvd,nmp,apx,apu,
+      subroutine do_retrieval2(obsrvd,nmp,apx,apu,ss,
      & slit,nii,ldec,rdec,spts,spxv,vac,splos,nlev,ncp,ntg,snr,
-     & corrld,sssss,winfo,debug,mit,nit,calcul,rms,cx,ex,slpd,pd,ssnmp)
+     & corrld,sssss,winfo,debug,mit,nit,calcul,rms,cx,ex,pd,ssnmp)
 
 c  Adjusts the state vector (cx) to get the best fit to measured spectrum (y).
 c  Performs an iterative solution to the optimal estimation equation
@@ -78,7 +78,7 @@ c     pd(nmp,ntg)   R*4  Individual gas transmittance spectra
      & corrld,
      & var,
      & vac(*),
-     & slpd(nmp,nlev,ntg),
+c     & slpd(nmp,nlev,ntg),
      & pd((mmp+mfp)*mfp),spts(ncp),
      & spxv(mspxv),
      & splos(nlev),
@@ -94,7 +94,7 @@ c     pd(nmp,ntg)   R*4  Individual gas transmittance spectra
       integer*4
      & ip(mfp)
 
-      character winfo*(*)
+      character winfo*(*),ss(nfp)*4
       parameter (tau=6.e-06)
 c
       n1=ntg+1
@@ -151,8 +151,8 @@ c          cx(n2)=sign(1.0,cx(n2))
 c        endif
 
 c  Calculate spectrum & PD's
-         call fm2(0,winfo,slit,nii,ldec,spts,spxv,vac,splos,nlev,
-     &  ncp,rdec,sssss,cx,ntg,calcul,slpd,pd,nmp)
+         call fm2(0,winfo,ss,slit,nii,ldec,spts,spxv,vac,splos,nlev,
+     &  ncp,rdec,sssss,cx,ntg,calcul,pd,nmp)
 
 cc Test that the SLPD's are correct by overwriting pd(*,jtg) with
 cc the values calculated by integrating the SLPD wrt altitude.

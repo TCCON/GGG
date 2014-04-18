@@ -24,7 +24,7 @@ c
 c
       implicit none
       integer*4 ilev,nlev,mgas,kgas,jgas
-      parameter (kgas=6)
+      parameter (kgas=50)
 
       real*8 trend(kgas),
      & date_obs,date_vmr,ztrop_mod,lat_ref,alat_obs,
@@ -36,22 +36,29 @@ c
       lat_ref=lat_ref  ! avoid compiler warning
 
 c  Apply secular trends
-      trend(1)=0.00    ! H2O
-      trend(2)=0.0054   ! CO2
-      trend(3)=0.00    ! O3
+      do jgas=1,kgas
+         trend(jgas)=0.0
+      end do
+      trend(2)=0.0052  ! CO2
       trend(4)=0.001   ! N2O  (0.1% per year)
-      trend(5)=-.005   ! CO
-      trend(6)=0.004   ! CH4
+      trend(5)=-.006   ! CO
+      trend(6)=0.003   ! CH4
+      trend(14)=-.01   ! HF
+
 
       tdiff=date_obs-date_vmr
       do ilev=1,nlev
          zobs=z(ilev)
          aoa=calc_aoa(alat_obs,zobs,ztrop_mod)
          do jgas=1,kgas
-             vmrout(jgas,ilev)=vmrin(jgas,ilev)*
-     &                           (1+trend(jgas)*(tdiff-aoa))
-         end do
-      end do    !  do jgas=1,kgas
+            vmrout(jgas,ilev)=vmrin(jgas,ilev)*
+     &      (1+trend(jgas)*(tdiff-aoa))
+            if(jgas.eq.14) vmrout(jgas,ilev)=vmrout(jgas,ilev)/
+     &      (1.0+exp((-tdiff+aoa-16)/5.0))
+            if(jgas.eq.50) vmrout(jgas,ilev)=1.5*vmrout(jgas,ilev)/
+     &      (1.0+exp((-tdiff+aoa-4)/9.0))
+         end do    !  do jgas=1,kgas
+      end do     ! do ilev=1,nlev
 
       return
       end

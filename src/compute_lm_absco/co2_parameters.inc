@@ -22,8 +22,8 @@ c Max number of j values
 c Max Number of W coupling
       parameter(Nwmax=100000)
 
-	real*8 Ct,T0,CtGamD,aMolAtm,Pi
-      	real*8 aMass(nIsotp)
+      real*8 Ct,T0,CtGamD,aMolAtm,Pi
+      real*8 aMass(nIsotp)
 C Constants      
       Data Ct/1.4387686d0/
       Data T0/296.d0/
@@ -35,7 +35,7 @@ C Constants
 
 C      
 C Polynomial Coefficients for the Various Isotopomers
-	integer*4 Jcoef
+       integer*4 Jcoef
       	real*8 co2_Qcoef(nIsotp,4)
 C Iso=1, i.e. O(16)-C(12)-O(16)
       DATA (co2_Qcoef(1,Jcoef),Jcoef=1,4)/-.13617D+01, .94899D+00,

@@ -10,8 +10,8 @@ used for running mod_maker.
 Instructions
 
 If run without parameters, the script will download NetCDF files for air
-temperature (AT), geopotential height (GP), tropopause pressue (TP) and specific
-humidity (SH). The coverage will be global and the time period will be the most
+temperature (AT), geopotential height (GP), and specific humidity (SH).
+The coverage will be global and the time period will be the most
 recent day for which this data is available. You can customize ncep_download's
 behaviour with several command line options.
 

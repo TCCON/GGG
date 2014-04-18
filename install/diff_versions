@@ -1,0 +1,32 @@
+#! /bin/csh
+
+if( $#argv < 2 ) then
+echo "Usage: diff_versions new_directory old_directory"
+echo "Example: ./diff_versions current_results benchmark_results"
+exit(0)
+endif
+
+echo " "
+echo " Computing and displaying any differences from the benchmark installation"
+diff --brief --new-file $1/pa_ggg_benchmark.mav $2/pa_ggg_benchmark.mav > differences.out
+diff --brief --new-file $1/pa_ggg_benchmark.ray $2/pa_ggg_benchmark.ray >> differences.out
+diff --brief --new-file $1/pa_ggg_benchmark.vav $2/pa_ggg_benchmark.vav >> differences.out
+diff --brief --new-file $1/pa_ggg_benchmark.vsw $2/pa_ggg_benchmark.vsw >> differences.out
+diff --brief --new-file $1/pa_ggg_benchmark.vav.ada.aia.eof $2/pa_ggg_benchmark.vav.ada.aia.eof >> differences.out
+echo " "
+ls -lt differences.out
+echo " "
+echo "Ensure that the magnitudes of the differences of important parameters (like Xgas, VSF_gas) "
+echo "in the 'differences.out' file are smaller than ~0.01% to guarantee a successfull install. "
+echo "Don't worry if the differences in S-G or non-target gas VSFs are larger than 0.01%."
+
+echo "Check difference between "$1"/pa_ggg_benchmark.mav and "$2"/pa_ggg_benchmark.mav" >> differences.out
+./ggg_mav_diff.pl $1/pa_ggg_benchmark.mav $2/pa_ggg_benchmark.mav >> differences.out
+echo "Check difference between "$1"/pa_ggg_benchmark.ray and "$2"/pa_ggg_benchmark.ray" >> differences.out
+./gggdiff.pl $1/pa_ggg_benchmark.ray $2/pa_ggg_benchmark.ray >> differences.out
+echo "Check difference between "$1"/pa_ggg_benchmark.vav and "$2"/pa_ggg_benchmark.vav" >> differences.out
+./gggdiff.pl $1/pa_ggg_benchmark.vav $2/pa_ggg_benchmark.vav >> differences.out
+echo "Check difference between "$1"/pa_ggg_benchmark.vsw and "$2"/pa_ggg_benchmark.vsw" >> differences.out
+./gggdiff.pl $1/pa_ggg_benchmark.vsw $2/pa_ggg_benchmark.vsw >> differences.out
+echo "Check difference between "$1"/pa_ggg_benchmark.vav.ada.aia.eof and "$2"/pa_ggg_benchmark.vav.ada.aia.eof" >> differences.out
+./gggdiff_eof.pl $1/pa_ggg_benchmark.vav.ada.aia.eof $2/pa_ggg_benchmark.vav.ada.aia.eof >> differences.out

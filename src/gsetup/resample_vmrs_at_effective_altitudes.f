@@ -25,6 +25,7 @@ c     adjvmr(mgas,nlev) R*4    Gas VMRs resampled in altitude
       real*4 z(nlev),refvmr(mgas,nlev),adjvmr(mgas,nlev),fr
       real*8 zeff,ztrop_mod,ztrop_vmr,stuclat,obslat_mod,reflat_vmr
 c==================================================================
+      stuclat=0.0d0
       do klev=1,nlev
 c         write(*,*)klev,nlev,z(klev),ztrop_mod,ztrop_vmr
          if(z(klev).lt.ztrop_mod) then

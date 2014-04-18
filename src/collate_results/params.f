@@ -3,8 +3,8 @@
      & gfit_version*80,
      & gsetup_version*80,
      & col_string*500,
-     & csformat*100,
-     & cdum*20,
+     & csformat*105,
+     & cdum*24,
      & specname_col*57,
      & tabel*128,
      & colfile*80
