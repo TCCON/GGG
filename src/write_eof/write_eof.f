@@ -8,7 +8,7 @@ c  Writes out a version of the oof file but with the kitchen sink.
      & lspace,jj,mhead,ncomlc,ncolc,ngas,lun_cor,flag,lun_asw,
      & k,maux,mwin,nwin,NN2,NN3,NN4,NN5,NN0,NN6,NN7,gaa_naux,
      & col_ncol, mcsv,kcol,gh,nlhead_esf,ncol_esf,nrow_qc,
-     & nheaders,ncolumns,lunr_lse,ndum
+     & nheaders,ncolumns,lunr_lse,ndum,lse_count
       integer i
       parameter (lun_tav=12)      ! input file (.tav)
       parameter (lun_vav=13)      ! input file (.vav)
@@ -29,11 +29,11 @@ c      parameter (lun_gaa=31)      ! input file (.gaa)
      & aiafile*90,outfile*80,specname*(nchar),tavheader*800,
      & vavheader*800,outfilec*80,lsefile*(mfilepath),lseformat*100,
      & adaheader*800,gaafile*90,aiaheader*800,esffile*90,
-     & inputfmt*1024,adafmt*1024,dum1*(nchar),
+     & inputfmt*1024,adafmt*1024,dum1*(nchar),specname_lse*(nchar),
      & outfmt*1024,hdr(mhead)*(24),headaux(mhead)*(24),
      & corfmt*1024,ssss*16584,sarr(mrow)*(nchar),csvarr(mrow)*(nchar),
      & headtav(mhead)*(24),headvav(mhead)*(24),headada(mhead)*(24),
-     & headlse(mhead)*(24),lseheader*600,
+     & headlse(mhead)*(24),lseheader*600,specname_lse_was*(nchar),
      & gasname(mwin)*20,gggdir*(mpath),corr_head*300,cc*(nchar),dl*1,
      & ooffmt*512,oof_header*8000,oof_out*800,aswfile*80,
      & col_header*22000,col_out*24000,headercsv*22000,
@@ -88,6 +88,7 @@ c      gaafile=vavfile(:li)//'.ada.aia.gaa'
       outfile=vavfile(:li)//'.ada.aia.eof'
       outfilec=vavfile(:li)//'.ada.aia.eof.csv'
      
+      specname_lse = 'first_spectrum.000'
 c Open the other files
       open(lun_vav,file=vavfile,status='old')
       open(lun_tav,file=tavfile,status='old')
@@ -362,9 +363,30 @@ c The above assumes that all the oof and col file lines are the same length!
      &   (yauxi(k),k=1,naux-2),
      &   (yobsi(k),yerri(k),k=1,nwin)
 
+         specname_lse_was = specname_lse
          read(lunr_lse,lseformat) 
-     &   dum1,dum2,dum3,dum4,
+     &   specname_lse,dum2,dum3,dum4,
      &   lst,lse,lsu
+         lse_count = 0
+         if(specname_lse.ne.specname) then ! specname doesn't match
+          do while (specname_lse.ne.specname)
+           lse_count = lse_count + 1
+           read(lunr_lse,lseformat) 
+     &     specname_lse,dum2,dum3,dum4,
+     &     lst,lse,lsu
+           if (lse_count.gt.4) then
+            write(*,*)'ERROR: Cannot find ',specname(:lnbc(specname)),
+     &      ' within 4 lines of ',
+     &      specname_lse_was(:lnbc(specname)),' in '//
+     &      'your .lse file.'
+            write(*,*) 'There may be something wrong with '//
+     &      'your .lse file.'
+            write(*,*) 'Please check that the .lse file is '//
+     &      'consistent with your runlog and re-run write_eof.'
+             stop
+           endif
+          enddo
+         endif
 c        read(lun_aia,adafmt) 
 c    &   specname,year,
 c    &   (yauxai(k),k=1,naux-2),
