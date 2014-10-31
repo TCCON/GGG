@@ -51,6 +51,14 @@
 ;----------------------------------------------------------------
 ; Version History Log (extracted from ggg.history)
 ;
+; mod_maker_9.7  24-Oct-2014  GCT/DGF
+; D. Feist (DGF): Modified mod_maker9 to handle NCEP netcdf3 (pre Oct 2014) as well as netcdf4 files (post Oct 2014)
+;   - output mod files are identical to previous version of mod_maker9.pro when netcdf3 files are used
+;   - small rounding differences at the last digit (+/-1 mK for temperature!) may occur when netcdf4 files are used
+;
+;---------------------------------------------------------------
+; mod_maker_9.6 ??? (DGF: description was missing)
+;---------------------------------------------------------------
 ; mod_maker_9.5  08-Feb-2013  GCT
 ; Changed the equation for converting the NCEP Specific Humidity (MMR)
 ; into a mole fraction (VMR) from
@@ -600,7 +608,7 @@ pro trilinear_interp1, fin, fscale_factor, fadd_offset, xx, yy, tt, nt, fout, nx
 end
 ;
 ;-------------------------------------------------------------------
-pro read_global_data_file, ncdf_file_XX, qq, Site_Lat, Site_Lon_360, Lev_XX, Lat_XX, Lon_XX, Tim_XX, Global_Data_XX, Global_Data_scale_factor_XX, Global_Data_add_offset_XX
+pro read_global_data_file, ncdf_file_XX, qq, Site_Lat, Site_Lon_360, Lev_XX, Lat_XX, Lon_XX, Tim_XX, Global_Data_XX, Global_Data_scale_factor_XX, Global_Data_add_offset_XX,julday0
   ncid = NCDF_OPEN(ncdf_file_XX)          ; Open The NetCDF file
   if (qq ne 'pres') then begin
   varid=ncdf_varid(ncid,'level')
@@ -610,12 +618,41 @@ pro read_global_data_file, ncdf_file_XX, qq, Site_Lat, Site_Lon_360, Lev_XX, Lat
   NCDF_VARGET, ncid,  varid, Lat_XX       ; Read in variable 'lat'
   varid=ncdf_varid(ncid,'lon')
   NCDF_VARGET, ncid,  varid, Lon_XX       ; Read in variable 'lon'
-  varid=ncdf_varid(ncid,'time')
-  NCDF_VARGET, ncid,  varid, Tim_XX       ; Read in variable 'time'
+
+;
+; Modifications by D. Feist to make program work also with NCEP ncdf files after October 2014
+;
+
+; Read time
+  varid=ncdf_varid(ncid, 'time')
+  NCDF_VARGET, ncid, varid, Tim_XX       ; Read in variable 'time'
+
+; Set julday0 => Julian date where time=0
+  NCDF_ATTGET, ncid, varid, 'units', time_units  ; string containing definition of time units
+  ; Quick and dirty time unit parsing - this could be more intelligent (D.F.)
+  IF string(time_units) EQ 'hours since 1-1-1 00:00:0.0' THEN julday0=julday(1,1,1,0)
+  IF string(time_units) EQ 'hours since 1800-01-01 00:00:0.0' THEN julday0=julday(1,1,1800,0)
+
+; Read global data
   varid=ncdf_varid(ncid,qq)
   NCDF_VARGET, ncid, varid, Global_Data_XX    ; Read in variable 'Global_Data_XX'
-  NCDF_ATTGET, ncid, varid, 'add_offset', Global_Data_add_offset_XX
-  NCDF_ATTGET, ncid, varid, 'scale_factor', Global_Data_scale_factor_XX
+
+; Initialize add_offset and scale_factor
+  Global_Data_add_offset_XX=0
+  Global_Data_scale_factor_XX=1.0
+
+; Check variable for offset and scaling factor attributes
+  varinq=NCDF_VARINQ(ncid, varid)
+  FOR attid=0,varinq.NATTS-1 DO BEGIN
+    ; Set Global_Data_add_offset_XX
+    IF NCDF_ATTNAME(ncid, varid, attid) EQ 'add_offset' THEN NCDF_ATTGET, ncid, varid, 'add_offset', Global_Data_add_offset_XX
+    ; Set Global_Data_scale_factor_XX
+    IF NCDF_ATTNAME(ncid, varid, attid) EQ 'scale_factor' THEN NCDF_ATTGET, ncid, varid, 'scale_factor', Global_Data_scale_factor_XX
+  ENDFOR
+;
+; End of modification
+;
+
   NCDF_CLOSE, ncid     ; Close the NetCDF file
 ;  Global_Data_XX = Global_Data_XX*Float(Global_Data_scale_factor_XX) + Float(Global_Data_add_offset_XX)
 ; Check that the range of NCEP Lat/Longitudes span the observation locations
@@ -639,7 +676,7 @@ pro mod_maker9
 ; Note that it only reads the first 6 lines of this file.
 ; So you can keep other stuff further down for re-use later.
 ;
- print,'mod_maker_9.6   2013-05-24   GCT'
+ print,'mod_maker_9.7   2014-10-27   GCT/DGF'
 
  home_path=string(getenv('GGGPATH'))
  occul=' '
@@ -647,6 +684,7 @@ pro mod_maker9
  spectrum=' '
  print,format='($,"Enter runlog (CR to use mod_maker.input)")'
  read,occul
+
  ix=strlen(occul)
  if ix gt 0 then begin     ; New operating mode using user-specified runlog
 
@@ -666,7 +704,7 @@ ll_year=strpos(names,'Year')
 rlformat=string('(1x,a57,1x,2i4,f8.4,f8.3,f9.4,2f8.3,f7.4,f8.3,f7.3,f7.2,3f6.4,2i9,f15.11,i9,i3,39x,f8.2)')
 yearwas=0
 Mod_Was=' '
-nspe=0
+nspe=0UL
 nmod=0
 nyear=0
 while(eof(unit) eq 0) do begin
@@ -693,10 +731,10 @@ while(eof(unit) eq 0) do begin
      ncdf_GH_file=string(home_path+'/ncdf/hgt.',year,'.nc',format='(a,i4.4,a3)')
 ;     ncdf_TP_file=string(home_path+'/ncdf/pres.tropp.',year,'.nc',format='(a,i4.4,a3)')
      ncdf_SH_file=string(home_path+'/ncdf/shum.',year,'.nc',format='(a,i4.4,a3)')
-     read_global_data_file,ncdf_AT_file, 'air',oblat,Site_Lon_360,Lev_AT,Lat_AT,LON_AT,TIM_AT,Global_Data_AT, Global_Data_scale_factor_AT, Global_Data_add_offset_AT
-     read_global_data_file,ncdf_GH_file, 'hgt',oblat,Site_Lon_360,Lev_GH,Lat_GH,LON_GH,TIM_GH,Global_Data_GH, Global_Data_scale_factor_GH, Global_Data_add_offset_GH
-;     read_global_data_file,ncdf_TP_file,'pres',oblat,Site_Lon_360,Lev_TP,Lat_TP,LON_TP,TIM_TP,Global_Data_TP, Global_Data_scale_factor_TP, Global_Data_add_offset_TP
-     read_global_data_file,ncdf_SH_file,'shum',oblat,Site_Lon_360,Lev_SH,Lat_SH,LON_SH,TIM_SH,Global_Data_SH, Global_Data_scale_factor_SH, Global_Data_add_offset_SH
+     read_global_data_file,ncdf_AT_file, 'air',oblat,Site_Lon_360,Lev_AT,Lat_AT,LON_AT,TIM_AT,Global_Data_AT, Global_Data_scale_factor_AT, Global_Data_add_offset_AT,julday0
+     read_global_data_file,ncdf_GH_file, 'hgt',oblat,Site_Lon_360,Lev_GH,Lat_GH,LON_GH,TIM_GH,Global_Data_GH, Global_Data_scale_factor_GH, Global_Data_add_offset_GH,julday0
+;     read_global_data_file,ncdf_TP_file,'pres',oblat,Site_Lon_360,Lev_TP,Lat_TP,LON_TP,TIM_TP,Global_Data_TP, Global_Data_scale_factor_TP, Global_Data_add_offset_TP,julday0
+     read_global_data_file,ncdf_SH_file,'shum',oblat,Site_Lon_360,Lev_SH,Lat_SH,LON_SH,TIM_SH,Global_Data_SH, Global_Data_scale_factor_SH, Global_Data_add_offset_SH,julday0
 ;
 ; Check that the full number of levels have been downloaded
 ; Geopotential & Air Temperature files
@@ -715,9 +753,15 @@ while(eof(unit) eq 0) do begin
   endif
   yearwas=year
 
+;
+; Take Julian date of time=0 from netcdf files instead of hardcoded value
+; Added by D. Feist to make program work also with NCEP ncdf files after October 2014
+;
+; Replaced in following lines: julday(1,1,1,0) => julday0
+
   if Mod_Name ne Mod_Was then begin  ; Interpolate in long/latitude/time and Write Model
     nmod=nmod+1
-    Site_Noon_Tim=(julday(month,day,year,12)-julday(1,1,1,0))*24.0 - Site_Lon_180/15
+    Site_Noon_Tim=(julday(month,day,year,12)-julday0)*24.0 - Site_Lon_180/15
     trilinear_interp1,Global_Data_AT, Global_Data_scale_factor_AT, Global_Data_add_offset_AT,(Site_Lon_360-Lon_AT[0])/(Lon_AT[1]-Lon_AT[0]),(oblat-Lat_AT[0])/(Lat_AT[1]-Lat_AT[0]),(Site_Noon_Tim-Tim_AT[0])/(Tim_AT[1]-Tim_AT[0]), N_Elements(Tim_AT), Site_Noon_AT, N_Elements(lon_AT)
     trilinear_interp1,Global_Data_GH, Global_Data_scale_factor_GH, Global_Data_add_offset_GH,(Site_Lon_360-Lon_GH[0])/(Lon_GH[1]-Lon_GH[0]),(oblat-Lat_GH[0])/(Lat_GH[1]-Lat_GH[0]),(Site_Noon_Tim-Tim_GH[0])/(Tim_GH[1]-Tim_GH[0]), N_Elements(Tim_GH), Site_Noon_GH, N_Elements(lon_GH)
 ;    trilinear_interp0,Global_Data_TP, Global_Data_scale_factor_TP, Global_Data_add_offset_TP,(Site_Lon_360-Lon_TP[0])/(Lon_TP[1]-Lon_TP[0]),(oblat-Lat_TP[0])/(Lat_TP[1]-Lat_TP[0]),(Site_Noon_Tim-Tim_TP[0])/(Tim_TP[1]-Tim_TP[0]), N_Elements(Tim_TP), Site_Noon_TP, N_Elements(lon_TP)
@@ -791,10 +835,10 @@ if(slong gt 180.0 ) then Site_Lon_180=slong-360.0 else Site_Lon_180=slong
 ; The NCEP files use longitudes ranging from 0 to 360, so define yet another longitude...
 if(slong lt 0.0) then Site_Lon_360=slong+360.0 else Site_Lon_360=slong
 
- read_global_data_file,ncdf_AT_file, 'air',Site_Lat,Site_Lon_360,Lev_AT,Lat_AT,LON_AT,TIM_AT,Global_Data_AT,Global_Data_scale_factor_AT, Global_Data_add_offset_AT
- read_global_data_file,ncdf_GH_file, 'hgt',Site_Lat,Site_Lon_360,Lev_GH,Lat_GH,LON_GH,TIM_GH,Global_Data_GH,Global_Data_scale_factor_GH, Global_Data_add_offset_GH
- read_global_data_file,ncdf_TP_file,'pres',Site_Lat,Site_Lon_360,Lev_TP,Lat_TP,LON_TP,TIM_TP,Global_Data_TP,Global_Data_scale_factor_TP, Global_Data_add_offset_TP
- read_global_data_file,ncdf_SH_file,'shum',Site_Lat,Site_Lon_360,Lev_SH,Lat_SH,LON_SH,TIM_SH,Global_Data_SH,Global_Data_scale_factor_SH, Global_Data_add_offset_SH 
+ read_global_data_file,ncdf_AT_file, 'air',Site_Lat,Site_Lon_360,Lev_AT,Lat_AT,LON_AT,TIM_AT,Global_Data_AT,Global_Data_scale_factor_AT, Global_Data_add_offset_AT,julday0
+ read_global_data_file,ncdf_GH_file, 'hgt',Site_Lat,Site_Lon_360,Lev_GH,Lat_GH,LON_GH,TIM_GH,Global_Data_GH,Global_Data_scale_factor_GH, Global_Data_add_offset_GH,julday0
+ read_global_data_file,ncdf_TP_file,'pres',Site_Lat,Site_Lon_360,Lev_TP,Lat_TP,LON_TP,TIM_TP,Global_Data_TP,Global_Data_scale_factor_TP, Global_Data_add_offset_TP,julday0
+ read_global_data_file,ncdf_SH_file,'shum',Site_Lat,Site_Lon_360,Lev_SH,Lat_SH,LON_SH,TIM_SH,Global_Data_SH,Global_Data_scale_factor_SH, Global_Data_add_offset_SH,julday0
 
 ; Check that the full number of levels have been downloaded
   If(N_Elements(Lev_AT) lt 17) Then Begin
@@ -815,9 +859,9 @@ if(slong lt 0.0) then Site_Lon_360=slong+360.0 else Site_Lon_360=slong
 ;   1-2: Site name e.g. 'ca'-Caltech, 'pk'-Park Falls
 ;   3-10: year+month+day, in the form yyyymmdd
 ;   11-14: suffix '.mod'
-  julian=Tim_AT[0]/24.0+julday(1,1,1,0)
+  julian=Tim_AT[0]/24.0+julday0
   caldat,julian,month,day,year
-  Site_Noon_Tim=(julday(month,day,year,12)-julday(1,1,1,0))*24.0 $
+  Site_Noon_Tim=(julday(month,day,year,12)-julday0)*24.0 $
     -Site_Lon_180/15
 
 ; Main Loop over model dates
