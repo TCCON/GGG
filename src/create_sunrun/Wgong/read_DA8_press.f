@@ -5,16 +5,14 @@ c     DG Jan03
 c     Revised Jun2007 as subroutine for new sunrun/runlog split
 
       implicit none
-      include "../../ggg_const_params.f"
 
-      character   specname*(*),spfmt*2,path*(*),apf*2
-      integer*4   i,hedlen,luns,iy,im,id,hh,mm,ss,
-     &            possp,bytepw,ifirst,ilast,jd,nfwdscans,npoints,iend
-      parameter   (hedlen=512,luns=19)
+      character   specname*(*),path*(*)
+      integer*4   hedlen,
+     &            npoints
+      parameter   (hedlen=512)
 
-      real*8      d2r,delwav,nus,nue,fovi,asza,gmt,gmtstart,lasf,
-     &            opd,snr,resn,wavtkr,pins,tins,hins,pout,tout,hout
-      parameter   (d2r=dpi/180)
+      real*8      nus,nue,
+     &            pins,pout
 
       character*(hedlen) chhedr
       integer*2   i2hedr(hedlen/2), i2bombin(512)
@@ -23,8 +21,7 @@ c     Revised Jun2007 as subroutine for new sunrun/runlog split
       real*8      r8hedr(hedlen/8), r8bombin(128)
       real*4      sigflo(8), sigfhi(8)
       character*1024 logblock, bombin
-      integer*4   logoffset, charoff, ifil, ivac, iostat
-      logical*1   pcat
+      integer*4   logoffset, charoff, ivac, iostat,idum,lnblnk
 
 
       equivalence (chhedr,i2hedr,i4hedr,r4hedr,r8hedr)
@@ -37,6 +34,7 @@ c     fitting noise regions at edge of bandpass.
       DATA sigfhi /4450.0, 3500.0, 3120.0, 2600.0, 2250.0,
      &            1350.0, 1350.0, 1025.0/
 
+      idum=lnblnk(specname)
       open(19,file=path,form='unformatted',access='direct',
      &status='old',recl=hedlen)   !!!!! needs compiler option /assume:byterecl
 c     Read Grams header 512 bytes
@@ -83,4 +81,4 @@ c     Note ivac is incorrect in PCAT1.2c - always=0
       endif
 c
       return
-	end
+      end

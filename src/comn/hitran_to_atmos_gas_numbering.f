@@ -17,7 +17,7 @@ c     Input arguments are overwritten by outputs
 
       implicit none
       integer*4 kgas,kiso,mgashit
-      parameter (mgashit=47)
+      parameter (mgashit=49)
       integer*4 llindex(mgashit)
       save llindex
       data llindex/
@@ -68,21 +68,26 @@ c   ATMOS #    HITRAN #  Gas
      &  0,   !  44      HC3N
      &  0,   !  45      H2
      &  0,   !  46      CS
-     &  0/   !  47      SO3
+     &  0,   !  47      SO3
+     &  0,   !  48      ??
+     &  0/   !  49      ??
 c
 c  H2O is a bit messy because ATMOS decided
 c  to designate HDO as a separate molecule.
-       if(kgas.le.0) then
-          stop 'hitran_to_atmos_gas_numbering: kgas.le.0'
-       elseif(kgas.gt.mgashit) then
-          write(*,*) 'kgas,mgashit=',kgas,mgashit
-          stop 'hitran_to_atmos_gas_numbering: kgas.gt.mgashit'
-       elseif(kgas.eq.1 .and. kiso.ge.4) then
-          kgas=49
-          kiso=kiso-3
-       else
-          kgas=llindex(kgas)
-       endif
+      if(kgas.le.0) then
+         stop 'hitran_to_atmos_gas_numbering: kgas.le.0'
+      elseif(kgas.gt.mgashit) then
+         write(*,*) 'kgas,mgashit=',kgas,mgashit
+         stop 'hitran_to_atmos_gas_numbering: kgas.gt.mgashit'
+      elseif(kgas.eq.1 .and. kiso.ge.7) then
+         kgas=71
+         kiso=1
+      elseif(kgas.eq.1 .and. kiso.ge.4) then
+         kgas=49
+         kiso=kiso-3
+      else
+         kgas=llindex(kgas)
+      endif
 
-       return
-       end
+      return
+      end

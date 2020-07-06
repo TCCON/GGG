@@ -93,8 +93,8 @@ c      write(*,*)'SOLAR_SPEC',grid,fzero,ncp
 c
       zero=0.0
       if(frac.gt.1.0) then
-          write(*,*) 'Warning: solar_spectrum: frac > 1',frac
-          frac=1.
+         write(*,*) 'Warning: solar_spectrum: frac > 1',frac
+         frac=1.
       endif
 
 c  Determine length of records in solar linelist (RECLEN).
@@ -115,7 +115,7 @@ c  Check that NLINES is an integer.
 
 c  Initialize array SPTS to zero
       do iv=1,ncp
-          spts(iv)=0.0
+         spts(iv)=0.0
       end do
 
 c  Open solar linelist and read lines between fzero and fzero+grid*nCP
@@ -150,10 +150,10 @@ c  Convert optical thickness into an apparent transmittance
 c  and then apply Minnaert correction (not currently enabled).
       freq=fzero
       do i=1,ncp
-        freq=freq+grid
-        spts(i)=exp(-spts(i))
-c        rc=0.70138-3.8252d-5*freq
-c        spts(i)=rc+(1.-rc)*spts(i)
+         freq=freq+grid
+         spts(i)=exp(-spts(i))
+c         rc=0.70138-3.8252d-5*freq
+c         spts(i)=rc+(1.-rc)*spts(i)
       end do 
       return
       end

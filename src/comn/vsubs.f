@@ -20,11 +20,11 @@ c
       real*4 vecin(*),vecout(*)
       j=1
       k=1
-      do 100 i=1,nele
-        vecout(k)=vecin(j)
-        j=j+incrin
-        k=k+incrout
-100   continue
+      do i=1,nele
+         vecout(k)=vecin(j)
+         j=j+incrin
+         k=k+incrout
+      end do
       return
       end
 c==========================================================================
@@ -56,13 +56,13 @@ c
       real*4 v1(*),v2(*),dum
       j1=1
       j2=1
-      do 100 i=1,nele
+      do i=1,nele
          dum=v1(j1)
          v1(j1)=v2(j2)
          v2(j2)=dum
          j1=j1+inc1
          j2=j2+inc2
-100   continue
+      end do
       return
       end
 c==================================================================
@@ -84,12 +84,12 @@ c
       k1=1
       k2=1
       kout=1
-      do 100 i=1,nele
-        vout(kout) = v1(k1) + v2(k2)
-        k1=k1+i1
-        k2=k2+i2
-        kout=kout+iout
-100   continue
+      do i=1,nele
+         vout(kout) = v1(k1) + v2(k2)
+         k1=k1+i1
+         k2=k2+i2
+         kout=kout+iout
+      end do
       return
       end
 c====================================================================
@@ -115,12 +115,12 @@ c
       j=1
       k=1
       l=1
-      do 100 i=1,nele
-        vec3(l)=v1(j)*v2(k)
-        j=j+i1
-        k=k+i2
-        l=l+i3
-100   continue
+      do i=1,nele
+         vec3(l)=v1(j)*v2(k)
+         j=j+i1
+         k=k+i2
+         l=l+i3
+      end do
       return
       end
 c====================================================================
@@ -146,12 +146,12 @@ c
       j=1
       k=1
       l=1
-      do 100 i=1,nele
-        vec3(l)=v1(j)/v2(k)
-        j=j+i1
-        k=k+i2
-        l=l+i3
-100   continue
+      do i=1,nele
+         vec3(l)=v1(j)/v2(k)
+         j=j+i1
+         k=k+i2
+         l=l+i3
+      end do
       return
       end
 c=====================================================================
@@ -175,8 +175,8 @@ c
          ibar=float(nele+1)/2
          k=1
          do i=1,nele
-           vec(k)=+(float(i)-ibar)/(nele-1) 
-           k=k+inc
+            vec(k)=+(float(i)-ibar)/(nele-1) 
+            k=k+inc
          end do
       else
          stop 'Calling vsubs.f/vramp with NELE < 2'
@@ -202,12 +202,12 @@ c
       k1=1
       k2=1
       kout=1
-      do 100 i=1,nele
-        vout(kout) = v1(k1) - v2(k2)
-        k1=k1+i1
-        k2=k2+i2
-        kout=kout+iout
-100   continue
+      do i=1,nele
+         vout(kout) = v1(k1) - v2(k2)
+         k1=k1+i1
+         k2=k2+i2
+         kout=kout+iout
+      end do
       return
       end
 c===================================================================
@@ -236,12 +236,17 @@ c
       j=1
       k=1
       dp=0.0d0
-      do 100 i=1,nele
-        dp = dp + dprod(v1(j),v2(k))
-        j=j+incr1
-        k=k+incr2
-100   continue
-      prod=sngl(dp)
+      do i=1,nele
+         dp = dp + dprod(v1(j),v2(k))
+         j=j+incr1
+         k=k+incr2
+      end do
+      if( dp .gt. 3.4E+38 ) then
+         prod=3.4E+38
+         write(*,*)'vdot: warning: setting dp to 3.4E+38 to avoid Inf'
+      else
+         prod=sngl(dp)
+      endif
       return
       end
 c================================================================
@@ -268,17 +273,18 @@ c  or its gradient.
       j=1
       k=1
       do i=1,nele
-        x=vecin(j)
-        if(x.gt. 0.0) then
-c           vecout(k)=1.+x*(1.+0.5*x) ! quad expansion prevents overflow for large x
-           vecout(k)=1.+x*(1.+x*(1+x*(1+x/4)/3)/2) 
-        elseif(x.lt.-80.0) then
-           vecout(k)=0.0
-        else
-           vecout(k)=exp(x)
-        endif
-        j=j+incrin
-        k=k+incrout
+         x=vecin(j)
+         if(x.gt. 0.0) then
+c            vecout(k)=1.+x*(1.+0.5*x) ! quad expansion prevents overflow for large x
+c            vecout(k)=1.+x*(1.+x*(1+x*(1+x/4)/3)/2) 
+            vecout(k)=1.+x*(1.+x*(1+x/3)/2) 
+         elseif(x.lt.-80.0) then
+            vecout(k)=0.0
+         else
+            vecout(k)=exp(x)
+         endif
+         j=j+incrin
+         k=k+incrout
       end do
       return
       end
@@ -301,10 +307,10 @@ c
       j=1
       k=1
       do i=1,nele
-        x=vecin(j)
-        vecout(k)=log(x)
-        j=j+incrin
-        k=k+incrout
+         x=vecin(j)
+         vecout(k)=log(x)
+         j=j+incrin
+         k=k+incrout
       end do
       return
       end
@@ -327,9 +333,9 @@ c
       j=1
       k=1
       do i=1,nele
-        vecout(k)=sin(vecin(j))
-        j=j+incrin
-        k=k+incrout
+         vecout(k)=sin(vecin(j))
+         j=j+incrin
+         k=k+incrout
       end do
       return
       end
@@ -352,9 +358,9 @@ c
       j=1
       k=1
       do i=1,nele
-        vecout(k)=cos(vecin(j))
-        j=j+incrin
-        k=k+incrout
+         vecout(k)=cos(vecin(j))
+         j=j+incrin
+         k=k+incrout
       end do
       return
       end
@@ -383,11 +389,11 @@ c
       real*4 vecin(*),vecout(*)
       j=1
       k=1
-      do 100 i=1,nele
-        vecout(k)=sign(sqrt(abs(vecin(j))),vecin(j))
-        j=j+incrin
-        k=k+incrout
-100   continue
+      do i=1,nele
+         vecout(k)=sign(sqrt(abs(vecin(j))),vecin(j))
+         j=j+incrin
+         k=k+incrout
+      end do
       return
       end
 c===============================================================
@@ -418,12 +424,12 @@ c
       j=1
       k=1
       l=1
-      do 100 i=1,nele
-        vout(l)=(v1(j)*scal)+v2(k)
-        j=j+i1
-        k=k+i2
-        l=l+iout
-100   continue
+      do i=1,nele
+         vout(l)=(v1(j)*scal)+v2(k)
+         j=j+i1
+         k=k+i2
+         l=l+iout
+      end do
       return
       end
 c===============================================================

@@ -34,24 +34,36 @@ c  23. Telescope Magnification (dimensionless)
 c output
 c format(a1,a38,1x,i2,f8.0,f9.4,f10.4,f7.3,f6.1,f8.2,2f6.1,f8.2,f6.1,f7.1,f7.4,f6.1,f6.0,1x,2f7.0,f11.8,f11.3,f7.0,f7.3,f6.2)
       implicit none
-      include '../../ggg_int_params.f'
+      include '../../gfit/ggg_int_params.f'
       include '../params.f'
 
       integer*4 iy,im,id,hh,mm,ss,ms,pkl,prl,gfw,gbw,
-     & fnbc,lnbc,fbc,ispe,iend,dtype,nsp,nip,dfr,
+     & fnbc,lnbc,fbc,ispe,iend,dtype,nsp,nip,dfr,idum,
      & lr,lrt,ls,possp,istat,object,mcol,ncol,kfail,lst
       parameter (mcol=40)
 c
       real*8 tins,pins,hins,tout,pout,hout,wspd,wdir,
      & wavtkr,oblat,oblon,obalt,lfl,hfl,foc,
      & fsf,tcorr,nus,nue,lwn,sia,sis,fvsi,aipl,tel_mag,
-     & fxv,lxv,apt,dur,vel,phr,res,vdc,lse,lsu
+     & fxv,lxv,apt,dur,vel,phr,res,vdc,lse,lsu,lsf,
+     & dip,mvd,snr
 c
       character apf*2,dl*1,ext*3,
      & root*64,specname*(nchar),
      & col1*1,version*56,header*512,outarr(mcol)*20
+
+      idum=mfilepath ! Avoid compiler warning (unused parameter)
+      idum=mauxcol  ! Avoid compiler warning (unused parameter)
+      idum=mcolvav  ! Avoid compiler warning (unused parameter)
+      idum=mgas     ! Avoid compiler warning (unused parameter)
+      idum=mlev     ! Avoid compiler warning (unused parameter)
+      idum=mrow_qc  ! Avoid compiler warning (unused parameter)
+      idum=mspeci   ! Avoid compiler warning (unused parameter)
+      idum=mvmode   ! Avoid compiler warning (unused parameter)
+      idum=ncell    ! Avoid compiler warning (unused parameter)
+      idum=nchar    ! Avoid compiler warning (unused parameter)
 c
-      version=' create_sunrun     Version 1.3.2     25-Jun-2009     GCT'
+      version=' create_sunrun     Version 1.33      2016-04-02     GCT'
 
       write(6,'(a)') version
       col1=' '
@@ -161,7 +173,7 @@ c  find the spectral file, return the PATH to the spectrum
      &     id,hh,mm,ss,ms,apt,dur,vel,apf,phr,res,lwn,foc,nip,dfr,
      &     pkl,prl,gfw,gbw,lfl,hfl,possp,oblat,oblon,obalt,
      &     tins,pins,hins,tout,pout,hout,wspd,wdir,sia,sis,vdc,
-     &     lst,lse,lsu)
+     &     lst,lse,lsu,lsf,dip,mvd,snr)
 
           if(iy.eq.2005) then
             if(im.eq.3 .and. id.eq.31) then

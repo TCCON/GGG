@@ -7,11 +7,10 @@
 
       real*4
      & tau,
-     & var,
-     & d_max
-      parameter(tau=1.e-6,var=1.0,d_max=9.9999)
+     & var 
+      parameter(tau=1.e-6,var=1.0)
 
       integer*4
      & mmp
-      parameter(mmp=145000)
+      parameter(mmp=904000)
 

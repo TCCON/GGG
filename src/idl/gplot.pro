@@ -1,4 +1,4 @@
-pro gplot,xx,ex,yy,ey,index,xcp,ycp,symfile,captions,nsym,ipanel,npanel,orientation,xtxt,ytxt,text,ntxt
+pro gplot,xx,ex,yy,ey,color_index,xcp,ycp,symfile,captions,nsym,ipanel,npanel,orientation,xtxt,ytxt,text,ntxt
 ;
 ; Procedure to plot arrays XX, YY with their respective error bars EX, EY
 ; and with different symbol/colors/linestyles according to array INDEX.
@@ -55,7 +55,7 @@ for k=2,nhead do begin
    if strpos(ccc,"char_size:") eq 0   then reads,strmid(ccc,10,99),charsize
    if strpos(ccc,"capt_size:") eq 0   then reads,strmid(ccc,10,99),captsize
    if strpos(ccc,"line_thick:") eq 0  then reads,strmid(ccc,11,99),linethick
-   if strpos(ccc,"log_linear:") eq 0  then reads,strmid(ccc,13,2),loglin
+   if strpos(ccc,"log_linear:") eq 0  then reads,strmid(ccc,12,2),loglin
    if strpos(ccc,"ticklen:") eq 0     then reads,strmid(ccc,08,99),tlenx,tleny
 endfor
 if nrow gt 2  or ncol gt 2  then charsize=2*charsize
@@ -104,9 +104,9 @@ xyouts,0,0,text(0),alignment=0.0,charsize=0.4*captsize,/normal
 ; Write text strings to the appropriate locations on the plot.
 for itxt=1,ntxt-1 do  xyouts,xtxt(itxt),ytxt(itxt),text(itxt),charsize=captsize
 ;
-klo=index(0)
+klo=color_index(0)
 for jsym=0,nsym-1 do begin
-  khi=index(jsym+1)-1
+  khi=color_index(jsym+1)-1
 ; Read symbol parameters and define its array
   if not eof(unit) then repeat readf,unit,ccc until (eof(unit) or strmid(ccc,0,1) ne ";")
 ;  print,jsym,ccc
@@ -116,24 +116,27 @@ for jsym=0,nsym-1 do begin
   a = 2*!pi*(ntimes*findgen(nls+1)/nls+0.125*nrot)
   if fill eq 1 then usersym,size*sin(a),size*cos(a),/fill  else usersym,size*sin(a),size*cos(a), thick=3.0
 ;
+  print,'klo,khi,col=',klo,khi,col
+  if (colortable ge 0) then !p.color=col
   if(khi ge klo) then begin
     !p.psym = 0
-    if (colortable ge 0) then !p.color=col
     for i=klo,khi  do begin                  ;  plot error bars (individually)
-    if(xeb eq 1) then oplot,[xx(i)-ex(i),xx(i)+ex(i)],[yy(i),yy(i)] ;x-error bar
-    if(yeb eq 1) then oplot,[xx(i),xx(i)],[yy(i)-ey(i),yy(i)+ey(i)] ;y-error bar
-    if(xeb eq 2) then oplot,[xx(i)-ex(i),xx(i)+ex(i)],[yy(i)-ey(i),yy(i)+ey(i)]
+       if(xeb eq 1) then oplot,[xx(i)-ex(i),xx(i)+ex(i)],[yy(i),yy(i)] ;x-error bar
+       if(yeb eq 1) then oplot,[xx(i),xx(i)],[yy(i)-ey(i),yy(i)+ey(i)] ;y-error bar
+       if(xeb eq 2) then oplot,[xx(i)-ex(i),xx(i)+ex(i)],[yy(i)-ey(i),yy(i)+ey(i)]
     endfor
     if(xeb eq 3) then oplot,xx(klo:khi)-ex(klo:khi),yy(klo:khi),linestyle=1
     if(xeb eq 3) then oplot,xx(klo:khi)+ex(klo:khi),yy(klo:khi),linestyle=1
     if(ls ge 0) then oplot,xx(klo:khi),yy(klo:khi),linestyle=ls  ;connecting line
     if(size gt 0) then oplot,xx(klo:khi),yy(klo:khi), psym=8     ;  plot data points
+
   endif   ; ! khi ge klo
-  klo=khi+1
+;print,'jsym,nsym-1, color_index, caption = ',jsym,nsym-1,color_index(jsym),captions(jsym),strlen(captions(jsym))
   if(strlen(captions(jsym)) gt 0) then begin  ; draw symbols & captions
      if(size gt 0) then oplot,xcp(jsym:jsym),ycp(jsym:jsym),psym=8
      xyouts, xcp(jsym), ycp(jsym)+dy,' '+captions(jsym),charsize=captsize
   endif
+  klo=khi+1
 endfor ; jsym=0,nsym-1
 ;
 close, unit

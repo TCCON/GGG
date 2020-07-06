@@ -1,4 +1,4 @@
-      subroutine solar_pts(lunr,solarll,fzero,grid,frac,spts,ncp)
+      subroutine solar_pts(lunr,solarll,ifsp,grid,frac,spts,ncp)
 c
 c  Calculates a pseudo-transmittance spectrum of the sun.
 c  The spectrum can be disk center or disk-integrated
@@ -19,8 +19,8 @@ c
 c DESCRIPTION:
 c  Calculates the solar Pseudo-Transmittance Spectrum (SPTS) at
 c  frequencies
-c       V(i) = fzero + i * grid       i = 1,NCP
-c  where fzero and grid are specified by the user in the calling program.
+c       V(i) = grid * (ifsp+i-1)       i = 1,NCP
+c  where ifsp and grid are specified by the user in the calling program.
 c
 c  It is recommended that the spectral point spacing not exceed
 c  the doppler widths of the narrowest solar features of interest. 
@@ -81,12 +81,13 @@ c  of the Doppler shift from solar rotation across the solar disk.
 c
       implicit none
       integer*4 mw,iline,ncp,kline1,kline2,kv1,kv2,iv,i,lr,mflag,
-     & lnbc,nlines,posnall,reclen,lunr
-      integer*8 fsib,file_size_in_bytes
-      real*4 spts(ncp),zero,aa,rspf,stmin,sct,dd
-      real*8 fzero,grid,flinwid,srot,frac,xx,x2,d4,y2,margin,
+     & lnbc,nlines,posnall,reclen,lunr,ifsp
+      integer*8 fsib,file_size_in_bytes 
+      real*4 spts(ncp),zero,aa,rspf,stmin,sct,sfreq
+      real*8
+     & grid,flinwid,srot,frac,dd,xx,x2,d4,y2,margin,
      & sdc,sdi,wdc,wdi,ddc,ddi,
-     & fzmf,rr,ff,acc,freq,w_wid,stren,d_wid
+     & rr,ff,acc,freq,w_wid,stren,d_wid
       character llformat*16,solarll*(*)
       parameter (acc=0.00001d0,margin=90.,stmin=4000.0)
       llformat='(i3,f13.6,6f9.5)'
@@ -97,13 +98,12 @@ c
          mflag=1
       endif
 
-c      write(*,*)'SOLAR_SPEC',grid,fzero,ncp
       if ( ncp .lt. 1 ) stop ' SOLARSPEC: NCP < 1   '
 c
       zero=0.0
       if(frac.gt.1.0) then
-          write(*,*) 'Warning: solar_spectrum: frac > 1',frac
-          frac=1.
+         write(*,*) 'Warning: solar_spectrum: frac > 1',frac
+         frac=1.
       endif
       ff=frac**2
 
@@ -116,7 +116,7 @@ c  Determine the total size of the solar linelist (FSIB)
 c  and divide this by RECLEN to find the number of lines (NLINES).
 c  Check that NLINES is an integer.
       fsib=file_size_in_bytes(lunr,solarll)
-      nlines=fsib/reclen
+      nlines=int(fsib/reclen,kind(reclen))
       if ( nlines*reclen .ne. fsib ) then
          write(*,*)'Linelist size not divisible by record length',reclen
          write(*,*)solarll(:lr),fsib
@@ -126,14 +126,14 @@ c  Check that NLINES is an integer.
 
 c  Initialize array SPTS to zero
       do iv=1,ncp
-          spts(iv)=0.0
+         spts(iv)=0.0
       end do
 
-c  Open solar linelist and read lines between fzero and fzero+grid*nCP
+c  Open solar linelist and read lines between
       open(lunr,file=solarll,access='direct',
      & form='formatted',status='old',recl=reclen)
-      kline1=posnall(lunr,fzero-margin,nlines)
-      kline2=posnall(lunr,fzero+grid*ncp+margin,nlines)
+      kline1=posnall(lunr,grid*ifsp-margin,nlines)
+      kline2=posnall(lunr,grid*(ifsp-1+ncp)+margin,nlines)
 c      write(*,*) kline1, kline2
       do iline=kline1+1,kline2
          read(lunr,llformat,rec=iline) mw,freq,sdc,sdi,wdc,wdi,ddc,ddi
@@ -145,37 +145,38 @@ c         srot=5.E-06*freq*sqrt(frac)    ! broadening due to solar rotation
          aa=0.538
          srot=3.95E-06*freq*frac/sqrt(aa+(1-aa)*frac**2.5)    ! broadening due to solar rotation
          d4=(d_wid**2+srot**2)**2  ! Total Gaussian width
-         flinwid=sqrt(abs(2*stren*(d_wid+w_wid)/acc)) !  Effective line width
-         kv1=max0(1,int((freq-fzero-flinwid)/grid))
-         kv2=min0(ncp,int((freq-fzero+flinwid)/grid))
+         flinwid=dsqrt(dabs(2.d0*stren*(d_wid+w_wid)/acc)) !  Effective line width
+         kv1=max0(1,int((freq-flinwid)/grid)-ifsp+1)
+         kv2=min0(ncp,int((freq+flinwid)/grid)-ifsp+1)
          y2=(w_wid)**2
-         fzmf=fzero-freq
-         dd=w_wid+4*mflag*d_wid+0.07*(1-mflag) !  GCT 20130207
+         dd=w_wid+4*mflag*d_wid+0.07d0*(1-mflag) !  GCT 20130207
          do iv=kv1,kv2
-            xx=fzmf+iv*grid
+            xx=grid*(ifsp-1+iv)-freq
             x2=xx**2
 c            rr=x2/sqrt(d4+y2*x2*(1+abs(xx/(w_wid+0.07))))
-            rr=x2/sqrt(d4+y2*x2*(1+abs(xx/dd))) ! GCT 20130207
-            spts(iv)=spts(iv)+stren*exp(-rr)
+            rr=x2/dsqrt(d4+y2*x2*(1.d0+dabs(xx/dd))) ! GCT 20130207
+            spts(iv)=spts(iv)+sngl(stren*exp(-rr))
          end do
       end do
       close(lunr)
-c
+
 c  Convert optical thickness into an apparent transmittance
-      freq=fzero
-      if(index(solarll,'minnaert').eq.0) then
+c
+      if(index(solarll,'minnaert').gt.0) then
+c  Apply Minnaert correction using Ratio of Solar Planck Functions (RSPF).
+         freq=grid*ifsp
+         sfreq=sngl(freq)
          do i=1,ncp
+            sct=2200+1000*log10(sfreq)  ! Solar Continuum Temperature
+            rspf=(exp(1.4388*sfreq/sct)-1)/(exp(1.4388*sfreq/stmin)-1)
+            spts(i)=rspf+(1.-rspf)*exp(-spts(i))
             freq=freq+grid
+            sfreq=sngl(freq)
+         end do 
+      else
+         do i=1,ncp
             spts(i)=exp(-spts(i))
          end do
-      else
-c  Apply Minnaert correction using Ratio of Solar Planck Functions (RSPF).
-         do i=1,ncp
-            freq=freq+grid
-            sct=2200+1000*log10(freq)  ! Solar Continuum Temperature
-            rspf=(exp(1.4388*freq/sct)-1)/(exp(1.4388*freq/stmin)-1)
-            spts(i)=rspf+(1.-rspf)*exp(-spts(i))
-         end do 
       endif
       return
       end

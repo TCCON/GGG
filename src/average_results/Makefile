@@ -7,13 +7,17 @@ COMN = $(GGGPATH)/src/comn
 
 SOURCES := \
   $(TSRC)/$(TARGET).f \
+  $(TSRC)/covariance_matrix.f \
   $(TSRC)/average_with_mul_bias.f \
   $(TSRC)/average_with_add_bias.f \
+  $(COMN)/get_ggg_environment.f \
   $(COMN)/vsubs.f \
   $(COMN)/fbc.f \
   $(COMN)/fnbc.f \
   $(COMN)/lnbc.f \
-  $(COMN)/substr.f
+  $(COMN)/substr.f \
+  $(COMN)/read_postproc_header.f \
+  $(COMN)/write_postproc_header.f 
 
 OBJECTS := $(patsubst %.f, %.o, $(SOURCES))
 
@@ -26,9 +30,11 @@ $(TARGET) : $(OBJECTS)
 	$(FC) $(LDFLAGS) -o $(GGGPATH)/bin/$@ $^
 
 #  Add dependencies to object files
-$(TSRC)/average_results.o:        $(GGGPATH)/src/ggg_int_params.f
+$(TSRC)/average_results.o:        $(GGGPATH)/src/gfit/ggg_int_params.f $(COMN)/postproc_params.f
 $(TSRC)/average_with_mul_bias.o:  $(TSRC)/params.f
 $(TSRC)/average_with_add_bias.o:  $(TSRC)/params.f
+$(COMN)/read_postproc_header.o:   $(COMN)/postproc_params.f
+$(COMN)/write_postproc_header.o:  $(COMN)/postproc_params.f
 
 clean:
 	rm -f $(OBJECTS) $(GGGPATH)/bin/$(TARGET)

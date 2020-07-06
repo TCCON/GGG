@@ -9,22 +9,23 @@ SOURCES := \
   $(TSRC)/$(TARGET).f \
   $(TSRC)/compute_dlpbf.f \
   $(TSRC)/fetch.f \
-  $(TSRC)/solar_gas_shift.f \
   $(TSRC)/write_col.f \
   $(TSRC)/compute_residual.f \
   $(TSRC)/compute_vertical_paths.f \
   $(TSRC)/spectrum_loop.f \
   $(TSRC)/do_retrieval.f \
   $(TSRC)/do_retrieval3.f \
-  $(TSRC)/subtract_cf.f \
+  $(TSRC)/fit_channel_fringe.f \
   $(TSRC)/fm.f \
   $(TSRC)/fm3.f \
-  $(TSRC)/fringes.f \
   $(TSRC)/jetspe.f \
-  $(TSRC)/write_spt.f \
+  $(COMN)/write_spt.f \
   $(COMN)/read_mavfile_body.f \
   $(COMN)/get_ggg_environment.f \
   $(COMN)/abscoj.f \
+  $(COMN)/vibpf.f \
+  $(COMN)/Cal_FullLM.f \
+  $(COMN)/qSDV.f \
   $(COMN)/clistindex.f \
   $(COMN)/gasdev.f \
   $(COMN)/gct2_humlik.f \
@@ -40,9 +41,9 @@ SOURCES := \
   $(COMN)/lnbc.f \
   $(COMN)/lowercase.f \
   $(COMN)/modfft.f \
-  $(COMN)/newdec.f \
+  $(COMN)/regrid2.f \
   $(COMN)/posnall.f \
-  $(COMN)/profzl.f \
+  $(COMN)/compute_ils.f \
   $(COMN)/ran1.f \
   $(COMN)/rbyte.f \
   $(COMN)/read_runlog_header.f \
@@ -53,7 +54,9 @@ SOURCES := \
   $(COMN)/substr.f \
   $(COMN)/tlpath.f \
   $(COMN)/vsubs.f \
-  $(COMN)/read_isotop.f \
+  $(COMN)/ciso2kiso.f \
+  $(COMN)/read_isotopolog.f \
+  $(COMN)/lagrange_differentiate.f \
   $(COMN)/wlimit.f  
 
 OBJECTS := $(patsubst %.f, %.o, $(SOURCES))
@@ -67,24 +70,14 @@ $(TARGET) : $(OBJECTS)
 	$(FC) $(LDFLAGS) -o $(GGGPATH)/bin/$@ $^
 
 #  Add dependencies to object files
-$(TSRC)/do_retrieval.o:  $(GGGPATH)/src/ggg_const_params.f \
-                         $(TSRC)/const_params.f $(TSRC)/int_params.f
-$(TSRC)/do_retrieval3.o: $(GGGPATH)/src/ggg_const_params.f \
-                         $(TSRC)/const_params.f $(TSRC)/int_params.f
-$(TSRC)/fm.o:            $(GGGPATH)/src/ggg_const_params.f \
-                         $(GGGPATH)/src/ggg_int_params.f $(TSRC)/const_params.f
-$(TSRC)/fm3.o:           $(GGGPATH)/src/ggg_const_params.f $(TSRC)/const_params.f
-$(TSRC)/fringes.o:       $(GGGPATH)/src/ggg_const_params.f
-$(TSRC)/gfit.o:          $(GGGPATH)/src/ggg_int_params.f $(TSRC)/int_params.f
-$(TSRC)/jetspe.o:        $(GGGPATH)/src/ggg_const_params.f
-$(TSRC)/spectrum_loop.o: $(GGGPATH)/src/ggg_const_params.f \
-                         $(GGGPATH)/src/ggg_int_params.f   \
-                         $(TSRC)/const_params.f $(TSRC)/int_params.f
-$(TSRC)/subtract_cf.o:   $(GGGPATH)/src/ggg_const_params.f
-$(COMN)/abscoj.o:        $(GGGPATH)/src/ggg_const_params.f $(GGGPATH)/src/ggg_int_params.f
-$(COMN)/gindfile.o:      $(GGGPATH)/src/ggg_int_params.f
-$(COMN)/profzl.o:        $(GGGPATH)/src/ggg_const_params.f
-$(COMN)/tlpath.o:        $(GGGPATH)/src/ggg_const_params.f $(GGGPATH)/src/ggg_int_params.f
+$(TSRC)/do_retrieval.o:  $(TSRC)/int_params.f
+$(TSRC)/do_retrieval3.o: $(TSRC)/int_params.f
+$(TSRC)/fm.o:            $(TSRC)/ggg_int_params.f
+$(TSRC)/gfit.o:          $(TSRC)/ggg_int_params.f $(TSRC)/int_params.f
+$(TSRC)/spectrum_loop.o: $(TSRC)/ggg_int_params.f $(TSRC)/int_params.f
+$(COMN)/abscoj.o:        $(TSRC)/ggg_int_params.f
+$(COMN)/gindfile.o:      $(TSRC)/ggg_int_params.f
+$(COMN)/tlpath.o:        $(TSRC)/ggg_int_params.f
 
 clean:
 	rm -f $(OBJECTS) $(GGGPATH)/bin/$(TARGET)

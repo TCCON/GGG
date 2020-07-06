@@ -1,11 +1,11 @@
 pro pfit
 
 ncol=0
-mss=15
+;mss=15
 color=string('t')
 sss=string(' ')
 headers=string(' ')
-gases=strarr(mss)
+;gases=strarr(mss)
 idl_device=string('x')
 names=string('')
 occul=string('flt91125.bal')
@@ -165,7 +165,9 @@ while idn(0) lt 19 do begin
 ;
 ;  Write gas names to right of main panel.
   kpoints=npoints*(xmax-fmin)/(fmax-fmin)
-  substr, headers, gases, mss, nss
+;  substr, headers, gases, mss, nss
+gases = strsplit(headers,count=nss,/extract)
+
   for i=0, ntgas-1 do begin
      if mtxt(i) eq 0 then begin
         xtxt(i)=xmax

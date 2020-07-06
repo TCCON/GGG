@@ -15,28 +15,39 @@ c  various aircraft over-flights.  This is evaluated only for
 c  spectra that overlap the duration of the aircraft profile.
 c
       implicit none
-      include "../ggg_int_params.f"
+      include "../gfit/ggg_int_params.f"
 
       integer*4 lunr,luns,lunw,ncoml,ncol,mcol,kcol,icol,i,j,kco2,ko2,
      & iy1,id1,ih1,im1,is1,iy2,id2,ih2,im2,is2,nap,lnbc,lg,lgs,kap,
-     & mchar,
+     & mchar,idum,
      & kqcflag,
-     & nrow,irow,kair,kh2o,kfvsi,kyear,klat,klon,ksza
+     & nrow,irow,kluft,kh2o,kfvsi,kyear,klat,klon,ksza
       parameter (lunr=14,luns=15,lunw=16,mcol=50)
       character header*800, headarr(mcol)*20, gggdir*(mpath),
      &  inputfile*40,
-     & specname*(nchar), version*62, gas*3,dl*1
+     & specname*(nchar), version*62, gas*4,dl*1
       real*8 yrow(mcol),alat,alon,zz,tk,ratio,
      & tt,ty,ty2,tsza, 
      & qc_threshold,
      & s0,s1,s2,t0,t1,t2,tn,tt0,tt1,tt2,ttn,tstart,tstop,
-     & xco2_ac,xco2_ac_err,yy,wt,fco2,fxco2_ac,fvsi,fair,fh2o
+     & xco2_ac,xco2_ac_err,yy,wt,fco2,fxco2_ac,fvsi,fluft,fh2o
+
+
+      idum=mauxcol   ! Avoid compiler warning (unused parameter)
+      idum=mcolvav   ! Avoid compiler warning (unused parameter)
+      idum=mfilepath ! Avoid compiler warning (unused parameter)
+      idum=mgas      ! Avoid compiler warning (unused parameter)
+      idum=mlev      ! Avoid compiler warning (unused parameter)
+      idum=mrow_qc   ! Avoid compiler warning (unused parameter)
+      idum=mspeci    ! Avoid compiler warning (unused parameter)
+      idum=mvmode    ! Avoid compiler warning (unused parameter)
+      idum=ncell     ! Avoid compiler warning (unused parameter)
 
       version=
-     &' derive_insitu_correction         1.1.3     2010-11-23     GCT'
+     &' derive_insitu_correction         1.15      2017-02-16     GCT'
       write(*,*) version
 
-      kair=0
+      kluft=0
       kh2o=0
       kco2=0
       ko2=0
@@ -49,7 +60,7 @@ c
 
       mchar=0
       qc_threshold=2.
-      gas = '   '
+      gas = '    '
 
       call get_ggg_environment(gggdir, dl)
       write(*,*)gggdir
@@ -61,9 +72,9 @@ c
          call getarg(1, inputfile)
          call getarg(2, gas(1:1))
       else
-        write(*,*)'Use: $gggpath/bin/derive_insitu_correction adafile'//
-     & ' gas# (1=xco2,2=xco,3=xch4,4=xn2o)'
-        stop
+         write(*,*)'Use: $gggpath/bin/derive_insitu_correction '//
+     &   'adafile gas# (1=xco2,2=xco,3=xch4,4=xn2o)'
+         stop
       endif
       open(lunr,file=inputfile, status='old')
       read(lunr,*)ncoml,ncol
@@ -98,7 +109,7 @@ c Determine which gas to process
 c         write(*,*)icol,headarr(icol)
 c  Find out which columns of the .vav file contain the required parameters
 c  This allows flexibility in the order of the columns.
-         if(headarr(icol) .eq. 'xair') kair=icol
+         if(headarr(icol) .eq. 'xluft') kluft=icol
          if(headarr(icol) .eq. 'xh2o') kh2o=icol
          if(headarr(icol) .eq. 'x'//gas(:lgs)) kco2=icol
          if(headarr(icol) .eq.  'xo2') ko2=icol
@@ -110,11 +121,11 @@ c  This allows flexibility in the order of the columns.
          if(headarr(icol) .eq.'qcflag') kqcflag=icol
       end do
 
-      if(kco2.eq.0) stop 'xgas missing from input file  '
-      if(ko2.eq.0)  stop ' xo2 missing from input file  '
-      if(kh2o.eq.0) stop 'xh2o missing from input file  '
-      if(kair.eq.0) stop 'xair missing from input file  '
-c      write(*,*)kair,kh2o,kco2,ko2,kfvsi,kyear,klat,klon,ksza
+      if(kco2.eq.0) stop ' xgas missing from input file  '
+      if(ko2.eq.0)  stop '  xo2 missing from input file  '
+      if(kh2o.eq.0) stop ' xh2o missing from input file  '
+      if(kluft.eq.0)stop 'xluft missing from input file  '
+c      write(*,*)kluft,kh2o,kco2,ko2,kfvsi,kyear,klat,klon,ksza
 
       tk=0.0d0
       tt=0.0d0
@@ -123,24 +134,24 @@ c      write(*,*)kair,kh2o,kco2,ko2,kfvsi,kyear,klat,klon,ksza
 c     write(*,*)'mchar=',mchar
       do irow=1,999999
          if (mchar .eq. 1) then
-             read(lunr,*,end=77) specname, (yrow(j),j=1+mchar,ncol)
+            read(lunr,*,end=77) specname, (yrow(j),j=1+mchar,ncol)
          else
-             read(lunr,*,end=77) (yrow(j),j=1,ncol)
+            read(lunr,*,end=77) (yrow(j),j=1,ncol)
          endif
          if (kqcflag .ne. 0) then
             if( yrow(kqcflag) .lt. qc_threshold) cycle
          endif
          fvsi=yrow(kfvsi)                   ! fractional uncertainty
          if(fvsi.lt.0.) fvsi=0.             ! Don't let missing data affect WT
-         fair=yrow(kair+1)/yrow(kair)       ! fractional uncertainty
+         fluft=yrow(kluft+1)/yrow(kluft)    ! fractional uncertainty
          fh2o=yrow(kh2o+1)/yrow(kh2o)       ! fractional uncertainty
-         wt=1/(0.00001+fair**2+(fh2o*18.02/28.964)**2+fvsi**2)
-         zz=yrow(ko2)/(yrow(kair)-yrow(kh2o)*18.02/28.964)
+         wt=1/(0.00001+fluft**2+(fh2o*18.02/28.964)**2+fvsi**2)
+         zz=yrow(ko2)/(yrow(kluft)-yrow(kh2o)*18.02/28.964)
          tk=tk+1
          tt=tt+wt
          ty=ty+wt*zz
          ty2=ty2+wt*zz**2
-c        write(*,*)'fair,fvsi,fh2o,fyear=',fair,fvsi,fh2o,yrow(kyear)
+c        write(*,*)'fluft,fvsi,fh2o,fyear=',fluft,fvsi,fh2o,yrow(kyear)
 c         write(*,*)'yrow(kyear)',yrow(kyear)
       end do   ! irow=1,999999
 77    close (lunr)
@@ -191,7 +202,7 @@ c        write(*,*)'tstart,tstop,yrow(kyear)',tstart,tstop,yrow(kyear)
 c Read the FTS data file, again
          open(lunr,file=inputfile, status='old')
          do j=1,ncoml
-           read(lunr,*) 
+            read(lunr,*) 
          end do
          do i=1,nrow
             if (mchar .eq. 1) then
@@ -233,19 +244,19 @@ c    & yrow(klat),alat,yrow(klon),alon,yrow(kyear)
          ratio=t1/t0  !  Ratio: FTS/Aircraft XCO2
 c        write(*,*)'tn=',tn
          if(nint(tn).gt.0) write(*,'(3i5,f7.1,2(f10.2,f6.2),2f9.4)')
-     &  iy1,id1,nint(tn), tsza/t0,
-     &  1.0e+06*xco2_ac, 1.0e+06*xco2_ac_err,
-     &  1.0e+06*s1/s0,1.0e+06*sqrt(s0*s2-s1**2)/s0,
-     &  ratio,ratio*sqrt(t0*t2-t1**2)/t1
+     &   iy1,id1,nint(tn), tsza/t0,
+     &   1.0e+06*xco2_ac, 1.0e+06*xco2_ac_err,
+     &   1.0e+06*s1/s0,1.0e+06*sqrt(s0*s2-s1**2)/s0,
+     &   ratio,ratio*sqrt(t0*t2-t1**2)/t1
          if(nint(tn).gt.0) write(lunw,'(3i5,f7.1,2(f10.2,f6.2),2f9.4)')
-     &  iy1,id1,nint(tn), tsza/t0,
-     &  1.0e+06*xco2_ac, 1.0e+06*xco2_ac_err,
-     &  1.0e+06*s1/s0,1.0e+06*sqrt(s0*s2-s1**2)/s0,
-     &  ratio,ratio*sqrt(t0*t2-t1**2)/t1
-        ttn=ttn+tn
-        tt0=tt0+t0
-        tt1=tt1+t1
-        tt2=tt2+t2
+     &   iy1,id1,nint(tn), tsza/t0,
+     &   1.0e+06*xco2_ac, 1.0e+06*xco2_ac_err,
+     &   1.0e+06*s1/s0,1.0e+06*sqrt(s0*s2-s1**2)/s0,
+     &   ratio,ratio*sqrt(t0*t2-t1**2)/t1
+         ttn=ttn+tn
+         tt0=tt0+t0
+         tt1=tt1+t1
+         tt2=tt2+t2
       end do   ! kap=1,999
 88    close(luns)
       nap=kap-1  ! Number of aircraft profiles

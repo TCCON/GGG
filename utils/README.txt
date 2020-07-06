@@ -10,4 +10,7 @@ python:
     - Python utilities to work with TCCON data
     - maintained by Dietrich Feist <dfeist@bgc-jena.mpg.de>
 
+OpusHdr:
 
+    - Perl script to read Opus headers in a nice ascii format
+    - written and maintained by Norton Allen <allen@huarp.harvard.edu>

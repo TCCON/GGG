@@ -11,19 +11,22 @@ print, 'Display depth = ', depth
 print, 'Color table size = ', !d.table_size
 
 ncol=0
-mss=20   ; Maximum number of sub-strings (Freq, Tm  Tc  + 15 target gases)
+;mss=20   ; Maximum number of sub-strings (Freq, Tm  Tc  + 15 target gases)
 xunit=1  ; nm
 xunit=0  ; cm-1
+ymin=0.0
+ymax=1.0
 color=string('t')
 sss=string(' ')
 headers=string(' ')
-gases=strarr(mss)
+;gases=strarr(mss)
 idl_device=string('x')
-names=string('')
+rlrecord=string('')
 occul=string('flt91125.bal')
 filenm=string('pfit_001.ps')
+filenm=string('')
 nbox=2
-tgas=-1
+ktgas=-1
 rlim=string("a")
 atemp=string("a")
 xlolim=string("a")
@@ -32,8 +35,8 @@ ylolim=string("a")
 yuplim=string("a")
 same_window=0
 npoints=long(0)
-mspec=long(350000)
-path=strarr(mspec)
+mspec=long(720000)
+sptpath=strarr(mspec)
 termtp=string('xwin')
 xtxt   = fltarr(80)
 ytxt   = fltarr(80)
@@ -46,7 +49,7 @@ psn=1
 idn=0
 ttyp=0
 vbar_was=0.
-version=string(' PFIT   Version 4.60     26-Dec-2012    GCT ')
+version=string(' PFIT   Version 4.82     2018-04-22    GCT ')
 print,version
 
 disk=getenv('GGGPATH')+'/'
@@ -75,39 +78,40 @@ endwhile
 print,idot+1, strmid(occul,idot+1,1)
 ;
 case strmid(occul,idot+1,1) of
-   'g': openr,unit,string(disk+'runlogs/gnd/'+occul),/get_lun
-   'a': openr,unit,string(disk+'runlogs/air/'+occul),/get_lun
-   'b': openr,unit,string(disk+'runlogs/bal/'+occul),/get_lun
-   'o': openr,unit,string(disk+'runlogs/orb/'+occul),/get_lun
-   'l': openr,unit,string(disk+'runlogs/lab/'+occul),/get_lun
+   'g': openr,lunr_rl,string(disk+'runlogs/gnd/'+occul),/get_lun
+   'a': openr,lunr_rl,string(disk+'runlogs/air/'+occul),/get_lun
+   'b': openr,lunr_rl,string(disk+'runlogs/bal/'+occul),/get_lun
+   'o': openr,lunr_rl,string(disk+'runlogs/orb/'+occul),/get_lun
+   'l': openr,lunr_rl,string(disk+'runlogs/lab/'+occul),/get_lun
 endcase
 
-readf,unit,nhl,ncol   ; title line
+readf,lunr_rl,nhl,ncol   ; title line
 ihl=1
 while(ihl lt nhl) do begin
-readf,unit,names   ; skip title line
+readf,lunr_rl,rlrecord   ; skip title line
 ihl=ihl+1
 endwhile
 
-ll_year=strpos(names,'Year')
+ll_year=strpos(rlrecord,'Year')
 nspec=0l
 print, 'locating SPT files.....'
-while(eof(unit) eq 0) do begin
-   readf,unit,names
-   prefix=strmid(names,0,1)
+;  Loop over spectra in runlog
+while(eof(lunr_rl) eq 0) do begin
+   readf,lunr_rl,rlrecord
+   prefix=strmid(rlrecord,0,1)
    if ( prefix ne ":" ) then begin
-      if ( prefix eq " " or prefix eq "+" or prefix eq "-" ) then names=strmid(names,1,ll_year-2)
-      spectrum=strtrim(strmid(names,0,ll_year-2),2)
+      if ( prefix eq " " or prefix eq "+" or prefix eq "-" ) then rlrecord=strmid(rlrecord,1,ll_year-2)
+      spectrum=strtrim(strmid(rlrecord,0,ll_year-2),2)
       print,spectrum
-      path(nspec)=disk+'spt/z'+spectrum
+      sptpath(nspec)=disk+'spt/z'+spectrum
       nspec=nspec+1
    endif
-;   print,nspec-1,path(nspec-1)
+;   print,nspec-1,sptpath(nspec-1)
 endwhile
 print,nspec,' SPT files located.'
 if nspec gt mspec then print, 'Increase parameter MSPEC=',mspec
-close,unit
-free_lun,unit
+close,lunr_rl
+free_lun,lunr_rl
 
 loadct,39
 kspec=-1
@@ -126,17 +130,18 @@ two:
   endif
 
   xunit=0 ; cm-1 (default)
-  pathlen=strlen(findfile(path(kspec)))
-  if pathlen(0) le 0  then goto,two
-  openr,unit,path(kspec), /get_lun
+; Open next SPT file
+  sptpathlen=strlen(findfile(sptpath(kspec)))
+  if sptpathlen(0) le 0  then goto,two
+  openr,lunr_spt,sptpath(kspec), /get_lun
   on_ioerror,closeunit
-  readf,unit,nhl,ncol
-  ntgas=ncol-3  ; the first 3 columns are Freq, Tm, Tc, Other, Solar
-  print,nhl,ncol,path(kspec),ntgas
+  readf,lunr_spt,nhl,ncol
+  ntgas=ncol-4  ; the first 4 columns are Freq, Tm, Tc, Cont
+;  print,nhl,ncol,sptpath(kspec),ntgas
   if(ntgas gt 2) then begin
-     readf,unit,format='(2f14.6,i7,3f8.3,1x,2f7.4,3(f7.3,1x,i3))',$
-     fmin,fmax,npoints,asza,zobs,tang,rms,frac,colmant,colexp,vsfmant,vsfexp,errmant,errexp
-     print,fmin,fmax,npoints,asza,zobs,tang,rms,frac,colmant,colexp,errmant,errexp
+     readf,lunr_spt,format='(2f14.6,i7,f8.4,3f8.3,1x,f9.6,e10.3,f7.4,f8.4,3(f7.3,1x,i3))',$
+     fmin,fmax,npoints,effres,asza,zobs,tang,rmsocl,peff,frac,xzo,colmant,colexp,vsfmant,vsfexp,errmant,errexp
+;     print,fmin,fmax,npoints,effres,asza,zobs,tang,rmsocl,peff,frac,colmant,colexp,errmant,errexp
 ;     expont=max([colexp,errexp])
 ;     burden=colmant*vsfmant*(10^(colexp-expont))
 ;     berr=colmant*vsfmant*errmant*(10^(errexp-expont))
@@ -144,107 +149,124 @@ two:
      berr=colmant*errmant*10^(errexp)
 ;     print,'column=',burden,berr,colexp
   endif else begin
-     readf,unit,format='(2f14.6,i7,3f8.3,1x,2f7.4)',$
-     fmin,fmax,npoints,asza,zobs,tang,rms,frac
+     readf,lunr_spt,format='(2f14.6,i7,f8.4,3f8.3,1x,f9.6,e10.3,f7.4,f8.4)',$
+     fmin,fmax,npoints,effres,asza,zobs,tang,rmsocl,peff,frac,xzo
      burden=0.0
      berr=0.0
      colexp=0
   endelse
-  print,'path,npoints=',path(kspec),npoints
+;  print,'sptpath,npoints=',sptpath(kspec),npoints
   if npoints le 0 then goto,two
-  readf,unit,headers
-  print,'headers=',headers
+  readf,lunr_spt,headers
+;  print,'headers=',headers
 ;  headers=headers+'other'
   if kskip ne 0 then begin
   if same_window eq 1 then begin
     vbar=0.5*(fmin+fmax)
     if abs(vbar-vbar_was) gt 0.5*(fmax-fmin) then begin
-      close,unit
-      free_lun,unit
+      close,lunr_spt
+      free_lun,lunr_spt
       goto,two
     endif
   endif
   endif
   vbar_was=0.5*(fmin+fmax)
-;
-;  print,"defining datarray: ",3+ntgas,npoints
-;  datarray=dblarr(3+ntgas,npoints)
-;  readf,unit,datarray
-; Moved these 3 lines May 19, 2010
-  print,'Before closeunit'
 closeunit:
   print,'After closeunit'
-  print,"defining datarray: ",3+ntgas,npoints
-  datarray=dblarr(3+ntgas,npoints)
-  print,"defined datarray: ",npoints
-  readf,unit,datarray
-;  print,"readf datarray: ",npoints
+  print,"defining datarray: ",4+ntgas,npoints
+  datarray=dblarr(4+ntgas,npoints)
+;  print,"defined datarray: ",npoints
+  readf,lunr_spt,datarray
 
-  close,unit
-  free_lun,unit
-  print," closed unit: ",npoints
+  datarray(1,*)=(datarray(1,*)/datarray(3,*)-xzo)/(1.0-xzo) ; (obsrvd(k)/cont(k)-xzo)/(1-xzo),
+  datarray(2,*)=(datarray(2,*)/datarray(3,*)-xzo)/(1.0-xzo) ; (calcul(k)/cont(k)-xzo)/(1-xzo)
+  close,lunr_spt
+  free_lun,lunr_spt
+  print," closed lunr_spt: ",npoints
   if npoints le 0 then goto,two
 ;
 ;; The following loop multiplies the various target transmittances
 ;; by the "other" transmittances. This is useful to bring all the
 ;; contributions to the same tramsmittance level when "other" is
 ;; a strong continuum absorption.
-;  for icol=3,1+ntgas do begin
+;  for icol=3,2+ntgas do begin
 ;    datarray(icol,*) = datarray(icol,*)*datarray(2+ntgas,*)
 ;  endfor
 ;
-  pathlen=strlen(path(kspec))
-  print,'pathlen=',pathlen
-  text(ntgas)=string(strmid(path(kspec),pathlen-21,21))+$
-  string(format='("  !7w!6=",(f6.2),"!9%")',asza)+$
-  string(format='("   !6Z!dT!n=",(f7.2),"km")',tang)+$
-  string(format='("  !7r!6!drms!n=",(f7.4),"%")',rms)+$
-  string(format='("  !9i!6dz=",(f6.3))',burden)+$
-  '!9+!6'+string(format='((f5.3))',berr)+$
-  string(format='("x10!u",(i2))',colexp)
-;
+  if abs(burden) gt 99.999  then begin
+    burden=burden/10
+    berr=berr/10
+    colexp=colexp+1
+  endif
+
+  indszp2=sptpath(kspec).Indexof('/z')+2
+  sptpathlen=strlen(sptpath(kspec))-indszp2
+  text(ntgas)='  '+string(strmid(sptpath(kspec),indszp2,min([37,sptpathlen])))+$
+  string(format='("   !7w!6 =",(f6.2),"!9%")',asza)+$
+  string(format='("   !6Z!dT!n =",(f7.2),"km")',tang)+$
+  string(format='("   !7r!6!drms!n =",(f7.4),"%")',100*rmsocl)
+;  string(format='("  !9i!6dz=",(f6.3))',burden)+$
+;  '!9+!6'+string(format='(f6.3)',berr)+$
+;  string(format='("x10!u",(i2))',colexp)
+
 ;  find the highest and lowest data point for each category
-  yloarr=fltarr(ntgas+3)
-  yhiarr=fltarr(ntgas+3)
+  yloarr=fltarr(ntgas+4)
+  yhiarr=fltarr(ntgas+4)
 ;  print,'npoints,ntgas=',npoints,ntgas
-  for tt=0,ntgas+2 do begin
-;    print,tt,npoints,datarray(tt,0),datarray(tt,npoints-1)
+  for tt=0,ntgas+3 do begin
     yloarr(tt)=min(datarray(tt,0:npoints-1))
     yhiarr(tt)=max(datarray(tt,0:npoints-1))
+;    print,'tt,ylo,yhi= ',tt,yloarr(tt),yhiarr(tt)
   endfor
-;
+
 while idn(0) lt 24 do begin
-  if( tgas eq ntgas) then begin
-     ylo=min(yloarr(1:ntgas+2)) 
-     yhi=max(yhiarr(1:ntgas+2)) 
-  endif else begin
-     if ( tgas gt ntgas ) then  tgas=-1
-     ylo=min([yloarr(1),yloarr(2),yloarr(tgas+3)])
-     yhi=max([yhiarr(1),yhiarr(2),yhiarr(tgas+3)])
+
+  if( ktgas eq ntgas+1) then begin ; Continuum plotted
+     ylo=min(yloarr(3))
+     yhi=max(yhiarr(3))
+     print,'0,ktgas,ntgas,ylo,yhi: ',ktgas,ntgas,ylo,yhi
+  endif else if( ktgas eq ntgas) then begin ; All target gases plotted
+     print,'1,ktgas,ntgas,ylo,yhi: ',ktgas,ntgas,ylo,yhi
+     ylo=min([yloarr(1),yloarr(2),yloarr(4:ntgas+3)])
+     yhi=max([yhiarr(1),yhiarr(2),yhiarr(4:ntgas+3)])
+  endif else if (ktgas ge 0) then begin ; One target gases plotted
+     if ( ktgas gt ntgas ) then  ktgas=0
+     print,'2,ktgas,ntgas,ylo,yhi: ',ktgas,ntgas,ylo,yhi
+     ylo=min([yloarr(1),yloarr(2),yloarr(ktgas+4)])
+     yhi=max([yhiarr(1),yhiarr(2),yhiarr(ktgas+4)])
+  endif else begin         ;  Zero target gases plotted (just Tm & Tc)
+;     if ( ktgas gt ntgas ) then  ktgas=0
+     ylo=min([yloarr(1),yloarr(2)])
+     yhi=max([yhiarr(1),yhiarr(2)])
+     print,'3,ktgas,ntgas,ylo,yhi: ',ktgas,ntgas,ylo,yhi
   endelse
-  if rlim eq "a" then  rmax=100*max(abs(datarray(2,0:npoints-1)-datarray(1,0:npoints-1)))
+  if rlim eq "a" then  rmax=max(abs(datarray(2,0:npoints-1)-datarray(1,0:npoints-1)))
   if xlolim eq "a" then  xmin=fmin
   if xuplim eq "a" then  xmax=fmax
   if ylolim eq "a" then  ymin=ylo
   if yuplim eq "a" then  ymax=yhi
-  !x.range=[xmin,xmax]
-  !y.range=[ymin,ymax]
+  !x.range=[1.001*xmin-0.001*xmax,1.001*xmax-0.001*xmin]
+  !y.range=[1.001*ymin-0.001*ymax,1.001*ymax-0.001*ymin]
 ;
 ;  Write gas names to right of main panel.
   kpoints=npoints*(xmax-fmin)/(fmax-fmin)
-  substr, headers, gases, mss, nss
+gases = strsplit(headers,count=nss,/extract)
+;print, ntgas,gases
+;  substr, headers, gases, mss, nss
   for i=0, ntgas-1 do begin
      if mtxt(i) eq 0 then begin
-        xtxt(i)=xmax
-        ytxt(i)=ymax-(i+0.5)*(ymax-ymin)/14
-        if mtxt(i) eq 0 then text(i)=gases(i+3)  ; first 3 columns are Freq  Tm  Tc
+        xtxt(i)=xmax+0.004*(xmax-xmin)
+        ytxt(i)=ymax-(i+0.5)*(ymax-ymin)/15
+        if mtxt(i) eq 0 then text(i)=gases(i+4)  ; first 3 columns are Freq, Tm, Tc, Cont
      endif
   endfor
 ;
   time=strmid(systime(0),8,2)+'-'+strmid(systime(0),4,3)+'-'+$
   strmid(systime(0),20,4)+'/'+strmid(systime(0),11,8)
-  if strlen(text(ntgas+1)) le 0 then text(ntgas+1)=filenm+'  '+time
-  pplot,datarray,ntgas,npoints,nbox,rmax,tgas,xunit,xtxt,ytxt,text,ntgas+2+ntxt
+;  if strlen(text(ntgas+1)) le 0 then text(ntgas+1)=filenm+'  '+time
+ print,'ylolim,ymin=',ylolim,ymin
+ print,'yuplim,ymax=',yuplim,ymax
+  pplot,xmin,xmax,ymin,ymax,datarray,ntgas,npoints,nbox,rmax,ktgas,xzo,xunit,xtxt,ytxt,text,ntgas+2+ntxt
 ;
   event=widget_event(b1)
   idn=where(butn eq event.id)
@@ -343,7 +365,8 @@ while idn(0) lt 24 do begin
           ylolim='a'
        end
    19: begin     ; target gases
-          tgas = ( (tgas+2) mod (ntgas+2) ) -1
+;          ktgas = ( (ktgas+2) mod (ntgas+2) ) -1
+          ktgas = ( (ktgas+2) mod (ntgas+3) ) -1
        end
    20: begin     ; Text
           for itxt=0,ntgas+2+ntxt-1 do print,format='(i2,2e15.6,1x,a)',itxt,xtxt(itxt),ytxt(itxt),text(itxt)
@@ -383,11 +406,10 @@ while idn(0) lt 24 do begin
            '.'+strlowcase(!d.name)
 ;          device,/landscape,/color,font_size=7,filename=filenm
           device,/portrait,/color,font_size=7,filename=filenm
-          !x.range=[xmin,xmax]
-          !y.range=[ymin,ymax]
-          pplot,datarray,ntgas,npoints,nbox,rmax,tgas,xunit,xtxt,ytxt,text,ntgas+2+ntxt
+          !x.range=[1.001*xmin-0.001*xmax,1.001*xmax-0.001*xmin]
+          !y.range=[1.001*ymin-0.001*ymax,1.001*ymax-0.001*ymin]
+          pplot,xmin,xmax,ymin,ymax,datarray,ntgas,npoints,nbox,rmax,ktgas,xzo,xunit,xtxt,ytxt,text,ntgas+2+ntxt
           device,/close
-;          spawn,'lp '+filenm
           set_plot,idl_device
           psn=psn+1
        end

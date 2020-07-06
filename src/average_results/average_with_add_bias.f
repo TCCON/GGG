@@ -1,5 +1,5 @@
       subroutine average_with_add_bias
-     & (ymiss,nrow,ncol,yobs,yerr,
+     & (mit,ymiss,nrow,ncol,yobs,yerr,
      & ybar,eybar,bias,ebias,rew,cew,tew)
 c
 c  Performs a weighted average of a series of measurements
@@ -74,17 +74,18 @@ c  Known Problems:
 c  1)  For large values of ww, iteration converges very slowly.
 
       implicit none
-      include "params.f"
+c      include "params.f"
 
-      integer*4 nrow,irow,ncol,jcol,jit,
+      integer*4 nrow,irow,ncol,jcol,jit,mit,
      & nval_irow,nval_jcol,nval
-      real*4 ymiss,ww,
+      real*4 ymiss,ww,small,
      & yobs(nrow,ncol),yerr(nrow,ncol),
      & ybar(nrow),eybar(nrow),
      & bias(ncol),ebias(ncol),rew(nrow),cew(ncol),tew,twas
       real*8 num_irow,den_irow,num_jcol,den_jcol,wt,
      & chi2_irow,chi2_jcol,chi2
 
+      small=1.0E-18
 c  Check for illegal NCOL/NROW values.
       if(ncol.le.0) stop 'average_with_add_bias:  NCOL <=0'
       if(nrow.le.0) stop 'average_with_add_bias:  NROW <=0'
@@ -106,67 +107,69 @@ c         write(*,*)'ncol=1  Copying YOBS to YBAR'
 c  Now for the non-trivial cases.
       ww=0.0E-16  ! inverse a priori variance of bias
       twas=1.E+36
-      do jit=0,mit
+      do jit=1,mit
 
 c  Determine YBAR, EYBAR, and REW
-      do irow=1,nrow
-         num_irow=0.0
-         den_irow=0.0
-         chi2_irow=0.0d0
-         nval_irow=0.0d0
-         do jcol=1,ncol
-            if(yerr(irow,jcol).ne.ymiss.and.yerr(irow,jcol).ne.0.0) then
-               wt=1.0d0/yerr(irow,jcol)**2
-               num_irow=num_irow+(yobs(irow,jcol)-bias(jcol))*wt
-               den_irow=den_irow+wt
-               nval_irow=nval_irow+1
-               chi2_irow=chi2_irow+
-     &         wt*(yobs(irow,jcol)-ybar(irow)-bias(jcol))**2
+         do irow=1,nrow
+            num_irow=0.0d0
+            den_irow=0.0d0
+            chi2_irow=0.0d0
+            nval_irow=0
+            do jcol=1,ncol
+               if(abs(yerr(irow,jcol)-ymiss).gt.small .and.
+     &         abs(yerr(irow,jcol)).gt.small) then
+                  wt=1.0d0/yerr(irow,jcol)**2
+                  num_irow=num_irow+(yobs(irow,jcol)-bias(jcol))*wt
+                  den_irow=den_irow+wt
+                  nval_irow=nval_irow+1
+                  chi2_irow=chi2_irow+
+     &            wt*(yobs(irow,jcol)-ybar(irow)-bias(jcol))**2
+               endif
+            end do
+            rew(irow)=sngl(dsqrt(chi2_irow/nval_irow))
+            if(abs(den_irow).lt.small) then
+               ybar(irow)=ymiss
+               eybar(irow)=ymiss
+            else
+               ybar(irow)=sngl(num_irow/den_irow)
+               eybar(irow)=sngl(1/dsqrt(den_irow))
             endif
          end do
-         rew(irow)=sqrt(chi2_irow/nval_irow)
-         if(den_irow.eq.0.0) then
-            ybar(irow)=ymiss
-            eybar(irow)=ymiss
-         else
-            ybar(irow)=num_irow/den_irow
-            eybar(irow)=1/sqrt(den_irow)
-         endif
-      end do
 
 c  Determine BIAS, EBIAS, and CEW
-      chi2=0.0
-      nval=0
-      do jcol=1,ncol
-         num_jcol=0.0
-         den_jcol=ww      ! a priori bias = 0 +/- 1/SQRT(WW)
-         chi2_jcol=ww*bias(jcol)**2
-         nval_jcol=0
-         do irow=1,nrow
-            if(yerr(irow,jcol).ne.ymiss.and.yerr(irow,jcol).ne.0.0) then
-               wt=1.0d0/yerr(irow,jcol)**2
-               num_jcol=num_jcol+(yobs(irow,jcol)-ybar(irow))*wt
-               den_jcol=den_jcol+wt
-               nval_jcol=nval_jcol+1
-               chi2_jcol=chi2_jcol+
-     &         wt*(yobs(irow,jcol)-ybar(irow)-bias(jcol))**2
+         chi2=0.0
+         nval=0
+         do jcol=1,ncol
+            num_jcol=0.0
+            den_jcol=ww      ! a priori bias = 0 +/- 1/SQRT(WW)
+            chi2_jcol=ww*bias(jcol)**2
+            nval_jcol=0
+            do irow=1,nrow
+               if(abs(yerr(irow,jcol)-ymiss).gt.small .and.
+     &         abs(yerr(irow,jcol)).gt.small) then
+                  wt=1.0d0/yerr(irow,jcol)**2
+                  num_jcol=num_jcol+(yobs(irow,jcol)-ybar(irow))*wt
+                  den_jcol=den_jcol+wt
+                  nval_jcol=nval_jcol+1
+                  chi2_jcol=chi2_jcol+
+     &            wt*(yobs(irow,jcol)-ybar(irow)-bias(jcol))**2
+               endif
+            end do
+            cew(jcol)=sngl(dsqrt(chi2_jcol/nval_jcol))
+            nval=nval+nval_jcol
+            chi2=chi2+chi2_jcol
+            if(abs(den_jcol).lt.small) then
+               write(*,*)' No spectra for this window'
+               bias(jcol)=ymiss
+               ebias(jcol)=ymiss
+            else 
+               bias(jcol)=sngl(num_jcol/den_jcol)
+               ebias(jcol)=sngl(1/dsqrt(den_jcol))
             endif
          end do
-         cew(jcol)=sqrt(chi2_jcol/nval_jcol)
-         nval=nval+nval_jcol
-         chi2=chi2+chi2_jcol
-         if(den_jcol.eq.0.0) then
-            write(*,*)' No spectra for this window'
-            bias(jcol)=ymiss
-            ebias(jcol)=ymiss
-         else 
-            bias(jcol)=num_jcol/den_jcol
-            ebias(jcol)=1/sqrt(den_jcol)
-         endif
-      end do
-      tew=sqrt(chi2/nval)
-      if( tew .ge. twas ) exit  ! fit failed to improve
-      twas=tew
+         tew=sngl(dsqrt(chi2/nval))
+         if( tew .ge. twas ) exit  ! fit failed to improve
+         twas=tew
       end do  !  jit=1,mit
       if(jit.gt.mit) write(*,*)
      & 'average_with_mul_bias failed to converge',twas,tew

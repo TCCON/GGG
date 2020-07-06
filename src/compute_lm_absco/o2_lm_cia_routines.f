@@ -2,53 +2,53 @@ C*********************************************************************
       Subroutine LMandCIAO2(path_to_input_files,T,Ptot,
      &  xo2,xh2o,SigMin,DSig,nSig, AbsV, AbsY, AbsW)
 C*********************************************************************
-C	"LMandCIAO2": COMPute ABSorptions
-C	.................................................
-C	.     Subroutine to Compute the absorption      .
-C	.     Coefficient due to all Lines retained     .
-C	.     by Subroutine "Readline"                  . 
-C	.     Subroutine "Readline".                    .
-C	.     Voigt, First Order L-M					.
-C	.................................................
+C"LMandCIAO2": COMPute ABSorptions
+C.................................................
+C.     Subroutine to Compute the absorption      .
+C.     Coefficient due to all Lines retained     .
+C.     by Subroutine "Readline"                  . 
+C.     Subroutine "Readline".                    .
+C.     Voigt, First Order L-M                    .
+C.................................................
 C
 C   Inputs:
 C       path_to_input_files: where to find linelist, matrices, etc.
-C	T	: Temperature in Kelvin 
-C	Ptot    : Total pressure in Atmosphere 
-C	xO2     : O2 volume mixing ratio 
-C       xH2O    : H2O vmr
-C	SigMin  : Minimum WaveNumber of the Computation (Cm-1)
-C	DSig    : WaveNumber Step of the Computation (Cm-1)
+C    T       : Temperature in Kelvin 
+C    Ptot    : Total pressure in Atmosphere 
+C    xO2     : O2 volume mixing ratio 
+C    xH2O    : H2O vmr
+C    SigMin  : Minimum WaveNumber of the Computation (Cm-1)
+CDSig    : WaveNumber Step of the Computation (Cm-1)
 C       nSig    : Number of frequencies
 C
 C
 C   Outputs
-C	AbsV    : Absorption Coefficient neglecting LineMixing
+CAbsV    : Absorption Coefficient neglecting LineMixing
 C                (assuming Voigt Line-Shapes) (cm-1)
-C	AbsY    : Difference between Absorption Coefficient predicted
+CAbsY    : Difference between Absorption Coefficient predicted
 C                using First Order Line-Mixing and Voigt (cm-1)
 C       AbsW    : Absorption Coefficient due to CIA (cm-1)
 C
 C
 C   Other important Input Quantities (through Common Statements)
-C	--------------------------------
-C	HWT     : Air Broadened HalfWidths of the Lines for the
-C	          Considered Temperature and Pressure (Cm-1)
-C	o2_PopuT   : Populations of the Lower Levels of the Lines
-C			  at Temperature T
-C	o2_YT      : Air Broadened First Order Line Mixing Coefficients 
+C--------------------------------
+CHWT     : Air Broadened HalfWidths of the Lines for the
+C          Considered Temperature and Pressure (Cm-1)
+Co2_PopuT   : Populations of the Lower Levels of the Lines
+C  at Temperature T
+Co2_YT      : Air Broadened First Order Line Mixing Coefficients 
 C               of the Lines for the Considered Temperature and
-C	          Pressure (No Unit)
-C	Dipo    : Dipole transition Moments of the Lines
+C          Pressure (No Unit)
+CDipo    : Dipole transition Moments of the Lines
 C
-C	Accessed Files:  None
-C	--------------
+CAccessed Files:  None
+C--------------
 C
-C	Called Routines: 'ConvTP' (CONVert data to current T and Press)
-C	---------------  'CPF'	  (Complex Probability Function)
+CCalled Routines: 'ConvTP' (CONVert data to current T and Press)
+C---------------  'CPF'  (Complex Probability Function)
 C
-C	Called By: Main Program
-C	---------
+CCalled By: Main Program
+C---------
 C
 C     Double Precision Version
 C
@@ -56,11 +56,11 @@ C     H. Tran, last change 24 November 2005
 C*********************************************************************
 C
       Implicit None
-      include '../ggg_int_params.f'
+      include '../gfit/ggg_int_params.f'
       Integer nLmx,nSigmx,nCIAmx
       Integer o2_nLines,nCIA
       Integer nSig,iSig,iLine
-      Integer ind
+      Integer ind,idum
       Double Precision T,Ptot,xO2,xh2o,SigMin,DSig
       Double Precision o2_Sig,Dipo,HWT,o2_PopuT,o2_YT
       Double Precision aMass,Pi
@@ -95,6 +95,18 @@ c      Common/CabsFO2/AbsY(nSigmx)
 C Constants      
       Data Pi/3.141592654d0/
       Data aMass/32.D-3/
+
+      idum=mfilepath ! Avoid compiler warning (unused parameter)
+      idum=mauxcol ! Avoid compiler warning (unused parameter)
+      idum=mcolvav ! Avoid compiler warning (unused parameter)
+      idum=mgas    ! Avoid compiler warning (unused parameter)
+      idum=mlev    ! Avoid compiler warning (unused parameter)
+      idum=mrow_qc ! Avoid compiler warning (unused parameter)
+      idum=mspeci  ! Avoid compiler warning (unused parameter)
+      idum=mvmode  ! Avoid compiler warning (unused parameter)
+      idum=ncell   ! Avoid compiler warning (unused parameter)
+      idum=nchar   ! Avoid compiler warning (unused parameter)
+
 C----------
 C
       xx=xh2o  ! avoid compiler warning (unused variable)
@@ -202,8 +214,8 @@ C     H. Tran, last change 28 November 2005
 C*********************************************************************
 C
       Implicit double precision (a-h,o-z)
-      include '../ggg_int_params.f'
-      Integer o2_nLines
+      include '../gfit/ggg_int_params.f'
+      Integer o2_nLines,idum
       Double complex zInt,zVal
       character path_to_input_files*(mpath+80)
 C Max Number of Lines and of matrix elements
@@ -242,6 +254,17 @@ C Other parameters
       Double Precision Slow(nLmx)
 c      DImension zVec(nlmx,nlmx),zVecM1(nlmx,nlmx)
 C----------
+      idum=mfilepath ! Avoid compiler warning (unused parameter)
+      idum=mauxcol ! Avoid compiler warning (unused parameter)
+      idum=mcolvav ! Avoid compiler warning (unused parameter)
+      idum=mgas    ! Avoid compiler warning (unused parameter)
+      idum=mlev    ! Avoid compiler warning (unused parameter)
+      idum=mrow_qc ! Avoid compiler warning (unused parameter)
+      idum=mspeci  ! Avoid compiler warning (unused parameter)
+      idum=mvmode  ! Avoid compiler warning (unused parameter)
+      idum=ncell   ! Avoid compiler warning (unused parameter)
+      idum=nchar   ! Avoid compiler warning (unused parameter)
+
       T0=296.D0
       A=1.4388D0
       Amagat=Ptot*273.15/T
@@ -467,7 +490,7 @@ c
 c...input:  aa
 c...output: bb 
       implicit DOUBLE PRECISION (a-h,o-z)
-      Parameter (Nmax=600)
+      Parameter (Nmax=119)
       dimension A(Nmax),B(Nmax)
 c
 C 
@@ -558,50 +581,50 @@ C --------------------------------------------
 C*********************************************************************
       Subroutine ReadDataO2(path_to_input_files)
 C*********************************************************************
-C	"ReadDatO2": READ data for O2
-c		Including - the CIA data (file CIAO2.dat)
+C"ReadDatO2": READ data for O2
+cIncluding - the CIA data (file CIAO2.dat)
 C                   - thespectroscopic data for the O2 A band lines (file SDFO2.DAT)
 C                   - The relaxation matrix  data (file RMFO2.DAT)
 C
-C	Output Parameters of Routine (Arguments or Common)
-C	----------------------------------
-C	o2_nLines	 : Integer Array of the number of lines (Output).
+COutput Parameters of Routine (Arguments or Common)
+C----------------------------------
+Co2_nLines : Integer Array of the number of lines (Output).
 C
-C	Other important Output Quantities (through Common Statements)
-C	---------------------------------
-C	SigCIA   : WaveNumbers of CIA data file (Cm-1)
-C	CIA		 : Intensities of CIA (Cm-1Amagat-2)
-C	o2_Sig		 : WaveNumbers of the Lines (Cm-1) 
-C	DipoR	 : Rigid rotor dipole 
-C	Dipo0	 : True Dipole transition Moments of the Lines
-C	E		 : Energies of the Lower levels of the lines (Cm-1)
-C	HWT0	 : Air-broadened Half-Widths (at 296 K) of the 
-C	           Lines (Cm-1/Atm)
-C	BHW		 : Temperature Dependence Coefficients of HWT0
-C	o2_PopuT0	 : Populations of the Lower Levels of the Lines
+COther important Output Quantities (through Common Statements)
+C---------------------------------
+C SigCIA   : WaveNumbers of CIA data file (Cm-1)
+C CIA : Intensities of CIA (Cm-1Amagat-2)
+C o2_Sig : WaveNumbers of the Lines (Cm-1) 
+C DipoR : Rigid rotor dipole 
+C Dipo0 : True Dipole transition Moments of the Lines
+C E : Energies of the Lower levels of the lines (Cm-1)
+C HWT0 : Air-broadened Half-Widths (at 296 K) of the 
+C           Lines (Cm-1/Atm)
+C BHW : Temperature Dependence Coefficients of HWT0
+C o2_PopuT0 : Populations of the Lower Levels of the Lines
 C                at 296 K.
-C	WT0		 : Air-broadened Relaxation Operator Elements 
-C	           (at 296 K) of all Couples of Lines (Cm-1/Atm)
-C	BW		 : Temperature Dependence Coefficients of WT0
+C WT0 : Air-broadened Relaxation Operator Elements 
+C           (at 296 K) of all Couples of Lines (Cm-1/Atm)
+C BW : Temperature Dependence Coefficients of WT0
 C
-C	Accessed Files:	'SDF.dat'	(Spectroscopy Data File)
-C	              	'RMF.dat'	(Relaxation Matrix File)
-C			'CIA.dat'	(Collision Induced Absorption File)
+C Accessed Files:'SDF.dat'(Spectroscopy Data File)
+C              'RMF.dat'(Relaxation Matrix File)
+C 'CIA.dat'(Collision Induced Absorption File)
 C
-C	Called By: 'ConvTP'			(CONVert to Temperature and Pressure)
-C	---------
+C Called By: 'ConvTP'(CONVert to Temperature and Pressure)
+C---------
 C     
-C	Double Precision Version
+C Double Precision Version
 C     
-C	H. Tran last change 28 November 2005
+CH. Tran last change 28 November 2005
 C*********************************************************************
 C
       Implicit None
-      include "../ggg_int_params.f"
+      include "../gfit/ggg_int_params.f"
       Integer nLmx,nMmx,nCIAmx
       Integer iCIA,nCIA,iLine,o2_nLines,iMatrix,nMatrix
       Integer iFile,Nf,m1,lnbc
-      Integer lp
+      Integer lp,idum
       character*1 R
       Double Precision SigCIA,CIA
       Double Precision o2_Sig,DipoR,Dipo0,E,HWT0,BHW,o2_PopuT0,Shift
@@ -630,6 +653,18 @@ C Data of the Lines at Ref Temperature
 C Data of the relaxation matrix
       Common/RelxT0/WT0(nMmx)
       Common/dTRelx/BW(nMmx)
+
+      idum=mfilepath ! Avoid compiler warning (unused parameter)
+      idum=mauxcol  ! Avoid compiler warning (unused parameter)
+      idum=mcolvav  ! Avoid compiler warning (unused parameter)
+      idum=mgas     ! Avoid compiler warning (unused parameter)
+      idum=mlev     ! Avoid compiler warning (unused parameter)
+      idum=mrow_qc  ! Avoid compiler warning (unused parameter)
+      idum=mspeci   ! Avoid compiler warning (unused parameter)
+      idum=mvmode   ! Avoid compiler warning (unused parameter)
+      idum=ncell    ! Avoid compiler warning (unused parameter)
+      idum=nchar    ! Avoid compiler warning (unused parameter)
+
 c File number for read
       iFile=3
 C------------

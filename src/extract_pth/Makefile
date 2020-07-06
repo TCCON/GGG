@@ -16,7 +16,8 @@ SOURCES := \
   $(COMN)/caldat.o \
   $(COMN)/fbc.o \
   $(COMN)/fnbc.o \
-  $(COMN)/lnbc.o
+  $(COMN)/lnbc.o \
+  $(COMN)/next_fpit_files.o
 
 OBJECTS := $(patsubst %.f, %.o, $(SOURCES))
 

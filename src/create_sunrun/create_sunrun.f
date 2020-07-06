@@ -9,21 +9,23 @@ c  It will search the local directory for the .gnd file, and
 c  write the .gop file to the sunruns/ directory.
 c
       implicit none
-      include "../ggg_int_params.f"
-      include "params.f"
+c      include "../gfit/ggg_int_params.f"
+c      include "params.f"
 
       integer*4 iy,im,id,hh,mm,ss,ms,pkl,prl,gfw,gbw,
      & fnbc,lnbc,fbc,ispe,iend,dtype,nsp,nip,dfr,bytepw,
      & mdet,ndet,idet,             ! Number of detectors
      & ifirst,ilast,
-     & lr,lrt,ls,lunr,doy,
+     & mpath,mfilepath,nchar,
+     & lr,lrt,ls,lunr,luns,lunt,doy,
      & possp,istat,object,mcol,ncol,instr,lst
-      parameter (lunr=14,mcol=40,mdet=4)
+      parameter (lunr=14,luns=15,lunt=16,mcol=40,mdet=4,mpath=128,
+     & mfilepath=mpath+40,nchar=57)
 c
       real*8 tins,pins,hins,tout,pout,pout_corr,hout,
      & wspd,wdir,gmt,fovi,opd,snr,asza,delwav,
      & wavtkr,oblat,oblon,obalt,lfl,hfl,foc,
-     & fsf,tcorr,vdc,lse,lsu,
+     & fsf,tcorr,vdc,lse,lsu,lsf,dip,mvd,
      & nus(mdet),nue(mdet),
      & lasf,sia,sis,fvsi,aipl,tel_mag,
      & fxv,lxv,apt,dur,vel,phr,res,ptrue
@@ -32,19 +34,22 @@ c
 
       character 
      & sss(mdet)*2,
-     & parfile*(mfilepath),
-     & header*512,outarr(mcol)*20
-      character
+     & xx_sunrun_file*(mfilepath),
+     & header*512,outarr(mcol)*20,
      & col1*1,                    !first column of runlog record
      & apf*2,                     !apodization function (e.g. BX N2, etc)
      & dl*1,                      !forward or backward slash
      & ext*3,                     !geometry ['air','bal','gnd','lab',orb','syn']
+     & logfile*64,
+     & string*256,
+     & outfile*(mpath+40),
+     & dplist*(mpath+25),
+     & path*(mpath),              !ggg directory path (GGGPATH?)
      & gggdir*(mpath),            !ggg directory path (GGGPATH?)
      & specname*(nchar),          !spectrum name
      & version*64                 !current program version
 
-c
-      version=' create_sunrun     Version 2.1.2     12-Apr-2012     GCT'
+      version=' create_sunrun     Version 2.14     2019-07-04     GCT'
       write(6,'(a)') version
 
       col1=' '
@@ -70,9 +75,9 @@ c  Prompt user for name of input list
       lrt=lnbc(gggdir)       !Length of root
 c
 c  Read file containing the invariant parameters.
-      parfile=gggdir(:lrt)//'tccon/'//logfile(1:2)//'_sunrun.dat'
-      write(*,*) parfile
-      open(luns,file=parfile,status='old')
+      xx_sunrun_file=gggdir(:lrt)//'tccon/'//logfile(1:2)//'_sunrun.dat'
+      write(*,*)'Opening xx_sunrun_file = '//xx_sunrun_file
+      open(luns,file=xx_sunrun_file,status='old')
 c
 cxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 cc     Root specification:        DG000909
@@ -81,11 +86,10 @@ c      dl='/'
 c      root=root(:lnbc(root))//dl
 cxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
       header=
-     &' Spectrum_File_Name                     Obj   tcorr'//
-     &'   oblat   oblon   obalt   tins   pins   hins'//
+     &' Spectrum_File_Name                                        Obj'//
+     &'  tcorr   oblat    oblon   obalt   tins   pins   hins'//
      &'  tout  pout   hout    sia    fvsi   wspd   wdir'//
-     &'   Nus    Nue      FSF      lasf     wavtkr'//
-     &'   AIPL   TM'
+     &'   Nus    Nue      FSF      lasf    wavtkr   AIPL   TM'
       call substr(header, outarr, mcol,ncol)
 
       read(luns,*) nhead
@@ -112,6 +116,7 @@ cxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
       read(luns,*) ndet
       do idet=1,ndet
          read(luns,*) k1(idet),k2(idet),sss(idet),nus(idet),nue(idet)
+c         write(*,*) k1(idet),k2(idet),sss(idet),nus(idet),nue(idet)
       end do
       read(luns,*) fsf
       read(luns,*) lasf
@@ -119,7 +124,7 @@ cxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
       read(luns,*) aipl
       read(luns,*) tel_mag 
       close(luns)
-      write(*,*) 'Closed xx_sunrun.dat file'
+      write(*,*) 'Closed xx_sunrun.dat file: '//xx_sunrun_file
       lsss=lnbc(sss(1))
 
 c      outfile=gggdir(:lrt)//'sunruns'//dl//ext//dl//logfile(:lr-2)//'m4'
@@ -132,7 +137,7 @@ c
       open(lunr,file=logfile,status='old')
       do ispe=1,999999  !---------Main loop over spectra----------
          read(lunr,'(a)',end=99) string 
-c         write(*,*) string(:lnbc(string))
+c         write(*,*) ispe,string(:lnbc(string))
 
 c  Remove any leading spaces/blanks.
          string=string(fnbc(string):)
@@ -156,11 +161,12 @@ c          if(logfile(1:2).eq.'m4') then
      &      bytepw,apf,delwav,opd,fovi,snr,oblat,oblon,obalt,pout,
      &      tout,hout,asza,iy,im,id,gmt,wavtkr,tins,pins,hins,lasf)
           else
+c          write(*,*) 'Calling read_opus_header: path = '//path
             call read_opus_header(path,iend,dtype,nsp,fxv,lxv,iy,im,
      &      id,hh,mm,ss,ms,apt,dur,vel,apf,phr,res,lasf,foc,nip,dfr,
      &      pkl,prl,gfw,gbw,lfl,hfl,possp,oblat,oblon,obalt,
      &      tins,pins,hins,tout,pout,hout,wspd,wdir,sia,sis,vdc,
-     &      lst,lse,lsu)
+     &      lst,lse,lsu,lsf,dip,mvd,snr)
           endif
 
 c  Apply correction to measured surface pressure.
@@ -168,7 +174,11 @@ c  Apply correction to measured surface pressure.
 
 c  Calculate fvsi as sis/sia if sia is not zero or missing, and if
 c  it's not a lamp run:
-          if(sia.le.0.0 .or. ext(:1).eq.'l') then
+          if(sis.le.0.0 .or. sia.le.0.0 .or. ext(:1).eq.'l') then
+c  DW 20170809: I've changed sia to sis above, because the EM27/SUN 
+c  community uses a computed SIA value from MXY and MNY to track mirror 
+c  degredation. They do not compute SIS, so they depend on I2S to compute
+c  FVSI from the VDC parameter.
             if(vdc.gt.0) then
               fvsi=vdc
             else

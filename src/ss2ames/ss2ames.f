@@ -22,7 +22,7 @@ c
      &   lunr_hdr=13,   !  the header file
      &   lunw_ames=14,  !  the ames-format output file
      &   maxcpl=132,  !  Maximum Characters Per Line
-     &   mcol=102)    !  maximum number of columns
+     &   mcol=106)    !  maximum number of columns
       integer indxcol(mcol)
       character header*2048,filnam*256,comment*(maxcpl),string*2048,
      & colabel(mcol)*80,misslabel(mcol)*80,version*64,fmt*8,
@@ -31,7 +31,7 @@ c
       parameter (vscal='  1.0000E+00', ffi=1001 )
 
       version=
-     &' SS2AMES                  Version 3.21     30-May-2013    GCT  '
+     &' SS2AMES                  Version 3.23     2019-07-19     GCT  '
       write(6,*)version
 
       write(filnam,'(80a1)') (' ',j=1,80)
@@ -43,7 +43,7 @@ c
          elseif (iargc() == 1) then
             call getarg(1, filnam)
          else
-            stop 'Usage: $gggpath/bin/ss2ames amesfile'
+            stop 'Usage: $gggpath/bin/ss2ames ssfile'
          endif
       end do
       lf=lnbc(filnam)
@@ -132,8 +132,8 @@ c  Write the special comment lines from the .ss header.
       write(lunw_ames,'(a)')' The following programs created this file:'
       write(lunw_ames,'(a)') version
       do k=3,nscoml
-          read(lunr_ss,'(a)') comment
-          write(lunw_ames,'(a)') comment(:lnbc(comment))
+         read(lunr_ss,'(a)') comment
+         write(lunw_ames,'(a)') comment(:lnbc(comment))
       end do
       call skiprec(lunr_ss,2)  ! skip missing values and header
 c
@@ -142,8 +142,8 @@ c   Write the normal comment lines from the .hdr file
       write(*,*)'nncoml=',nncoml
       write(lunw_ames,*)nncoml
       do j=1,nncoml
-        read(lunr_hdr,'(a)') string
-        write(lunw_ames,'(a)')string(:lnbc(string))
+         read(lunr_hdr,'(a)') string
+         write(lunw_ames,'(a)')string(:lnbc(string))
       end do
 c
 c  Read which gases to cite as missing
@@ -152,38 +152,38 @@ c  Read which gases to cite as missing
       close(lunr_hdr)
       call substr(string,misslabel,mcol,nmisscol)
       do k=1,nmisscol
-         write(*,*)k,nmisscol,misslabel(k)
+         write(*,*)k,nmisscol,misslabel(k)(:lnbc(misslabel(k)))
          do j=1,ncol
-         if(misslabel(k) .eq. colabel(j)) indxcol(k)=j
-         if(misslabel(k)(:lnbc(misslabel(k)))//'_error' .eq. colabel(j))
-     &    indxcol(k)=j
+            if(misslabel(k) .eq. colabel(j)) indxcol(k)=j
+c            if(misslabel(k)(:lnbc(misslabel(k)))//'_error'.eq.colabel(j))
+c     &      indxcol(k)=j
          end do
       end do
 c
 c  Read row of input matrix, insert missing values, and write in Ames format.
       do iobs=1,nobs
-        write(siobs,'(i6)') iobs
-        read(lunr_ss,'(a)') string
-        call substr(string,yval,mcol,ncol)
+         write(siobs,'(i6)') iobs
+         read(lunr_ss,'(a)') string
+         call substr(string,yval,mcol,ncol)
 c
 c  Right-shift value
-        do j=1,ncol
-           ls=lnbc(yval(j))
-           yval(j)(lsmax-ls+1:lsmax)=yval(j)(1:ls)
-           do k=1,lsmax-ls
-             yval(j)(k:k)=' '
-           end do
-           read(yval(j),*) yy
-           if(yy.lt.ymin) ymin=yy
-           if(yy.gt.ymax) ymax=yy
-        end do
+         do j=1,ncol
+            ls=lnbc(yval(j))
+            yval(j)(lsmax-ls+1:lsmax)=yval(j)(1:ls)
+            do k=1,lsmax-ls
+               yval(j)(k:k)=' '
+            end do
+            read(yval(j),*) yy
+            if(yy.lt.ymin) ymin=yy
+            if(yy.gt.ymax) ymax=yy
+         end do
 c
-        do j=1,nmisscol
-          ij=indxcol(j)
-          yval(ij)  = valmiss   ! Insert missing value into YVAL
-c          yval(ij+1)= valmiss   ! Insert missing value into YVAL_error
-        end do
-        write(lunw_ames,fmt)siobs,(yval(j),j=1,ncol)
+         do j=1,nmisscol
+            ij=indxcol(j)
+            yval(ij)  = valmiss   ! Insert missing value into YVAL
+c            yval(ij+1)= valmiss   ! Insert missing value into YVAL_error
+         end do
+         write(lunw_ames,fmt)siobs,(yval(j),j=1,ncol)
       end do
 c
       close(lunr_ss)
@@ -191,6 +191,6 @@ c
       write(*,*) 'NOBS, NCOL = ',nobs,ncol
       write(*,*) 'Ymin  Ymax = ',ymin,ymax
       if(ymax.gt.ymiss)
-     &  write(*,*)' SS2AMES: Warning: ymax > ymiss',ymax,ymiss
+     &write(*,*)' SS2AMES: Warning: ymax > ymiss',ymax,ymiss
       stop
       end

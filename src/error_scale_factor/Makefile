@@ -11,7 +11,8 @@ SOURCES := \
   $(COMN)/lowercase.f \
   $(COMN)/fnbc.f \
   $(COMN)/fbc.f \
-  $(COMN)/substr.f
+  $(COMN)/substr.f \
+  $(COMN)/read_postproc_header.f
 
 OBJECTS := $(patsubst %.f, %.o, $(SOURCES))
 
@@ -22,6 +23,10 @@ OBJECTS := $(patsubst %.f, %.o, $(SOURCES))
 #  Link the object files to create the executable
 $(TARGET) : $(OBJECTS)
 	$(FC) $(LDFLAGS) -o $(GGGPATH)/bin/$@ $^
+
+#  Add necessary parameter prerequisite files
+$(TSRC)/$(TARGET).o:             $(COMN)/postproc_params.f
+$(COMN)/read_postproc_header.o:  $(COMN)/postproc_params.f
 
 clean:
 	rm -f $(OBJECTS) $(GGGPATH)/bin/$(TARGET)

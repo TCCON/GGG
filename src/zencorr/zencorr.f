@@ -2,10 +2,10 @@ c  Program for writing zenith pointing offsets, previously calculated by
 c  ZENANG, to the runlog files (both HgCd and InSb).
 c
       implicit none
-      include "../ggg_int_params.f"
+      include "../gfit/ggg_int_params.f"
 
       integer*4 lunr_rlg,lunw_rlg,lunz,lnbc,lr,istat,ndet,jdet,iflag,
-     & ifirst,ilast,iyr,iset,possp,bytepw,ispe,ntot
+     & ifirst,ilast,iyr,iset,possp,bytepw,ispe,ntot,idum
       parameter (lunr_rlg=14,lunw_rlg=15,lunz=16)
 c
       real*8 year,yearz,aszaz,poutz,totcon,del,
@@ -16,7 +16,7 @@ c
       real*8
      & oblat,           ! observation latitude (deg).
      & oblon,           ! observation longitude (deg).
-     & obalt,             ! observation altitude (km)
+     & obalt,            ! observation altitude (km)
      & zpdtim,           ! Time of ZPD (UT hours)
      & asza,             ! astronomical solar zenith angle (unrefracted)
      & zenoff,           ! zenith pointing offset
@@ -58,10 +58,20 @@ c     & title*240,
      & specname*(nchar),          !spectrum name
      & rlgfile*120                !name of runlog file
 
+      idum=mfilepath ! Avoid compiler warning (unused parameter)
+      idum=mauxcol  ! Avoid compiler warning (unused parameter)
+      idum=mcolvav  ! Avoid compiler warning (unused parameter)
+      idum=mgas     ! Avoid compiler warning (unused parameter)
+      idum=mlev     ! Avoid compiler warning (unused parameter)
+      idum=mrow_qc  ! Avoid compiler warning (unused parameter)
+      idum=mspeci   ! Avoid compiler warning (unused parameter)
+      idum=mvmode   ! Avoid compiler warning (unused parameter)
+      idum=ncell    ! Avoid compiler warning (unused parameter)
+      idum=nchar    ! Avoid compiler warning (unused parameter)
 c
       iflag=0  ! avoid compiler warning (may be used uninitialized)
       write(6,*) version
-      version=' ZENCORR     Version 1.51      15-Jan-2013      GCT '
+      version=' ZENCORR     Version 1.53     2016-04-02      GCT '
       call get_ggg_environment(gggdir, dl)
 
       if (iargc() == 0) then
@@ -121,6 +131,8 @@ c  Also open the ZENANG.OUT file containing the pointing offsets
      &   graw,possp,bytepw,zoff,snr,apf,tins,pins,hins,
      &   tout,pout,hout,sia,fvsi,wspd,wdir,lasf,wavtkr,aipl,istat)
          if(istat.gt.0) go to 99
+         if(zenoff.lt.-.9999)zenoff=-.9999
+         if(zenoff.gt.9.9999)zenoff=9.9999
 c        write(*,*)'specname ',specname,totcon,aszaz,asza+zenoff
 c        write(*,*)specname,istat,totcon,aszaz,asza+zenoff
          year=iyr+(iset+zpdtim/24)/366.00

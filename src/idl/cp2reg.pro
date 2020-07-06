@@ -50,7 +50,7 @@ k2:       if ecol lt ncol(ifile) then begin
                  kele=kele+ncol(ifile)
               endfor
           endif else begin
-              err(krow:krow+nrow(ifile)-1,kreg) = 0.0
+              if (nrow(ifile) gt 0) then err(krow:krow+nrow(ifile)-1,kreg) = 0.0
               for irow=long(1),nrow(ifile) do begin
                  val(krow,kreg)=buf(kele+kcol)
                  krow=krow+1

@@ -2,12 +2,12 @@ c  Program to create a GGG-compatible sunrun from an ascii list
 c  of OPUS spectra.
 c
       implicit none
-      include "../../ggg_int_params.f"
+      include "../../gfit/ggg_int_params.f"
       include "../params.f"
 
       integer*4 
      & fnbc,lnbc,fbc,ispe,lr,lrt,ls,
-     & istat,object
+     & istat,object,idum
 c
       real*8 tins,pins,hins,tout,pout,hout,
      & obalt,wavtkr,oblat,oblon,
@@ -21,7 +21,17 @@ c
      & gggdir*(mpath),            !ggg directory path (GGGPATH?)
      & specname*(nchar)           !spectrum name
 
-c
+      idum=mfilepath ! Avoid compiler warning (unused parameter)
+      idum=mauxcol  ! Avoid compiler warning (unused parameter)
+      idum=mcolvav  ! Avoid compiler warning (unused parameter)
+      idum=mgas     ! Avoid compiler warning (unused parameter)
+      idum=mlev     ! Avoid compiler warning (unused parameter)
+      idum=mrow_qc  ! Avoid compiler warning (unused parameter)
+      idum=mspeci   ! Avoid compiler warning (unused parameter)
+      idum=mvmode   ! Avoid compiler warning (unused parameter)
+      idum=ncell    ! Avoid compiler warning (unused parameter)
+      idum=nchar    ! Avoid compiler warning (unused parameter)
+
       write(6,*)'create_sunrun     Version 1.1.1    24-Apr-2008    GCT'
       col1=' '
 c

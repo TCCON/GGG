@@ -1,4 +1,5 @@
       subroutine getopusparval(luns,ipoint,param,iend,mrs,i2val,rs)
+
 c  Reads an OPUS file and extracts the value of the parameter PARAM
 c  from the parameter block starting at IPOINT.
 c

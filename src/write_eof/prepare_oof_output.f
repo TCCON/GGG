@@ -2,24 +2,33 @@ c  subroutine: prepare_oof_output.f
 c
       subroutine prepare_oof_output(inputfile,inputlun,
      & outfmt1, oof_flag, irow,nrow_qc, 
+     & ada_ncorr, ada_has_err, ada_gasname, adcf, adcf_err,
+     & aia_ncorr, aia_has_err, aia_gasname, aicf, aicf_err,
      & vmin, vmax, pindex, 
      & eflag, kflag, flag,
      & nrow, ncol, mchar, scale,rsc,ofmt, headout,naux)
      
 
       implicit none
-      include "../ggg_int_params.f"
+      include "../gfit/ggg_int_params.f"
       include "params.f"
+      include "../comn/postproc_params.f"
 
       integer*4
      & ncoml,ncol,kcol,icol,j,lg,
      & lnbc,nrow,li,k,krow_qc,irow,lof0,lof1,
      & eflag,wrow_flag,wsp_flag,naux,
      & mchar,lh,le,klat,klong,kzobs,ncol_written,
-     & jj,ncoml_qc,ncol_qc,nrow_qc,wcol_flag
+     & jj,ncoml_qc,ncol_qc,nrow_qc,wcol_flag,
+     & naddn,ada_ncorr,aia_ncorr,mwin,ada_has_err,aia_has_err
       integer*4 flag(mrow_qc),pindex(mcol),kflag(mrow_qc),
      & oof_flag(mrow)
+
+      parameter (mwin=100)
+
       character
+     & cdum*1,
+     & fmtdum*40,
      & dl*1,
      & gggdir*(mpath),
      & headarr(mcol)*20,
@@ -33,12 +42,46 @@ c
      & unit(mrow_qc)*6,
      & headout*8000,
      & specfmt*3,
+     & ada_gasname(mwin)*20,
+     & aia_gasname(mwin)*20,
+     & addn_lines(maddln)*(mcharhead),
      & ssss*800
       real*4 scale(mrow_qc),rsc(mrow_qc),
      & vmin(mrow_qc),vmax(mrow_qc)
+      real*8 adcf(mwin), adcf_err(mwin), aicf(mwin), aicf_err(mwin),
+     & fdum
       integer mrow_qc_return, mcol_return
       integer inputlun
-      integer i
+      integer i,idum
+
+      idum=mfilepath ! Avoid compiler warning (unused parameter)
+      idum=mauxcol  ! Avoid compiler warning (unused parameter)
+      idum=mcolvav  ! Avoid compiler warning (unused parameter)
+      idum=mgas     ! Avoid compiler warning (unused parameter)
+      idum=mlev     ! Avoid compiler warning (unused parameter)
+      idum=mrow_qc  ! Avoid compiler warning (unused parameter)
+      idum=mspeci   ! Avoid compiler warning (unused parameter)
+      idum=mvmode   ! Avoid compiler warning (unused parameter)
+      idum=ncell    ! Avoid compiler warning (unused parameter)
+      idum=nchar    ! Avoid compiler warning (unused parameter)
+
+      idum=lun_qc   ! Avoid compiler warning (unused parameter)
+      idum=mcol     ! Avoid compiler warning (unused parameter)
+      idum=mrow     ! Avoid compiler warning (unused parameter)
+      idum=mluns    ! Avoid compiler warning (unused parameter)
+      idum=maddln   ! Avoid compiler warning (unused parameter)
+      idum=mcharhead! Avoid compiler warning (unused parameter)
+      idum=lun_mul  ! Avoid compiler warning (unused parameter)
+      idum=lun_rlg  ! Avoid compiler warning (unused parameter)
+
+      idum=oof_flag(1)
+
+      cdum=gfit_version(1:1)  ! Avoid compiler warning (unused parameter)
+      cdum=gsetup_version(1:1) ! Avoid compiler warning (unused parameter)
+      cdum=tllsum(1:1)   ! Avoid compiler warning (unused parameter)
+      cdum=solarsum(1:1) ! Avoid compiler warning (unused parameter)
+      cdum=csformat(1:1) ! Avoid compiler warning (unused parameter)
+      cdum=header(1:1)   ! Avoid compiler warning (unused parameter)
 
       irow=1
       mrow_qc_return = mrow_qc
@@ -46,9 +89,9 @@ c
       eflag=0
       
       do i = 1, mrow_qc
-          kflag(i) = 0
-          vmin(i) = 0
-          vmax(i) = 0
+         kflag(i) = 0
+         vmin(i) = 0
+         vmax(i) = 0
       end do
       
       mchar=0
@@ -94,21 +137,60 @@ c     write(*,*)gggdir(:lg)//'/tccon/'//inputfile(1:2)//'_qc.dat'
 c  Read input file and start writing output files
 c       write(*,*) inputfile
       open(inputlun,file=inputfile, status='old')
-      read(inputlun,'(i2,i4,i7,i4)') ncoml,ncol,nrow,naux
-c     write(*,*)'naux_prepare',naux
+      call read_postproc_header(inputlun, ncoml, ncol, nrow, naux,
+     & fdum, fmtdum, addn_lines, naddn)
       if(ncol.gt.mcol) stop 'increase mcol'
+      read(inputlun,'(a)') header ! column headers
+      call substr(header,headarr,mcol,kcol)
+      if(kcol.ne.ncol) then
+        write(*,*) kcol, ncol, inputfile
+        stop 'ncol/kcol mismatch'
+      end if
+      if (index(header,'spectrum') .gt. 0) mchar=1
+
+c  Parse the header looking for the airmass & insitu correction factors
+      do j=1,naddn
+       if (index(addn_lines(j), 'Airmass-Dependent') .gt. 0) then
+        icol = index(addn_lines(j), ':')
+        read(addn_lines(j)(icol+1:), *) ada_ncorr, ada_has_err
+        do k=1,ada_ncorr
+          if(ada_has_err .eq. 1) then
+            read(addn_lines(j+k),*) ada_gasname(k), adcf(k), adcf_err(k)
+          else
+            read(addn_lines(j+k),*) ada_gasname(k), adcf(k)
+          end if
+        end do
+        goto 14
+       end if 
+      end do
+      
+      stop 'Could not find ADCF values in .aia file'
+
+ 14   continue
+
+      do j=1,naddn
+       if (index(addn_lines(j), 'In-Situ') .gt. 0) then
+        icol = index(addn_lines(j), ':')
+        read(addn_lines(j)(icol+1:), *) aia_ncorr, aia_has_err
+        do k=1,aia_ncorr
+          if (aia_has_err .eq. 1) then
+            read(addn_lines(j+k),*) aia_gasname(k), aicf(k), aicf_err(k)
+          else
+            read(addn_lines(j+k),*) aia_gasname(k), aicf(k)
+          end if
+        end do
+        goto 19
+       end if
+      end do
+
+      stop 'Could not find AICF values in .aia file'
+
+ 19   continue
+
       open(lun_qc,file=
      & gggdir(:lg)//'tccon'//dl//inputfile(1:2)//'_qc.dat',
      & status='old')
       read(lun_qc,*)ncoml_qc,ncol_qc,nrow_qc
-      do j=2,ncoml-1
-         read(inputlun,'(a)') header
-      end do
-      read(inputlun,'(a)') header ! column headers
-      call substr(header,headarr,mcol,kcol)
-      if(kcol.ne.ncol) stop 'ncol/kcol mismatch'
-      if (index(header,'spectrum') .gt. 0) mchar=1
-
       do k=2,ncoml_qc
          read(lun_qc,'(a)') header
 c        if(k.eq.ncoml_qc) header=' #'//header

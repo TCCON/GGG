@@ -8,19 +8,20 @@ c  It will search the local directory for the .gnd file, and
 c  write the .gop file to the sunruns/ directory.
 c
       implicit none
-      include "../../ggg_int_params.f"
+      include "../../gfit/ggg_int_params.f"
       include "../params.f"
 
       integer*4 iy,im,id,hh,mm,ss,ms,pkl,prl,gfw,gbw,
      & fnbc,lnbc,fbc,ispe,iend,dtype,nsp,nip,dfr,
      & lr,lrt,ls,
-     & possp,istat,object,mcol,ncol,lst
+     & possp,istat,object,mcol,ncol,lst,idum
       parameter (mcol=40)
 c
       real*8 tins,pins,hins,tout,pout,hout,wspd,wdir,
      & wavtkr,oblat,oblon,obalt,lfl,hfl,foc,
      & fsf,tcorr,nus,nue,lwn,sia,sis,fvsi,vdc,aipl,tel_mag,
-     & fxv,lxv,apt,dur,vel,phr,res,pout_cor,lse,lsu
+     & fxv,lxv,apt,dur,vel,phr,res,pout_cor,lse,lsu,lsf,
+     & mvd,dip,snr
 c
       character
      & header*512,outarr(mcol)*20,
@@ -32,7 +33,17 @@ c
      & specname*(nchar),          !spectrum name
      & version*64                 !current program version
 
-c
+      idum=mfilepath ! Avoid compiler warning (unused parameter)
+      idum=mauxcol  ! Avoid compiler warning (unused parameter)
+      idum=mcolvav  ! Avoid compiler warning (unused parameter)
+      idum=mgas     ! Avoid compiler warning (unused parameter)
+      idum=mlev     ! Avoid compiler warning (unused parameter)
+      idum=mrow_qc  ! Avoid compiler warning (unused parameter)
+      idum=mspeci   ! Avoid compiler warning (unused parameter)
+      idum=mvmode   ! Avoid compiler warning (unused parameter)
+      idum=ncell    ! Avoid compiler warning (unused parameter)
+      idum=nchar    ! Avoid compiler warning (unused parameter)
+
        pout_cor = 0.7
 
       version=' create_sunrun     Version 1.3.3     25-Jul-2009     GCT'
@@ -131,7 +142,7 @@ c  find the spectral file, return the PATH to the spectrum
      &     id,hh,mm,ss,ms,apt,dur,vel,apf,phr,res,lwn,foc,nip,dfr,
      &     pkl,prl,gfw,gbw,lfl,hfl,possp,oblat,oblon,obalt,
      &     tins,pins,hins,tout,pout,hout,wspd,wdir,sia,sis,vdc,
-     &     lst,lse,lsu)
+     &     lst,lse,lsu,lsf,dip,mvd,snr)
 
 c  Apply correction to measured surface pressure.
           pout = pout + pout_cor

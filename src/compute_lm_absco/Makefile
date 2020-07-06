@@ -8,6 +8,7 @@ endif
 
 TARGET=compute_lm_absco
 TSRC = $(GGGPATH)/src/$(TARGET)
+COMN = $(GGGPATH)/src/comn
 
 SOURCES := \
  $(TSRC)/$(TARGET).f \
@@ -15,12 +16,12 @@ SOURCES := \
  $(TSRC)/co2_all_lm_routines.f \
  $(TSRC)/ch4_all_lm_routines.f \
  $(TSRC)/humlik.f \
- $(TSRC)/get_ggg_environment.f \
  $(TSRC)/cpf.f \
- $(TSRC)/fbc.f \
- $(TSRC)/fnbc.f \
- $(TSRC)/lnbc.f \
- $(TSRC)/substr.f 
+ $(COMN)/get_ggg_environment.f \
+ $(COMN)/fbc.f \
+ $(COMN)/fnbc.f \
+ $(COMN)/lnbc.f \
+ $(COMN)/substr.f 
 
 OBJECTS := $(patsubst %.f, %.o, $(SOURCES))
 
@@ -33,10 +34,10 @@ $(TARGET) : $(OBJECTS)
 	$(FC) $(LDFLAGS) -o $(GGGPATH)/bin/$@ $^
 
 #  Add dependencies to object files
-$(TSRC)/compute_lm_absco.o:  $(GGGPATH)/src/ggg_int_params.f
-$(TSRC)/o2_lm_cia_routines.o:  $(GGGPATH)/src/ggg_int_params.f
-$(TSRC)/co2_all_lm_routines.o:  $(GGGPATH)/src/ggg_int_params.f
-$(TSRC)/ch4_all_lm_routines.o:  $(GGGPATH)/src/ggg_int_params.f
+$(TSRC)/compute_lm_absco.o:  $(GGGPATH)/src/gfit/ggg_int_params.f
+$(TSRC)/o2_lm_cia_routines.o:  $(GGGPATH)/src/gfit/ggg_int_params.f
+$(TSRC)/co2_all_lm_routines.o:  $(GGGPATH)/src/gfit/ggg_int_params.f
+$(TSRC)/ch4_all_lm_routines.o:  $(GGGPATH)/src/gfit/ggg_int_params.f
 
 clean:
 	rm -f $(OBJECTS) $(GGGPATH)/bin/$(TARGET)

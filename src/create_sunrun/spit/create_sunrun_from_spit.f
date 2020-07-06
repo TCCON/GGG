@@ -8,18 +8,19 @@ c  It will search the local directory for the .gnd file, and
 c  write the .gop file to the sunruns/ directory.
 c
       implicit none
-      include "../../ggg_int_params.f"
+      include "../../gfit/ggg_int_params.f"
       include "../params.f"
 
       integer*4 iy,im,id,hh,mm,ss,ms,pkl,prl,gfw,gbw,
      & fnbc,lnbc,fbc,ispe,iend,dtype,nsp,nip,dfr,
      & lr,lrt,ls,
-     & possp,istat,object,lst
+     & possp,istat,object,lst,idum
 c
       real*8 tins,pins,hins,tout,pout,hout,
      & wavtkr,oblat,oblon,obalt,lfl,hfl,foc,
      & fsf,tcorr,nus,nue,lwn,sia,sis,vdc,aipl,
-     & fxv,lxv,apt,dur,vel,phr,res,lse,lsu
+     & fxv,lxv,apt,dur,vel,phr,res,lse,lsu,lsf,
+     & dip,mvd,snr
 c
       character
      & spfmt*2,
@@ -30,7 +31,17 @@ c
      & gggdir*(mpath),            !ggg directory path (GGGPATH?)
      & specname*(nchar)           !spectrum name
 
-c
+      idum=mfilepath ! Avoid compiler warning (unused parameter)
+      idum=mauxcol  ! Avoid compiler warning (unused parameter)
+      idum=mcolvav  ! Avoid compiler warning (unused parameter)
+      idum=mgas     ! Avoid compiler warning (unused parameter)
+      idum=mlev     ! Avoid compiler warning (unused parameter)
+      idum=mrow_qc  ! Avoid compiler warning (unused parameter)
+      idum=mspeci   ! Avoid compiler warning (unused parameter)
+      idum=mvmode   ! Avoid compiler warning (unused parameter)
+      idum=ncell    ! Avoid compiler warning (unused parameter)
+      idum=nchar    ! Avoid compiler warning (unused parameter)
+
       write(6,*)'SUNRUN     Version 1.1.1    28-Nov-2007    GCT'
       col1=' '
 c
@@ -104,7 +115,8 @@ c  find the spectral file, return the PATH to the spectrum
        call read_opus_header(path,iend,dtype,nsp,fxv,lxv,iy,im,
      &  id,hh,mm,ss,ms,apt,dur,vel,apf,phr,res,lwn,foc,nip,dfr,
      &  pkl,prl,gfw,gbw,lfl,hfl,possp,oblat,oblon,obalt,
-     &  tins,pins,hins,tout,pout,hout,sia,sis,vdc,lst,lse,lsu)
+     &  tins,pins,hins,tout,pout,hout,sia,sis,vdc,lst,lse,lsu,
+     &  lsf,dip,mvd,snr)
 
          call write_sunrun(lunt,col1,specname,object,tcorr,oblat,
      &   oblon,obalt,tins,pins,hins,tout,pout,hout,nus,nue,fsf,

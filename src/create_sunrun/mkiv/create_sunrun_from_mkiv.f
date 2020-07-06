@@ -2,12 +2,12 @@ c  Program to create a GGG-compatible sunrun from an ascii list
 c  of spectra.
 c
       implicit none
-      include "../../ggg_int_params.f"
+      include "../../gfit/ggg_int_params.f"
       include "../params.f"
 
       integer*4 iy,im,id,ifirst,ilast,bytepw,fnbc,lnbc,fbc,ispe,iend,
      & lr,lrt,ls,mcol,ncol,
-     & possp,istat,object
+     & possp,istat,object,idum
       parameter (mcol=40)
 c
       real*8 tins,pins,hins,tout,pout,hout,wspd,wdir,
@@ -24,7 +24,17 @@ c
      & gggdir*(mpath),            !ggg directory path (GGGPATH?)
      & specname*(nchar)           !spectrum name
 
-c
+      idum=mfilepath ! Avoid compiler warning (unused parameter)
+      idum=mauxcol  ! Avoid compiler warning (unused parameter)
+      idum=mcolvav  ! Avoid compiler warning (unused parameter)
+      idum=mgas     ! Avoid compiler warning (unused parameter)
+      idum=mlev     ! Avoid compiler warning (unused parameter)
+      idum=mrow_qc  ! Avoid compiler warning (unused parameter)
+      idum=mspeci   ! Avoid compiler warning (unused parameter)
+      idum=mvmode   ! Avoid compiler warning (unused parameter)
+      idum=ncell    ! Avoid compiler warning (unused parameter)
+      idum=nchar    ! Avoid compiler warning (unused parameter)
+
       version=
      & 'create_sunrun_from_mkiv   Version 1.2.0    01-Aug-2012   GCT'
       col1=' '
@@ -100,6 +110,7 @@ c  find the spectral file, return the PATH to the spectrum
           call read_mkiv_header (specname,path,iend,ifirst,ilast,possp,
      &    bytepw,apf,delwav,opd,fovi,snr,oblat,oblon,obalt,
      &    pout,tout,hout,asza,iy,im,id,gmt,wavtkr,tins,pins,hins,lasf)
+          write(*,*) specname, iy, im, id, gmt,asza
 
       aipl=0.001        ! Airmass-Independent Path Length (km)
 

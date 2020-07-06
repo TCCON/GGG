@@ -24,7 +24,6 @@ c     tplon    R*8  Tangent Point Longitude (deg.)
 c     tpalt    R*8  Tangent Point Altitude (km)
 
       implicit none
-      include "../ggg_const_params.f"
 
       integer*4  object,iy,im,id
 
@@ -35,16 +34,18 @@ c     tpalt    R*8  Tangent Point Altitude (km)
      & obalt,                   !  Observer Altitude (km)
      & sslat, csslat, ssslat,   !  Sub-Solar Latitude (rads.)
      & sslon,                   !  Sub-Solar Longitude (rads.)
-     & ddlon, sddlon, cddlon,   !  subsolar-observer longitudes
+     & ddlon, sddlon, cddlon,   !  Observer-Subsolar longitudes
      & tplat, tplon,  tpalt,    !  Tangent Point location (degs & km)
      & asza,  casza,  sasza,    !  Astronomical Solar Zenith Angle
      & azim,   !  Solar Azimuth Angle (degs.)
      & gcrad,  !  Geocentric Radius of the Earth at OBLAT.
      & frd,    !  Time of day (fractional days)
      & pllx(2),!  Parallax: Earth-Radius/Earth-Object distance
+     & eod(2), !  Earth-Object Distance (km)
      & ervc,   !  Earth Rotational Velocity Component (m/s)
      & eorv    !  Earth-Object Radial Velocity (m/s)
-      parameter (d2r=dpi/180.0d0)
+      parameter (d2r=3.14159265359d0/180.0d0)
+      data eod/384402.,149597870.7/ ! Earth-Object Distance
       data pllx/.0166,.000043/  ! Earth Radius / Earth-Object distance
 c
 c      write(*,*) 'in zenaz',object,oblat,oblon,obalt,iy,im,id,frd
@@ -59,7 +60,7 @@ c  Compute astronomical solar zenith angle (ASZA).
       csslat=dcos(sslat)
       soblat=dsin(oblat*d2r)
       coblat=dcos(oblat*d2r)
-      ddlon=(sslon-oblon*d2r)
+      ddlon=(oblon*d2r-sslon)
       sddlon=dsin(ddlon)
       cddlon=dcos(ddlon)
       casza=cddlon*csslat*coblat+ssslat*soblat
@@ -73,23 +74,22 @@ c     and up to 0.9 deg in the case of the moon.
      & sqrt(1-2*pllx(object)*casza+pllx(object)**2)))/d2r
 c--------------------------------------------------------------------
 c  Compute azimuth angle (AZIM).
-      if(sasza.gt.0.0001) then
-        azim=(dacos((coblat*ssslat-soblat*csslat*cddlon)/sasza))/d2r
-        if(sddlon.lt.0.0d0) azim=360.d0-azim
-      else
-        azim=-999.d0 !    Sun overhead - Azimuth angle ill-defined
-      endif
-c  Although the expression above for the solar azimuth angle can be
-c  simplified to  AZIM=DACOS[(ssslat-soblat*casza)/(sasza*coblat)],
-c  this formula introduces a singularity when the observer is at the
-c  poles where coblat=0
+c      if(sasza.gt.0.0001) then
+c         azim=(dacos((coblat*ssslat-soblat*csslat*cddlon)/sasza))/d2r
+c         if(sddlon.gt.0.0d0) azim=360.d0-azim
+c      else
+c         azim=-999.d0 !    Sun overhead - Azimuth angle ill-defined
+c      endif
+      azim=datan2(-sddlon*csslat,ssslat*coblat-csslat*soblat*cddlon)/d2r
+c  Make AZIM cover 0 to 360 deg (fewer digits needed in runlog)
+      if(azim.lt.0.0d0) azim=azim+360.d0
 c--------------------------------------------------------------------
 c  Calculate the sunward Doppler shift due to the Earth's rotation
 c     6378.178  is the Earth's Equatorial Radius in km.
 c     3.36d-3 is the Earth's oblateness
 c     7.292116d-5 is the Earth's rotational velocity (radians/s)
       gcrad=1000.d0*(obalt+6378.178d0*(1.d0-3.36d-3*soblat**2)) ! Geocentric Radius
-      ervc=-(7.2722d-5*gcrad*coblat*csslat*sddlon)       ! velocity toward sun
+      ervc=(7.2722d-5*gcrad*coblat*csslat*sddlon)       ! velocity toward sun
 c     -ve values imply distance to sun is getting smaller
 c-----------------------------------------------------------------------
 c  Calculate the latitude and longitude of the unrefracted tangent point.

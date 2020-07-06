@@ -7,14 +7,14 @@ c       Positions in an bounded (i.e. known length) HITRAN-format ascii
 c       linelist to the last line having a frequency <= FPOS.
 c
 c  On Input:
-c           unit  = logical unit number of already-opened linelist
-c           fpos  = frequency (cm-1) that you want to position to
-c           nrec  = number of records (lines) in the file
+c       unit  = logical unit number of already-opened linelist
+c       fpos  = frequency (cm-1) that you want to position to
+c       nrec  = number of records (lines) in the file
 c
 c  On Output:
-c        posnall  = record # of last line whose freq < fpos
-c                 = 0 means that all lines exceeded fpos
-c                 = NREC means that no line exceeded fpos
+c       posnall  = record # of last line whose freq < fpos
+c                = 0 means that all lines exceeded fpos
+c                = NREC means that no line exceeded fpos
 c
 c  Normal usage:
 c     fsib=file_size_in_bytes(lun_ll,linfile)

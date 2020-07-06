@@ -14,7 +14,9 @@ SOURCES := \
   $(COMN)/lloc.f \
   $(COMN)/read_runlog_header.f \
   $(COMN)/read_runlog_data_record.f \
-  $(COMN)/substr.f
+  $(COMN)/get_ggg_environment.f \
+  $(COMN)/substr.f \
+  $(COMN)/write_postproc_header.f
 
 OBJECTS := $(patsubst %.f, %.o, $(SOURCES))
 
@@ -27,8 +29,9 @@ $(TARGET) : $(OBJECTS)
 	$(FC) $(LDFLAGS) -o $(GGGPATH)/bin/$@ $^
 
 #  Add dependencies to object files
-$(TSRC)/collate_results.o:  $(GGGPATH)/src/ggg_int_params.f $(TSRC)/params.f
+$(TSRC)/collate_results.o:  $(GGGPATH)/src/gfit/ggg_int_params.f $(TSRC)/params.f $(COMN)/postproc_params.f
 $(TSRC)/generate_qc_flag.o: $(TSRC)/params.f
+$(COMN)/write_postproc_header.o: $(COMN)/postproc_params.f
 
 clean:
 	rm -f $(OBJECTS) $(GGGPATH)/bin/$(TARGET)

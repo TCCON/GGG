@@ -1,25 +1,35 @@
-         242          44
- write_official_output_file   Version 1.35    2013-05-23   GCT
- apply_insitu_correction      Version 1.35    2012-12-18   GCT
- apply_airmass_correction     Version 1.31    2014-03-17   GCT
- average_results              Version 1.21    2012-10-05   GCT
- collate_results             Version 1.71     2013-10-18   GCT
- GFIT                     Version 4.37       2014-03-21    GCT
- GSETUP                   Version 3.92     2013-12-20    GCT
- Airmass-Dependent Correction Factors:
-xco2                  -0.0068   0.0050
-xch4                   0.0053   0.0080
-xn2o                   0.0039   0.0100
-xco                   -0.0483   0.1000
-xh2o                  -0.0000   0.0000
-Airmass-Independent/In-Situ Correction Factors:
+263,54
+ write_official_output_file  Version 1.37  2020-03-12  GCT,JLL
+ apply_insitu_correction   Version 1.38  2020-03-20   GCT,JLL
+ average_results          Version 1.36    2020-06-04   GCT,JLL
+ apply_airmass_correction   Version 1.36 2020-06-08   GCT,JLL
+ collate_results          Version 2.08    2020-04-19   GCT,JLL
+ GFIT                     Version 5.28        2020-04-24   GCT
+ GSETUP                   Version 4.70        2020-06-29   GCT
+ Airmass-Dependent Correction Factors: 14 1
+xco2_6220             -0.0068   0.0050
+xco2_6339             -0.0068   0.0050
+xlco2_4852             0.0000   0.0000
+xwco2_6073             0.0000   0.0000
+xwco2_6500             0.0000   0.0000
+xch4_5938              0.0053   0.0080
+xch4_6002              0.0053   0.0080
+xch4_6076              0.0053   0.0080
+xn2o_4395              0.0039   0.0100
+xn2o_4430              0.0039   0.0100
+xn2o_4719              0.0039   0.0100
+xco_4233              -0.0483   0.1000
+xco_4290              -0.0483   0.1000
+xluft_6146            -0.0000   0.0000
+Airmass-Independent/In-Situ Correction Factors: 6 1
 xco2                   0.9898   0.0010
 xch4                   0.9765   0.0020
 xn2o                   0.9638   0.0100
 xco                    1.0672   0.0200
 xh2o                   1.0183   0.0100
-  9.87649999989999970E+035
-format=(a57,1x,f13.8,22f13.5,020(1pe12.4))
+xluft                  1.0000   0.0000
+missing:  9.8755E+35
+format:(a57,1x,f13.8,23f13.5,030(1pe12.4))
 --------------------------------------------------------------------------
 
 Carbon Dioxide Dry Column-Averaged Mixing Ratios from Park Falls
@@ -197,50 +207,61 @@ to the #-value of the variable that was furthest out of range.
  4 "run"         0  1.0E+00 "f6.0" "      "   0        999999   Not output
  5 "lat"         1  1.0E+00 "f8.2" "(deg) "   45.8     46.0     Latitude (deg.)
  6 "long"        1  1.0E+00 "f9.2" "(deg) "  -91      -90       Longitude (deg.)
- 7 "zobs"        1  1.0E+00 "f7.2" "(km)  "   0.44     0.45     Geometric Altitude (km)
- 8 "zmin"        1  1.0E+00 "f7.2" "(km)  "  -0.0     +0.9      Pressure Altitude (km)
- 9 "asza"        1  1.0E+00 "f7.2" "(deg) "   0.0      82.0     Solar Zenith Angle (deg)
+ 7 "zobs"        1  1.0E+00 "f8.3" "(km)  "   0.441    0.443    Geometric Altitude (km)
+ 8 "zmin"        1  1.0E+00 "f8.3" "(km)  "   0.391    0.493    Pressure Altitude (km)
+ 9 "solzen"      1  1.0E+00 "f7.2" "(deg) "   0.0      82.0     Solar Zenith Angle (deg)
 10 "azim"        1  1.0E+00 "f8.2" "(deg) "  -180      360      Solar Azimuth Angle (deg)
 11 "osds"        1  1.0E+00 "f7.3" "(ppm) "  -9        9        Observer-Sun Doppler Stretch (ppm)
 12 "opd"         1  1.0E+00 "f7.2" "(cm)  "   40.0     50.0     Optical path Difference (cm)
 13 "fovi"        1  1.0E+00 "f6.3" "(rad) "   0.0      0.005    Internal Field Of View (rad)
-14 "graw"        1  1.0E+00 "f7.4" "(cm-1)"   0.0      0.016    Spectral Point Spacing (cm-1)
-15 "tins"        1  1.0E+00 "f6.1" "(C)   "   25.0     35.0     Internal Temperature (C)
-16 "pins"        1  1.0E+00 "f7.1" "(mbar)"   0.0      1030.0   Internal Pressure (hPa)
-17 "tout"        1  1.0E+00 "f6.1" "(C)   "  -35.      40.      External Temperature (C)
-18 "pout"        1  1.0E+00 "f7.1" "(hPa) "   940.     1030.    External  pressure (hPa)
-19 "hout"        1  1.0E+00 "f6.1" "(%RH) "   0        110.     External Humidity (%)
-20 "sia"         1  1.0E+00 "f7.1" "(AU)  "   0.0      9999.    Solar Intensity (Average)
-21 "fvsi"        1  1.0E+02 "f7.3" "(%)   "   0.0      5.       Fractional Variation in Solar Intensity
-22 "wspd"        1  1.0E+00 "f6.1" "(m/s) "   0.0      30.0     Wind Speed (m/s)
-23 "wdir"        1  1.0E+00 "f6.0" "(deg) "  -180      360.0    Wind Direction (deg.)
-24 "xair"        1  1.0E+00 "f7.3" "      "   0.96     1.04     0.2095*column_air/column_O2
-25 "xair_error"  1  0.3E+00 "f6.3" "      "   0.0      0.05     one-sigma precision
-26 "xhf"         1  1.0E+12 "f7.1" "(ppt) "  -1        500      0.2095*column_hf/column_o2
-27 "xhf_error"   1  0.7E+12 "f7.1" "(ppt) "   0        500      one-sigma precision
-28 "xh2o"        1  1.0E+06 "f9.2" "(ppm) "  -1.       15000    0.2095*column_h2o/column_o2
-29 "xh2o_error"  1  0.9E+06 "f8.2" "(ppm) "   0        5000     one-sigma precision
-30 "xhdo"        1  1.0E+06 "f9.2" "(ppm) "  -1.       15000    0.2095*column_h2o/column_o2
-31 "xhdo_error"  1  0.6E+06 "f8.2" "(ppm) "   0        5000     one-sigma precision
-32 "xco"         1  1.0E+09 "f7.1" "(ppb) "  -1.       500.     0.2095*column_hdo/column_o2
-33 "xco_error"   1  0.4E+09 "f7.1" "(ppb) "   0        20.      one-sigma precision
-34 "xn2o"        1  1.0E+09 "f8.2" "(ppb) "   100      400      0.2095*column_co/column_o2
-35 "xn2o_error"  1  0.3E+09 "f7.2" "(ppb) "   0        50       one-sigma precision
-36 "xch4"        1  1.0E+06 "f8.3" "(ppm) "   0        2        0.2095*column_ch4/column_o2
-37 "xch4_error"  1  1.2E+05 "f7.3" "(ppm) "   0        0.1      one-sigma precision
-38 "xco2"        1  1.0E+06 "f9.2" "(ppm) "   350      450      0.2095*column_co2/column_o2
-39 "xco2_error"  1  1.3E+05 "f8.2" "(ppm) "   0        10       one-sigma precision
-40 "xo2"         1  1.0E+00 "f7.4" "      "   0.20     0.22     0.2095*column_o2/column_o2=0.2095
-41 "xo2_error"   1  0.3E+00 "f7.4" "      "   0        0.05     one-sigma precision
-42 "xhcl"        1  1.0E+09 "f7.1" "(ppb) "   0        5        0.2095*column_hcl/column_o2
-43 "xhcl_error"  1  0.6E+09 "f7.4" "(ppb) "   0        50       one-sigma precision
-44 "qcflag"      0  1.0E+00 "f7.1" "      "   2.00     2.00     qcflag
+14 "amal"        0  1.0E+00 "f6.3" "(rad) "   0.0      0.004    Angular Mis-Alignment (rad)
+15 "graw"        1  1.0E+00 "f7.4" "(cm-1)"   0.0      0.016    Spectral Point Spacing (cm-1)
+16 "tins"        1  1.0E+00 "f6.1" "(C)   "   25.0     35.0     Internal Temperature (C)
+17 "pins"        1  1.0E+00 "f7.1" "(mbar)"   0.0      1030.0   Internal Pressure (hPa)
+18 "tout"        1  1.0E+00 "f6.1" "(C)   "  -35.      40.      External Temperature (C)
+19 "pout"        1  1.0E+00 "f7.1" "(hPa) "   940.     1030.    External  pressure (hPa)
+20 "hout"        1  1.0E+00 "f6.1" "(%RH) "   0        110.     External Humidity (%)
+21 "sia"         1  1.0E+00 "f7.1" "(AU)  "   0.0      9999.    Solar Intensity (Average)
+22 "fvsi"        1  1.0E+02 "f7.3" "(%)   "   0.0      5.       Fractional Variation in Solar Intensity
+23 "wspd"        1  1.0E+00 "f6.1" "(m/s) "   0.0      30.0     Wind Speed (m/s)
+24 "wdir"        1  1.0E+00 "f6.0" "(deg) "  -180      360.0    Wind Direction (deg.)
+25 "xluft"       1  1.0E+00 "f8.4" "      "   0.96     1.04     0.2095*column_air/column_O2
+26 "xluft_error" 1  0.3E+00 "f7.4" "      "   0.0      0.05     one-sigma precision
+27 "xhf"         1  1.0E+12 "f7.1" "(ppt) "  -1        500      0.2095*column_hf/column_o2
+28 "xhf_error"   1  0.7E+12 "f7.1" "(ppt) "   0        500      one-sigma precision
+29 "xh2o"        1  1.0E+06 "f9.2" "(ppm) "  -1.       15000    0.2095*column_h2o/column_o2
+30 "xh2o_error"  1  0.9E+06 "f8.2" "(ppm) "   0        5000     one-sigma precision
+31 "xhdo"        1  1.0E+06 "f9.2" "(ppm) "  -1.       15000    0.2095*column_hdo/column_o2
+32 "xhdo_error"  1  0.6E+06 "f8.2" "(ppm) "   0        5000     one-sigma precision
+33 "xth2o"       1  1.0E+06 "f9.2" "(ppm) "  -1.       15000    0.2095*column_th2o/column_o2
+34 "xth2o_error" 1  0.9E+06 "f8.2" "(ppm) "   0        5000     one-sigma precision
+35 "xco"         1  1.0E+09 "f7.1" "(ppb) "  -1.       500.     0.2095*column_co/column_o2
+36 "xco_error"   1  0.4E+09 "f7.1" "(ppb) "   0        20.      one-sigma precision
+37 "xn2o"        1  1.0E+09 "f8.2" "(ppb) "   100      400      0.2095*column_co/column_o2
+38 "xn2o_error"  1  0.3E+09 "f7.2" "(ppb) "   0        50       one-sigma precision
+39 "xch4"        1  1.0E+06 "f9.4" "(ppm) "   0        2        0.2095*column_ch4/column_o2
+40 "xch4_error"  1  1.2E+05 "f8.4" "(ppm) "   0        0.1      one-sigma precision
+41 "xco2"        1  1.0E+06 "f9.2" "(ppm) "   350      450      0.2095*column_wco2/column_o2
+42 "xco2_error"  1  1.3E+05 "f8.2" "(ppm) "   0        10       one-sigma precision
+43 "xwco2"       1  1.0E+06 "f9.2" "(ppm) "   350      450      0.2095*column_wco2/column_o2
+44 "xwco2_error" 1  1.3E+05 "f8.2" "(ppm) "   0        20       one-sigma precision
+45 "xlco2"       1  1.0E+06 "f9.2" "(ppm) "   350      450      0.2095*column_lco2/column_o2
+46 "xlco2_error" 1  1.3E+05 "f8.2" "(ppm) "   0        20       one-sigma precision
+47 "xfco2"       1  1.0E+06 "f9.2" "(ppm) "   0        950      0.2095*column_fco2/column_o2
+48 "xfco2_error" 1  1.3E+05 "f8.2" "(ppm) "   0        500      one-sigma precision
+49 "xzco2"       1  1.0E+06 "f9.2" "(ppm) "   0        950      0.2095*column_zco2/column_o2
+50 "xzco2_error" 1  1.3E+05 "f8.2" "(ppm) "   0        500      one-sigma precision
+51 "xo2"         1  1.0E+00 "f7.4" "      "   0.20     0.22     0.2095*column_o2/column_o2=0.2095
+52 "xo2_error"   1  0.3E+00 "f7.4" "      "   0        0.05     one-sigma precision
+53 "xhcl"        1  1.0E+09 "f7.1" "(ppb) "   0        5        0.2095*column_hcl/column_o2
+54 "xhcl_error"  1  0.6E+09 "f7.4" "(ppb) "   0        50       one-sigma precision
+55 "qcflag"      0  1.0E+00 "f7.1" "      "   2.00     2.00     qcflag
 ------------------------------------------------------------------------------------------------------------------------
 Latitude  Longitude  Altitude  SiteID
    45.945  -90.273    0.442    pa
 ------------------------------------------------------------------------------------------------------------------------
- flag,spectrum,year,day,hour,lat(deg),long(deg),zobs(km),zmin(km),asza(deg),azim(deg),osds(ppm),opd(cm),fovi(rad),graw(cm-1),tins(C),pins(mbar),tout(C),pout(hPa),hout(%RH),sia(AU),fvsi(%),wspd(m/s),wdir(deg),xair,xair_error,xhf(ppt),xhf(ppt)_error,xh2o(ppm),xh2o(ppm)_error,xhdo(ppm),xhdo(ppm)_error,xco(ppb),xco(ppb)_error,xn2o(ppb),xn2o(ppb)_error,xch4(ppm),xch4(ppm)_error,xco2(ppm),xco2(ppm)_error,xo2,xo2_error,xhcl(ppb),xhcl(ppb)_error
-0,pa20040721saaaaa.043,2004.,203.,20.596,45.94,-90.27,0.44,0.47,39.68,242.28,0.138,45.05,0.002,0.0075,30.3,0.9,29.1,950.7,62.8,207.5,0.720,1.7,125.,0.979,0.003,62.0,4.7,6059.70,53.40,5522.00,38.11,80.5,0.8,302.25,1.07,1.738,0.002,373.55,0.51,0.2095,0.0006,0.2,0.0010
-0,pa20040721saaaaa.119,2004.,203.,22.980,45.94,-90.27,0.44,0.47,63.80,272.66,0.490,45.05,0.002,0.0075,30.3,0.9,29.4,950.6,61.2,189.0,0.530,1.8,139.,0.981,0.003,65.2,9.8,5047.30,57.34,4706.80,39.70,84.1,0.9,303.28,1.28,1.758,0.003,371.83,0.59,0.2095,0.0007,0.2,0.0012
-9,pa20041222saaaaa.019,2004.,357.,14.668,45.94,-90.27,0.44,0.48,82.85,134.93,-1.095,45.00,0.002,0.0075,28.4,0.6,-23.1,965.1,80.0,177.4,0.680,0.0,0.,0.978,0.002,73.8,0.7,311.77,2.28,210.20,1.80,91.0,0.1,300.72,0.24,1.772,0.002,379.19,0.25,0.2095,0.0001,0.3,0.0009
-9,pa20041222saaaaa.020,2004.,357.,14.722,45.94,-90.27,0.44,0.48,82.45,135.56,-1.086,45.00,0.002,0.0075,28.4,0.6,-23.0,965.3,80.0,179.0,1.060,0.0,0.,0.976,0.002,74.7,0.8,309.06,2.24,207.40,1.79,90.9,0.1,300.55,0.24,1.771,0.002,379.11,0.25,0.2095,0.0001,0.3,0.0009
+ flag,spectrum,year,day,hour,lat(deg),long(deg),zobs(km),zmin(km),solzen(deg),azim(deg),osds(ppm),opd(cm),fovi(rad),graw(cm-1),tins(C),pins(mbar),tout(C),pout(hPa),hout(%RH),sia(AU),fvsi(%),wspd(m/s),wdir(deg),xluft,xluft_error,xhf(ppt),xhf(ppt)_error,xh2o(ppm),xh2o(ppm)_error,xth2o(ppm),xth2o(ppm)_error,xhdo(ppm),xhdo(ppm)_error,xco(ppb),xco(ppb)_error,xn2o(ppb),xn2o(ppb)_error,xch4(ppm),xch4(ppm)_error,xlco2(ppm),xlco2(ppm)_error,xzco2(ppm),xzco2(ppm)_error,xfco2(ppm),xfco2(ppm)_error,xwco2(ppm),xwco2(ppm)_error,xco2(ppm),xco2(ppm)_error,xo2,xo2_error,xhcl(ppb),xhcl(ppb)_error
+0,pa20040721saaaaa.043,2004.,203.,20.596,45.94,-90.27,0.442,0.461,39.68,242.28,0.138,45.02,0.002,0.0075,30.3,0.9,29.1,950.7,62.8,207.5,0.720,1.7,125.,0.9947,0.0024,65.7,6.3,6217.10,45.66,6295.00,48.51,5395.70,30.65,84.1,0.6,309.74,0.88,1.7782,0.0019,372.71,0.57,372.47,0.48,373.49,0.60,375.89,0.49,380.68,0.45,0.2095,0.0005,0.2,0.0008
+0,pa20040721saaaaa.119,2004.,203.,22.980,45.94,-90.27,0.442,0.467,63.80,272.66,0.490,45.02,0.002,0.0075,30.3,0.9,29.4,950.6,61.2,189.0,0.530,1.8,139.,0.9986,0.0025,70.1,14.7,5276.70,39.86,5316.90,41.65,4681.50,26.75,88.5,0.6,310.90,0.93,1.7930,0.0020,370.83,0.63,370.99,0.52,372.20,0.56,374.02,0.52,379.13,0.47,0.2095,0.0005,0.2,0.0009
+9,pa20041222saaaaa.019,2004.,357.,14.668,45.94,-90.27,0.442,0.472,82.85,134.93,-1.095,44.97,0.002,0.0075,28.4,0.6,-23.1,965.1,80.0,177.4,0.680,0.0,0.,0.9979,0.0017,75.5,0.7,313.29,2.24,324.74,2.44,197.64,1.46,92.7,0.1,308.87,0.16,1.7881,0.0011,378.68,0.37,378.22,0.30,381.89,0.41,382.83,0.35,385.91,0.25,0.2095,0.0001,0.3,0.0008
+9,pa20041222saaaaa.020,2004.,357.,14.722,45.94,-90.27,0.442,0.470,82.45,135.56,-1.086,44.97,0.002,0.0075,28.4,0.6,-23.0,965.3,80.0,179.0,1.060,0.0,0.,0.9961,0.0017,76.6,0.7,310.22,2.21,321.73,2.42,195.60,1.44,92.6,0.1,308.80,0.16,1.7878,0.0011,378.47,0.36,378.05,0.30,382.28,0.40,383.15,0.35,386.02,0.25,0.2095,0.0001,0.3,0.0008

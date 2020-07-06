@@ -87,9 +87,11 @@ pro read2mem,nfile,fname,gmissing,header,ncol,nrow,buf
       for k=1,7 do  readf, unit, ccc
       readf, unit, nx
       readf, unit, nxdef
-      xx = strarr(nxdef)
+;      xx = strarr(nxdef)
       readf, unit, ccc
-      substr,ccc,xx,nxdef,jj
+;      substr,ccc,xx,nxdef,jj
+      xx = strsplit(ccc,' ,',count=jj,/extract)
+
       readf, unit, iv1
       readf, unit, iv2
       readf, unit, kdcol
@@ -197,11 +199,16 @@ pro read2mem,nfile,fname,gmissing,header,ncol,nrow,buf
          print, ccc
          lcolon=strpos(ccc,":")+1
       if(strpos(ccc,"missing:") ge 0)then reads,strmid(ccc,lcolon,9999),zmiss
+      if(strpos(ccc,"Missing:") ge 0)then reads,strmid(ccc,lcolon,9999),zmiss
       if(strpos(ccc,"MISSING:") ge 0)then reads,strmid(ccc,lcolon,9999),zmiss
       if(strpos(ccc,"SCALING:") ge 0)then reads,strmid(ccc,lcolon,9999),zscal
-      if(strpos(ccc,"LABELS:") ge 0)then substr,strmid(ccc,lcolon,9999),ztitl,ndcol,jj
+;      if(strpos(ccc,"LABELS:") ge 0)then substr,strmid(ccc,lcolon,9999),ztitl,ndcol,jj
+      if(strpos(ccc,"LABELS:") ge 0)then ztitl = strsplit(strmid(ccc,lcolon,9999),' ,',count=jj,/extract)
       endfor
-      if (jj eq 0) then  substr,ccc,ztitl,ndcol,jj
+;      if (jj eq 0) then  substr,ccc,ztitl,ndcol,jj
+      if (jj eq 0) then  ztitl = strsplit(ccc,' ,',count=jj,/extract)
+;  substr, headers, gases, mss, nss
+
       if jj ne ndcol then begin
          print, ccc
          print, fname(ifile)+': mismatched number of columns & ztitl'

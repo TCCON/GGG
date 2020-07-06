@@ -1,4 +1,6 @@
       subroutine read_runlog_header(lunr_rl,data_fmt_rl,col_labels_rl)
+
+c  Reads the runlog header.
       integer*4 lunr_rl,mcol,ncol,kcol,nhl,j
       parameter (mcol=40)
       character outarr(mcol)*40,col_labels_rl*(*),data_fmt_rl*(*)

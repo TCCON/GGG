@@ -39,15 +39,22 @@ C             1     THE SOLUTION HAS BEEN COMPUTED SUCCESSFULLY.
 C             2     THE DIMENSIONS OF THE PROBLEM ARE BAD.  
 C                   EITHER M .LE. 0 OR N .LE. 0.
 C             3    ITERATION COUNT EXCEEDED.  MORE THAN 3*N ITERATIONS. 
-C   
+
+c  GCT 20170630:
+c  Replaced archaic code (ASSIGN and Arithmetic IF-statements)
+c  Set IZMAX and JJ to 0 to avoid compiler warning (may be used uninitialized)
+
       SUBROUTINE NNLS (A,MDA,M,N,B,X,RNORM,W,ZZ,INDEX,MODE) 
       implicit none
       integer mda,m,n,mode,iter,i,itmax,iz1,iz2,nsetp,npp1,iz,j,l,izmax,
-     & jz,jj,next,ii,ip
+     & jz,jj,ii,ip
       real rnorm,zero,one,two,factor,ztest,alpha,t,cc,ss,diff,sm,wmax,
      & asave,up,dummy,unorm
       REAL A(MDA,N), B(M), X(N), W(N), ZZ(M)   
       INTEGER INDEX(N)  
+
+      izmax=0  ! avoid compiler warning (may be used uninitialized)
+      jj=0     ! avoid compiler warning (may be used uninitialized)
       ZERO=0.   
       ONE=1.
       TWO=2.
@@ -97,8 +104,9 @@ C
 C             IF WMAX .LE. 0. GO TO TERMINATION.
 C             THIS INDICATES SATISFACTION OF THE KUHN-TUCKER CONDITIONS.
 C   
-      IF (WMAX) 350,350,80  
-   80 IZ=IZMAX  
+c      IF (WMAX) 350,350,80
+      IF (WMAX. le. 0.0) goto 350
+      IZ=IZMAX
       J=INDEX(IZ)   
 C   
 C     THE SIGN OF W(J) IS OK FOR J TO BE MOVED TO SET P.    
@@ -112,19 +120,20 @@ C
           DO 90 L=1,NSETP   
    90     UNORM=UNORM+A(L,J)**2     
   100 UNORM=SQRT(UNORM) 
-      IF (DIFF(UNORM+ABS(A(NPP1,J))*FACTOR,UNORM)) 130,130,110  
+c      IF (DIFF(UNORM+ABS(A(NPP1,J))*FACTOR,UNORM)) 130,130,110
+      IF (DIFF(UNORM+ABS(A(NPP1,J))*FACTOR,UNORM) .lt. 0.0) go to 130
 C   
 C     COL J IS SUFFICIENTLY INDEPENDENT.  COPY B INTO ZZ, UPDATE ZZ AND 
 C     SOLVE FOR ZTEST ( = PROPOSED NEW VALUE FOR X(J) ).    
 C   
-  110     DO 120 L=1,M  
-  120     ZZ(L)=B(L)    
-      CALL H12 (2,NPP1,NPP1+1,M,A(1,J),1,UP,ZZ,1,1,1)   
-      ZTEST=ZZ(NPP1)/A(NPP1,J)  
+          DO 120 L=1,M
+  120     ZZ(L)=B(L)
+      CALL H12 (2,NPP1,NPP1+1,M,A(1,J),1,UP,ZZ,1,1,1)
+      ZTEST=ZZ(NPP1)/A(NPP1,J)
 C   
 C                                     SEE IF ZTEST IS POSITIVE  
 C   
-      IF (ZTEST) 130,130,140
+      IF (ZTEST .GT. 0.0) goto 140
 C   
 C     REJECT J AS A CANDIDATE TO BE MOVED FROM SET Z TO SET P.  
 C     RESTORE A(NPP1,J), SET W(J)=0., AND LOOP BACK TO TEST DUAL
@@ -162,34 +171,36 @@ C
       W(J)=ZERO 
 C                                SOLVE THE TRIANGULAR SYSTEM.   
 C                                STORE THE SOLUTION TEMPORARILY IN ZZ().
-      ASSIGN 200 TO NEXT
-      GO TO 400 
-  200 CONTINUE  
+c      ASSIGN 200 TO NEXT
+c      GO TO 400
+      call triang(nsetp,mda,m,n,a,zz,index)
+c  200 CONTINUE
 C   
 C                       ******  SECONDARY LOOP BEGINS HERE ******   
 C   
 C                          ITERATION COUNTER.   
 C   
-  210 ITER=ITER+1   
-      IF (ITER.LE.ITMAX) GO TO 220  
+  210 ITER=ITER+1
+      IF (ITER.LE.ITMAX) GO TO 220
       MODE=3
-c      WRITE (6,440) iter     
-      GO TO 350 
-  220 CONTINUE  
+c      WRITE (6,440) iter
+      GO TO 350
+  220 CONTINUE
 C   
 C                    SEE IF ALL NEW CONSTRAINED COEFFS ARE FEASIBLE.    
 C                                  IF NOT COMPUTE ALPHA.    
 C   
       ALPHA=TWO 
-          DO 240 IP=1,NSETP 
-          L=INDEX(IP)   
-          IF (ZZ(IP)) 230,230,240   
-C   
-  230     T=-X(L)/(ZZ(IP)-X(L))     
-          IF (ALPHA.LE.T) GO TO 240 
-          ALPHA=T   
-          JJ=IP 
-  240     CONTINUE  
+          DO 240 IP=1,NSETP
+          L=INDEX(IP)
+c          IF (ZZ(IP)) 230,230,240
+          IF (ZZ(IP) .gt. 0.0) goto 240
+c
+          T=-X(L)/(ZZ(IP)-X(L))
+          IF (ALPHA.LE.T) GO TO 240
+          ALPHA=T
+          JJ=IP
+  240     CONTINUE
 C   
 C          IF ALL NEW CONSTRAINED COEFFS ARE FEASIBLE THEN ALPHA WILL   
 C          STILL = 2.    IF SO EXIT FROM SECONDARY LOOP TO MAIN LOOP.   
@@ -233,16 +244,18 @@ C        AND MOVED FROM SET P TO SET Z.
 C   
           DO 300 JJ=1,NSETP 
           I=INDEX(JJ)   
-          IF (X(I)) 260,260,300     
+c          IF (X(I)) 260,260,300     
+          IF (X(I) .le. 0.0) go to 260
   300     CONTINUE  
 C   
 C         COPY B( ) INTO ZZ( ).  THEN SOLVE AGAIN AND LOOP BACK.
 C   
           DO 310 I=1,M  
   310     ZZ(I)=B(I)    
-      ASSIGN 320 TO NEXT
-      GO TO 400 
-  320 CONTINUE  
+c      ASSIGN 320 TO NEXT
+c      GO TO 400
+       call triang(nsetp,mda,m,n,a,zz,index)
+c  320 CONTINUE  
       GO TO 210 
 C                      ******  END OF SECONDARY LOOP  ******
 C   
@@ -270,16 +283,32 @@ C
 C     THE FOLLOWING BLOCK OF CODE IS USED AS AN INTERNAL SUBROUTINE     
 C     TO SOLVE THE TRIANGULAR SYSTEM, PUTTING THE SOLUTION IN ZZ().     
 C   
-  400     DO 430 L=1,NSETP  
-          IP=NSETP+1-L  
-          IF (L.EQ.1) GO TO 420     
-              DO 410 II=1,IP
-  410         ZZ(II)=ZZ(II)-A(II,JJ)*ZZ(IP+1)   
-  420     JJ=INDEX(IP)  
-  430     ZZ(IP)=ZZ(IP)/A(IP,JJ)    
-      GO TO NEXT, (200,320) 
-  440 FORMAT ('NNLS QUITTING AFTER',i4,' iterations')   
+c  400     DO 430 L=1,NSETP  
+c          IP=NSETP+1-L  
+c          IF (L.EQ.1) GO TO 420     
+c              DO 410 II=1,IP
+c  410         ZZ(II)=ZZ(II)-A(II,JJ)*ZZ(IP+1)   
+c  420     JJ=INDEX(IP)  
+c  430     ZZ(IP)=ZZ(IP)/A(IP,JJ)    
+c      GO TO NEXT, (200,320) 
+c  440 FORMAT ('NNLS QUITTING AFTER',i4,' iterations')   
       END   
+
+      subroutine triang(nsetp,mda,m,n,a,zz,index)
+      integer*4 nsetp,l,mda,m,n,ii,jj,ip
+      REAL A(MDA,N),ZZ(M)   
+      INTEGER INDEX(N)  
+      DO L=1,NSETP
+          IP=NSETP+1-L
+          IF (L.EQ.1) GO TO 420
+              DO II=1,IP
+              ZZ(II)=ZZ(II)-A(II,JJ)*ZZ(IP+1)
+              end do
+  420     JJ=INDEX(IP)
+          ZZ(IP)=ZZ(IP)/A(IP,JJ)    
+      end do
+      return
+      end
 
 
 C     SUBROUTINE H12 (MODE,LPIVOT,L1,M,U,IUE,UP,C,ICE,ICV,NCV)  
@@ -324,28 +353,32 @@ C
 C                            ****** CONSTRUCT THE TRANSFORMATION. ******
           DO 10 J=L1,M  
    10     CL=AMAX1(ABS(U(1,J)),CL)  
-      IF (CL) 130,130,20
-   20 CLINV=ONE/CL  
+c      IF (CL) 130,130,20
+      IF (CL .le. 0.0) go to 130
+      CLINV=ONE/CL  
       SM=(DBLE(U(1,LPIVOT))*CLINV)**2   
           DO 30 J=L1,M  
    30     SM=SM+(DBLE(U(1,J))*CLINV)**2 
 C                              CONVERT DBLE. PREC. SM TO SNGL. PREC. SM1
       SM1=SM
       CL=CL*SQRT(SM1)   
-      IF (U(1,LPIVOT)) 50,50,40     
-   40 CL=-CL
+c      IF (U(1,LPIVOT)) 50,50,40     
+      IF (U(1,LPIVOT) .le. 0.0) goto 50     
+      CL=-CL
    50 UP=U(1,LPIVOT)-CL 
       U(1,LPIVOT)=CL    
       GO TO 70  
 C            ****** APPLY THE TRANSFORMATION  I+U*(U**T)/B  TO C. ******
 C   
-   60 IF (CL) 130,130,70
+c   60 IF (CL) 130,130,70
+   60 IF (CL .le. 0.0) goto 130
    70 IF (NCV.LE.0) RETURN  
       B=DBLE(UP)*U(1,LPIVOT)
 C                       B  MUST BE NONPOSITIVE HERE.  IF B = 0., RETURN.
 C   
-      IF (B) 80,130,130 
-   80 B=ONE/B   
+c      IF (B) 80,130,130 
+      IF (B .ge. 0.0) goto 130 
+      B=ONE/B   
       I2=1-ICV+ICE*(LPIVOT-1)   
       INCR=ICE*(L1-LPIVOT)  
           DO 120 J=1,NCV
@@ -356,8 +389,9 @@ C
               DO 90 I=L1,M  
               SM=SM+C(I3)*DBLE(U(1,I))  
    90         I3=I3+ICE 
-          IF (SM) 100,120,100   
-  100     SM=SM*B   
+c          IF (SM) 100,120,100   
+          IF (SM .eq. 0.0) goto 120   
+          SM=SM*B   
           C(I2)=C(I2)+SM*DBLE(UP)   
               DO 110 I=L1,M 
               C(I4)=C(I4)+SM*DBLE(U(1,I))   
@@ -390,8 +424,9 @@ C
       SIN=COS*XR
       SIG=ABS(A)*YR     
       RETURN
-   10 IF (B) 20,30,20   
-   20 XR=A/B
+c   10 IF (B) 20,30,20
+   10 IF (B .eq. 0.0) goto 30
+      XR=A/B
       YR=SQRT(ONE+XR**2)
       SIN=SIGN(ONE/YR,B)
       COS=SIN*XR

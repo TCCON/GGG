@@ -14,7 +14,7 @@ c
 c  Uses the gindfile subroutine to search through the list of
 c  data partitions where spectra may be stored.
 c
-      include "../ggg_int_params.f"
+      include "../gfit/ggg_int_params.f"
 
       integer*4 lunw,fnbc,lnbc,lf,iyyyy,imm,idd,j1,j2,jul,
      & idet,idet_initial, idet_final,
@@ -22,9 +22,20 @@ c
       parameter (lunw=14)
       character path*(mpath),filename*57,initial_file*57,final_file*57,
      & det_initial*1,det_final*1,gggdir*(mpath),dl*1,fmt*10,version*50
-      integer*4 ldot, lloc, nextdigit
+      integer*4 ldot, lloc, nextdigit, idum
 
-      version= ' list_maker    Version 1.1.0     2013-01-14   GCT '
+      idum=mfilepath ! Avoid compiler warning (unused parameter)
+      idum=mauxcol  ! Avoid compiler warning (unused parameter)
+      idum=mcolvav  ! Avoid compiler warning (unused parameter)
+      idum=mgas     ! Avoid compiler warning (unused parameter)
+      idum=mlev     ! Avoid compiler warning (unused parameter)
+      idum=mrow_qc  ! Avoid compiler warning (unused parameter)
+      idum=mspeci   ! Avoid compiler warning (unused parameter)
+      idum=mvmode   ! Avoid compiler warning (unused parameter)
+      idum=ncell    ! Avoid compiler warning (unused parameter)
+      idum=nchar    ! Avoid compiler warning (unused parameter)
+
+      version= ' list_maker    Version 1.11     2016-04-02   GCT '
       write(*,*) version
       call get_ggg_environment(gggdir, dl)
       gggdir=gggdir(:lnbc(gggdir))//'config'//dl//
@@ -104,8 +115,8 @@ c     &          "(I" // ADJUSTL(fmt) // "." // ADJUSTL(fmt) // ")") iext
                call gindfile(gggdir,filename,path)
                nquery=nquery+1
                if(lnbc(path).gt.0) then
-                    ncount=ncount+1
-                    write(lunw,'(a)')filename
+                  ncount=ncount+1
+                  write(lunw,'(a)')filename
                endif
 c              write(*,*)file_exists,filename
                if( mod(nquery,10000).eq.0 ) write(*,*) ncount,

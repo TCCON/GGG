@@ -32,10 +32,10 @@ c       possp  I*4  ! Position Of Starting Spectral Point (bytes)
 c
       implicit none
       character path*(*),apf*2,hst*80,date*8,comment*40
-      integer*4 dtype,hedlen,luns,iend,
+      integer*4 dtype,luns,iend,
      & npoints,ncenter,ic
       integer*4 nsp,iy,im,id,hh,mm,ss,nip,pkl,prl,possp
-      parameter (hedlen=512,luns=19)
+      parameter (luns=19)
 
       real*8 vel,phr,res,apt,dur,oblat,oblon,obalt,
      & tins,pins,hins,tout,pout,hout,fovi,fovo,

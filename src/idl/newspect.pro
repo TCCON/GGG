@@ -28,7 +28,8 @@ nocl=1
 ttyp=0
 possp=0l
 ulim=string('f')
-version=string(' newspect    Version 1.90     2010-12-28    gct ')
+ifset=0
+version=string(' newspect    Version 2.10     2018-04-17    gct ')
 
 !p.charsize=1.5
 !p.thick=3
@@ -45,17 +46,11 @@ print,version
 ;termin,ttyp,termtp,color,idl_device
 set_plot,idl_device
 window,0,title='newspect.pro', xsize=1100,ysize=512,colors=2
-  xmenu,base=base,['runlog','next','previous','skip',$
-  'yscale upper','yscale lower','yscale auto',$
-  'frequency','zoom','antizoom','cursor',$
-  'frame right','frame left','freq+4','atlas frame',$
-  'apodize','interpolate','w.length','oplot',$
-  'hardcopy','quit'],buttons=buttn
+  xmenu,base=base,['prev (-2)','prev (-1)','next (+1)','next (+2)','skip',$
+  'yscale upper','yscale lower','yscale auto','frequency','zoom','antizoom',$
+  'cursor','frame right','frame left','freq+4','atlas frame','apodize',$
+  'interpolate','w.length','oplot','hardcopy','quit'],buttons=buttn
 widget_control,/realize,base
-print,format='($,"central frequency (cm-1)")'
-read,frqcen
-print,format='($,"window width (cm-1)")'
-read,wid
 
 rtn1:
 on_ioerror,rtn1
@@ -72,12 +67,10 @@ case strmid(occul,ix-3,1) of
    'l': openr,unit,string('$GGGPATH/runlogs/lab/',occul),/get_lun
 endcase
 
-if dwas ne ' ' and dwas ne strmid(occul,strlen(occul)-2,2) then begin
-  print,format='($,"central frequency (cm-1)")'
-  read,frqcen
-  print,format='($,"window width (cm-1)")'
-  read,wid
-endif
+;print,format='($,"central frequency (cm-1)")'
+;read,frqcen
+;print,format='($,"window width (cm-1)")'
+;read,wid
 
 on_ioerror,rtn5
 
@@ -85,6 +78,7 @@ readf,unit,nhl,ncol   ; title line
 ihl=1
 while(ihl lt nhl) do begin
 readf,unit,names   ; skip title line
+  print,ihl,names
 ihl=ihl+1
 endwhile
 
@@ -105,8 +99,8 @@ endwhile
 nspe=j
 close,unit
 free_lun,unit
-print,format='($,"spectrum number (-1 to quit)")'
-read,kspec
+;print,format='($,"spectrum number (-1 to quit)")'
+;read,kspec
 print,'nspe=',nspe
 if kspec lt 0 or kspec gt nspe-1 then goto,rtn5
 kspec=kspec-1
@@ -127,19 +121,22 @@ if kspec gt nspe-1 then begin
    kspec=nspe-1
    kskip=-1
 endif
+print,'kspec,kskip=',kspec,kskip
 reads,runlogstr(kspec),format=rlformat,$
 spectrum,zobs,asza,zenoff,azim,osds,opd,fovi,fovo,amal,ifirst,ilast,graw,possp,bpw,pout
+
+if (ifset le 0) then begin  ; No freq range defined, so plot all.
+  frqcen=graw*(ifirst+ilast)/2
+  wid=graw*(ilast-ifirst)
+endif
+
 spectrum=strtrim(spectrum)
-print, spectrum,zobs, asza+zenoff, (3389.5+zobs)*sin(3.14159265*(asza+zenoff)/180)-3389.5
+;print, spectrum,zobs, asza+zenoff, (3389.5+zobs)*sin(3.14159265*(asza+zenoff)/180)-3389.5
 ;graw=graw*(double(1.)+(fovi^2+amal^2)*6.25e-02)
 if ((round(frqcen-0.5*wid) gt ilast*graw) or $
   (long(frqcen+0.5*wid) lt ifirst*graw)) then begin
   print,format='(a22," only encompasses ",f9.1," to ",f9.1, " cm-1")',$
     spectrum,ifirst*graw,ilast*graw
-;    print,format='($,"central frequency (cm-1)")'
-;    read,frqcen
-;    print,format='($,"window width (cm-1)")'
-;    read,wid
 endif
 ffile,spectrum,partition,ipart,npart,path
 ;ffile,spectrum,currpart,path,flag
@@ -196,57 +193,68 @@ time=strmid(systime(0),8,2)+'-'+strmid(systime(0),4,3)+'-'+$
 event=widget_event(base)
 ll=where(buttn eq event.id)
 case ll(0) of
-   0: begin          ; runlog
-        dwas=strmid(occul,strlen(occul)-2,2)
-        goto,rtn1
-      end
-   1: begin          ; next
-        kskip=+1
+;   0: begin          ; runlog
+;        dwas=strmid(occul,strlen(occul)-2,2)
+;        goto,rtn1
+;      end
+   0: begin          ; previous -2
+        kskip=-2
         goto,rtn2
       end
-   2: begin          ; previous
+   1: begin          ; previous
         kskip=-1
         goto,rtn2
       end
-   3: begin          ; skip
+   2: begin          ; next
+        kskip=+1
+        goto,rtn2
+      end
+   3: begin          ; next +2
+        kskip=+2
+        goto,rtn2
+      end
+   4: begin          ; skip
         print,format='("currently at spectrum #:",(i5)," /",(i5))',kspec,nspe
         print,format='($,"how many spectra to skip?")'
         read,kskip
         goto,rtn2
       end
-   4: begin          ; yscale upper
+   5: begin          ; yscale upper
         print,format='($,"transmission maximum for window")'
         read,maxtrans
         ulim=string('t')
         goto,rtn4b
       end
-   5: begin          ; yscale lower
+   6: begin          ; yscale lower
         print,format='($,"transmission minimum for window")'
         read,mintrans
         llim=string('t')
         goto,rtn4b
       end
-   6: begin          ; yscale auto
+   7: begin          ; yscale auto
         llim=string('f')
         ulim=string('f')
         goto,rtn4a
       end
-   7: begin          ; frequency
+   8: begin          ; frequency
         print,format='($,"central frequency (cm-1)")'
         read,frqcen
         print,format='($,"window width (cm-1)")'
         read,wid
+        ifset=1
         goto,rtn3
       end
-   8: begin          ; zoom
+   9: begin          ; zoom
         wid=wid*0.5
+        ifset=1
         goto,rtn3
       end
-   9: begin          ; antizoom
+   10: begin          ; antizoom
         wid=wid*2.0
+        ifset=1
         goto,rtn3
       end
-  10: begin          ; cursor
+   11: begin          ; cursor
         cursor,x,y,/data,/wait
         frqcen=x
         print,format='("central frequency (cm-1) ",(f9.4))',frqcen
@@ -254,19 +262,22 @@ case ll(0) of
         read,wid
         goto,rtn3
       end
-  11: begin          ; frame right
+  12: begin          ; frame right
         frqcen=frqcen+wid
+        ifset=1
         goto,rtn3
       end
-  12: begin          ; frame left
+  13: begin          ; frame left
         frqcen=frqcen-wid
+        ifset=1
         goto,rtn3
       end
-  13: begin          ; freq+4
+  14: begin          ; freq+4
         frqcen=frqcen+4.0
+        ifset=1
         goto,rtn3
       end
-  14: begin          ; atlas frame
+  15: begin          ; atlas frame
         slf,yobs,nobs,y0,grad
         for i=0,nobs-1  do begin
            yobs(i)=yobs(i)/(y0+grad*i)
@@ -275,13 +286,13 @@ case ll(0) of
         freq=[freq,rotate(freq,2)]
         goto,rtn4a
       end
-  15: begin          ; apodise
+  16: begin          ; apodise
         print,format='("apodisation currently set at: ",i3)',apo
         print,format='($,"apodize [0-3]")'
         read,apo
         goto,rtn3
       end
-  16: begin          ; interpolate
+  17: begin          ; interpolate
         print,format='("interpolation currently set at: ",i3)',intrp
         intrp=0
         while intrp le 0 do begin
@@ -290,21 +301,21 @@ case ll(0) of
         endwhile
         goto,rtn3
       end
-  17: begin          ; w.length
+  18: begin          ; w.length
         case lambdaflag of
           0: lambdaflag=1
           1: lambdaflag=0
         endcase
         goto,rtn4b
       end
-  18: begin          ; oplotflag
+  19: begin          ; oplotflag
         case oplotflag of
           0: oplotflag=1
           1: oplotflag=0
         endcase
         goto,rtn4b
       end
-  19: begin          ; hardcopy
+  20: begin          ; hardcopy
         set_plot,'ps'
         spawn,'ls -l *.ps',pslist
         num_add=max(where(pslist))
@@ -334,7 +345,7 @@ case ll(0) of
         set_plot,idl_device
         goto,rtn4a
       end
-  20: begin          ; quit
+  21: begin          ; quit
         goto,rtn5
       end
 endcase

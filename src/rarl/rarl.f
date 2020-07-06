@@ -5,11 +5,11 @@ c  Uses keywords to identify important parameters in ACE runlog (doesn't
 c  assume that the order of parameters will always be the same).
 c
       implicit none
-      include "../ggg_int_params.f"
+      include "../gfit/ggg_int_params.f"
 
 c  Variables associated with the write-runlog subroutine call.
       integer*8 fsib,file_size_in_bytes
-      integer*4  lsp,lrp,liff,
+      integer*4  lsp,lrp,liff,idum,
      & lunw_rlg,             ! Logical unit number
      & istat,            ! status flag (0=success, 1=EOF)
      & iyr,              ! year
@@ -75,6 +75,17 @@ c     & rlheader*1600,
       logical filexist
 
       data ssun/'sr','ss'/
+
+      idum=mfilepath ! Avoid compiler warning (unused parameter)
+      idum=mauxcol  ! Avoid compiler warning (unused parameter)
+      idum=mcolvav  ! Avoid compiler warning (unused parameter)
+      idum=mgas     ! Avoid compiler warning (unused parameter)
+      idum=mlev     ! Avoid compiler warning (unused parameter)
+      idum=mrow_qc  ! Avoid compiler warning (unused parameter)
+      idum=mspeci   ! Avoid compiler warning (unused parameter)
+      idum=mvmode   ! Avoid compiler warning (unused parameter)
+      idum=ncell    ! Avoid compiler warning (unused parameter)
+      idum=nchar    ! Avoid compiler warning (unused parameter)
 
       version = ' rarl.f   Version 3.0.2   2011 Aug 22   GCT'
       col1=' '

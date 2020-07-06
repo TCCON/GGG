@@ -16,10 +16,9 @@ c  Note that for ASZA << 90; dsbydt --> tan(d2r*asza)
 c            For ASZA =  90; dsbydt --> 1/del
 c            For ASZA >> 90; dsbydt --> R*cos(d2r*asza)/scht
 c  And thus has all the correct behavior in these limits
-c
-      include "../ggg_const_params.f"
 
-      real*8 radius,scht,piby2,aa,asza,del
+      real*8 radius,scht,piby2,aa,asza,del,dpi
+      parameter (dpi=3.14159265359d0)
       parameter (piby2=dpi/2,radius=6378,scht=7.0)
 c
       del=sqrt(piby2*scht/radius)

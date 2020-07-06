@@ -7,8 +7,8 @@ c  to pobs.  FTA is a correction for the temperature non-uniformity.
       integer*4 k,nl,it
       real*4 fta,ftawas,tobs,fr,pobs,height,p(nl),t(nl),z(nl)
       do k=2,nl
-c        write(*,*)k,p(k),pobs
-        if(p(k).le.pobs) goto 12
+c         write(*,*)'height=',k,z(k),t(k),p(k),pobs
+         if(p(k).le.pobs) goto 12
       end do
       write(6,*)'nl,Z(top),P(top), Pobs =',k-1,z(k-1),p(k-1),pobs
       write(6,*) 'Warning from function HEIGHT: insufficiently small p'
@@ -18,10 +18,10 @@ c        write(*,*)k,p(k),pobs
 c      write(*,*) k,p(k),z(k),pobs,p(k-1),z(k-1)
       fta=1.
       do it=1,10
-        ftawas=fta
-        tobs=t(k-1)+fta*fr*(t(k)-t(k-1))
-        fta=(t(k-1)+tobs)/(t(k-1)+t(k))
-        if(abs(fta-ftawas).lt.2.e-7) go to 13
+         ftawas=fta
+         tobs=t(k-1)+fta*fr*(t(k)-t(k-1))
+         fta=(t(k-1)+tobs)/(t(k-1)+t(k))
+         if(abs(fta-ftawas).lt.2.e-7) go to 13
       end do
       write(*,*) pobs,tobs,fr,fta,ftawas,z(k-1)+fta*fr*(z(k)-z(k-1))
       stop 'HEIGHT failed to converge'

@@ -7,8 +7,8 @@ COMN = $(GGGPATH)/src/comn
 
 SOURCES := \
  $(TSRC)/$(TARGET).f \
- $(TSRC)/rdsphead.f \
- $(TSRC)/read_DA8_header.f \
+ $(COMN)/rdsphead.f \
+ $(COMN)/read_DA8_header.f \
  $(COMN)/read_opus_header.f \
  $(COMN)/getopusparval.f \
  $(COMN)/read_mkiv_header.f \
@@ -40,10 +40,8 @@ $(TARGET) : $(OBJECTS)
 	$(FC) $(LDFLAGS) -o $(GGGPATH)/bin/$@ $^
 
 #  Add dependencies to object files
-$(TSRC)/create_runlog.o:  $(GGGPATH)/src/ggg_int_params.f   $(TSRC)/params.f
-$(TSRC)/rdsphead.o:       $(GGGPATH)/src/ggg_const_params.f $(TSRC)/params.f
-$(COMN)/gindfile.o:       $(GGGPATH)/src/ggg_int_params.f
-$(COMN)/zenaz.o:          $(GGGPATH)/src/ggg_const_params.f
+$(TSRC)/create_runlog.o:  $(GGGPATH)/src/gfit/ggg_int_params.f
+$(COMN)/gindfile.o:       $(GGGPATH)/src/gfit/ggg_int_params.f
 
 clean:
 	rm -f $(OBJECTS) $(GGGPATH)/bin/$(TARGET)

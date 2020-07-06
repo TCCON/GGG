@@ -14,7 +14,8 @@ c  Useful for comparing the site weather station data with NCEP.
      & ifirst,            ! index of first spectral point in disk file
      & ilast,             ! index of last spectral point in disk file
      & possp,             ! Length of attached header in bytes
-     & bytepw             ! Bytes per data word, usually 2 (I*2) or 4 (R*4)
+     & bytepw,            ! Bytes per data word, usually 2 (I*2) or 4 (R*4)
+     & iline              ! loop index for .mod file header
 
       real*8
      & frdoy, frwas,diff,
@@ -55,27 +56,58 @@ c  Useful for comparing the site weather station data with NCEP.
      & ext*3,
      & data_fmt_read_rl*256,
      & col_labels_rl*320,
-     & apf*2              ! apodization function (e.g. BX N2, etc)
+     & apf*2,             ! apodization function (e.g. BX N2, etc)
+     & modtype*4          ! which met model type ("NCEP" or "FPIT")
 
       parameter (lunr_rlg=14,lunm=15,lunw=16)
-      character modname*80,ns*1,ew*1,version*50,runlog*80
-
+      character modname*80,modname_old*80,vmrname*80,ns*1,ew*1,
+     &   version*50,runlog*80
+     
       real*4 roc,ecc2,alat,gs,zz,pfact,ptrop,pmod,tmod,hmod,
      &   scht,log1pxox,svp_wv_over_ice,tout_k,hout_vmr,
      &   p0,t0,z0,m0,h0,p1,t1,z1,m1,h1
+
+      logical read_mod    ! controls whether a new model file needs read
 
       version=' extract_pth     Version 1.14   2013-03-01    GCT '
 
       call get_ggg_environment(gggdir, dl)
       lrt=lnbc(gggdir)     !Length of gggdir
 
-      write(*,*) ' Enter name of runog'
-      read(*,*) runlog
+c -------- Get the runlog and model type from the user --------
+c May either specify the runlog and y or n for FPIT on the command
+c line or enter them manually. The runlog should just be the runlog
+c file name, it should not include the path (automatically looks in
+c the runlogs directory)
+      if (iargc() .lt. 1) then
+          write(*,*) ' Enter name of runlog'
+          read(*,*) runlog
+      else
+          call getarg(1, runlog)
+      end if
+
+      if (iargc() .lt. 2) then
+          write(*,9000) 
+ 9000 format(' Std. TCCON processing: 3-hourly model and VMR? (y/n): ',
+     &       $)
+          read(*,*) modtype
+      else
+          call getarg(2, modtype)
+      end if
+c -------------------------------------------------------------
+
+c -------- Parse the runlog/model user input ------------------
       ldot=index(runlog,'.')
       if(runlog(ldot+1:ldot+1).eq.'g') ext='gnd'
       if(runlog(ldot+1:ldot+1).eq.'b') ext='bal'
-      write(*,*)ldot,ext
+c     write(*,*)ldot,ext
 
+      if (trim(modtype) .eq. 'y' .or. trim(modtype) .eq. 'Y') then
+        modtype = 'FPIT'
+      else
+        modtype = 'NCEP'
+      end if
+c -------------------------------------------------------------
       iwas=0
       open(lunw,file='extract_pth.out', status='unknown')
       write(lunw,*)4,9
@@ -90,6 +122,9 @@ c  Useful for comparing the site weather station data with NCEP.
       frdoy=-999
       latwas=-999
       lonwas=-999
+      read_mod = .false. 
+      modname_old = ''
+
       do i=1,999999
 1        continue
          frwas=frdoy
@@ -118,27 +153,48 @@ c  The next 20 lines of code determine the name of the new model file.
             ew='W'
           endif
 
+c -------- Read the model file -----------------------------
           call julian(iyr,1,idoy,jul)
-          frdoy=jul+zpdtim/24+oblon/360
-          diff=abs(frdoy-frwas)+
-     &    0.1*abs(oblat-latwas)+0.1*abs(oblon-lonwas)
-          if( diff.gt.0.5 ) then
-             jul=int(frdoy)
-             call caldat(jul,iyyyy,imm,idd)
-             write(modname,'(a5,i4.4,2i2.2,a1,i2.2,a1,a1,i3.3,a1,a4)')
-     &        'NCEP_',iyr,imm,idd,'_',nint(abs(oblat)),ns,
-     &       '_',nint(abs(oblon)),ew,'.mod'
-             write(*,*)frdoy,oblat,oblon,diff,specname(:14),modname(:28)
+
+c              ** NCEP **
+          if (modtype .eq. 'NCEP') then
+            frdoy=jul+zpdtim/24+oblon/360
+            diff=abs(frdoy-frwas)+
+     &      0.1*abs(oblat-latwas)+0.1*abs(oblon-lonwas)
+            if( diff.gt.0.5 ) then
+               jul=int(frdoy)
+               call caldat(jul,iyyyy,imm,idd)
+               write(modname,'(a5,i4.4,2i2.2,a1,i2.2,a1,a1,i3.3,a1,a4)')
+     &          'NCEP_',iyr,imm,idd,'_',nint(abs(oblat)),ns,
+     &          '_',nint(abs(oblon)),ew,'.mod'
+c               write(*,*)frdoy,oblat,oblon,diff,specname(:14),
+c     &                   modname(:28)
+               read_mod = .true.
+            end if ! if need to read new .mod file
+          elseif (modtype .eq. 'FPIT') then
+            call next_fpit_files(jul, zpdtim, oblat, oblon, modname,
+     &         vmrname)
+            if (modname .ne. modname_old) then
+               read_mod = .true.
+c               write(*,*)frdoy,oblat,oblon,specname(:14),' ',modname
+            end if
+            modname_old = modname
+          end if ! which model type
+
+         if (read_mod) then
             open(unit=lunm,
      &   file=gggdir(:lrt)//'models'//dl//ext//dl//modname,status='old')
             read(lunm,*)nlhead,ncol
             read(lunm,*)roc,ecc2,alat,gs,zz,pfact,ptrop
-            read(lunm,*)
-            read(lunm,*)
+            do iline=1,nlhead-2
+                read(lunm,*)
+            enddo
             read(lunm,*)p0,t0,z0,m0,h0
             read(lunm,*)p1,t1,z1,m1,h1
             close(lunm)
          endif
+c -----------------------------------------------------------
+
          tmod=t0 + (t1-t0)*(obalt-z0)/(z1-z0)
          hmod=h0 + (h1-h0)*(obalt-z0)/(z1-z0)
          pmod=p0*exp(-(obalt-z0)/8)
@@ -149,7 +205,7 @@ c  The next 20 lines of code determine the name of the new model file.
          write(lunw,'(2i4,7f10.4)') iyr,idoy,zpdtim,
      &    tout+273.16,tmod,pout,pmod,hout_vmr,hmod
       end do
-      write(*,*)i-1
+c      write(*,*)i-1
       close(lunr_rlg)
       stop
       end

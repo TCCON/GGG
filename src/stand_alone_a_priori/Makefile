@@ -8,12 +8,12 @@ GSETUP= $(GGGPATH)/src/gsetup
 
 SOURCES := \
   $(TSRC)/$(TARGET).f \
-  $(GSETUP)/calc_aoa.f \
-  $(GSETUP)/compute_seasonal_cycle.f \
-  $(GSETUP)/apply_secular_trends.f \
-  $(GSETUP)/apply_vmr_latitude_gradients.f \
-  $(GSETUP)/resample_vmrs_at_effective_altitudes.f \
-  $(GSETUP)/read_refvmrs.f \
+  $(COMN)/calc_aoa.f \
+  $(COMN)/apply_seasonal_cycle.f \
+  $(COMN)/apply_secular_trends.f \
+  $(COMN)/apply_vmr_latitude_gradients.f \
+  $(COMN)/resample_vmrs_at_effective_altitudes.f \
+  $(COMN)/read_refvmrs.f \
   $(COMN)/clistindex.f \
   $(COMN)/fbc.f \
   $(COMN)/fnbc.f \

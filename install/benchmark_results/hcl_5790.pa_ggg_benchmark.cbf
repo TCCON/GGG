@@ -1,0 +1,13 @@
+           9           6
+Channel Fringe info and  Continuum Basis Function Coefficients
+CF_Amp is divided by continuum level
+CF_Period is in units of cm-1
+CF_Phase is in units of rads
+CBF_1 is the continuum level   (CL)
+CBF_2 is the continuum tilt     (CT)
+CBF_3 is the continuum curvature (CC)
+     Spectrum_Name    CF_Amp/CL CF_Period CF_Phase  CBF_01   CBF_02
+"pa20040721saaaaa.043"  0.00000    0.000  0.000  3.0615E-01   0.0013
+"pa20040721saaaaa.119"  0.00000    0.000  0.000  2.9538E-01   0.0014
+"pa20041222saaaaa.019"  0.00000    0.000  0.000  4.6799E-01   0.0024
+"pa20041222saaaaa.020"  0.00000    0.000  0.000  4.6872E-01   0.0027

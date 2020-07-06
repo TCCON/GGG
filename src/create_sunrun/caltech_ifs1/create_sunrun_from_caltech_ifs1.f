@@ -7,11 +7,11 @@ c  It will search the local directory for the .gnd file, and
 c  write the .gop file to the sunruns/ directory.
 c
       implicit none
-      include "../../ggg_int_params.f"
+      include "../../gfit/ggg_int_params.f"
       include "../params.f"
 c
       integer*4 
-     & fnbc,lnbc,fbc,ispe,
+     & fnbc,lnbc,fbc,ispe,idum,
      & lr,lrt,ls,
      & istat,object
 c
@@ -27,6 +27,17 @@ c    & user*8,
      & ext*3,                     !geometry ['air','bal','gnd','lab',orb','syn']
      & gggdir*(mpath),            !ggg directory path (GGGPATH?)
      & specname*(nchar)           !spectrum name
+
+      idum=mfilepath ! Avoid compiler warning (unused parameter)
+      idum=mauxcol  ! Avoid compiler warning (unused parameter)
+      idum=mcolvav  ! Avoid compiler warning (unused parameter)
+      idum=mgas     ! Avoid compiler warning (unused parameter)
+      idum=mlev     ! Avoid compiler warning (unused parameter)
+      idum=mrow_qc  ! Avoid compiler warning (unused parameter)
+      idum=mspeci   ! Avoid compiler warning (unused parameter)
+      idum=mvmode   ! Avoid compiler warning (unused parameter)
+      idum=ncell    ! Avoid compiler warning (unused parameter)
+      idum=nchar    ! Avoid compiler warning (unused parameter)
 
 c
       write(6,*)'create_sunrun   Version 1.1.1   9-Mar-2006   GCT'

@@ -1,16 +1,30 @@
-         subroutine rravgcom(mode,nus,nue,lunr_ss_rl,lunw_av_rl,lun_rpt,
-     &   data_fmt_read_rl,data_fmt_write_rl,ntype,jtype,nspe,krec,istat)
+      subroutine rravgcom(mode,nus,nue,lunr_ss_rl,lunw_av_rl,lun_rpt,
+     & data_fmt_read_rl,data_fmt_write_rl,ntype,jtype,nspe,krec,istat)
 
-c  Reads the runlog-format input file from the current position down
-c  to the next "average" marker.
+c Inputs:
+c    mode               I*4  Operating mode (see below)
+c    nus, nue           R*8  Starting & Ending wavenumbers
+c    lunr_ss_rl         I*4  LUN for single-spectra input runlog
+c    lunw_av_rl         I*4  LUN for avg-spectra output runlog
+c    lun_rpt 
+c    data_fmt_read_rl   C(*)
+c    data_fmt_write_rl  C(*)
+c    ntype,jtype        I*4  Periodicity of runlog interleaving
+c
+c Outputs:
+c    nspe               I*4  Number of spectra averaged
+c    krec               I*4  Number of runlog records read
+c    istat              I*4  Status flag (0=success, 1=EOF)
+c
+c  Reads the already-open runlog-format input file from the current
+c  position down to the next "average" marker.
 c  Mode 0: Does nothing functional (testing only). Simply reads runlog. 
 c  Mode 1: Averages the spectral data and header values, writes averages. 
 c  Mode 2: Compares individual spectra with the average, computes
 c          spectral intensity scale factors and their rms deviations.
 
       implicit none
-      include "../ggg_const_params.f"
-      include "../ggg_int_params.f"
+      include "../gfit/ggg_int_params.f"
 
 c----------------------------------------------------------
 c  The following are the MkIV spectral header parameters
@@ -41,7 +55,7 @@ c----------------------------------------------------------
      & iabpw,       ! absolute values of the bytes per word
      & lnbc,        ! function Last Non-Black Character
      & ntype,jtype, ! Periodicity of spectra to be averaged
-     & krec,        ! number of records read (including invalid ones)
+     & krec,        ! number of runlog records read (including invalid ones)
      & nspe,        ! Number of spectra in current average
      & iend,        ! Endianess of host computer
      & kpts,npts,   ! Number of spectral values
@@ -63,7 +77,7 @@ c----------------------------------------------------------
      & data_fmt_read_rl*256,data_fmt_write_rl*256,
      & specpath*120,strl*512
 
-      integer*4
+      integer*4 idum,
      & istat,        ! status flag (0=success, 1=EOF)
      & irr,          ! status flag (0=success, 1=EOF)
      & iyrrl,        ! year (from runlog)
@@ -75,7 +89,7 @@ c----------------------------------------------------------
      & possp,        ! Length of attached header in bytes
      & bytepw        ! Bytes per data word, usually 2 (I*2) or 4 (R*4)
 
-      real*8 tiyrrl,tidoy,tbytepw,taa,tad,tdd,del,d2r,
+      real*8 tiyrrl,tidoy,tbytepw,taa,tad,tdd,del,d2r,dpi,
      & ttotp, taltd, tpout, ttout, thout, tpott, tsoze, tsfct,
      & tspwn, tpspv, tfovr, tzpdtim, talat, talon, tstnr, trzero,
      & toblat, oblat,       ! observation latitude (deg).
@@ -109,6 +123,8 @@ c----------------------------------------------------------
      & twavtkr,wavtkr,      ! suntracker frequency (active tracking)
      & nus, nue             ! selected frequency range of interest
 
+      parameter (dpi=3.14159265359D0)
+
       character
      & col1*1,              ! first column of runlog record
      & specname*(nchar),    ! spectrum name
@@ -122,6 +138,16 @@ c----------------------------------------------------------
       equivalence (bbuf,bufi2,bufi4,bufr4)
 
       save tbuf  ! save average spectrum between mode=1 and mode=2 calls
+
+      idum=mauxcol    ! Prevent compiler warning (unused parameter)  
+      idum=mcolvav    ! Prevent compiler warning (unused parameter)
+      idum=mfilepath  ! Prevent compiler warning (unused parameter)
+      idum=mgas       ! Prevent compiler warning (unused parameter)
+      idum=mlev       ! Prevent compiler warning (unused parameter)
+      idum=mrow_qc    ! Prevent compiler warning (unused parameter)
+      idum=mspeci     ! Prevent compiler warning (unused parameter)
+      idum=mvmode     ! Prevent compiler warning (unused parameter)
+      idum=ncell      ! Prevent compiler warning (unused parameter)
 
       call getendian(iend)  ! Find endian-ness of host computer
 
@@ -171,22 +197,22 @@ c  of root partition (e.g. "/home/toon/ggg/" ).
          taipl=0.0
 c
 c  Zero MkIV header parameters
-        ttotp=0
-        taltd=0.0
-        tpout=0.0
-        ttout=0.0
-        thout=0.0
-        tpott=0.0
-        tsoze=0.0
-        tsfct=0.0
-        tspwn=0.0
-        tpspv=0.0
-        tfovr=0.0
-        tzpdtim=0.0
-        talat=0.0
-        talon=0.0
-        tstnr=0.0
-        trzero=0.0
+         ttotp=0.0d0
+         taltd=0.0d0
+         tpout=0.0d0
+         ttout=0.0d0
+         thout=0.0d0
+         tpott=0.0d0
+         tsoze=0.0d0
+         tsfct=0.0d0
+         tspwn=0.0d0
+         tpspv=0.0d0
+         tfovr=0.0d0
+         tzpdtim=0.0d0
+         talat=0.0d0
+         talon=0.0d0
+         tstnr=0.0d0
+         trzero=0.0d0
 
       endif ! mode=1
 c
@@ -196,9 +222,8 @@ c
       nspe=0     ! number of valid spectra read
       do         ! Loop over single spectra
 c         write(*,*) 'mode, krec, nspe=', mode,krec,nspe
-            read(lunr_ss_rl,'(a)',end=99) strl
-c         irec=irec+1
-c         write(*,*)'strl=',strl(:22)
+         read(lunr_ss_rl,'(a)',end=99) strl
+c         write(*,*)'rrcom: strl=',strl(:32)
          krec=krec+1
          if (index(strl,'average').gt.0) exit 
          if(mod(krec-1,ntype).eq.jtype-1) then  ! the right flavor detector
@@ -241,7 +266,11 @@ c  Skip spectra containing different starting or ending indices from the first.
                n2=k2
                npts=kpts
             else
-               if (k1.ne.n1 .or. k2.ne.n2) cycle
+               if (k1.ne.n1 .or. k2.ne.n2) then
+                  write(*,*)'Warning: Spectrum seems to have different'
+                  write(*,*)'wavenumber range or point spacing'
+               cycle
+               endif
             endif
 
             last_valid=specname 
@@ -252,20 +281,20 @@ c  Open binary spectrum with recl = total length be read
 
 c  Read spectral header and data values all at once.
             if(iabpw.eq.2) then
-              hedlen=header_length_mkiv
-              read(lun_rbs,rec=1) runinfo,strt,runloc,iset,irun,rund,
-     &  ialias,pins,
-     &  tins,hins,lasf,altd,alat,alon,soaz,soze,tout,pout,hout,wspd,
-     &  wdir,pinv,pinl,psym,zpdl,zpdv,zsym,zmst,sampl,totp,detctr,
-     &  filter,preamp,sigchn,fovr,sinv,sins,ippd,fftpow,idecim,sspp,
-     &  spsv,spwn,stnr,sspv,ssps,phase,pspl,pspv,sfct,ippver,comments,
-     &  iyr,ccor,pott,zpdtim,detsn,ippnam,rzero,gains,offsts,blank, 
+               hedlen=header_length_mkiv
+               read(lun_rbs,rec=1) runinfo,strt,runloc,iset,irun,rund,
+     &     ialias,pins,
+     &     tins,hins,lasf,altd,alat,alon,soaz,soze,tout,pout,hout,wspd,
+     &     wdir,pinv,pinl,psym,zpdl,zpdv,zsym,zmst,sampl,totp,detctr,
+     &     filter,preamp,sigchn,fovr,sinv,sins,ippd,fftpow,idecim,sspp,
+     &    spsv,spwn,stnr,sspv,ssps,phase,pspl,pspv,sfct,ippver,comments,
+     &     iyr,ccor,pott,zpdtim,detsn,ippnam,rzero,gains,offsts,blank, 
      &        (cdum,j=header_length_mkiv+1,possp+iabpw*(k1-ifirst)),
      &        (bbuf(j),j=1,iabpw*npts)
             else
-              hedlen=0
-              read(lun_rbs,rec=1) (cdum,j=1,possp+iabpw*(k1-ifirst)),
-     &        (bbuf(j),j=1,iabpw*npts)
+               hedlen=0
+               read(lun_rbs,rec=1) (cdum,j=1,possp+iabpw*(k1-ifirst)),
+     &         (bbuf(j),j=1,iabpw*npts)
             endif
             close(lun_rbs)
 
@@ -281,9 +310,9 @@ c  If necessary, byte-reverse data
                tdd=0.0
                do i=1,npts
                   if(iabpw.eq.2) then
-                    yi=bufi2(i)
+                     yi=bufi2(i)
                   else
-                    yi=bufr4(i)
+                     yi=bufr4(i)
                   endif
                   del=yi-tbuf(i)
                   taa=taa+yi**2
@@ -295,7 +324,8 @@ c  If necessary, byte-reverse data
                write(*,'(a,2f9.4)') specpath(:lnbc(specpath)),
      &         1.+tad/taa,sqrt(tdd*taa-tad*tad)/taa
             elseif (mode.eq.1) then  ! Compute average spectrum and runlog
-c               write(*,*)'rravgcom: ',mode,jtype,krec,' '//specname(:ls)
+c               write(*,*)'rravgcom: mode,jtype,krec= ',mode,jtype,krec,
+c     &          ' '//specname(:ls)
                write(*,'(a)') specpath(:lnbc(specpath))
 
                if(iabpw.eq.2) then
@@ -326,7 +356,7 @@ c               write(*,*)'rravgcom: ',mode,jtype,krec,' '//specname(:ls)
                tgraw= tgraw+ graw
                tbytepw= tbytepw+ bytepw
                tzoff= tzoff+ zoff
-               tsnr= tsnr+ snr**2
+               tsnr= tsnr+ 1/snr**2
                tr8tins= tr8tins+ r8tins
                tr8pins= tr8pins+ r8pins
                tr8hins= tr8hins+ r8hins
@@ -391,7 +421,7 @@ c Divide by nspe to compute average values
          graw= tgraw/nspe
          bytepw= nint(tbytepw/nspe)
          zoff= tzoff/nspe
-         snr = sqrt(tsnr)/nspe
+         snr = nspe/sqrt(tsnr)
          r8tins= tr8tins/nspe
          r8pins= tr8pins/nspe
          r8hins= tr8hins/nspe
@@ -409,22 +439,22 @@ c Divide by nspe to compute average values
          iabpw=iabs(bytepw)
 
 c  MkIV header parameters
-        totp=ttotp/nspe
-        altd=taltd/nspe
-        pout=tpout/nspe
-        tout=ttout/nspe
-        hout=thout/nspe
-        pott=tpott/nspe
-        soze=tsoze/nspe
-        sfct=tsfct/nspe
-        spwn=tspwn/nspe
-        pspv=tpspv/nspe
-        fovr=tfovr/nspe
-        zpdtim=tzpdtim/nspe
-        alat=talat/nspe
-        alon=talon/nspe
-        stnr=sqrt(tstnr)
-        rzero=trzero/nspe
+         totp=nint(ttotp/nspe)
+         altd=sngl(taltd/nspe)
+         pout=sngl(tpout/nspe)
+         tout=sngl(ttout/nspe)
+         hout=sngl(thout/nspe)
+         pott=sngl(tpott/nspe)
+         soze=sngl(tsoze/nspe)
+         sfct=nint(tsfct/nspe,kind=2)
+         spwn=sngl(tspwn/nspe)
+         pspv=sngl(tpspv/nspe)
+         fovr=sngl(tfovr/nspe)
+         zpdtim=sngl(tzpdtim/nspe)
+         alat=sngl(talat/nspe)
+         alon=sngl(talon/nspe)
+         stnr=sngl(dsqrt(tstnr))
+         rzero=sngl(trzero/nspe)
 
          call write_runlog_data_record(lunw_av_rl,data_fmt_write_rl,
      &   col1,avgspecname,
@@ -446,7 +476,7 @@ c  Write headerless binary average spectrum
             write(lun_wbs,rec=1) (tbuf(j),j=1,npts)
          else
             do i=1,npts
-              bufi2(i)=nint(tbuf(i))
+               bufi2(i)=nint(tbuf(i),kind=2)
             end do
             sspp=n1
             spsv=npts
@@ -457,13 +487,13 @@ c  Write headerless binary average spectrum
             write(com(8:9),'(i2.2)') nspe
             comments=com
             write(lun_wbs,rec=1) runinfo,strt,runloc,iset,irun,rund,
-     &  ialias,pins,
-     &  tins,hins,lasf,altd,alat,alon,soaz,soze,tout,pout,hout,wspd,
-     &  wdir,pinv,pinl,psym,zpdl,zpdv,zsym,zmst,sampl,totp,detctr,
-     &  filter,preamp,sigchn,fovr,sinv,sins,ippd,fftpow,idecim,sspp,
-     &  spsv,spwn,stnr,sspv,ssps,phase,pspl,pspv,sfct,ippver,comments,
-     &  iyr,ccor,pott,zpdtim,detsn,ippnam,rzero,gains,offsts,blank,
-     &  (bufi2(j),j=1,npts)
+     &     ialias,pins,
+     &     tins,hins,lasf,altd,alat,alon,soaz,soze,tout,pout,hout,wspd,
+     &     wdir,pinv,pinl,psym,zpdl,zpdv,zsym,zmst,sampl,totp,detctr,
+     &     filter,preamp,sigchn,fovr,sinv,sins,ippd,fftpow,idecim,sspp,
+     &    spsv,spwn,stnr,sspv,ssps,phase,pspl,pspv,sfct,ippver,comments,
+     &     iyr,ccor,pott,zpdtim,detsn,ippnam,rzero,gains,offsts,blank,
+     &     (bufi2(j),j=1,npts)
          endif
          close(lun_wbs)
 

@@ -1,4 +1,4 @@
-       function file_size_in_bytes(lunr,file_path)
+      function file_size_in_bytes(lunr,file_path)
 c  Returns the size of any file (in bytes)
 c
 c  Inputs:

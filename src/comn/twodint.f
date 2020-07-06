@@ -21,33 +21,33 @@ c
 c
 c  Search for TABI's which bracket VALI and find its fractional position (FI)
       do i=1,ni-1
-        fi=(vali-tabi(i))/(tabi(i+1)-tabi(i))
-        if(fi.ge.0.0 .and. fi.le. 1.0) go to 33   !  Successful bracketing
+         fi=(vali-tabi(i))/(tabi(i+1)-tabi(i))
+         if(fi.ge.0.0 .and. fi.le. 1.0) go to 33   !  Successful bracketing
       end do
       if(fi.lt.0) then      ! Outside table: set to uppermost row
-        i=1
-        fi=0.0
+         i=1
+         fi=0.0
       elseif(fi.gt.1) then  ! Outside table: set to lowest row
-        i=ni-1
-        fi=1.0
+         i=ni-1
+         fi=1.0
       else
-        stop ' TWODINT: this should never happen. Notify GCT'
+         stop ' TWODINT: this should never happen. Notify GCT'
       endif
 33    continue
 c
 c  Search for TABJ's which bracket VALJ and find its fractional position (FJ)
       do j=1,nj-1
-        fj=(valj-tabj(j))/(tabj(j+1)-tabj(j))
-        if(fj.ge.0.0 .and. fj.le. 1.0) go to 22   !  Successful bracketing
+         fj=(valj-tabj(j))/(tabj(j+1)-tabj(j))
+         if(fj.ge.0.0 .and. fj.le. 1.0) go to 22   !  Successful bracketing
       end do
       if(fj.lt.0) then       ! Outside table: set to leftmost column
-        j=1
-        fj=0.0
+         j=1
+         fj=0.0
       elseif(fj.gt.1) then   ! Outside table: set to rightmost column
-        j=nj-1
-        fj=1.0
+         j=nj-1
+         fj=1.0
       else
-        stop ' TWODINT: this should never happen'
+         stop ' TWODINT: this should never happen'
       endif
 22    continue
 c

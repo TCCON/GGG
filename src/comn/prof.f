@@ -1,6 +1,5 @@
       subroutine profzl(apo,ns,resnog,rectog,off,a)
       implicit none
-      include "../ggg_const_params.f"
 
       INTEGER*4 k,apo,ns
       REAL*4 a(ns)

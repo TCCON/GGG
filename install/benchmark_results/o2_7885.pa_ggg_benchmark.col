@@ -1,28 +1,25 @@
- 24 30
- GFIT                     Version 4.37       2014-03-21    GCT  
- GSETUP                   Version 3.92     2013-12-20    GCT
-eef67b8c0f131c30bfb7f9e548764f94  /net/nicolet/nobackup/dwunch/ggg_devel/ggg_working/config/data_part.lst
-b726bee6d1ef790129ee605640fa6af1  /net/nicolet/nobackup/dwunch/ggg_devel/ggg_working/apriori/gfit_ap.gnd
-045ad2bcf91b0eb10a9321f526da8bfd  /net/nicolet/nobackup/dwunch/ggg_devel/ggg_working/runlogs/gnd/pa_ggg_benchmark.grl
-7ff3c96fbfd4e17b9b04e78805c67363  /net/nicolet/nobackup/dwunch/ggg_devel/ggg_working/levels/integral.gnd
-                                  /net/nicolet/nobackup/dwunch/ggg_devel/ggg_working/models/gnd/
-                                  /net/nicolet/nobackup/dwunch/ggg_devel/ggg_working/vmrs/gnd/
-f8d9103b025e43bf33cf0dc8bcd4d330  pa_ggg_benchmark.mav
-2d1a86aa2db12d965ba6a27c63a8a7f1  pa_ggg_benchmark.ray
-f1c0115d620d0ea6540a509df7cccafc  /net/nicolet/nobackup/dwunch/ggg_devel/ggg_working/isotopologs/isotopologs.dat
-f8b8c93f1aebb1df552b921df2451f8d  /net/nicolet/nobackup/dwunch/ggg_devel/ggg_working/windows/gnd/tccon.gnd
-a7166ef14ce39657269fb9e6ddef9df7  /net/nicolet/nobackup/dwunch/ggg_devel/ggg_working/linelist/atm.101
-3cda33e3bd74093012454d3adfb9b726  /net/nicolet/nobackup/dwunch/ggg_devel/ggg_working/linelist/gct.101
-6fd821359b77fa5a0f3bb7608ffa007e  /net/nicolet/nobackup/dwunch/ggg_devel/ggg_working/linelist/fcia.101
-61e34bb86814b4d71a3a74f517412a19  /net/nicolet/nobackup/dwunch/ggg_devel/ggg_working/linelist/scia.101
-44ee608e578d3c1565bcd5ea8fa3b685  /net/nicolet/nobackup/dwunch/ggg_devel/ggg_working/linelist/solar_merged.108
-                                  /net/nicolet/nobackup/dwunch/ggg_devel/ggg_working/ak/k
-                                  /net/nicolet/nobackup/dwunch/ggg_devel/ggg_working/spt/z
+ 21 34
+ GFIT                     Version 5.28        2020-04-24   GCT  
+ GSETUP                   Version 4.70        2020-06-29   GCT
+eed19ecbb7ace7f78ea36fec0bf34c7d  /home/jlaugh/GGG/ggg-devel/config/data_part.lst
+b2e976c6a7b471f8a3e381261b09048a  /home/jlaugh/GGG/ggg-devel/apriori/gfit_ap.gnd
+af52ead7942098d0635c96847c368583  /home/jlaugh/GGG/ggg-devel/runlogs/gnd/pa_ggg_benchmark.grl
+890935e1a57e041d3097a3a6674778c9  /home/jlaugh/GGG/ggg-devel/levels/ap_51_level_0_to_70km.gnd
+                                  /home/jlaugh/GGG/ggg-devel/models/gnd/
+                                  /home/jlaugh/GGG/ggg-devel/vmrs/gnd/
+fdade21b808a0eb6741177430902b02e  pa_ggg_benchmark.mav
+5d6bc4a301bdb9d47341bf27adef4af6  pa_ggg_benchmark.ray
+b6ecd749a6ec0c72530bec31475f4f25  /home/jlaugh/GGG/ggg-devel/isotopologs/isotopologs.dat
+db73c954a1be4986f1b93a752364dd49  /home/jlaugh/GGG/ggg-devel/windows/gnd/tccon.gnd
+580572bd6b6b05ab437ed3447be4d8a9  telluric_linelists.md5
+893b127f4833ed5d9904ba989fcbb2ab  /home/jlaugh/GGG/ggg-devel/linelist/solar_merged.108
+                                  /home/jlaugh/GGG/ggg-devel/ak/j_o2_7885.pa_ggg_benchmark
+                                  /home/jlaugh/GGG/ggg-devel/spt/z
                                   o2_7885.pa_ggg_benchmark.col
-                                  (1x,a20,1x,i2,1x,f5.3,1x,f5.1,2(1x,f4.1),1x,f5.2,1x,f5.3,1x,f6.4,f8.3,15(0pf7.3,1pe11.4,0pf9.4,1pe8.1))
- 7885.00 240.00  15 1 1 0  cl  ct  fs  so    : o2 0o2 h2o hf co2
-  Spectrum            Nit  CL    CT   CC   FS   S-G  ZO   RMS/CL   Zpres  AM_o2     OVC_o2     VSF_o2     VSF_o2_error  AM_0o2    OVC_0o2    VSF_0o2    VSF_0o2_error  AM_h2o    OVC_h2o    VSF_h2o    VSF_h2o_error  AM_hf     OVC_hf     VSF_hf     VSF_hf_error  AM_co2    OVC_co2    VSF_co2    VSF_co2_error
- pa20040721saaaaa.043  6 0.103 -15.3  0.0 -0.2 -0.36 0.000 0.3065   0.472  1.298 4.2321E+24   1.0174 9.2E-03  1.298 4.2321E+24   1.1798 9.5E-03  1.297 1.4722E+23   0.8626 9.3E-03  1.295 1.0713E+15   1.2467 7.1E-01  1.298 7.5734E+21   0.4390 5.5E-01
- pa20040721saaaaa.119  6 0.100 -15.2  0.0 -0.4 -0.32 0.000 0.3775   0.473  2.251 4.2317E+24   1.0164 1.1E-02  2.251 4.2317E+24   1.1235 1.1E-02  2.251 1.4716E+23   0.7510 1.1E-02  2.225 1.0713E+15   1.4555 5.5E-01  2.251 7.5727E+21   0.8262 4.2E-01
- pa20041222saaaaa.019  6 0.152 -13.9  0.0  0.3 -0.01 0.000 0.2731   0.478  7.497 4.2967E+24   1.0220 8.2E-03  7.497 4.2967E+24   1.0503 8.2E-03  7.779 5.5442E+21   1.1451 1.0E-02  6.639 1.2930E+15   1.2140 1.6E-01  7.501 7.8879E+21   1.4620 1.4E-01
- pa20041222saaaaa.020  6 0.152 -13.9  0.0  0.3 -0.01 0.000 0.2721   0.477  7.151 4.2976E+24   1.0240 8.2E-03  7.151 4.2976E+24   1.0514 8.2E-03  7.396 5.5483E+21   1.1389 1.0E-02  6.396 1.2930E+15   1.2621 1.6E-01  7.155 7.8896E+21   1.5314 1.4E-01
+                                  (1x,a20,1x,i2,1x,f5.3,1x,f5.1,1x,f4.1,1x,f5.2,1x,f5.2,1x,f6.4,1x,f6.4,f8.3,15(0pf7.3,1pe11.4,0pf10.5,1pe8.1))
+ 7885.00 240.00  15 1 1 0  ncbf=5  fs  sg  nv sf=1.000 : o2 0o2 h2o hf co2 hdo
+  Spectrum            Nit  CL    CT    CC   FS    SG    ZO   RMS/CL   Zpres AM_o2 OVC_o2       VSF_o2 VSF_o2_error AM_0o2 OVC_0o2      VSF_0o2 VSF_0o2_error AM_h2o OVC_h2o      VSF_h2o VSF_h2o_error AM_hf OVC_hf       VSF_hf VSF_hf_error AM_co2 OVC_co2      VSF_co2 VSF_co2_error AM_hdo OVC_hdo      VSF_hdo VSF_hdo_error
+ pa20040721saaaaa.043  6 0.103 -15.7  4.5  0.00 -0.36 0.0000 0.2646   0.461  1.300 4.2203E+24   1.00534 8.0E-03  1.300 4.2203E+24   1.05807 1.4E-02  1.302 1.3291E+23   0.95264 8.0E-03  1.292 1.4032E+15   0.83117 5.4E-01  1.300 7.5306E+21   1.24563 5.6E-01  1.302 1.1455E+23   0.97010 3.3E-02
+ pa20040721saaaaa.119  6 0.099 -15.8  6.1 -0.02 -0.34 0.0000 0.2728   0.467  2.255 4.2247E+24   1.00136 8.2E-03  2.255 4.2247E+24   1.02557 1.1E-02  2.265 9.2990E+22   1.14489 8.3E-03  2.221 1.4301E+15   0.99880 3.6E-01  2.255 7.5387E+21   1.23759 3.7E-01  2.265 7.9608E+22   1.19253 3.1E-02
+ pa20041222saaaaa.019  6 0.151 -14.1  1.2  0.06 -0.06 0.0000 0.2635   0.472  7.505 4.3012E+24   1.00214 7.9E-03  7.505 4.3012E+24   1.04191 8.2E-03  7.778 6.6534E+21   0.97392 9.5E-03  6.670 1.6541E+15   0.98351 1.3E-01  7.510 7.8385E+21   1.23529 1.5E-01  7.785 4.4416E+21   1.48102 1.8E-01
+ pa20041222saaaaa.020  6 0.152 -14.0  0.8  0.06 -0.06 0.0000 0.2628   0.470  7.159 4.3021E+24   1.00396 7.9E-03  7.159 4.3021E+24   1.04404 8.2E-03  7.397 6.6566E+21   0.96799 9.5E-03  6.423 1.6541E+15   1.02359 1.3E-01  7.163 7.8402E+21   1.30784 1.5E-01  7.403 4.4438E+21   1.50529 1.9E-01

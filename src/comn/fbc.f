@@ -1,4 +1,5 @@
       integer function fbc(string)
+
 c  Returns the location (FBC) of the First Blank Character in STRING
 c  Recognizes the following characters as "blanks":
 c     nul             (ASCII character # 0)

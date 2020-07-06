@@ -1,5 +1,4 @@
-
-      integer*4 lun_qc, mcol, mrow, mluns
+      integer*4  lun_qc, mcol, mrow, mluns
       integer*4 lun_mul, lun_rlg
 
       parameter (lun_mul=21)       ! multiggg.sh 
@@ -12,10 +11,7 @@
       character
      & gfit_version*80,
      & gsetup_version*80,
-     & atmsum*32,
-     & gctsum*32,
-     & fciasum*32,
-     & sciasum*32,
+     & tllsum*32,
      & solarsum*32,
-     & csformat*105,
-     & header*22000
+     & csformat*128,
+     & header*35000

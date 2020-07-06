@@ -1,8 +1,8 @@
-      subroutine fm3(lun_ak,slit,nii,
-     & iptg,ipcl,ipfs,ipzo,ipcf,
+      subroutine fm3(lun_ak,slit,nhw,
+     & ifcsp,ifmsp,iptg,ipcl,ipfs,ipsg,ipzo,ipcf,
      & ldec,spts,spxv,
      & nfov,z,t,p,solzen,fovo,roc,obalt,wavtkr,fbar,
-     & vac,splos,nlev,ncp,rdec,shshs,
+     & vac,splos,nlev,ncp,rdec,
      & cont_level,cont_tilt,cont_curv,xzo,
      & cx,ntg,ncbf,nfp,cont,calcul,slpd,pd,tcalc,tpd,nmp)
 
@@ -96,15 +96,19 @@ c  VAC, SPLOS are needed here only to computed single-level PD's
 c  used in the computation of averaging kernels and in GFIT2.
 
       implicit none
-      include "../ggg_const_params.f"
-      include "../ggg_int_params.f"
+
+      real*4  zero,spi
+      parameter(zero=0.0,spi=3.14159265)
+
+      include "ggg_int_params.f"
       include "const_params.f"
       
-      integer ncp,nmp,jmp,ntg,jtg,nfp,nii,ldec,nterm,k,kk,jj,
-     & iptg,ipcl,ipfs,ipzo,ipcf,ncbf,jbf,
-     & rc,lun_ak,nlev,ilev,jva,jsp,nfov,ifov
-      real*8 rdec,sh,shshs,fovo,wavtkr,obalt
-      real*4 slit(nii),cx(nfp),vac(ncp,nlev,0:ntg),splos(nlev),
+      integer ncp,nmp,jmp,ntg,jtg,nfp,nhw,ldec,nterm,k,kk,jj,
+     & ifcsp,ifmsp,iptg,ipcl,ipfs,ipsg,ipzo,ipcf,ncbf,jbf,
+     & nexpl,nexpr,
+     & rc,lun_ak,nlev,ilev,jva,jsp,nfov,ifov,idum
+      real*8 rdec,sh,shshs,hh,fovo,wavtkr,obalt,rdum
+      real*4 slit(1+2*ldec*nhw),cx(nfp),vac(ncp,nlev,0:ntg),splos(nlev),
      & z(nlev),t(nlev),p(nlev),
      & spts(ncp),
      & slpd(nmp,nlev),cont_level,cont_tilt,cont_curv,xzo,
@@ -112,7 +116,23 @@ c  used in the computation of averaging kernels and in GFIT2.
      & tcalc(nmp),tpd(nmp+nfp,nfp),
      & solzen,fovr,roc,fbar,zmin,bend,bend0,frangl,wt,twt,sza
 
-      jj=lun_ak  ! to stop compiler warnings (unused variable)
+      idum=lun_ak    ! Prevent compiler warnings (unused variable)
+      rdum=big       ! Prevent compiler warnings (unused variable)
+      rdum=slpd(1,1) ! Prevent compiler warnings (unused variable)
+      idum=mauxcol   ! Prevent compiler warnings (unused variable)
+      idum=mcolvav   ! Prevent compiler warnings (unused variable)
+      idum=mfilepath ! Prevent compiler warnings (unused variable)
+      idum=mgas      ! Prevent compiler warnings (unused variable)
+      idum=mlev      ! Prevent compiler warnings (unused variable)
+      idum=mrow_qc   ! Prevent compiler warnings (unused variable)
+      idum=mspeci    ! Prevent compiler warnings (unused variable)
+      idum=mvmode    ! Prevent compiler warnings (unused variable)
+      idum=ncell     ! Prevent compiler warnings (unused variable)
+      idum=nchar     ! Prevent compiler warnings (unused variable)
+      idum=iptg      ! Prevent compiler warnings (unused variable)
+      idum=ipcf      ! Prevent compiler warnings (unused variable)
+      idum=ipsg      ! Prevent compiler warnings (unused variable)
+      rdum=tiny      ! Prevent compiler warnings (unused variable)
 
       if(ncbf.ge.1) cont_level=cx(ipcl)
       if(ncbf.ge.2) cont_tilt=cx(ipcl+1)
@@ -120,14 +140,16 @@ c  used in the computation of averaging kernels and in GFIT2.
       if(ipzo.gt.0) xzo=cx(ipzo)
       if(ipfs.gt.0) then
          sh=rdec*(cx(ipfs)+shshs)
+         hh=rdec*cx(ipfs)/(ifcsp+0.5*(ncp-1))
       else
          sh=rdec*shshs
+         hh=0.0d0
       endif
 
 c Zero TCALC & TPD arrary.
       call vmov(zero,0,tcalc,1,nmp)
       do jtg=1,nfp
-      call vmov(zero,0,tpd(1,jtg),1,nmp+nfp)
+         call vmov(zero,0,tpd(1,jtg),1,nmp+nfp)
       end do
 
       fovr=90.*sngl(fovo)/spi ! convert radians diameter to deg radius
@@ -135,9 +157,9 @@ c Zero TCALC & TPD arrary.
       call tlpath(nlev-1,z(2),t(2),p(2),solzen,0.0,roc,sngl(obalt),
      $sngl(wavtkr),fbar,zmin,bend0,splos(2),rc)
       do ifov=1,nfov
-          frangl=float(2*ifov-nfov-1)/nfov  ! varies between +/- (1-1/nfov)
-          sza=-solzen+bend0+fovr*frangl
-          wt=sqrt(1.0-frangl**2)
+         frangl=float(2*ifov-nfov-1)/nfov  ! varies between +/- (1-1/nfov)
+         sza=-solzen+bend0+fovr*frangl
+         wt=sqrt(1.0-frangl**2)
 c         write(*,*)'Calling TLPATH....',solzen,solwas,fovr,roc,obalt,wavtkr
          call tlpath(nlev-1,z(2),t(2),p(2),sza,0.0,roc,sngl(obalt),
      $   sngl(wavtkr),fbar,zmin,bend,splos(2),rc)
@@ -161,79 +183,85 @@ c  Multiple VAC by SPLOS
 c      write(*,*)'fm.f: sh=',sh,rdec,cx(ipfs),shshs
 c  Compute primitive transmittance spectrum using CONT as work space.
 c  Scale the limb opacities by CX and co-add to produce the total limb opacity
-      call vmov(spxv(1,0),1,spxv(1,ntg+1),1,ncp)    ! non-target limb opacity
-c      write(*,*)'fm:',0,spxv(1,0),spxv(1,ntg+1)
-      do jtg=1,ntg         ! compute  SUM_g {CX(g).SPXV(j,g)}
-         call vsma(spxv(1,jtg),1,cx(jtg),spxv(1,ntg+1),1,
-     &   spxv(1,ntg+1),1,ncp)
-c         write(*,*)'fm:',jtg,spxv(1,jtg),spxv(1,ntg+1)
-      end do
+         call vmov(spxv(1,0),1,spxv(1,ntg+1),1,ncp)    ! non-target limb opacity
+c         write(*,*)'fm:',0,spxv(1,0),spxv(1,ntg+1)
+         do jtg=1,ntg         ! compute  SUM_g {CX(g).SPXV(j,g)}
+            call vsma(spxv(1,jtg),1,cx(jtg),spxv(1,ntg+1),1,
+     &      spxv(1,ntg+1),1,ncp)
+c            write(*,*)'fm:',jtg,spxv(1,jtg),spxv(1,ntg+1)
+         end do
 c
-      call vexp(spxv(1,ntg+1),1,spxv(1,ntg+1),1,ncp) ! T=exp[SUM{VAC(k,j).X(j)}
+         call vexp(spxv(1,ntg+1),1,spxv(1,ntg+1),1,ncp) ! T=exp[SUM{VAC(k,j).X(j)}
 
 c  Multiply solar and atmospheric transmittance spectra
-      call vmul(spts,1,spxv(1,ntg+1),1,spxv(1,ntg+1),1,ncp)    ! STS*T
+         call vmul(spts,1,spxv(1,ntg+1),1,spxv(1,ntg+1),1,ncp)    ! STS*T
 
 c  Write out primitive-grid transmittance
-c       write(primsp(8:10),'(i3.3)') lunp-40
-c       open(lunp,file=primsp,status='unknown')
-c       do j=1,ncp
-c          write(lunp,*) j,spxv(j,ntg+1)
-c       end do
-c       close(lunp)
+c         write(primsp(8:10),'(i3.3)') lunp-40
+c         open(lunp,file=primsp,status='unknown')
+c         do j=1,ncp
+c            write(lunp,*) j,spxv(j,ntg+1)
+c         end do
+c         close(lunp)
 
 
-c      write(*,*)'SPTS:',spts(1),spts(nh),spts(ncp)
-c      write(*,*)'CALC:',spxv(1,ntg+1),spxv(nh,ntg+1),spxv(ncp,ntg+1)
-c      call vdot(spxv(1,ntg+1),1,spxv(1,ntg+1),1,sum2,ncp)
-c      write(*,*)'fm: ss=',sqrt(sum2/ncp)
-c      write(*,*) 'slit=',ldec,(slit(k),k=1,nii)
+c         write(*,*)'SPTS:',spts(1),spts(nh),spts(ncp)
+c         write(*,*)'CALC:',spxv(1,ntg+1),spxv(nh,ntg+1),spxv(ncp,ntg+1)
+c         call vdot(spxv(1,ntg+1),1,spxv(1,ntg+1),1,sum2,ncp)
+c         write(*,*)'fm: ss=',sqrt(sum2/ncp)
+c         write(*,*) 'slit=',ldec,(slit(k),k=1,1+2*ldec*nhw)
 c
 
 c  Convolve hi-res spectrum with ILS. Store result temporarily in PD(1,1)
-      call newdec(spxv(1,ntg+1),ncp,slit,nii,ldec,rdec,sh,
-     & pd(1,1),nmp)  !  SLIT*T
+c         write(*,*)'fm3: calling regrid2',nhw
+         call regrid2(ifcsp,ncp,spxv(1,ntg+1),nhw,slit,ldec,
+     &   rdec*(1.0d0+hh),ifmsp,nmp,calcul,nexpl,nexpr)
+         if(nexpl.ne.0) write(*,*) 'Warning: FM3: NEXPL==',nexpl
+         if(nexpr.ne.0) write(*,*) 'Warning: FM3: NEXPR==',nexpr
 
 c  Compute basis functions and store temporarily in PD(*,NTG+JBF)
-      call vmov(cont_level,0,cont,1,nmp)
-      if(ncbf.gt.0) call compute_dlpbf(nmp+nfp,nmp,ncbf,pd(1,ntg+1))
+         call vmov(cont_level,0,cont,1,nmp)
+         if(ncbf.gt.0) call compute_dlpbf(nmp+nfp,nmp,ncbf,pd(1,ntg+1))
 
 c  Compute CONT and associated PD's using new scheme.
 c  Use PD(*,NTG+JBF) as temporary storage for Basis Functions
-      do jbf=2,ncbf
-         call vsma(pd(1,ntg+jbf),1,cx(ntg+jbf)*cont_level,cont,1,
-     &    cont,1,nmp)
-         call vmul(pd(1,ntg+jbf),1,pd(1,1),1,pd(1,ntg+jbf),1,nmp)
-         call vmul(pd(1,ntg+jbf),1,cont_level,0,pd(1,ntg+jbf),1,nmp)
-      end do
-      call vmul(pd(1,1),1,cont,1,calcul,1,nmp)
-      call vadd(calcul,1,cont_level*xzo,0,calcul,1,nmp)    ! calc = pd(1)+zoff
-      if (ncbf.gt.0) call vmov(calcul(1),1,pd(1,ipcl),1,nmp)   ! pd(1) = calc
-      if(ipzo.gt.0) call vmov(cont_level,0,pd(1,ipzo),1,nmp)   ! ipzo: ZOFF PD's
+         do jbf=2,ncbf
+            call vsma(pd(1,ntg+jbf),1,cx(ntg+jbf)*cont_level,cont,1,
+     &      cont,1,nmp)
+            call vmul(pd(1,ntg+jbf),1,calcul,1,pd(1,ntg+jbf),1,nmp)
+            call vmul(pd(1,ntg+jbf),1,cont_level,0,pd(1,ntg+jbf),1,nmp)
+         end do
+         call vmul(calcul,1,cont,1,calcul,1,nmp)
+         call vadd(calcul,1,cont_level*xzo,0,calcul,1,nmp)    ! calc = pd(1)+zoff
+         if (ncbf.gt.0) call vmov(calcul(1),1,pd(1,ipcl),1,nmp)   ! pd(1) = calc
+         if(ipzo.gt.0) call vmov(cont_level,0,pd(1,ipzo),1,nmp)   ! ipzo: ZOFF PD's
 
 c  Compute target gas PD's
-      if(lun_ak.gt.1) write(lun_ak,*) nmp,ntg,nfp
-      do jtg=1,ntg
-         call vmul(spxv(1,ntg+1),1,spxv(1,jtg),1,spxv(1,ntg+2),1,ncp)
-         call newdec(spxv(1,ntg+2),ncp,slit,nii,ldec,rdec,sh,
-     &   pd(1,jtg),nmp)
-         call vmul(pd(1,jtg),1,cont,1,pd(1,jtg),1,nmp)
-         call vmov(zero,0,pd(nmp+1,jtg),1,nfp)           ! zero unused part of PD array
-         if(lun_ak.gt.0) write(lun_ak,*) (pd(jmp,jtg),jmp=1,nmp)
-      end do
+         if(lun_ak.gt.1) write(lun_ak,*) nmp,ntg,nfp
+         do jtg=1,ntg
+            call vmul(spxv(1,ntg+1),1,spxv(1,jtg),1,spxv(1,ntg+2),1,ncp)
+            call regrid2(ifcsp,ncp,spxv(1,ntg+2),nhw,slit,ldec,
+     &      rdec*(1.0d0+hh),ifmsp,nmp,pd(1,jtg),nexpl,nexpr)
+            if(nexpl.ne.0) write(*,*)'Warning: REGRID: NEXPL=',nexpl
+            if(nexpr.ne.0) write(*,*)'Warning: REGRID: NEXPR=',nexpr
+            call vmul(pd(1,jtg),1,cont,1,pd(1,jtg),1,nmp)
+            call vmov(zero,0,pd(nmp+1,jtg),1,nfp)           ! zero unused part of PD array
+            if(lun_ak.gt.0) write(lun_ak,*) (pd(jmp,jtg),jmp=1,nmp)
+         end do
 c
 c  Compute FS PDs
-       if(ipfs.gt.0) then
-         call vmov(zero,0,pd(1,ipfs),1,nmp+nfp)
-         nterm=min0(4,nmp/2-1)
-         do k=1,nterm     !  Apply triangular apodization to sinx/x operator
-            jj=nmp-2*k
-            rk=(nterm-k+1)*(-1)**k/float(k)/nterm
-            call vsma(calcul(1),1,rk,pd(1+k,ipfs),1,pd(1+k,ipfs),1,jj)
-            call vsma(calcul(1+2*k),1,-rk,pd(1+k,ipfs),1,
-     &      pd(1+k,ipfs),1,jj)
-         end do
-      endif
+         if(ipfs.gt.0) then
+            call vmov(zero,0,pd(1,ipfs),1,nmp+nfp)
+            nterm=min0(4,nmp/2-1)
+            do k=1,nterm     !  Apply triangular apodization to sinx/x operator
+               jj=nmp-2*k
+               rk=(nterm-k+1)*(-1)**k/float(k)/nterm
+               call vsma(calcul(1),1,rk,pd(1+k,ipfs),1,
+     &         pd(1+k,ipfs),1,jj)
+               call vsma(calcul(1+2*k),1,-rk,pd(1+k,ipfs),1,
+     &         pd(1+k,ipfs),1,jj)
+            end do
+         endif
 
          twt=twt+wt
          call vsma(calcul,1,wt,tcalc,1,tcalc,1,nmp)
@@ -245,7 +273,7 @@ c  Compute FS PDs
 c
       call vdiv(tcalc,1,twt,0,calcul,1,nmp)
       do jtg=1,nfp
-      call vdiv(tpd(1,jtg),1,twt,0,pd(1,jtg),1,nmp)
+         call vdiv(tpd(1,jtg),1,twt,0,pd(1,jtg),1,nmp)
       end do
 
 c  Zero the last NFP elements of each column of the PD Array (a priori).

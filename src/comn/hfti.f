@@ -122,7 +122,7 @@ c     -----------------------------------------------------------------
       parameter(ONE = 1.0E0, ZERO=0.0E0, FACTOR = 1000.0E0)
       parameter(COL = .true., ROW = .false.)
 c     -----------------------------------------------------------------
-C
+      HFAC=0.0  ! Avoid compiler warning (may be used uninitialized)
       M = M1
       N = N1
       if( M .lt. 1 .or. N .lt. 0 .or. KB .lt. 0 .or. LDA .lt. M ) then
@@ -366,10 +366,10 @@ c     msg from Cray compiler.
 C     ------------------------------------------------------------------
       integer I, IERR, J, N, MDIM, K, IP1, KP1
       integer IP(N)
-      real             A(MDIM,N), SDOT, ONE, TMP, VAR, ZERO
+      real             A(MDIM,N), ONE, TMP, VAR
       real*8 DSDOT
 C
-      parameter(ZERO = 0.0E0, ONE = 1.0E0)
+      parameter(ONE = 1.0E0)
 C     ------------------------------------------------------------------
 C     Replace upper triangular matrix U by its inverse, Inv(U)
 c
@@ -385,7 +385,7 @@ c
 
       do 62 I = 1,N-1
          do 60 J = I+1,N
-            A(I,J) = -A(J,J) * DSDOT(J-I,A(I,I),MDIM,A(I,J),1)
+            A(I,J) = -A(J,J) * sngl(DSDOT(J-I,A(I,I),MDIM,A(I,J),1))
    60    continue
    62 continue
 C
@@ -394,7 +394,7 @@ c     multiplied by VAR.
 c
       do 92 I = 1,N
          do 90 J = I,N
-            A(I,J) = VAR * DSDOT(N-J+1,A(I,J),MDIM,A(J,J),MDIM)
+            A(I,J) = VAR * sngl(DSDOT(N-J+1,A(I,J),MDIM,A(J,J),MDIM))
    90    continue
    92 continue
 C                                 Permute rows & columns
@@ -514,7 +514,7 @@ C       AND LY IS DEFINED IN A SIMILAR WAY USING INCY.
 C
       INTEGER N, INCX, INCY, IX, IY, I, M, MP1, NS
       REAL             X(*),Y(*),A
-      IF(N.LE.0.OR.A.EQ.0.E0) RETURN
+      IF(N.LE.0. .OR. abs(A).le.0.E0) RETURN
       IF(INCX.EQ.INCY) THEN
         IF((INCX-1) <0) THEN
           GOTO 5
@@ -811,12 +811,12 @@ c     July, 1987. CLL.  Changed user interface so method of specifying
 c     column/row storage options is more language-independent.
 C     ------------------------------------------------------------------
       real             U(*), UPARAM, C(*), SDOT, SNRM2
-      real             B, FAC, HOLD, VNORM, ONE, ZERO, SUM, BINV
+      real             B, FAC, HOLD, VNORM, ONE, SUM, BINV
       integer MODE, LPIVOT, L1, M, LDU, LDC, NVC
       integer IUPIV, IUL1, IUINC, IUL0
       integer ICE, ICV, I2, I3, INCR, NTERMS, J
       logical COLU, COLC
-      parameter (ONE = 1.0E0, ZERO = 0.0E0)
+      parameter (ONE = 1.0E0)
 C     ------------------------------------------------------------------
       if (0.ge.LPIVOT .or. LPIVOT.ge.L1 .or. L1.gt.M) return
       if(COLU) then
@@ -950,10 +950,11 @@ c     July, 1987. CLL.  Changed user interface so method of specifying
 c     column/row storage options is more language-independent.
 C     ------------------------------------------------------------------
       real             U(*), UPARAM, C(*), SNRM2
-      real             B, FAC, HOLD, VNORM, ONE, ZERO, SUM, BINV
+      real             B, FAC, HOLD, VNORM, ONE, SUM, BINV
       integer MODE, LPIVOT, L1, M, LDC, NVC
-      integer JCBASE, JCPIV, IUL0, J, I
-      parameter (ONE = 1.0E0, ZERO = 0.0E0)
+      integer  IUL0, J, I
+      integer*8 jcbase,jcpiv
+      parameter (ONE = 1.0E0)
 C     ------------------------------------------------------------------
       if (0.ge.LPIVOT .or. LPIVOT.ge.L1 .or. L1.gt.M) return
       if( MODE .eq. 1) then
@@ -984,6 +985,7 @@ c
       do 120 J = 1,NVC
          JCPIV = JCBASE + LPIVOT
          SUM = C(JCPIV) * UPARAM
+c         write(*,*)'L1,M,jcbase = ',L1,M,jcbase
          do 90 I = L1, M
             SUM = SUM + C(JCBASE+I)*U(I)
    90    continue
@@ -1187,7 +1189,7 @@ c     .. Local Scalars ..
          SCALEFACTOR = ZERO
          SSQ   = ONE
          DO IX = 1, 1 + ( N - 1 )*INCX, INCX
-            IF( DX(IX) .ne. ZERO ) THEN
+            IF( abs(DX(IX)) .gt. ZERO ) THEN
                ABSXI = ABS( DX(IX) )
                IF( SCALEFACTOR .lt. ABSXI ) THEN
                   SSQ = ONE + SSQ*( SCALEFACTOR/ABSXI )**2
@@ -1370,11 +1372,11 @@ C
                   SMALL(1) = J
  10               CONTINUE
 *              *** CRAY T3E ***
-               CALL I1MCRA(SMALL, K, 16, 0, 0)
-               CALL I1MCRA(LARGE, K, 32751, 16777215, 16777215)
-               CALL I1MCRA(RIGHT, K, 15520, 0, 0)
-               CALL I1MCRA(DIVER, K, 15536, 0, 0)
-               CALL I1MCRA(LOG10, K, 16339, 4461392, 10451455)
+               CALL I1MCRA(SMALL(1), K, 16, 0, 0)
+               CALL I1MCRA(LARGE(1), K, 32751, 16777215, 16777215)
+               CALL I1MCRA(RIGHT(1), K, 15520, 0, 0)
+               CALL I1MCRA(DIVER(1), K, 15536, 0, 0)
+               CALL I1MCRA(LOG10(1), K, 16339, 4461392, 10451455)
                GO TO 30
  20            CALL I1MCRA(J, K, 16405, 9876536, 0)
                IF (SMALL(1) .NE. J) THEN

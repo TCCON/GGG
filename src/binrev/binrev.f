@@ -12,7 +12,7 @@ c  than that of the input file.  This is because any info following
 c  the last spectral point of the input files is discarded.
 
       implicit none
-      include "../ggg_int_params.f"
+      include "../gfit/ggg_int_params.f"
 
       integer*4
      & lunr_rl,   ! LUN to read input runlogs from
@@ -85,9 +85,18 @@ c     & nlhead,ncol,
      & lasf,         ! Laser Frequency (e.g. 15798 cm-1)
      & wavtkr        ! suntracker frequency (active tracking)
 
-c
+      idum=mfilepath ! Avoid compiler warning (unused parameter)
+      idum=mauxcol ! Avoid compiler warning (unused parameter)
+      idum=mcolvav ! Avoid compiler warning (unused parameter)
+      idum=mgas    ! Avoid compiler warning (unused parameter)
+      idum=mlev    ! Avoid compiler warning (unused parameter)
+      idum=mrow_qc ! Avoid compiler warning (unused parameter)
+      idum=mspeci  ! Avoid compiler warning (unused parameter)
+      idum=mvmode  ! Avoid compiler warning (unused parameter)
+      idum=ncell   ! Avoid compiler warning (unused parameter)
+
       version=
-     & ' BINREV     Version 1.10    26-Dec-2012   GCT '
+     & ' BINREV     Version 1.11    2016-04-02    GCT '
       write(6,*)version
       call getendian(iend)  ! Find endian-ness of host computer
 

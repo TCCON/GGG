@@ -1,5 +1,6 @@
       SUBROUTINE subsolar(OBJECT,YEAR,MON,DAY,XJDFR,sslat,sslon,eorv)
-C     Subroutine to get sub-solar position and radial velocity
+C     Subroutine to get location (sslat,sslon) where object (Sun) is
+c     overhead. Also computes Earth-Object radial velocity
 C----------------------------------------------------------------------
 C     Calculates the sub-solar latitude and longitude (in radians).
 C     Solar ephemeris based on trignometric series developed by
@@ -26,7 +27,7 @@ c  Calculate Earth-Sun Radial velocity
       CALL COORS
      & (OBJECT,TAU+1.0d0,T+1.0d0/36525.d0,ALPHA,DELTA,RHOP,LON,BETA,RP)
 c  RHOP & RHOM are in AU's
-      eorv=865750.d0*(rhop-rhom)  ! Earth-Sun radial velocity in m/s
+      eorv=865750.d0*(rhop-rhom)   ! Earth-Sun radial velocity in m/s
 c
 C  Get the solar coordinates
       CALL COORS (OBJECT,TAU,T,ALPHA,DELTA,RHO,LON,BETA,RP)
@@ -54,23 +55,6 @@ C     are EAST of smaller ones
       RETURN
       END
 
-c      SUBROUTINE JULIAN(Y,M,D,JD)
-cC  Subroutine converts Gregorian calendar date
-cC  to Julian Day number at Greenwich Mean Noon
-c      INTEGER*4 Y,M,D,JD
-cC******************************************************
-cC        Input:
-cC     Y            Integral calendar year
-cC     M            Integral calendar month
-cC     D            Integral calendar day
-cC
-cC        Output:
-cC     JD           Integral Julian Day number
-cC******************************************************
-c      JD=367*Y-7*(Y+(M+9)/12)/4-3*((Y+(M-9)/7)/100+1)/4
-c     A+275*M/9+D+1721029
-c      RETURN
-c      END
 
 C     COORDINATE SUBROUTINE
       SUBROUTINE COORS(OBJECT,TAU,T,ALPHA,DELTA,RHO,LON,BETA,RP)

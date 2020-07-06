@@ -6,8 +6,8 @@
 
     implicit none
     character   specname*(*), logname*(*), specpath*(*), logpath*(*)
-    integer*4   i,j,luns, iostat, Tcomma, Pcomma, SIAcomma, SIScomma
-    integer*4   idate, ierror, lr
+    integer*4   i,j,luns, Tcomma, Pcomma, SIAcomma, SIScomma
+    integer*4   idate, ierror, lr, idum, lnblnk
     logical*1   foundinlog, foundinheader
     parameter   (luns=19)
 
@@ -17,6 +17,8 @@
     character*256   searchname
     character*1     dummy
 
+    idum=lnblnk(specpath)  ! Avoid compiler warning (unused)
+    idum=lnblnk(logname)  ! Avoid compiler warning (unused)
     open(luns,file=logpath, status='old', iostat=ierror)
     if(ierror.ne.0) then
         print *, 'Read_Oscar_log: Log file not found ', trim(logpath)
@@ -25,43 +27,43 @@
 
 !   read the first 10 lines
 !   The 10th line contains the column headings
-	do i=1,10
+    do i=1,10
         read(luns,'(a)')string
     end do
 
 !   Find the columns headed Troom, Pbarametric, SIA and SIS
-	Tcomma=0
-	Pcomma=0
-	SIAcomma=0
-	SIScomma=0
+      Tcomma=0
+      Pcomma=0
+      SIAcomma=0
+      SIScomma=0
     do i=1,len(trim(string))
         if(string(i:i).eq.',')Tcomma=Tcomma+1
-	    if(string(i+1:i+5).eq.'Troom')exit
-	end do
+        if(string(i+1:i+5).eq.'Troom')exit
+    end do
     do i=1,len(trim(string))
         if(string(i:i).eq.',')Pcomma=Pcomma+1
-	    if(string(i+1:i+4).eq.'Pbar')exit
-	end do
+        if(string(i+1:i+4).eq.'Pbar')exit
+    end do
     
     foundinheader=.false.
     do i=1,len(trim(string))
         if(string(i:i).eq.',')SIAcomma=SIAcomma+1
-	    if(string(i+1:i+3).eq.'SIA') then
+        if(string(i+1:i+3).eq.'SIA') then
             foundinheader=.true.
             exit
         endif
-	end do
-	if(.not.foundinheader)SIAcomma=0
+     end do
+     if(.not.foundinheader)SIAcomma=0
 
     foundinheader=.false.
     do i=1,len(trim(string))
         if(string(i:i).eq.',')SIScomma=SIScomma+1
-	    if(string(i+1:i+3).eq.'SIS')then
+            if(string(i+1:i+3).eq.'SIS')then
             foundinheader=.true.
             exit
         endif
-	end do
-	if(.not.foundinheader)SIScomma=0
+     end do
+     if(.not.foundinheader)SIScomma=0
 
     lr = len(trim(specname))
     if(specname(lr:lr).eq.'1') then
@@ -82,11 +84,11 @@
             print *, 'Read_Oscar_log: Spectrum ', trim(searchname), ' not found in log'
             foundinlog=.false.
             return
-	    endif
+        endif
         if(index(string,trim(searchname)).ne.0)exit
 !        j=index(searchname,"\",.true.)
 !        if(index(string,trim(searchname(j+1:))).ne.0)exit
-	enddo
+       enddo
 
 !   read the required values from this line
     foundinlog=.true.
@@ -95,16 +97,16 @@
         read(string(i:i),'(a1)')dummy
         if(dummy.eq.',')j=j+1
         if(j.eq.Tcomma)exit
-	end do
-	read(string(i+1:),*)Tout
+    end do
+    read(string(i+1:),*)Tout
 
     j=0
     do i=1,len(trim(string))
         read(string(i:i),'(a1)')dummy
         if(dummy.eq.',')j=j+1
         if(j.eq.Pcomma)exit
-	end do
-	read(string(i+1:),*)Pout
+    end do
+    read(string(i+1:),*)Pout
 
 !   Pressure calibration: 
 !   calibrated 01 July 2008 => correction = -0.8mb
@@ -118,28 +120,28 @@
         j=0
         do i=1,len(trim(string))
             read(string(i:i),'(a1)')dummy
-	        if(dummy.eq.',')j=j+1
-	        if(j.eq.SIAcomma)exit
-	    end do
-	    read(string(i+1:),*)SIA
-	else
-	    SIA=0
-	endif
+            if(dummy.eq.',')j=j+1
+            if(j.eq.SIAcomma)exit
+        end do
+        read(string(i+1:),*)SIA
+    else
+        SIA=0
+    endif
 
     if(SIScomma/=0)then
         j=0
         do i=1,len(trim(string))
             read(string(i:i),'(a1)')dummy
-	        if(dummy.eq.',')j=j+1
-	        if(j.eq.SIScomma)exit
-	    end do
-	    read(string(i+1:),*)SIS
-	else
-	    SIS=0
+            if(dummy.eq.',')j=j+1
+            if(j.eq.SIScomma)exit
+        end do
+        read(string(i+1:),*)SIS
+    else
+    SIS=0
     endif
 
 !   Convert SIS (now in %) to absolute units to be compatible with ipp and ggg
     sis=sis*sia/100.
 
     return
-	end
+    end

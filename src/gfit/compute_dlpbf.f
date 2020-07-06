@@ -1,10 +1,20 @@
       subroutine compute_dlpbf(nmax,n,m,bf)
 c  Computes Discrete Legendre Polynomial Basis Functions.
+c  These are orthogonal to each other.
 c  Based on the recursive method described in "Generation Scheme" 
 c  section (p 758-759) of Neuman and Schonbach (1974).
 c
 c  BFs are normalized such that the first point has a value of +1.
-c  Last point has a value of +1 or -1, depending whether it's even or odd.
+c  Last point has a value of +/- 1, depending whether m is even or odd.
+c
+c  Actually, this is not longer true since we now normalize
+c  each basis function to have a L2 norm of N, which means
+c  that the RMS value is 1. So the starting values are
+c  Sqrt[(2*i+1)*(N-1)/(N+1)], which for large N are approx:
+c  Sqrt(1), Sqrt(3), Sqrt(5), Sqrt(7) for the first four
+c  basis functions. The reason for this change is that the
+c  original normalization produced large values for big M,
+c  even though the end points were only +/- 1.
 c
 c  Inputs:
 c     nmax   I*4     Declared first dimension of array BF
@@ -35,26 +45,29 @@ c  be used externally, it must still be computed since it
 c  is used internally in the computation of the third BF.
 
       implicit none
-      integer*4 nmax,n,m,i,j,k,nmo
+      integer*4 nmax,n,m,i,j,k,nmo,jj
       real*4 bf(nmax,m),cff,dd
       real*4 c0,c1,c2,d0,d2
 
+      if(m.gt.n) stop 'compute_dlpbf: m > n  (this should never happen)'
+      
       nmo=n-1
-c  Compute first two LP basis functions
-c  BF(*,1) is all ones,
+c  Compute first LP basis function, BF(*,1), which is all ones,
       do k=1,n
          bf(k,1)=1.0
       end do
 
-c  BF(*,2) is a straight line going from +1 to -1.
+c  Second basis function, BF(*,2), is a straight line going from +1 to -1.
       if (m.ge.2) then
-      do k=1,n
-         bf(k,2)=dfloat(nmo-2*(k-1))/nmo
-      end do
+         jj=nmo
+         do k=1,n
+            bf(k,2)=float(jj)/nmo
+            jj=jj-2
+         end do
       endif
 
 c  Now compute subsequent LP basis functions recursively.
-c  So each basis function depends on the two previous ones
+c  So each basis function depends on the two previous ones,
 c  the coefficients c1, c2, c3, and BF(2).
       c0=0
       c1=nmo
@@ -72,13 +85,24 @@ c  the coefficients c1, c2, c3, and BF(2).
          end do
       end do
 
-c Renormalize DLPBFs such that their L2 norm is N
+c Renormalize DLPBFs such that their L2 norm is N,
+c which means that their RMS deviation from zero is 1.
 c Probably this re-normalization can be performed
 c as part of the previous loops (future project).
 c After re-normalization, the first basis function
 c is still all ones, but the second (tilt) is reduced
 c reduced by a factor 3(N-1)/(N+1), which for large N
-c is approx SQRT(3).
+c is approx SQRT(3), and the third (curv) is reduced
+c by approx Sqrt(5).
+c
+c  2019-02-20: But it is not reduced by these factors,
+c  it is increased by them. For example, normalization
+c  changes the tilt basis function starting value from
+c  1 to Sqrt(3).  This means that the amplitude in the
+c  state vector will be smaller in the new normalized
+c  space, which means that the a priori constraint will
+c  be less bossy.
+
       do i=1,m
          dd=sqrt(cff(n,i))
          do j=1,n

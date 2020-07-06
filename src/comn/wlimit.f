@@ -26,12 +26,12 @@ c  which would exceed the f9.4 format.
 
 
       implicit none
-      integer*4 i,j,k1,k2,lw,lnbc
+      integer*4 i,j,k1,k2,lw,lnblnk
       real*8 vvv
       real*8 wmin,wmax,wlimit
       character wformat*(*)
 
-      lw=lnbc(wformat)
+      lw=lnblnk(wformat)
 c
 c  Extract numerical values of k1 (=5) and k2 (=3) from wformat (='f5.3')
 c  This is *not* done by an internal read because the function wlimit is
@@ -42,14 +42,14 @@ c
 c  Skip the first character ('f') and then evaluate K1. 
       k1=0
       do i=2,lw
-        if(wformat(i:i).eq.'.') exit
-        k1=10*k1+ichar(wformat(i:i))-48
+         if(wformat(i:i).eq.'.') exit
+         k1=10*k1+ichar(wformat(i:i))-48
       end do
 
 c  Evaluate K2
       k2=0
       do j=i+1,lw
-        k2=10*k2+ichar(wformat(j:j))-48
+         k2=10*k2+ichar(wformat(j:j))-48
       end do
 
 c Determine largest & smallest writable values allowed by wformat

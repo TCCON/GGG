@@ -1,0 +1,10 @@
+$GGGPATH/bin/spec_diff $GGGPATH/src/i2s/spectra/benchmark/pa20041222saaaaa.001 $GGGPATH/src/i2s/spectra/pa20041222saaaaa.001 | head -n1
+echo ' Spectrum1            Spectrum2                 NDIFFS  NPTS  RMS_Value     RMS_Diff   Ratio: Diff/Val'
+$GGGPATH/bin/spec_diff $GGGPATH/src/i2s/spectra/benchmark/pa20041222saaaaa.001 $GGGPATH/src/i2s/spectra/pa20041222saaaaa.001 | tail -n1 | awk '{print "pa20041222saaaaa.001",$1,$2,$3,$4,$5,$6}'
+$GGGPATH/bin/spec_diff $GGGPATH/src/i2s/spectra/benchmark/pa20041222saaaab.001 $GGGPATH/src/i2s/spectra/pa20041222saaaab.001 | tail -n1 | awk '{print "pa20041222saaaab.001",$1,$2,$3,$4,$5,$6}'
+$GGGPATH/bin/spec_diff $GGGPATH/src/i2s/spectra/benchmark/pa20041222saaaaa.002 $GGGPATH/src/i2s/spectra/pa20041222saaaaa.002 | tail -n1 | awk '{print "pa20041222saaaaa.002",$1,$2,$3,$4,$5,$6}'
+$GGGPATH/bin/spec_diff $GGGPATH/src/i2s/spectra/benchmark/pa20041222saaaab.002 $GGGPATH/src/i2s/spectra/pa20041222saaaab.002 | tail -n1 | awk '{print "pa20041222saaaab.002",$1,$2,$3,$4,$5,$6}'
+$GGGPATH/bin/spec_diff $GGGPATH/src/i2s/spectra/benchmark/wg20090206saebaa.001 $GGGPATH/src/i2s/spectra/wg20090206saebaa.001 | tail -n1 | awk '{print "wg20090206saebaa.001",$1,$2,$3,$4,$5,$6}'
+$GGGPATH/bin/spec_diff $GGGPATH/src/i2s/spectra/benchmark/wg20090206saebab.001 $GGGPATH/src/i2s/spectra/wg20090206saebab.001 | tail -n1 | awk '{print "wg20090206saebab.001",$1,$2,$3,$4,$5,$6}'
+$GGGPATH/bin/spec_diff $GGGPATH/src/i2s/spectra/benchmark/wg20090206saebaa.002 $GGGPATH/src/i2s/spectra/wg20090206saebaa.002 | tail -n1 | awk '{print "wg20090206saebaa.002",$1,$2,$3,$4,$5,$6}'
+$GGGPATH/bin/spec_diff $GGGPATH/src/i2s/spectra/benchmark/wg20090206saebab.002 $GGGPATH/src/i2s/spectra/wg20090206saebab.002 | tail -n1 | awk '{print "wg20090206saebab.002",$1,$2,$3,$4,$5,$6}'

@@ -32,9 +32,9 @@ $(TARGET) : $(OBJECTS)
 	$(FC) $(LDFLAGS) -o $(GGGPATH)/bin/$@ $^
 
 #  Add dependencies to object files
-$(TSRC)/create_sunrun_from_lamont_ifs3.o: $(GGGPATH)/src/ggg_int_params.f $(TSRC)/../params.f
-$(COMN)/gindfile.o:                       $(GGGPATH)/src/ggg_int_params.f
-$(COMN)/write_sunrun.o:                   $(GGGPATH)/src/ggg_int_params.f
+$(TSRC)/create_sunrun_from_lamont_ifs3.o: $(GGGPATH)/src/gfit/ggg_int_params.f $(TSRC)/../params.f
+$(COMN)/gindfile.o:                       $(GGGPATH)/src/gfit/ggg_int_params.f
+$(COMN)/write_sunrun.o:                   $(GGGPATH)/src/gfit/ggg_int_params.f
 
 clean:
 	rm -f $(OBJECTS) $(GGGPATH)/bin/$(TARGET)

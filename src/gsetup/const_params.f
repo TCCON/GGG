@@ -1,8 +1,9 @@
 c Constants
+
       real*4
-     & avagadro,
+     & avogadro,
      & gas
 
-      parameter(avagadro=6.02217e+23)
+      parameter(avogadro=6.02217e+23)
       parameter(gas=8.31432)
 

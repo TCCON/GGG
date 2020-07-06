@@ -1,0 +1,29 @@
+
+06/30/2020 05:01:52 PM New write_netcdf log session
+[INFO]: Running write_netcdf.py (Version 1.0; 2019-11-15; SR)
+[INFO]: tccon_netcdf repository HEAD: 265c32d
+[INFO]: Python executable used: /home/jlaugh/anaconda3/envs/ggg-tccon-default/bin/python
+[INFO]: GGGPATH=/home/jlaugh/GGG/ggg-devel
+[INFO]: cwd=/home/jlaugh/GGG/ggg-devel/install/current_results
+[INFO]: netCDF file format: NETCDF4_CLASSIC
+[INFO]: Input file: pa_ggg_benchmark.tav
+[INFO]: Reading MAV file ...
+[INFO]: Finished reading MAV file
+[INFO]: The output of "hg summary" from the GGG repository:
+ parent: 1583:84293d41948e tip
+ Bump write_netcdf commit
+branch: default
+commit: 136 modified, 6011 unknown
+update: (current)
+phases: 8 draft
+
+[INFO]: Writing prior data ...
+[INFO]: Finished writing prior data
+[INFO]: Writing scaled aia data and determining qc flags
+[INFO]: Summary of flags:
+[INFO]:   #  Parameter              N_flag      %
+[INFO]:   9  solzen                    2     50.000
+[INFO]:      TOTAL                     2     50.000
+[INFO]: Writing data:
+[INFO]: Finished writing pa20040721_20041222.private.nc 15.29 MB
+[INFO]: Finished write_eof log session at 06/30/2020 05:04:26 PM

@@ -21,8 +21,8 @@ c       APX(NFP)       R*4  A priori estimate of solution vector
 c       APU(NFP)       R*4  Uncertainty of a priori estimate
 c
 c  Outputs:
-c       (YYDU(k),k=1,nfp)          the retrieved coefficients (CX)
-c       (sqrt(BFDU(k,k)),k=1,nfp)  the uncertainties in CX 
+c       (YYDU(k),k=1,nfp)          R*4  the retrieved coefficients (CX)
+c       (sqrt(BFDU(k,k)),k=1,nfp)  R*4  the uncertainties in CX 
 c       RNORM                      R*4  Predicted L2-Norm (chi-squared = RNORM**2)
 c
 c   RNORM/SQRT(NPTS)  is the factor by which the scatter of the points exceeds their error bars

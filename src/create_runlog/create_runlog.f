@@ -2,25 +2,32 @@ c  Program to create a GGG-compatible runlog from the sunrun file.
 c  which is created by running create_sunrun_from_xxxx.
 c
       implicit none
-      include "../ggg_int_params.f"
-      include "params.f"
+      include "../gfit/ggg_int_params.f"
 
       integer*4
+     & bytepw,   !Number of bytes per data word (=2 for AT,M4; =4 for OP,GR)
+     & ifirst,   !The index of the first spectral point on disk
+     & ilast,    !The index of the last spectral point on disk
+     & possp,    !Number of bytes before IFIRST'th point (i.e. header length)
+     & object    !Heavenly object (Moon=1, Sun=2)
+
+      integer*4
+     & iy,im,id,jd,
      & jj,
-     & i,
-     & lnbc,ispe,ifmin,ifmax,
+     & i,idum,ios,
+     & lnbc,lloc,ispe,ifmin,ifmax,
      & nlhead,ncol,
      & lr,lrt,
      & doy,
      & one,
-     & lunr,lunw_rlg, mcol,lst,lunw_lse,lsp
-      parameter (lunr=15,lunw_rlg=16,lunw_lse=17,one=1,mcol=40)
+     & lunr,lunw_rlg,lst,lunw_lse,lunw_nts
+      parameter (lunr=15,lunw_rlg=16,lunw_lse=17,one=1,lunw_nts=62)
 c
       real*8 amal,fovi,fovo,gmt,tins,pins,hins,tout,pout,hout,
      & obalt,asza,azim,snr,wavtkr,zoff,zpoff,oblat,oblon,opd,
      & lasf,fmin,fmax,fsf,delwav,tcorr,sia,fvsi,wspd,wdir,aipl,
      & tel_mag,eorv,ervc,osds,tplat,tplon,tpalt,site_solar_noon,
-     & lse,lsu
+     & lse,lsu,lsf,dip,mvd,r8was,r8year,r8ydiff
 c
       character spfmt*2, logfile*40,
      & outfile*(mfilepath),path*(mpath),dplist*(mfilepath),
@@ -33,18 +40,30 @@ c
      & ext*3,                     !geometry ['air','bal','gnd','lab',orb','syn']
      & gggdir*(mpath),            !ggg directory path (GGGPATH?)
      & specname*(nchar),          !spectrum name
-     & data_fmt_write_rl*256,
+     & data_fmt_wrlg*256,
      & lsefile_format*100,
      & version*64                 !current program version
 
+
+      idum=mauxcol ! Avoid compiler warning (unused parameter)
+      idum=mcolvav ! Avoid compiler warning (unused parameter)
+      idum=mgas    ! Avoid compiler warning (unused parameter)
+      idum=mlev    ! Avoid compiler warning (unused parameter)
+      idum=mrow_qc ! Avoid compiler warning (unused parameter)
+      idum=mspeci  ! Avoid compiler warning (unused parameter)
+      idum=mvmode  ! Avoid compiler warning (unused parameter)
+      idum=ncell   ! Avoid compiler warning (unused parameter)
+
 c
-      version=' CREATE_RUNLOG    Version 8.72     18-Dec-2012   GCT'
+      version=' CREATE_RUNLOG    Version 8.78     2019-08-22    GCT'
       write(*,'(a)') version
       col1=' '
       iy=0
       im=0
       id=30
       amal=0.0d0
+      r8was=-9999999.9d0
+
 
       call get_ggg_environment(gggdir, dl)
       lrt=lnbc(gggdir)       !Length of gggdir
@@ -81,39 +100,26 @@ c
       lsefile=gggdir(:lrt)//'lse'//dl//ext//dl//logfile(:lr-3)//'lse'
 c     write(*,*)'lsefile=',lsefile
 c
-c
-c      data_fmt_write_rl='(a1,a57,1x,2i4,f8.4,f8.3,f9.3,2f8.3,1x,f6.4,f8.3,'//
-c     & 'f7.3,f7.2,3(1x,f5.4),2i9,1x,f14.11,i9,i3,1x,f5.3,i5,1x,'//
-c     & 'a2,2(f6.1,f8.2,f5.1),f7.1,f7.4,f6.1,f6.0,f10.3,f7.0,f7.3)'
-
-c      header=
-c     &  '     Spectrum_File_Name                                  '//
-c     &  '   Year  Day  Hour'//
-c     &  '   oblat    oblon   obalt    ASZA    POFF    AZIM   OSDS'//
-c     &  '    OPD   FOVI  FOVO'//
-c     &  '  AMAL   IFIRST    ILAST    DELTA_NU   POINTER  BPW ZOFF SNR'//
-c     &  '  APF tins  pins  hins   tout   pout  hout'//
-c     &  '  sia    fvsi   wspd  wdir  lasf    wavtkr  aipl'
-c      call substr(header, outarr, mcol, ncol)
-c      write(lunw_rlg,*)4,ncol
-c      write(lunw_rlg,'(a)') version
-c      write(lunw_rlg,'(a)')'format='//data_fmt_write_rl(:lnbc(data_fmt_write_rl))
-c      write(lunw_rlg,'(a)') header(:lnbc(header))
       open(lunw_rlg,file=outfile,status='unknown')
       open(lunw_lse,file=lsefile,status='unknown')
-      lsefile_format = '(1x,a99,i5,i4,f9.4,i3,1pe12.4,1pe12.4)'
+      open(lunw_nts,file='create_runlog.nts',status='unknown')
+      lsefile_format = 
+     & '(1x,a99,i5,i4,f9.4,i3,1pe12.4,1pe12.4,1pe12.4,'//
+     & '1pe12.4,0p,1x,f9.4)'
       write(lsefile_format(6:7),'(i2.2)') nchar
-      write(lunw_lse,'(a)')' 3   7'
+      write(lunw_lse,'(a)')' 3  10'
       write(lunw_lse,'(a)')' '//lsefile_format
       write(lunw_lse,'(a)')
      &' Specname                                                 '//
-     &' year doy  hour   LST  LSE         LSU'
-      call write_runlog_header(lunw_rlg,version,data_fmt_write_rl)
+     &' year doy  hour    LST LSE         LSU         LSF        '//
+     &' DIP          MVD'
+      call write_runlog_header(lunw_rlg,version,data_fmt_wrlg)
 c
       do ispe=1,9999999  !---------Main loop over spectra----------
          call read_sunrun(lunr,col1,specname,object,tcorr,oblat,
      &   oblon,obalt,tins,pins,hins,tout,pout,hout,sia,fvsi,
      &   wspd,wdir,fmin,fmax,fsf,lasf,wavtkr,aipl,tel_mag,ios)
+c        write(*,*)ispe,specname,ios
          if(ios.ne.0) go to 99
 c
 c  find the spectral file, return the PATH to the spectrum
@@ -124,10 +130,11 @@ c  find the spectral file, return the PATH to the spectrum
             stop
          endif
 
-         call rdsphead(spfmt,specname,path,ifirst,ilast,possp,
+c         write(*,*)'create_runlog: ',path,specname,iy,im,id,gmt
+         call rdsphead(spfmt,specname,path(:lloc(path,dl)),
+     &   ifirst,ilast,possp,
      &   bytepw,apf,delwav,opd,fovi,snr,
-     &   iy,im,id,gmt,lasf,wavtkr,lst,lse,lsu)
-c         write(*,*)'create_runlog: ',specname,iy,im,id,gmt
+     &   iy,im,id,gmt,lasf,wavtkr,lst,lse,lsu,lsf,dip,mvd)
 
          fovo=fovi/tel_mag
 c         write(*,*) path,ifirst,ilast,possp,bytepw,apf,delwav
@@ -163,34 +170,57 @@ c  day number. To achieve this, the UT time must be allowed to go
 c  -ve or to exceed 24.
          site_solar_noon=12-oblon/15  !  ut time of local noon
          if((gmt-site_solar_noon).gt.+12) then
-             gmt=gmt-24.0
-             doy=doy+1
+            gmt=gmt-24.0
+            doy=doy+1
          elseif((gmt-site_solar_noon).lt.-12) then
-             gmt=gmt+24.0
-             doy=doy-1
+            gmt=gmt+24.0
+            doy=doy-1
          endif
 c         write(*,*)path(:lnbc(path))
 c
-         call zenaz(object,oblat,oblon,obalt,iy,one,doy,
-     &   gmt/24.d0,asza,azim,eorv,ervc,tplat,tplon,tpalt)
-         osds=1.e+06*(eorv+ervc)/3.d+8  ! Observer-Sun Doppler Stretch (ppm)
+         if(object.gt.0) then
+            call zenaz(object,oblat,oblon,obalt,iy,one,doy,
+     &      gmt/24.d0,asza,azim,eorv,ervc,tplat,tplon,tpalt)
+            osds=1.e+06*(eorv+ervc)/3.d+8  ! Observer-Sun Doppler Stretch (ppm)
+c            write(*,*)'osds=',osds,eorv,ervc
+         else
+            asza=0.0
+            azim=0.0
+            osds=0.0
+         endif
 
          zoff=0.0
          zpoff=0.0
-         call write_runlog_data_record(lunw_rlg,data_fmt_write_rl,
+         call write_runlog_data_record(lunw_rlg,data_fmt_wrlg,
      &   col1,specname,iy,doy,gmt,oblat,oblon,obalt,asza,zpoff,azim,
      &   osds,opd,fovi,fovo,amal,ifirst,ilast,
      &   delwav,possp,bytepw,zoff,snr,apf,tins,pins,hins,tout,
      &   pout,hout,sia,fvsi,wspd,wdir,lasf,wavtkr,aipl,ios)
+
+c  Create report to identify non-chronological times in the runlog
+         r8year=iy+(doy+gmt/24.0d0)/366.0d0
+         r8ydiff=r8year-r8was
+c  Report negative time-steps in the runlogs times of more than 1.5min.
+         if( r8ydiff .lt. -0.000003d0) then
+           write(lunw_nts,'(a,a,2f12.6)')
+     &  '  Negative time step (runlog not chronologically sorted): ',
+     &     specname,r8was,r8year
+         endif
+         r8was=r8year
+
+
          write(lunw_lse,lsefile_format)
-     &   specname,iy,doy,gmt,lst,lse,lsu
+     &   specname,iy,doy,gmt,lst,lse,lsu,lsf,dip,mvd
          if(mod(ispe,1000).eq.0) write(*,*) ispe
 c
+c         write(*,*)'---------------------------------------------------'
       end do ! -------------Main loop over spectra----------------
 c
  99   close(lunr)
       close(lunw_rlg)
       close(lunw_lse)
+      close(lunw_nts)
+
       write(*,*) ispe-1, ' spectra found'
       stop
       end

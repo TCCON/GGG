@@ -54,7 +54,7 @@ pro ffile,filenm,partition,ipart,npart,path
 ; 
 ;  Systematically search over the NPART partitions starting at IPART
    for j=0,npart-1 do begin
-      path=string(partition(ipart),strtrim(filenm,2))
+      path=strtrim(partition(ipart),2)+strtrim(filenm,2)
       print,j,path
       r=findfile(path,count=num)
       if num eq 1 then return   ; SUCCESSFUL exit

@@ -1,6 +1,5 @@
       subroutine jetspe(specpath,resn,graw,ifirst,ilast,possp,bytepw,
-     & nus,nue,apo_m,interp,foff,res,
-     & yobs,mip,nip,nustrt,delwav,status)
+     & nus,nue,apo_m,interp,foff,res,yobs,mip,nip,nustrt,delwav,status)
 c  Reads a portion of spectrum from disk, apodizes, interpolates, and resamples
 c  the spectrum as requested, then places the result at the beginning of YOBS.
 c  Note that YOBS is also used as workspace and so the elements of YOBS above
@@ -45,29 +44,30 @@ C        =-2  No overlap between requested interval and disk file.
 C             This can also happen if MMP=0, or if NUS=NUE
 C======================================================================
       implicit none
-      include "../ggg_const_params.f"
 
       character specpath*(*)
 
-      INTEGER*4 apo_m,possp,nip,nmp,STATUS,msi,mip,
-     & k1,m1,m2,i1,i2,k,bytepw,ifirst,ilast,interp,iskip,iabpw,
-     & nhw,nsf,nsi,nele,nscycle,j1,j2,ii
-      parameter (msi=50753,nscycle=25)  ! max dimension of sinc_interp function 
+      INTEGER*4 apo_m,possp,nip,nmp,STATUS,msi,mip,nexpl,nexpr,
+c     & j,
+     & k1,m1,m2,i1,i2,bytepw,ifirst,ilast,interp,iskip,iabpw,
+     & nhw,nsf,nscycle,j1,j2,ii
+      parameter (msi=50753,nscycle=25)  ! max dimension of vsinc function 
 c
       REAL*8 dzero,fr,resnog,resn,rect,vbar,hwid,dd,sh
       REAL*8 nus,nue,graw,delwav,nustrt
 c
-      REAL*4 sinc_interp(msi),yobs(mip),foff,res,tot,dum
+      REAL*4 vsinc(msi),yobs(mip),foff,res,dum
       parameter (dzero=0.0d0)
-c
+
       if(nus.ge.nue) stop 'NUS >= NUE'
       status=0
       rect=0.0d0
       resn=dmax1(resn,dble(res))
       dd=nscycle*resn  ! half-wifth of ILS in cm-1
 c      if(resn.lt.graw) resn=graw
-      resnog=resn/graw
-c      write(*,*)'jetspe: apo_m=',apo_m
+      resnog=dabs(resn/graw)
+c      write(*,*)'jetspe: specpath=',specpath(:80)
+c      write(*,*)'jetspe: resn,graw,resnog=',resn,graw,resnog
       nhw=nint(nscycle*resnog)
       nsf=2*iabs(nhw)+1
 c-------------------------------------------------------------------------
@@ -84,6 +84,7 @@ c  Note that it is always true that M2>M1 irrespective of whether they are +ve o
 c-------------------------------------------------------------------------
       vbar=0.5d0*graw*(ilast+ifirst)
       hwid=0.5d0*dabs(graw*(ilast-ifirst))
+c      write(*,*) 'jetspe: ',ifirst,ilast,graw,vbar,hwid
 
 c  Check that the lowest required measurement frequency is in the spectrum file
       if( nus-dd .lt. vbar-hwid ) then
@@ -124,7 +125,7 @@ c  Check that original spectra values will not overflow YOBS(MMP)
 c-------------------------------------------------------------------------
 c  Check that interpolated values will not overflow YOBS(MMP)
       if( 1+interp*(nmp-nsf) .gt. mip ) then
-      write(*,*)'JETSPE warning: increase MMP to',1+interp*(nmp-nsf)
+         write(*,*)'JETSPE warning: increase MMP to ',1+interp*(nmp-nsf)
          status=-5
          return
       endif
@@ -137,24 +138,31 @@ c  to be performed "in place" without prematurely overwriting any points.
       iabpw=iabs(bytepw)
       if(iabpw.eq.3) iabpw=4
       if(iabpw.eq.6) iabpw=8  ! ACE binary [Real, Imag]
-      iskip=possp+iabpw*(m1-iabs(nhw)-ifirst)
-c      write(*,*)' bpw, m1, nhw, ifirst=',iabpw, m1, nhw, ifirst
-c      write(*,*)' possp, nmp, nsf,k1, iskip=',possp, nmp,nsf, k1, iskip
+      if(iabpw.eq.11) then
+         iskip=m1-iabs(nhw)-ifirst
+      else
+         iskip=possp+iabpw*(m1-iabs(nhw)-ifirst)
+      endif
+      if(iskip.lt.0) then 
+         write(*,*)'jetspe: IFIRST,ILAST,M1,NHW = ',IFIRST,ILAST,M1,NHW
+         stop 'JETSPE: iskip < 0    IFIRST > ILAST ?'
+      endif
+c      write(*,*)'jetspe: bpw, m1, nhw, ifirst=',iabpw, m1, nhw, ifirst
+c      write(*,*)'jetspe: possp,nmp,nsf,k1,iskip=',possp,nmp,nsf,k1,iskip
       call fetch(specpath,bytepw,iskip,yobs(k1),nmp)
       if(graw.lt.0.0) then
-c       call vswap(yobs(k1),1,yobs(k1+nmp-1),-1,nmp/2)
-        j1=k1
-        j2=k1+nmp-1
-        do ii=1,nmp/2
+         j1=k1
+         j2=k1+nmp-1
+         do ii=1,nmp/2
             dum=yobs(j1)
             yobs(j1)=yobs(j2)
             yobs(j2)=dum
             j1=j1+1
             j2=j2-1
-        end do
+         end do
       endif
 c-------------------------------------------------------------------------
-c  i1/i2 are the interpolated spectrum starting/ending indice
+c  i1/i2 are the interpolated or output spectrum starting/ending indices
       delwav=dabs(graw)/interp
       i1=1+int(nus/delwav)
       i2=int(nue/delwav)
@@ -166,44 +174,35 @@ c      write(*,*)i1,i2,nip,delwav,i1*delwav,i2*delwav
 c      i1=1+int(interp*nus/dabs(graw))
 c      i2=int(interp*nue/dabs(graw))
 c      nip=i2+1-i1   ! Number of Interpolated Points
-cc      write(*,*)graw,delwav
-cc      write(*,*)nus,nue,i1,i2,m1,m2
 c      delwav=dabs(graw)/interp
 c      nustrt=i1*delwav
 c-------------------------------------------------------------------------
-c  Calculate sinc_interp function and normalize each subset to unity independently
+c  Calculate vsinc function and normalize each subset to unity independently
 c  RECTOG is zero since we are dealing with measured spectra.
       fr=dble(foff)/delwav
-      nsi=1+2*interp*iabs(nhw)
-      if(nsi.gt.msi) then
-         write(*,*)' JETSPE: Increase parameter MII to',nsi
+      if(1+2*interp*iabs(nhw).gt.msi) then
+         write(*,*)' JETSPE: Increase MII to',1+2*interp*iabs(nhw)
          status=-7
          return
       endif
-      call profzl(apo_m,nsi,interp*dabs(resnog),dzero,fr,sinc_interp)
-      nele=nsi/interp
-      do k=interp,1,-1
-         call vdot(sinc_interp(k),interp,unity,0,tot,nele)
-         call vmul(sinc_interp(k),interp,1./tot,0,sinc_interp(k),interp,
-     &   nele)
-      end do   ! k=1,interp
-      sinc_interp(nsi)=sinc_interp(nsi)/tot
-c
+c      write(*,*)'jetspe: interp,nhw=',interp,nhw
+      call compute_ils(apo_m,nhw,interp,interp*resnog,dzero,fr,
+     & vsinc)
+
 C  Perform the convolution that does the shifting, interpolation & apodization
 c  Convolve spectral values with pre-normalized operator A (sinc function)
-c      write(*,*)'JETSPE NEWDEC..',apo_m,resnog,nmp,nip,nhw,nsi,k1
-c      write(*,*) (sinc_interp(k),k=1,nsi)
-c      if(apo_m.gt.0) then
-       if(m1.gt.0) then
+      if(m1.gt.0) then
          sh=dfloat(i1-interp*m1)/interp
-       else
+      else
          sh=dfloat(i1+interp*m2)/interp
-       endif
-c         write(*,*)i1,m1,m2,interp,sh
-         call newdec(yobs(k1),nmp,sinc_interp,nsi,interp,1.d0/interp,sh,
-     &   yobs,nip)
-c      else
-c         call vmov(yobs(k1+nhw),1,yobs,1,nip)
-c      endif
+      endif
+
+
+c     write(*,*) 'JETSPE: Calling regrid2:',m1,nmp,k1,interp,nhw
+      call regrid2(m1,nmp,yobs(k1),nhw,vsinc,interp,1.d0/interp,
+     & m1+interp*nhw,nip,yobs,nexpl,nexpr)
+c      write(*,*) 'JETSPE: Called regrid2:'
+      if(nexpl.ne.0) write(*,*)'Warning: JETSPE: NEXPL=',nexpl
+      if(nexpr.ne.0) write(*,*)'Warning: JETSPE: NEXPR=',nexpr
       return
       end

@@ -21,7 +21,7 @@ c   06_hit08.par contains 2745 lines covering 5571-6200 cm-1, including the 76 l
 c   The subroutine somehow skips the 76 lines in 2nu3_hit08.dat when doing the AbsW caluclation.
         Implicit Double Complex (Z)
         Implicit Double Precision (A-H,O-Y)
-        include "../ggg_int_params.f"
+        include "../gfit/ggg_int_params.f"
         integer lp
 C Max number of Spectral points
         Parameter (nSigmx=500000)
@@ -56,6 +56,18 @@ C Intermediate results
 C Results (Absorption Coefficients)
 c      Common/CabsV/AbsV(nSigmx)
 c      Common/CabsLM/AbsW(nSigmx)
+
+      idum=mfilepath ! Avoid compiler warning (unused parameter)
+      idum=mauxcol  ! Avoid compiler warning (unused parameter)
+      idum=mcolvav  ! Avoid compiler warning (unused parameter)
+      idum=mgas     ! Avoid compiler warning (unused parameter)
+      idum=mlev     ! Avoid compiler warning (unused parameter)
+      idum=mrow_qc  ! Avoid compiler warning (unused parameter)
+      idum=mspeci   ! Avoid compiler warning (unused parameter)
+      idum=mvmode   ! Avoid compiler warning (unused parameter)
+      idum=ncell    ! Avoid compiler warning (unused parameter)
+      idum=nchar    ! Avoid compiler warning (unused parameter)
+
 C
 C Constants
       Pi=3.14159265d0

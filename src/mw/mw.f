@@ -15,12 +15,11 @@ c
 c  Program will require 24 Mbyte of memory per 1000 cm-1 searched.
 c
       implicit none
-      include "../ggg_const_params.f"
-      include "../ggg_int_params.f"
+      include "../gfit/ggg_int_params.f"
 
       integer*4 j,lunr,nlhead,ncol,igas,ngas,ilev,nlev,
      & kgas,kiso,reclen,jline,kline1,kline2,nlines,posnall,molno,iso,
-     & lmax,mmp,nmp,ip,lunw,lunt,linelist,kk,i,nfft
+     & lmax,mmp,nmp,ip,lunw,lunt,linelist,kk,i,nfft,idum
       integer*8 fsib,file_size_in_bytes
       parameter (lunr=14,lunw=16,lunt=17)
       parameter (mmp=512*1024)
@@ -30,18 +29,27 @@ c
      & slcol(mgas),target(mmp),tother(mmp),spts(mmp),
      & gse(mmp),vac(mmp,mgas),
      & pbar(mgas),tbar(mgas),wbar(mgas),sxtot(mgas),sig_other,
-     & smax,snr,noise,acc,theta,xx,zz,curv_target,curv_other
+     & smax,snr,noise,theta,xx,zz,curv_target,curv_other
 
       real*8 fmin,fmax,dnu,freq,sx,stren,abhw,sbhw,eprime,tdabhw,
-     & pshift,d2r,findex,frac
-      parameter (noise=0.005,dnu=0.01d0,roc=6356.0,acc=0.01,
-     & d2r=dpi/180.0d0)
+     & pshift,d2r,findex,frac,dpi
+      parameter(dpi=3.14159265359d0)
+      parameter (noise=0.005,dnu=0.01d0,roc=6356.0,d2r=dpi/180.0d0)
 c
       character string*1000,llformat*53,rotate*24,llname*80,version*50
       character menuinputfile*40
 c
-      version=' MW         Version 4.1.0     25-Jan-2002     GCT '
-c
+      version=' MW         Version 4.11      2018-12-01      GCT '
+
+      idum=mauxcol     ! Avoid compiler warning: Unused parameter
+      idum=mcolvav     ! Avoid compiler warning: Unused parameter
+      idum=mfilepath   ! Avoid compiler warning: Unused parameter
+      idum=mrow_qc     ! Avoid compiler warning: Unused parameter
+      idum=mspeci      ! Avoid compiler warning: Unused parameter
+      idum=mvmode      ! Avoid compiler warning: Unused parameter
+      idum=ncell       ! Avoid compiler warning: Unused parameter
+      idum=nchar       ! Avoid compiler warning: Unused parameter
+
 c  Read vmr profiles.
       write(*,*) version
       if (iargc() == 0) then
@@ -130,7 +138,7 @@ c
 c  Read through linelist, calculating absorptions for each gas
       llformat='(i2,i1,f12.6,e10.3,10x,f5.0,f5.4,f10.4,f4.2,f8.6,a24)'
       reclen=101
-      llname='/home/toon/ggg/linelist/atm.101'
+      llname='/home/toon/ggg/linelist/atm.161'
       do linelist=1,2
         fsib=file_size_in_bytes(lunr,llname)
         nlines=fsib/reclen
@@ -282,11 +290,11 @@ c
 c  Notes:
 c 1) Assumes that elements of Z increase monotonically
 c 2) Does not include effect of refraction.
-      include "../ggg_const_params.f"
 
       integer*4 nlev,ilev
       real*8 d2r,robs,rmin,rup,rwas,rt,ss,swas,factor
-      real*4 z(nlev),sp(nlev),roc,zobs,theta
+      real*4 z(nlev),sp(nlev),roc,zobs,theta,dpi
+      parameter(dpi=3.14159265359d0)
       parameter (d2r=dpi/180.0d0)
 
       factor=1.0d0
@@ -356,9 +364,9 @@ c      8    84.5+    186.95    0.0039814 2.0
 c
       integer*4 izone,nzone
       parameter (nzone=8)
-      real*4 z,h,t,p,d,mmw,gs,re,gas,avagadro,con,
+      real*4 z,h,t,p,d,mmw,gs,re,gas,avogadro,con,
      & h0(nzone),t0(nzone),p0(nzone),lr(nzone)
-      parameter (gas=8.31432,gs=9.80665,avagadro=6.02217e+23,
+      parameter (gas=8.31432,gs=9.80665,avogadro=6.02217e+23,
      & mmw=28.964,re=6356.766)
       data h0/0.0, 11.0, 20.0, 32.0, 47.0, 51.0, 71.0, 84.5/
       data t0/288.15,216.15,216.15,228.65,270.65,270.65,214.65,186.95/
@@ -377,7 +385,7 @@ c
          p=p0(izone)*(t/t0(izone))**(-con/lr(izone))
       endif
       p=100*p              ! convert from mbar to N.m-2
-      d=avagadro*p/t/gas   ! molec.m-3
+      d=avogadro*p/t/gas   ! molec.m-3
       p=p/101325           ! convert pressure to atm
       d=d/10               ! convert to molec.cm-2.km-1
       return

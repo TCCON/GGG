@@ -33,15 +33,16 @@ c   ZZZZZ= Tropopause altitude (m)
       parameter (mgas=80)        ! maximum number of gases
 
       real*4 
-     & compute_seasonal_cycle,
+     & gradlat(mgas),       ! Latitude Gradients
+     e strend(mgas),        ! Secular Trends
+     & seacycle(mgas),      ! Seasonal Cycle
      & refvmr(mgas,nlev),   ! buffer for reference vmr's
      & apvmr(mgas,nlev),    ! buffer for a priori vmr's
      & z(nlev)              ! altitudes of levels (km)
 
-      real*8  fryr,z8,
-     & reflat_vmr,date_mod,date_vmr,ztrop_vmr
+      real*8 fryr,reflat_vmr,date_mod,date_vmr,ztrop_vmr
 
-      real*8  ztrop_gct,
+      real*8 ztrop_gct,
      & oblat                ! observation latitude (deg).
         
       character
@@ -52,7 +53,7 @@ c   ZZZZZ= Tropopause altitude (m)
      & version*64           !current program version
 
       version=
-     & ' stand_alone_a_priori     Version 0.08     2014-01-30    GCT '
+     & ' stand_alone_a_priori     Version 0.09     2016-10-23    GCT '
 
 c  choose an observation geometry
       write(6,*) version
@@ -69,14 +70,15 @@ c  Get the header/runlog information pertaining to RUNLAB
       elseif (iargc() == 1) then
          call getarg(1, saap_lst)
       else
-        stop 'Usage: $gggpath/bin/stand_alone_a_priori saap_input.lst'
+         stop 'Usage: $gggpath/bin/stand_alone_a_priori saap_input.lst'
       endif
 
 c      open(lunr_lst,file='saap_input.lst',status='old')
       open(lunr_lst,file=saap_lst,status='old')
       read(lunr_lst,*) nlheader,ncol
       read(lunr_lst,*)
-1     read(lunr_lst,*,end=99) iyr,imm,idd,oblat,ztrop_gct
+      do  !  Loop over reading .lst file
+         read(lunr_lst,*,end=99) iyr,imm,idd,oblat,ztrop_gct
          write(*,*)  iyr,imm,idd,oblat,ztrop_gct
          ztrop_gct=ztrop_gct/1000   ! convert m to km
          if(oblat.gt.0.0) then
@@ -89,27 +91,29 @@ c      open(lunr_lst,file='saap_input.lst',status='old')
          idoy=jul-jul0+1
          date_mod=iyr+idoy/365.25 !from the runlog
 
-         call read_refvmrs(lunr_vmr,
-     &   'reference.vmr',nlev,z,mgas,'mmmm',
-     &   vmrlabel,refvmr,ngas,reflat_vmr,date_vmr,ztrop_vmr)
+         call read_refvmrs(lunr_vmr,'summer_35N.vmr',nlev,z,mgas,'mmmm',
+     &   vmrlabel,refvmr,ngas,strend,gradlat,seacycle,
+     &   reflat_vmr,date_vmr,ztrop_vmr)
 
 c If there's only 1 level (i.e. lab), or the vmr file for that particular
 c measurement already exists, don't try to modify the .vmr file
-           call resample_vmrs_at_effective_altitudes(nlev,z,mgas,
-     &     ngas,refvmr,ztrop_gct,ztrop_vmr,oblat,reflat_vmr,apvmr)
-           call apply_vmr_latitude_gradients(nlev,z,mgas,ngas,apvmr,
-     &     ztrop_gct,reflat_vmr,oblat,apvmr)
-           call apply_secular_trends(nlev,z,mgas,apvmr,
-     &     ztrop_gct,reflat_vmr,oblat,date_mod,date_vmr,apvmr)
-           fryr=date_mod-int(date_mod)
-           do ilev=1,nlev
-              z8=dble(z(ilev))
-              do jgas=1,ngas
-                 apvmr(jgas,ilev)=apvmr(jgas,ilev)*
-     &           compute_seasonal_cycle(jgas,z8,ztrop_gct,oblat,fryr)
-              end do
-           end do
-c
+         call resample_vmrs_at_effective_altitudes(nlev,z,mgas,
+     &   ngas,refvmr,ztrop_gct,ztrop_vmr,oblat,reflat_vmr,apvmr)
+         call apply_vmr_latitude_gradients(nlev,z,mgas,ngas,gradlat,
+     &   apvmr,ztrop_gct,reflat_vmr,oblat,apvmr)
+         call apply_secular_trends(nlev,z,mgas,ngas,strend,apvmr,
+     &   ztrop_gct,reflat_vmr,oblat,date_mod,date_vmr,apvmr)
+         fryr=date_mod-int(date_mod)
+         call apply_seasonal_cycle(nlev,z,mgas,ngas,seacycle,
+     &   ztrop_gct,oblat,fryr,apvmr)
+c         do ilev=1,nlev
+c            z8=dble(z(ilev))
+c            do jgas=1,ngas
+c               apvmr(jgas,ilev)=apvmr(jgas,ilev)*
+c     &         compute_seasonal_cycle(jgas,z8,ztrop_gct,oblat,fryr)
+c            end do
+c         end do
+
 c  Output vmr info (no isotopic fractionation)
          write(outfile,'(a5,i4,2i2.2,a1,i2.2,a1,a1,i5.5,a)')'saap_',
      &   iyr,imm,idd,'_',nint(abs(oblat)),cc,'_',nint(1000*ztrop_gct),
@@ -135,7 +139,7 @@ c  Output vmr info (no isotopic fractionation)
          end do
          close(lunw_sum)
 c------------------------------------------------------------------
-      go to 1
+      end do     !  Loop over reading .lst file
  99   close(lunr_lst)
       stop
       end

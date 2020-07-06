@@ -1,11 +1,11 @@
-      subroutine write_runlog_data_record(lunw_rlg,rlg_fmt,
+      subroutine write_runlog_data_record(lunw_rlg,data_fmt_wrlg,
      & col1,specname,iyr,iset,zpdtim,
      & oblat,oblon,obalt,asza,zenoff,azim,osds,opd,fovi,fovo,amal,
      & ifirst,ilast,graw,possp,bytepw,zoff,snr,apf,tins,pins,hins,
      & tout,pout,hout,sia,fvsi,wspd,wdir,lasf,wavtkr,aipl,istat)
 c
-c  Writes one data record to the runlog file (lunw_rlg).
-c  The file must already have been opened and the header lines
+c  Writes one data record to the runlog file (lunw_rlg),
+c  which must already have been opened and the header lines
 c  written (by calling write_runlog_header).
 c  The goal of this subroutine is to hide all the of the code
 c  that depends on the runlog format into pair of subroutines
@@ -18,8 +18,8 @@ c     only write_runlog & read_runlog subroutines need be changed,
 c     not the dozen programs that use the runlog.
 c
 c  Input:
-c    lunw_rlg   Logical Unit number of runlog file
-c    rlg_fmt    Format statement (defined in write_runlog_header)
+c    lunw_rlg       Logical Unit number of runlog file
+c    data_fmt_wrlg  Format statement (defined in write_runlog_header)
 c    everything else
 
 c  Outputs:
@@ -27,15 +27,16 @@ c    istat
 
 c  Typical Usage:
 c    open(lunw_rlg,file='runlog_name')
-c    call write_runlog_header(lunw_rlg,header,rlg_fmt)
+c    call write_runlog_header(lunw_rlg,header,data_fmt_wrlg)
 c    do ispec=1,nspec
-c       call write_runlog_data_record(lunw_rlg,rlg_fmt, ....)
+c       call write_runlog_data_record(lunw_rlg,data_fmt_wrlg, ....)
 c    end do
 c    close(lunw_rlg)
 
       implicit none
 
       integer*4
+     & ksnr,
      & lunw_rlg,              ! Logical unit number
      & istat,            ! status flag (0=success, 1=EOF)
      & iyr,              ! year 
@@ -78,14 +79,17 @@ c    close(lunw_rlg)
       character
      & col1*1,           ! first column
      & specname*(*),     ! spectrum name
-     & rlg_fmt*(*),      ! runlog data format
+     & data_fmt_wrlg*(*), ! runlog data format
      & apf*2             ! apodization function (e.g. BX N2, etc)
 
-      write(lunw_rlg,rlg_fmt,err=99) col1,specname,
+      ksnr=nint(snr)
+      if(ksnr.lt.-999) ksnr=-999
+      if(ksnr.gt.9999) ksnr=9999
+      write(lunw_rlg,data_fmt_wrlg,err=99) col1,specname,
      & iyr,iset,zpdtim,
      & oblat,oblon,obalt,asza,zenoff,azim,osds,wlimit(opd,'f7.2'),
      & fovi,fovo,amal,ifirst,ilast,graw,possp,
-     & bytepw,zoff,nint(snr),apf,tins,pins,hins,tout,pout,hout,
+     & bytepw,zoff,ksnr,apf,tins,pins,hins,tout,pout,hout,
      & sia,fvsi,wspd,wdir,lasf,wavtkr,aipl
       istat=0
       return

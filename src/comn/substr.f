@@ -1,4 +1,5 @@
       subroutine substr(inputstring,outputarray,mss,nss)
+
 c  Converts a space/tab/comma-delimited character string (INPUTSTRING),
 c  into an array of its NSS sub-string components (OUTPUTARRAY).
 c
@@ -44,9 +45,9 @@ c
          iend=ibeg+fbc(inputstring(ibeg+1:))
 c         write(*,*)'substr: ',nss,ibeg,iend-1,inputstring(ibeg:iend-1)
          if(iend-ibeg.gt.lenout) then
-           write(6,*) ' Warning from SUBSTR.F: sub-string too long:'
-           write(*,*) ' nlen, mlen=',iend-ibeg,lenout
-           write(6,*) inputstring(ibeg:iend-1)
+c           write(6,*) ' Warning from SUBSTR.F: sub-string too long:'
+c           write(*,*) ' nlen, mlen=',iend-ibeg,lenout
+c           write(6,*) inputstring(ibeg:iend-1)
          endif
          if(nss.le.mss) outputarray(nss)=inputstring(ibeg:iend-1)
          ibeg=iend+fnbc(inputstring(iend+1:))

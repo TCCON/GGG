@@ -36,6 +36,8 @@ version = '   xyplot  V3.4.1  23-May-02' ; Can now skip NDSC header line in Ames
 version = '   xyplot  V3.5.0  11-Nov-03' ;  Made cc commanding more efficient
 version = '   xyplot  V3.5.1  11-Sep-06' ;  
 version = '   xyplot  V3.5.2  11-Sep-06' ;  
+version = '   xyplot  V3.5.3  21-Dec-07' ;  
+version = '   xyplot  V3.54  2018-04-17' ;  
 
 
 ; The following code should already be inside your ~/.idl/startup.pro
@@ -49,11 +51,13 @@ print, 'Display depth = ', depth
 print, 'Color table size = ', !d.table_size
 
 ; Initialize stuff
+isp=0
 ipanel=0
 flen=1
 ntxt=1
 ntimes=1.0
-psn = 1
+psn=1
+kslf=0
 
 sval=string(' ')
 anno=string(' ')
@@ -125,10 +129,12 @@ ncol      =  lonarr(nfile)
 nrow      =  lonarr(nfile)
 
 print, ' Reading entire contents of data files into memory.....'
-buf = fltarr(48000000)
+buf = fltarr(160000000)
 mcol=1200
 header    =  strarr(nfile,mcol)
 gmissing   =  -999.
+gmissing   =  9.8765E+35
+
 read2mem,nfile,fname,gmissing,header,ncol,nrow,buf
 
 ntot=long(0)
@@ -149,7 +155,7 @@ aa2plot = fltarr(ntot)
 bb2plot = fltarr(ntot)
 
 msym=400  ;  maximum number of different symbols
-index  = lonarr(msym)
+color_index  = lonarr(msym)
 caption= strarr(msym)
 xcp    = fltarr(msym)
 ycp    = fltarr(msym)
@@ -181,7 +187,7 @@ value = fltarr(ntot,mreg+1)
 error = fltarr(ntot,mreg+1)
 result = fltarr(ntot)
 
-value(*,0)=findgen(ntot)
+;value(*,0)=findgen(ntot)
 
 repeat begin
    print
@@ -219,7 +225,7 @@ repeat begin
 	print,'     sm#  -  multiply the #-register by a user-supplied scalar'
 	print,'     sd#  -  divide the #-register by a user-supplied scalar'
 	print,'     sa#  -  add a user-supplied scalar to the #-register'
-	print,'     ss#  -  Selective Scalar Add to the #-register'
+        print,'     ss#  -  Selective Scalar Add to the #-register'
 	print,'     va&# -  adds the &-register to the #-register'
 	print,'     vs&# -  subtracts the &-register from the #-register'
 	print,'     vm&# -  multiplies the #-register by the &-register'
@@ -274,6 +280,14 @@ repeat begin
           error(*,kd) = error(*,kd) / value(*,kd) / 2
           if(nmiss gt 0) then value(bad,kd)=gmissing
           title(*,kd)="sqrt["+title(*,kd)+"]"
+          end
+
+     'si' : begin  ; Sine
+          value(*,kd) = value(*,kd)*3.14159265/180.
+          error(*,kd) = error(*,kd)*3.14159265/180.
+          value(*,kd) = sin( value(*,kd) )
+          error(*,kd) = error(*,kd)*cos(value(*,1))
+          title(*,kd)="sine["+title(*,kd)+"]"
           end
 
      'co' : begin  ; Cosine
@@ -367,9 +381,36 @@ repeat begin
              read, sval
              printf,unitw,sval
              reads, sval, xadd
-             value(klo:khi,kd) = value(klo:khi,kd) + xadd
+             if(nrow(ifile) gt 0) then value(klo:khi,kd) = value(klo:khi,kd) + xadd
              title(ifile,kd)=sval+"+"+title(ifile,kd)
           endfor
+          if (nmiss gt 0) then value(bad,kd) = gmissing
+          end
+
+     'ra' : begin  ; Ramp (missing x-values)
+          khi=-1
+          for ifile=0,nfile-1 do begin
+             xx=0l
+             klo=khi+1
+             khi=khi+nrow(ifile)
+             for jj=klo,khi do begin
+                value(jj:jj,kd) = xx
+                xx=xx+1
+             endfor
+          title(ifile,kd)="Ramp"
+          endfor
+          end
+
+     'lr' : begin  ; Limit Range
+          khi=-1
+          bad=where(value(*,kd) eq gmissing, nmiss)
+          print,format='($,"Enter Min/Max limits",a)'
+          read, sval
+          printf,unitw,sval
+          reads, sval, zmin,zmax
+          print,zmin,zmax
+          value(where(value(*,kd) lt zmin),kd) = zmin
+          value(where(value(*,kd) gt zmax),kd) = zmax
           if (nmiss gt 0) then value(bad,kd) = gmissing
           end
 
@@ -396,6 +437,12 @@ repeat begin
      'np' : begin  ;  Force New Page
           device, /close
           ipanel=0
+          psn=psn+1
+          end
+
+     'sp' : begin  ;  skip panel
+          isp=isp+1
+          ipanel=ipanel+1
           psn=psn+1
           end
 
@@ -554,14 +601,16 @@ repeat begin
           npp=long(0)  ;  total number of plottable points
           nsym=long(0)
           jrow=long(0)
+          bbmin=+9.99e+36
+          bbmax=-9.99e+36
           for ifile=0,nfile-1 do begin
              temp=-999999
+;                   color_index(nsym)=npp
+;                   nsym = nsym + 1
              for i = long(1), nrow(ifile) do begin
-;                print,i,nsym,temp,value(jrow,2), fix(value(jrow,2))
-                if temp ne fix(value(jrow,2)) then begin
-;                   if nsym gt 0 then print,nsym,npp,index(nsym),totx,sqrt(totex),toty,sqrt(totey)
-                   index(nsym)=npp
+                if temp ne fix(value(jrow,2)) then begin  ; a-register sets color switches
                    temp = fix(value(jrow,2))
+                   color_index(nsym)=npp
                    nsym = nsym + 1
                    totx=0.0
                    toty=0.0
@@ -586,44 +635,56 @@ repeat begin
                 totex=totex+error(jrow,0)^2
                 toty=toty+value(jrow,1)
                 totey=totey+error(jrow,1)^2
+                if (bb2plot(npp) lt bbmin) then bbmin=bb2plot(npp)
+                if (bb2plot(npp) gt bbmax) then bbmax=bb2plot(npp)
                 npp=npp+1
 skip1:
                 jrow=jrow+1
              endfor  ; i = long(1), nrow(ifile)
-             index(nsym)=npp
+             color_index(nsym)=npp
           endfor     ;  ifile=0,nfile-1
-          print,nsym,npp,index(nsym),totx,sqrt(totex),toty,sqrt(totey)
+          print,'nsym,npp=',nsym,npp
 
           if( npp le 0) then  begin
              print, " Warning - no plotable points"
           endif else begin
-             if cr(0) eq 0 then begin
-                !x.style = 16
-                !x.range = [min(xx2plot(0:npp-1)), max(xx2plot(0:npp-1))]
-             endif else begin
-                !x.style = 17
-                !x.range = [vmin(0), vmax(0)]
-             endelse
-             if cr(1) eq 0 then begin
-                !y.style = 16
-                !y.range = [min(yy2plot(0:npp-1)), max(yy2plot(0:npp-1))]
-             endif else begin
-                !y.style = 17
-                !y.range = [vmin(1), vmax(1)]  
-             endelse
+
+          !x.style = 17  ; force exact x-range
+          if cr(0) eq 0 then begin  ; Automatically choose X-Range X
+             set_range,[min(xx2plot(0:npp-1)),max(xx2plot(0:npp-1))],xout,xseglen
+             !x.range = xout
+          endif else begin
+             set_range,[vmin(0), vmax(0)],xout,xseglen
+             !x.range = [vmin(0), vmax(0)]
           endelse
-          plotname=proj+'_'+string(format='(i3.3)',psn)+'.ps'
-          time=strmid(systime(0),8,2)+'-'+strmid(systime(0),4,3)+'-'+$
-          strmid(systime(0),20,4)+'/'+strmid(systime(0),11,8)
-          if(strlen(strtrim(text(0),2)) gt 0) then  text(0)=plotname+'  '+time
-          gplot, xx2plot,ex2plot,yy2plot,ey2plot,index,xcp,ycp,symfile,caption,nsym,ipanel,npanel,orientation,xtxt,ytxt,text,ntxt
-          end 
+;          print,'x_range: ',min(xx2plot(0:npp-1)),max(xx2plot(0:npp-1))
+;          print,'set_range: xout: ',xout,xseglen
+
+          !y.style = 17  ; force exact y-range
+          if cr(1) eq 0 then begin ; Automatically choose X-Range
+             set_range,[min(yy2plot(0:npp-1)),max(yy2plot(0:npp-1))],yout,yseglen
+             !y.range = yout
+          endif else begin
+             set_range,[vmin(1), vmax(1)],yout,yseglen
+             !y.range = [vmin(1), vmax(1)]
+          endelse
+;          print,'y_range: ',min(yy2plot(0:npp-1)),max(yy2plot(0:npp-1))
+;          print,'set_range: yout: ',yout,yseglen
+       endelse
+       plotname=proj+'_'+string(format='(i3.3)',psn)+'.ps'
+       time=strmid(systime(0),8,2)+'-'+strmid(systime(0),4,3)+'-'+$
+       strmid(systime(0),20,4)+'/'+strmid(systime(0),11,8)
+;       if(strlen(strtrim(text(0),2)) gt 0) then  text(0)=plotname+'  '+time
+       gplot, xx2plot,ex2plot,yy2plot,ey2plot,color_index,xcp,ycp,symfile,caption,nsym,ipanel,npanel,orientation,xtxt,ytxt,text,ntxt
+;       hplot,xx2plot,ex2plot,yy2plot,ey2plot,bbmin,bbmax,bb2plot,xcp,ycp,symfile,caption,npp,ipanel,npanel,orientation,xtxt,ytxt,text,ntxt,xseglen,yseglen
+       if kslf gt 0 then oplot,xi,yi,psym=0,thick=3  ; Add fitted straight line
+       end
 
      'av' : begin  ; Average  X and Y values
-          klo=index(0)
+          klo=color_index(0)
           tiny=1.e-16
           for jsym=0,nsym-1 do begin
-            khi=index(jsym+1)-1
+            khi=color_index(jsym+1)-1
             avx=-999
             avy=-999
             ex=-999
@@ -663,17 +724,19 @@ skip1:
           end
 
      'lf' : begin  ; Straight line fit
-          klo=index(0)
+          klo=color_index(0)
           for jsym=0,nsym-1 do begin
-            khi=index(jsym+1)-1
-            if(khi ge klo) then begin
-            wslf,khi-klo+1,xx2plot(klo:khi),ex2plot(klo:khi),yy2plot(klo:khi),ey2plot(klo:khi),a,ea,b,eb,chi2on
-            print,format='(2i5,5e13.4)',jsym+1,khi-klo+1,a,ea*chi2on,b,eb*chi2on,chi2on
-            endif
-            klo=khi+1
+             khi=color_index(jsym+1)-1
+             if(khi ge klo) then begin
+                slfbe,khi-klo+1,xx2plot(klo:khi),ex2plot(klo:khi),yy2plot(klo:khi),ey2plot(klo:khi),a,ea,b,eb,chi2on,pcc
+                print,format='(a,2i5,5e13.4,f9.5)','lf: slfbe: ',jsym+1,khi-klo+1,a,ea*chi2on,b,eb*chi2on,chi2on,pcc
+             endif
+             klo=khi+1
           endfor ; jsym=0,nsym-1
-          wslf,klo,xx2plot,ex2plot,yy2plot,ey2plot,a,ea,b,eb,chi2on
-          print,format='(5x,i5,5e13.4)',klo,a,ea*chi2on,b,eb*chi2on,chi2on
+          slfbe,klo,xx2plot,ex2plot,yy2plot,ey2plot,a,ea,b,eb,chi2on,pcc
+          print,format='(a,i5,5e13.4,f9.5)','lf: slfbe: all: ',klo,a,ea*chi2on,b,eb*chi2on,chi2on,pcc
+          line_rectangle_intersect,!x.range,!y.range,a,b,xi,yi,istat
+          kslf=1
           end
 
      'wf' : begin  ; Write ASCII file containing contents of x- and y-registers
@@ -681,10 +744,10 @@ skip1:
           read, outputfile
           printf, unitw, outputfile
           openw, unitwf, outputfile, /get_lun
-          printf, unitwf, '2 6'
-          printf, unitwf, title(0,0)+' ',title(0,0)+'_error   ',title(0,1)+' ',title(0,1)+'_error', title(0,2), title(0,3)
+          printf, unitwf, '2 5'
+          printf, unitwf, title(0,0)+' ',title(0,0)+'_error   ',title(0,1)+' ',title(0,1)+'_error   bb '
           for i=0,npp-1 do begin
-          printf, unitwf, format='(6e12.4)',xx2plot(i),ex2plot(i),yy2plot(i),ey2plot(i), aa2plot(i), bb2plot(i)
+          printf, unitwf, format='(5e14.6)',xx2plot(i),ex2plot(i),yy2plot(i),ey2plot(i),bb2plot(i)
           endfor
           close, unitwf
           free_lun, unitwf
@@ -692,7 +755,6 @@ skip1:
           end
 
      'ca' : begin  ;  Write symbols and captions onto plot
-          print,nsym
           for isym=0,nsym-1 do begin
              print,format='($,i1,"/",i1,") Enter Xcap, Ycap, caption")',isym+1,nsym
              read, xd,yd,sss
@@ -717,15 +779,28 @@ skip1:
 
      'hc' :  begin  ;  Write current plot to a postscript file
           set_plot, 'ps'
-          if ipanel eq 0 then begin  ;  open a new plotfile
+          if ipanel-isp eq 0 then begin  ;  open a new plotfile
 ;             !p.font=7   ; this is necessary to get the Times font
+;             !p.font=1   ; this is necessary to get the TrueType font
              if (orientation eq "portrait") then begin 
                 device,/portrait,font_size=10,filename=plotname,/color,xoffset=2.0,yoffset=1.0,xsize=17.4,ysize=23.5
              endif else begin
                 device,/landscape,font_size=10,filename=plotname,/color
              endelse
           endif
-          gplot,xx2plot,ex2plot,yy2plot,ey2plot,index,xcp,ycp,symfile,caption,nsym,ipanel,npanel,orientation,xtxt,ytxt,text,ntxt
+          gplot,xx2plot,ex2plot,yy2plot,ey2plot,color_index,xcp,ycp,symfile,caption,nsym,ipanel,npanel,orientation,xtxt,ytxt,text,ntxt
+;          hplot,xx2plot,ex2plot,yy2plot,ey2plot,bbmin,bbmax,bb2plot,xcp,ycp,symfile,caption,npp,ipanel,npanel,orientation,xtxt,ytxt,text,ntxt,xseglen,yseglen
+          if kslf gt 0 then begin
+             oplot,xi,yi,psym=0,thick=4  ; plot fitted straight lines
+;             oplot,[1.01*xi(0),0.],[yi(0),(yi(0)*xi(1)-xi(0)*yi(1))/(xi(1)-xi(0)),yi(1)],psym=0,thick=4  ; N2O-OCS balloon correlation figure
+;             oplot,[0.,0.],[119.,0.],psym=0,thick=4 ; N2O-OCS balloon correlation figure
+             text_slf_b= '!9D!6y/!9D!6x ='+string(format='(f5.1)',b)+'!9+!6'+string(format='(f3.1)',4*eb*chi2on)
+             text_slf_r= string(format='("PCC =",(f5.2))',pcc)
+             xcap=0.975*!x.range(0)+0.025*!x.range(1)
+             xyouts,xcap,0.91*!y.range(1),text_slf_b,charsize=1
+             xyouts,xcap,0.83*!y.range(1),text_slf_r,charsize=1
+             kslf=0
+          endif
           ipanel=ipanel+1
           if ntxt gt 1 then  text(1:ntxt-1)=' '
           ntxt=1
@@ -747,6 +822,18 @@ skip1:
           vmin(kd)=zmin
           vmax(kd)=zmax
           cr(kd) = 1
+          end
+
+     'fl' :  begin  ; Frame Left
+          del=vmax(kd)-vmin(kd)
+          vmax(kd)=vmin(kd)
+          vmin(kd)=vmax(kd)-del
+          end
+
+     'fr' :  begin  ; Frame Right
+          del=vmax(kd)-vmin(kd)
+          vmin(kd)=vmax(kd)
+          vmax(kd)=vmin(kd)+del
           end
 
      'qu' :  begin  ; Quit.

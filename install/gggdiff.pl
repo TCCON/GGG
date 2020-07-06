@@ -174,9 +174,10 @@ for my $i ($numhdr1 .. $numbrow-1) {
        for my $j (0 .. $num_comm_col-1) {
            my $col1 = $ind1ref->[$j];
            my $col2 = $ind2ref->[$j];
-           if ($previous[$i][$col1] ne $install[$m][$col2]) {
+#           if ($previous[$i][$col1] ne $install[$m][$col2]) {
+           if (defined($previous[$i][$col1]) and defined($install[$m][$col2]) and $previous[$i][$col1] ne $install[$m][$col2]) {
               $count += 1;
-              print "Difference found at row=".($i+1)." col=".($col1+1)." specname=$specname1[$col1]:\n";
+              print "Difference found at row=".($i+1)." col=".($col1+1)." colname=$specname1[$col1]:\n";
               print "  benchmark=$previous[$i][$col1] installation=$install[$m][$col2]\n";
               #make sure these 2 are numbers first!!
               if ((looks_like_number($previous[$i][$col1])) && (looks_like_number($install[$m][$col2]))) {
@@ -209,7 +210,7 @@ if ($count == 0) {
 } else {
    print "\nTwo files are ****DIFFERENT****\n";
    print "The maximum difference is $maxdd ($maxddfrac%)\n";
-   print "\tat [row=".($maxrow+1)." col=".($maxcol+1)."] or [$specname1[0]=$previous[$maxrow][0],specname=$specname1[$maxcol]]\n";
+   print "\tat [row=".($maxrow+1)." col=".($maxcol+1)."] or [$specname1[0]=$previous[$maxrow][0],colname=$specname1[$maxcol]]\n";
    print "\n";
 }
 

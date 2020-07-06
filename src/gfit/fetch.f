@@ -1,4 +1,5 @@
       subroutine fetch(specpath,bytepw,iskip,buf,npts)
+
 c  Reads a contiguous swath of data from disk file PATH into array BUF.
 c
 c INPUTS:
@@ -18,7 +19,8 @@ c  Data is assumed IEEE binary, except bytepw=5,7,9 which is assumed ASCII.
       character specpath*(*),rformat*12
       byte bdum(4),bb
       INTEGER*2 i2dum
-      REAL*4 buf(npts),r4dum,freq,fwas,tm
+      REAL*4 buf(npts),r4dum,tm
+      real*8 freq,fwas,del,dwas
       integer*4 iscale    !DG000909
       real*4 xscale,simag
 c
@@ -42,7 +44,11 @@ c         write(*,*)'iskip,npts=',iskip,npts
          open(19,file=specpath,access='direct',status='old',
      &   recl=iskip+4*npts,form=rformat)
          read(19,rec=1) (bb,j=1,iskip),(buf(j),j=1,npts)
+c         write(*,*)'fetch: buf=',(buf(j),j=1,npts)
          if(kk.lt.0) call rbyte(buf,4,npts)
+c         do j=1,npts
+c           buf(j)=0.001*buf(j)
+c         end do
 c      if(iabs(bytepw).eq.+4) then         !  R*4
 c         open(19,file=specpath,access='direct',status='old',
 c     &   recl=4,form=rformat)
@@ -109,31 +115,43 @@ c
 c  The spectral signal is in the second column and there's a header
       elseif(bytepw.eq.9) then 
          fwas=0.0
+         dwas=1.0
          open(19,file=specpath,status='old')
          read(19,*) nlhead, ncol
-         call skiprec(19,nlhead-1+iskip/9)  !  Skip header & unwanted data
+         call skiprec(19,nlhead-1+iskip/bytepw)  !  Skip header & unwanted data
          do jpts=1,npts  !
             read(19,*)freq,buf(jpts)  ! read wanted data
-            if(freq.le.fwas) write(*,*) 'Warning: FETCH',fwas,freq
+            del=freq-fwas
+            if(del*dwas.le.0.0) write(*,*) 'Warning1: FETCH',fwas,freq
             fwas=freq
+            dwas=del
          end do
 c
 c  The spectral signal is in the second column but there's no header
       elseif(bytepw.eq.10) then 
          nlhead=0
          fwas=0.0
+         dwas=1.0
          open(19,file=specpath,status='old')
 c         read(19,*) nlhead, ncol
-         call skiprec(19,nlhead-1+iskip/10)  !  Skip header & unwanted data
+         call skiprec(19,nlhead-1+iskip/bytepw)  !  Skip header & unwanted data
          do jpts=1,npts  !
             read(19,*)freq,buf(jpts)  ! read wanted data
-            if(freq.le.fwas) write(*,*) 'Warning: FETCH',fwas,freq
+            del=freq-fwas
+            if(del*dwas.le.0.0) write(*,*) 'Warning1: FETCH',fwas,freq
             fwas=freq
+            dwas=del
 c            write(*,*) freq,buf(jpts)
 c            if(jpts.eq.1) write(*,*)freq,buf(jpts)
 c            if(jpts.eq.npts) write(*,*)freq,buf(npts)
 c             buf(jpts)=buf(jpts)*1.e+06
          end do
+c  Header, followed by y-values grouped in 4's
+      elseif(bytepw.eq.11) then
+         open(19,file=specpath,status='old')
+         read(19,*) nlhead, ncol
+         call skiprec(19,nlhead-1)  !  Skip header
+         read(19,*)(r4dum,jpts=1,iskip),(buf(jpts),jpts=1,npts)
       else
          write(*,*)'BYTEPW=',bytepw
          stop ' FETCH: Unknown file format'

@@ -1,0 +1,79 @@
+#!/bin/bash
+
+# No, this is not a Python program, but relies on having
+# the Python ginput package installed, so it lives in the
+# python utils directory.
+
+set -e
+run_ginput="$1"
+default_met_path="/oco2-data/tccon-nobak/met/geosfp-it/"
+default_chm_path="/oco2-data/tccon-nobak/chm/geosfp-it/"
+
+if [ $# -lt 1 ]; then
+    echo "Missing required argument: RUN_GINPUT_EXEC, aborting"
+    exit 1
+fi
+
+if [ $1 == -h ] || [ $1 == --help ]; then
+    cat <<PROGUSE
+Usage: $0 RUN_GINPUT_EXEC [ GEOS_PATH [ CHEM_PATH ]]
+
+Given a path to the "run_ginput.py" script created when the ginput
+package is installed, this script will regenerate the input .mod 
+and .vmr files for the pa_ggg_benchmark. master.sh must have been
+run in order to create the pa_ggg_benchmark runlog. The .mod and
+.vmr files will be created in an "fpit" subdirectory of 
+\$GGGPATH/models/gnd and \$GGGPATH/vmrs/gnd, respectively. You will
+have the opportunity to review them before moving them into the
+main directories and replacing the old files. Note that GGGPATH must
+be set correctly, to point to this repo, which the script will check.
+
+This script requires the GEOS-FPIT met data be available on this
+computer. It requires the 2d met files, 3d terrain-following 72 level 
+met files, and 3d terrain-following 72 level chemistry files. By
+default, it will assume the 2d and 3d met files are located at:
+
+$default_met_path
+
+and the 3d chem files at
+
+$default_chm_path
+
+Giving a second argument will set both the met and chem paths to
+that value (useful only if the met and chem data reside in the 
+same directory), giving a second and third will set the met path
+to the second and chem path to the third.
+PROGUSE
+
+exit 0
+fi
+
+if [ -z $GGGPATH ]; then
+    echo "ERROR: GGGPATH not set (aborting)"
+    exit 1
+elif [ ! -d $GGGPATH/utils/python ]; then
+    echo "ERROR: GGGPATH does not match current location (utils/python not subdirectory of GGGPATH, aborting)"
+    exit 1
+fi
+
+test_path=$(cd $GGGPATH/utils/python && pwd -P)
+if [ $test_path != `pwd -P` ]; then
+    echo "ERROR: GGGPATH does not match current location (aborting)"
+    exit 1
+fi
+
+if [ $# -lt 2 ]; then
+    met_path="$default_met_path"
+    chm_path="$default_chm_path"
+elif [ $# -lt 3 ]; then
+    met_path="$2"
+    chm_path="$2"
+else
+    met_path="$2"
+    chm_path="$3"
+fi
+
+echo $run_ginput $met_path $chm_path
+
+$run_ginput tccon-rlmod --chem-path="$chm_path" "$GGGPATH/runlogs/gnd/pa_ggg_benchmark.grl" "$met_path"
+$run_ginput rlvmr --integral-file="$GGGPATH/levels/ap_51_level_0_to_70km.gnd" "$GGGPATH/runlogs/gnd/pa_ggg_benchmark.grl"

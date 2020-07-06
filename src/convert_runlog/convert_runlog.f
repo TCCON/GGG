@@ -1,7 +1,6 @@
 c  Program to convert old-format runlogs into new runlogs.
 c
       implicit none
-      include "../ggg_int_params.f"
 
       real*8 
      & oblat,            ! observation latitude (deg)
@@ -35,7 +34,7 @@ c
 
       character
      & col1*1,           ! first column
-     & specname*(nchar), ! spectrum name
+     & specname*(57), ! spectrum name
      & apf*2,            ! apodization function (e.g. BX N2, etc)
      & version*50,
      & data_fmt_read_rl*256,
@@ -57,7 +56,7 @@ c
 
       parameter (lunr_rlg=14,lunw_rlg=16)
 
-      version =' convert_runlog   Version 0.10   2012-12-28   GCT '
+      version =' convert_runlog   Version 0.11   2016-04-02   GCT '
       col1=' '
       outfile='convert_runlog.out'
       if (iargc() == 0) then

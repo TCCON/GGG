@@ -14,18 +14,21 @@ c       runlog.vav.ada.aia(.gaa).oof
 c       runlog.vav.ada.aia(.gaa).oof.csv
 c       
       implicit none
-      include "../ggg_int_params.f"
+      include "../gfit/ggg_int_params.f"
+      include "../comn/postproc_params.f"
 
       integer*4 lunr_gaa,lunr_qc,lunw_oof,lunw_csv,lunr_hdr,lunr_esf,
      & ncoml,ncol_gaa,mcol,kcol,icol,i,j,lg,ncoml_head,nlhead,
-     & ncol_esf,irow_qc,
+     & ncol_esf,irow_qc,idum,headlen,
+     & mnum,nnum,
      & krow_year,krow_day,jcol_gaa,
      & lnbc,nrow,li,nco,k,kmax,krow_qc,irow,lof0,lof1,
-     & eflag,wrow_flag,wsp_flag,nhead_gaa,nrow_gaa,ngas_gaa,lunr_ghc,
+     & eflag,wrow_flag,wsp_flag,
+c     & nhead_gaa,nrow_gaa,ngas_gaa,
      & spectrum_flag,lh,le,klat,klong,kzobs,ncol_written,
      & jj,nflag,ncoml_qc,ncol_qc,nrow_qc,wcol_flag
       parameter (lunr_gaa=14,lunr_qc=15,lunw_oof=16,lunw_csv=17,
-     & lunr_hdr=18, lunr_ghc=20,lunr_esf=21,mcol=150)
+     & lunr_hdr=18,lunr_esf=21,mcol=150,mnum=5,headlen=1800)
       integer*4 flag(mrow_qc),pindex(mcol),kflag(mrow_qc)
       character
      & dl*1,
@@ -34,9 +37,9 @@ c
      & specname*(nchar),
      & esf_inputfile*80,
      & csv_outputfile*80,
-     & qc_header*1800,
-     & gaa_header*1800,
-     & esf_header*1800,
+     & qc_header*(headlen),
+     & gaa_header*(headlen),
+     & esf_header*(headlen),
      & gaa_headarr(mcol)*20,
      & parname(mrow_qc)*20,
      & inputfile*80,
@@ -47,20 +50,32 @@ c
      & temp*20,
      & fmt(mrow_qc)*4,
      & unit(mrow_qc)*6,
-     & headout*1800,
-     & headoutcsv*1800,
+     & headout*(headlen),
+     & headoutcsv*(headlen),
      & sitefile*200,
-     & ssss*800,
+     & ssss*1000,
      & sarr(mcol)*57,
-     & cc*20
+     & cc*21
       real*4 yrow(mcol),yesf(mcol),dev,dmax,scale(mrow_qc),rsc(mrow_qc),
      & vmin(mrow_qc),vmax(mrow_qc),ymiss,apesf
       real*8 wlimit
 
       data kflag/mrow_qc*0/
       
+      krow_year=0    ! Prevent compiler warning (may be used before...)
+      idum=mauxcol   ! Prevent compiler warning (unused parameter)
+      idum=mcolvav   ! Prevent compiler warning (unused parameter)
+      idum=mfilepath ! Prevent compiler warning (unused parameter)
+      idum=mgas      ! Prevent compiler warning (unused parameter)
+      idum=mlev      ! Prevent compiler warning (unused parameter)
+      idum=mspeci    ! Prevent compiler warning (unused parameter)
+      idum=mvmode    ! Prevent compiler warning (unused parameter)
+      idum=ncell     ! Prevent compiler warning (unused parameter)
+      idum=maddln    ! Prevent compiler warning (unused parameter)
+      idum=mcharhead ! Prevent compiler warning (unused parameter)
+
       version=
-     & ' write_official_output_file   Version 1.35    2013-05-23   GCT'
+     & ' write_official_output_file  Version 1.37  2020-03-12  GCT,JLL'
       write(*,*) version
 
       spectrum_flag=0    ! initialise to avoid compiler warnings
@@ -130,20 +145,10 @@ c  to find out how many columns there are going to be in the .oof output files
       if(krow_qc-1.ne.nrow_qc)
      &  stop 'misreading xx_qc.dat file: krow_qc > nrow_qc'
 
-c  Open the Ghost Correction file and figure out how many lines are
-c  contained
-      
-
 c  Read input file and start writing output files
-c      open(lunr_ghc,file=
-c     & gggdir(:lg)//'tccon'//dl//inputfile(1:2)//'_ghost_corr.dat',
-c     & status='old')
-c      read(lunr_ghc,*)nhead_gaa,ngas_gaa,nrow_gaa
-c      close(lunr_ghc)
-
 c     write(*,*)'inputfile=',inputfile
       open(lunr_gaa,file=inputfile, status='old')
-      read(lunr_gaa,'(i2,i4,i7)') ncoml,ncol_gaa,nrow
+      read(lunr_gaa,countfmt) ncoml,ncol_gaa,nrow,idum
       if(ncol_gaa.gt.mcol) stop 'increase mcol'
       open(lunw_oof,file=outputfile,status='unknown')
       open(lunw_csv,file=csv_outputfile,status='unknown')
@@ -152,8 +157,14 @@ c     write(*,*)'inputfile=',inputfile
      & status='old')
       read(lunr_qc,*)ncoml_qc,ncol_qc,nrow_qc
       write(lunw_oof,*) ncoml_head+ncoml_qc+ncoml+nrow_qc+4,ncol_written
-      write(lunw_csv,*) ncoml_head+ncoml_qc+ncoml+nrow_qc+4,
-     &       ncol_written
+      write(ssss,*)     ncoml_head+ncoml_qc+ncoml+nrow_qc+4,ncol_written
+      call substr(ssss,sarr,mnum,nnum)
+      ssss=sarr(1)
+      do k=2,nnum
+         cc=sarr(k)(:21)
+         ssss=ssss(:lnbc(ssss))//','//cc(:lnbc(cc))
+      end do
+      write(lunw_csv,'(a)') ssss(:lnbc(ssss))
       write(lunw_oof,'(a)') version
       write(lunw_csv,'(a)') version
       do j=2,ncoml-1
@@ -161,7 +172,7 @@ c     write(*,*)'inputfile=',inputfile
          write(lunw_oof,'(a)') gaa_header(:lnbc(gaa_header))
          write(lunw_csv,'(a)') gaa_header(:lnbc(gaa_header))
          if (j.eq.ncoml-2) then
-           read(gaa_header(:lnbc(gaa_header)),*)ymiss
+            read(gaa_header(:lnbc(gaa_header)),'(8x,e12.5)') ymiss
          endif
 c        if (j.eq.ncoml-4) write(*,*)'ymiss=',ymiss
       end do
@@ -190,7 +201,7 @@ c      write(*,*) krow_day,gaa_headarr(krow_day)
 
       do k=2,ncoml_qc
          read(lunr_qc,'(a)') qc_header
-         if(k.eq.ncoml_qc) qc_header=' #'//qc_header
+         if(k.eq.ncoml_qc) qc_header=' #'//qc_header(:headlen-2)
          write(lunw_oof,'(a)') qc_header(:lnbc(qc_header))
          write(lunw_csv,'(a)') qc_header(:lnbc(qc_header))
       end do
@@ -217,9 +228,9 @@ c  and those in the .vav file header
             if( temp .eq. parname(krow_qc) ) pindex(icol)=krow_qc
          end do
          if(pindex(icol).eq.0) then
-           if(index(gaa_headarr(icol),'spectrum').eq.0) then
-         write(*,*) 'Parameter missing in QC file: '//gaa_headarr(icol)
-         endif
+            if(index(gaa_headarr(icol),'spectrum').eq.0) then
+               write(*,*)'Param missing in QC file: '//gaa_headarr(icol)
+            endif
          endif
          if(gaa_headarr(icol).eq.'lat') klat=icol
          if(gaa_headarr(icol).eq.'long') klong=icol
@@ -275,24 +286,24 @@ c  appropriate correction factors.
       nflag=0
       do irow=1,9999999
          if (spectrum_flag .eq. 1) then
-             read(lunr_gaa,*,end=99) specname, (yrow(j),j=2,ncol_gaa)
+            read(lunr_gaa,*,end=99) specname, (yrow(j),j=2,ncol_gaa)
          else
-c             write(*,*)'irow,ncol_gaa=',irow,ncol_gaa
-             read(lunr_gaa,*,end=99) (yrow(j),j=1,ncol_gaa)
+c            write(*,*)'irow,ncol_gaa=',irow,ncol_gaa
+            read(lunr_gaa,*,end=99) (yrow(j),j=1,ncol_gaa)
          endif
          if (irow .eq. 1) then
-             write(lunw_oof,'(a)')
-     &             'Latitude  Longitude  Altitude  SiteID'
-             write(lunw_csv,'(a)')
-     &             'Latitude  Longitude  Altitude  SiteID'
-             write(lunw_oof,'(3f9.3,4x,(a))')
-     &       yrow(klat),yrow(klong),yrow(kzobs),inputfile(1:2)
-             write(lunw_csv,'(3f9.3,4x,(a))')
-     &       yrow(klat),yrow(klong),yrow(kzobs),inputfile(1:2)
-             write(lunw_oof,'(120a1)') ('-',j=1,120)
-             write(lunw_csv,'(120a1)') ('-',j=1,120)
-             write(lunw_oof,'(a)') headout(:lnbc(headout))
-             write(lunw_csv,'(a)') headoutcsv(:lnbc(headoutcsv))
+            write(lunw_oof,'(a)')
+     &      'Latitude  Longitude  Altitude  SiteID'
+            write(lunw_csv,'(a)')
+     &      'Latitude  Longitude  Altitude  SiteID'
+            write(lunw_oof,'(3f9.3,4x,(a))')
+     &      yrow(klat),yrow(klong),yrow(kzobs),inputfile(1:2)
+            write(lunw_csv,'(3f9.3,4x,(a))')
+     &      yrow(klat),yrow(klong),yrow(kzobs),inputfile(1:2)
+            write(lunw_oof,'(120a1)') ('-',j=1,120)
+            write(lunw_csv,'(120a1)') ('-',j=1,120)
+            write(lunw_oof,'(a)') headout(:lnbc(headout))
+            write(lunw_csv,'(a)') headoutcsv(:lnbc(headoutcsv))
          endif
 
 c         write(*,*) 
@@ -309,16 +320,16 @@ c         write(*,*) 'reading...'
             read(lunr_esf,*) (yesf(j),j=1,ncol_esf)
             jcol_gaa = ncol_gaa
             do kcol=ncol_esf,4,-2
-              irow_qc = pindex(jcol_gaa)
-              apesf=scale(irow_qc)/scale(irow_qc-1)  ! xx_error/xx
-c             write(*,*)'pindex(jcol_gaa)=',pindex(jcol_gaa),
-c    &        ' jcol_gaa=',jcol_gaa,
-c    &        ' irow_qc=',irow_qc,'gaa_headarr=',gaa_headarr(jcol_gaa)
-c              write(*,*)kcol,irow_qc,gaa_headarr(irow_qc),apesf
-              rsc(irow_qc)=scale(irow_qc-1)*      ! error scaling modified
-     &        (1/apesf+yesf(kcol-1)/yesf(kcol)**2)/
-     &        (1.0/apesf**2+1/yesf(kcol)**2)
-              jcol_gaa = jcol_gaa-2
+               irow_qc = pindex(jcol_gaa)
+               apesf=scale(irow_qc)/scale(irow_qc-1)  ! xx_error/xx
+c              write(*,*)'pindex(jcol_gaa)=',pindex(jcol_gaa),
+c    &         ' jcol_gaa=',jcol_gaa,
+c    &         ' irow_qc=',irow_qc,'gaa_headarr=',gaa_headarr(jcol_gaa)
+c               write(*,*)kcol,irow_qc,gaa_headarr(irow_qc),apesf
+               rsc(irow_qc)=scale(irow_qc-1)*      ! error scaling modified
+     &         (1/apesf+yesf(kcol-1)/yesf(kcol)**2)/
+     &         (1.0/apesf**2+1/yesf(kcol)**2)
+               jcol_gaa = jcol_gaa-2
             end do
          endif
 
@@ -363,11 +374,11 @@ c         yrow(2)=int(yrow(2))   ! Day
 
          if(eflag.eq.0.or.wrow_flag.gt.0) then
             if(spectrum_flag.eq.0 .or. wsp_flag.eq.0) then
-                write(lunw_oof,outfmt0)eflag,
-     &          (wlimit(dble(yrow(j)),ofmt(j)),j=1,nco)
+               write(lunw_oof,outfmt0)eflag,
+     &         (wlimit(dble(yrow(j)),ofmt(j)),j=1,nco)
             else
-                write(lunw_oof,outfmt1)eflag,specname,
-     &          (wlimit(dble(yrow(j)),ofmt(j)),j=1,nco)
+               write(lunw_oof,outfmt1)eflag,specname,
+     &         (wlimit(dble(yrow(j)),ofmt(j)),j=1,nco)
             endif
          endif
          if(spectrum_flag.eq.0 .or. wsp_flag.eq.0) then
@@ -385,7 +396,7 @@ c            stop 'kcol.ne.nco+wsp_flag+spectrum_flag'
 c         endif
          ssss=sarr(1)
          do k=2,kcol
-            cc=sarr(k)(:20)
+            cc=sarr(k)(:21)
             ssss=ssss(:lnbc(ssss))//','//cc(:lnbc(cc))
          end do
          if(eflag.eq.0.or.wrow_flag.gt.0)
@@ -407,8 +418,8 @@ c         endif
       write(*,*)
       write(*,*)' #   Parameter            N_flag     %'
       do k=1,nrow_qc
-          if(kflag(k).gt.0) write(*,'(i3,3x,a,i6,f8.1)') k,
-     &  parname(k), kflag(k), 100*float(kflag(k))/nrow
+         if(kflag(k).gt.0) write(*,'(i3,3x,a,i6,f8.1)') k,
+     &   parname(k), kflag(k), 100*float(kflag(k))/nrow
       end do
       stop
       end

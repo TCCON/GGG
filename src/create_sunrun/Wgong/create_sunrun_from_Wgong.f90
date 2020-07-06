@@ -18,8 +18,8 @@
 
     integer*4 i,ierror, ispec
     integer*4 idate,iy,im,id,hh,mm,ss,ms,pkl,prl,gbw,gfw, &
-    fnbc,lnbc,fbc,iend,dtype,nsp,nss,nip,dfr, &
-    lr,lrt,ls,lunr,luns,lunt,possp,istat,one,object, &
+    fnbc,lnbc,fbc,iend,dtype,nsp,nip,dfr, &
+    lr,lrt,ls,luns,lunt,possp,istat,object, &
     filter,specmissing, logmissing,platform
     
     parameter (luns=15,lunt=16)
@@ -27,7 +27,7 @@
     real*8 tins,pins,hins,tout,pout,hout, &
     obalt,wavtkr,oblat,oblon,lfl,hfl,foc, &
     fsf,tcorr,nus,nue,lwn,sia,sis,aipl,tel_mag, &
-    fxv,lxv,apt,dur,vel,phr,res,pout_cor, &
+    fxv,lxv,apt,dur,vel,phr,res, &
     sigflo(8), sigfhi(8),fvsi,wspd,wdir
 !
     character apf*2,dl*1,ext*3,spfmt*2,listfile*40, &

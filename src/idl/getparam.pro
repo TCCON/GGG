@@ -21,7 +21,7 @@
       flag=0
       for ifile=0,nfile-1 do begin
          if flag eq 0  then begin
-            for j=0,ncol(ifile),6 do print,format='(4a20)',header(ifile,j:j+5)
+            for j=0,ncol(ifile),6 do print,format='(4a24)',header(ifile,j:j+5)
             print,format='($,"Enter parameter from  ",a)',fname(ifile)
             read,sss
             printf,unitw,sss

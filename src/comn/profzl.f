@@ -1,25 +1,34 @@
       subroutine profzl(apo,ns,resnog,rectog,off,a)
-c  Convolves a SINC function (SIN(X)/X) of half-width RESNOG with a rectangle
-c  (box-car) of full-width RECTOG in order to represent the Instrumental Line
-c  Shape (ILS) of a perfect FTIR spectrometer.
+c  Convolves a SINC function (SIN(X)/X) of half-width RESNOG with a
+c  rectangle (box-car) of full-width RECTOG in order to represent
+c  the Instrumental Line Shape (ILS) of a perfect FTIR spectrometer.
 c
-c  Since the SINC function is infinite in extent, the result must be truncated
-c  to some finite number (NS) of points. To minimize the discontinuities, a
-c  Connes-like windowing is applied to the ILS
-c      (1.d0-(x/a)^2)^2  
+c  In a measured spectrum the ILS is infinite in extent. So the ringing
+c  from a sharp feature can sometimes be seen to extend for thousands
+c  of points, if the spectrum is otherwise sufficiently featureless,
+c  and the self-apodization (due to the finite FOV) weak. In a
+c  low-res spectrum this ringing can represent hundreds of cm-1.
+c  To avoid having to use such a wide computed ILS, we truncate it at
+c  a distance where the ringing is only a few % of the central peak.
+c  To minimize the resulting discontinuities, a Connes-like apodization
+c  is then applied
+c        ILS(v-vo) = ILS(v-vo) * (1-((v-vo)/a)^2)^2  
+c  where a is the wavenumber from center at which truncation occurs.
+c  The ILS is then normalized to unit area, following this apodization.
 c
-c  Various apodization functions can be selected including the Norton-Beer
-c  ones. 
+c  For an apples/apples comparison between measured and computed spectra
+c  the same truncation/apodizing function must be applied to both.
+c  So since the computed spectrum will have the Connes-like apodization,
+c  so must the measured spectrum.  This means that the "measured"
+c  spectrum that appears in the GFIT spectral fits is never the original
+c  measured spectrum. It is always slightly smoothed in order to kill
+c  the distant ringing. This is always the case, independent of what
+c  additional apodizations (e.g. Norton-Beer) may have been selected
+c  in the .ggg file.
 c
-c  In normal use, PROFZL will be called twice: Once for the synthetic spectrum
-c  with the actual values of RESNOG and RECTOG, and once for the measured
-c  spectrum with RECTOG=0. Convolving the measured spectrum with its own
-c  (infinite) SINC function would be a do-nothing operation. However, convolving
-c  the measured spectrum with a finite/truncated and windowed  version of its
-c  own SINC function will improve the agreement with the synthetic spectrum.
-c  In other words, you should apply the same apodization to the measured
-c  spectrum as is appled to the calculated spectrum, to maintain an apples-
-c  apples comparison.
+c  In normal use, PROFZL will be called twice: Once for the synthetic
+c  spectrum with the actual values of RESNOG and RECTOG, and once for
+c  the measured spectrum with RECTOG=0. 
 c
 c  INPUTS:
 c      APO  I*4  Desired apodization function (0, 1, 2, 3, 4)
@@ -37,7 +46,6 @@ c  FREQ is the frequency (cm-1) of interest
 c  FOVD is the diameter of the field-of-view (radians)
 c
       implicit none
-      include "../ggg_const_params.f"
 
       INTEGER*4 k,apo,ns,np,jp
       REAL*4 a(ns)
@@ -75,7 +83,7 @@ c  three moments of the continuous distribution (area, position, and hwidth).
 c      write(*,*)'np=',np,resnog,rectog
 c
 c  Calculate truncated instrumental function (sinx/x for apo=0)
-      can=dpi/resnog
+      can=3.14159265359D0/resnog
       DO 1040 k=1,ns  ! Loop over SINC samples
       a(k)=0.0
       xx=dble(k)-1.d0-hwid
@@ -108,7 +116,6 @@ c  Calculate truncated instrumental function (sinx/x for apo=0)
       endif
 1041  CONTINUE
       a(k)=a(k)*sngl((1.d0-(xx/(hwid+0.0d0))**2)**2)  ! apodize weakly
-c      a(k)=a(k)*(cos(dpi*xx/hwid/2))**4  ! apodize weakly
 1040  CONTINUE
       return
       end

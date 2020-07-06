@@ -1,9 +1,9 @@
-C	******************************************************************************
+C******************************************************************************
       Subroutine DetBand(path_to_bandinfo,SgMinR,SgMaxR,stotmax)
 C******************************************************************************
 C "DetBand": DETermine BANDs
 C ..........................................................
-C          .   Subroutine to Determine the bands			 .
+C          .   Subroutine to Determine the bands .
 C          .   that have Lines lying between WaveNumbers   .
 C          .            SgMinR and SgMaxR      .           .
 C          .................................................
@@ -15,17 +15,17 @@ C         SgMaxR : Maximum WN of selection range (in Cm-1) (Input).
 C          nBand : Integer of the Number of Bands Retained (Output).
 C          Isot  : Integer Array of the CO2 isotope associated
 C                  with each Retained Band (Output).
-C          li	 : Angular momentum of initial vibrational state
-C          lf	 : Angular momentum of final vibrational state
+C          li : Angular momentum of initial vibrational state
+C          lf : Angular momentum of final vibrational state
 C
 C
 C Other quantities
 C ---------------------------------
 C
-C	jmax	: Maximum value of J in the rotational level of each band
-C	Stot	: Total Intensity of each band as sum of the intensity of 
-C		  each line. This parameter could be interesting for the
-C		  user in order to make a rough band cutting.
+Cjmax: Maximum value of J in the rotational level of each band
+CStot: Total Intensity of each band as sum of the intensity of 
+C  each line. This parameter could be interesting for the
+C  user in order to make a rough band cutting.
 C
 C Accessed Files
 C --------------
@@ -47,17 +47,25 @@ C
 
       Implicit None
       include 'co2_parameters.inc'
-      include "../ggg_int_params.f"
-      integer*4 nBand,Isot,isotR,nLines
+      integer*4 nBand,Isot,isotR,nLines,idum
       integer*4 li,lf,lp,lir,lfr
       integer*4 jmxP,jmxQ,jmxR
       character*2 c1,c2,c3,c4,c5
       real*8 SgMinR,SgMaxR,StotMax
       real*8 SgMin,SgMax,Stot
-      Character BandFile*14, path_to_bandinfo*(mpath+80)
+      Character BandFile*14, path_to_bandinfo*(128+80)
 C Characteristics of the Bands
       Common/Bands/nBand,Isot(nBmx),BandFile(nBmx)
      ,   ,nLines(nBmx),li(nBmx),lf(nBmx)
+
+       idum=nSigmx  ! Prevent compiler warning (unused parameter)
+       idum=iFile   ! Prevent compiler warning (unused parameter)
+       idum=nBmx    ! Prevent compiler warning (unused parameter)
+       idum=nLmx    ! Prevent compiler warning (unused parameter)
+       idum=nIsotp  ! Prevent compiler warning (unused parameter)
+       idum=Jmax    ! Prevent compiler warning (unused parameter)
+       idum=Nlifmax ! Prevent compiler warning (unused parameter)
+       idum=Nwmax   ! Prevent compiler warning (unused parameter)
 C----------
 C
 C Open File Giving Information on Bands, Read, and Select
@@ -118,55 +126,55 @@ C          . Subroutine to Read the  fitted (W0,B0) parameters .
 C          .     for a given (li,lf) vibrational band          . 
 C          . and (ji,jf)-(jic,jfc) rotational line coupling    .               
 C          . the W off diagonal elements are then derived as   . 
-C          .			W(T)=W0*(T0/T)^(-B0)           .
+C          .W(T)=W0*(T0/T)^(-B0)           .
 C          .....................................................
 C
 C Notation
 C ---------------------------------
 C     (li-lf)       : Initial and final vibrational angular momenta 
-C				    determining a given band
+C    determining a given band
 C     (ji,jf)       : Initial and final j rotational level determining
-C					a given rotational transition 
+Ca given rotational transition 
 C (ji,jf)-(jic,jfc) : Coupling between the rotational line (ji,jf) and
-C				    the line (jic,jfc)
+C    the line (jic,jfc)
 C
 C Output Quantities (through Common Statements)
 C ---------------------------------
 C      W0pp,B0pp : W0 and B0 for a given (li,lf) and (ji,jf)-(jic,jfc) 
-C				 for a coupling between p-p line
+C for a coupling between p-p line
 C      W0pq,B0pq : W0 and B0 for a given (li,lf) and (ji,jf)-(jic,jfc) 
-C				 for a coupling between p-q line
+C for a coupling between p-q line
 C      W0pr,B0pr : W0 and B0 for a given (li,lf) and (ji,jf)-(jic,jfc) 
-C				 for a coupling between p-r line
+C for a coupling between p-r line
 C      W0qp,B0qp : W0 and B0 for a given (li,lf) and (ji,jf)-(jic,jfc) 
-C				 for a coupling between q-p line
+C for a coupling between q-p line
 C      W0qq,B0qq : W0 and B0 for a given (li,lf) and (ji,jf)-(jic,jfc) 
-C				 for a coupling between q-q line
+C for a coupling between q-q line
 C      W0qr,B0qr : W0 and B0 for a given (li,lf) and (ji,jf)-(jic,jfc) 
-C				 for a coupling between q-r line
+C for a coupling between q-r line
 C      W0rp,B0rp : W0 and B0 for a given (li,lf) and (ji,jf)-(jic,jfc) 
-C				 for a coupling between r-p line
+C for a coupling between r-p line
 C      W0rq,B0rq : W0 and B0 for a given (li,lf) and (ji,jf)-(jic,jfc) 
-C				 for a coupling between r-q line
+C for a coupling between r-q line
 C      W0rr,B0rr : W0 and B0 for a given (li,lf) and (ji,jf)-(jic,jfc) 
-C				 for a coupling between r-r line
+C for a coupling between r-r line
 C
 C Othes Quantities 
 C ---------------------------------
 C      dmaxDT    : Maximum relative error (%) in the fitting of WT
-C				 For the fitting (WT=W0*(T0/T)^(-B0)) 8 temperature
-C				 were taken into account in the range 180-300 K 
+C For the fitting (WT=W0*(T0/T)^(-B0)) 8 temperature
+C were taken into account in the range 180-300 K 
 C      WTmax     : Maximum value of WT for each fit
 C
 C
 C Accessed Files
 C --------------
 C For all the couple (li,lf) where (lf>=li, and li<=5) the  file
-C	"c:\Lm_PQR_CO2\Data\WTfitXY.dat" with X=li, Y=lf 
-C	is open and all the possible value are stored at the 
+C"c:\Lm_PQR_CO2\Data\WTfitXY.dat" with X=li, Y=lf 
+Cis open and all the possible value are stored at the 
 C       beginning of the calculation
 C    The USER will probably HAVE TO CHANGE the access Paths to 
-C	these files according to his computer+directory system.
+Cthese files according to his computer+directory system.
 C
 C Called Routines: None
 C ---------------
@@ -181,8 +189,7 @@ C*********************************************************************
 
       implicit none 
       include 'co2_parameters.inc'
-      include "../ggg_int_params.f"
-      integer*4 i,l,ideltal,lli,llf,lp
+      integer*4 i,l,ideltal,lli,llf,lp,idum
       integer*4 jic,jfc,jipc,jfpc
       real*8 W0R,B0R,dmaxDT,WTmax
       real*8 W0pp,W0pq,W0pr
@@ -193,7 +200,7 @@ C*********************************************************************
       real*8 B0rp,B0rq,B0rr
       character*1 cr1,cr2
       character*2 cr
-      character path_to_wfile*(mpath+80)
+      character path_to_wfile*(128+80)
 C     Relaxation matrix elements
       Common/Wfittedp/W0pp(0:Nlifmax,0:Nlifmax,0:jmax,0:jmax)
      ,     ,W0pq(0:Nlifmax,0:Nlifmax,0:jmax,0:jmax)
@@ -213,6 +220,15 @@ C     Relaxation matrix elements
       Common/Bfittedr/B0rp(0:Nlifmax,0:Nlifmax,0:jmax,0:jmax)
      ,     ,B0rq(0:Nlifmax,0:Nlifmax,0:jmax,0:jmax)
      ,     ,B0rr(0:Nlifmax,0:Nlifmax,0:jmax,0:jmax)
+
+       idum=nSigmx  ! Prevent compiler warning (unused parameter)
+       idum=iFile   ! Prevent compiler warning (unused parameter)
+       idum=nBmx    ! Prevent compiler warning (unused parameter)
+       idum=nLmx    ! Prevent compiler warning (unused parameter)
+       idum=nIsotp  ! Prevent compiler warning (unused parameter)
+       idum=Jmax    ! Prevent compiler warning (unused parameter)
+       idum=Nlifmax ! Prevent compiler warning (unused parameter)
+       idum=Nwmax   ! Prevent compiler warning (unused parameter)
 C----------
 C
 C
@@ -222,7 +238,7 @@ c      print*, 'Reading the W files...'
       do 1 l=0,5
          do 2 ideltal=0,1
 
-          lli=l	
+          lli=l
           llf=l+ideltal
 C      
 c open the file of W for the corresponding (li,lf)
@@ -302,7 +318,7 @@ C     ---------------------------------
 C     Sig : WaveNumbers of the Lines (Cm-1) 
 C     Dipo0 : Rigid rotor dipole 
 C     (cm/Molecule**0.5)
-C     DipoT : True Dipole (include HW correction)	  
+C     DipoT : True Dipole (include HW correction)  
 C     (cm/Molecule**0.5)
 C     E : Energies of the Lower levels of the lines (Cm-1)
 C     HWT0AIR : Air-broadened Half-Widths (at 296 K) of the 
@@ -340,17 +356,16 @@ C
 
       Implicit None
       include 'co2_parameters.inc'
-      include "../ggg_int_params.f"
       integer*4 nBand,Isot,nLines
       integer*4 iBand,nLineR,Ji,Jf
       real*8 HWT0AIR,BHWAIR,HWT0H2O,BHWH2O,SHFT
       real*8 Sig,Dipo0,E,PopuT0
       real*8 DipoT,Intens
       Character*1 TpLine
-      Character BandFile*14, path_to_sfile*(mpath+80)
+      Character BandFile*14, path_to_sfile*(128+80)
 C     
 C     Characteristics of the Bands
-      integer li,lf,lp
+      integer li,lf,lp,idum
       Common/Bands/nBand,Isot(nBmx),BandFile(nBmx)
      ,   ,nLines(nBmx),li(nBmx),lf(nBmx)
 C     Data of the Lines at Ref Temperature/Pressure
@@ -366,6 +381,15 @@ C     Data of the Lines at Ref Temperature/Pressure
       Common/DipoTcm/DipoT(nLmx,nBmx)
       Common/Jiln/Ji(nLmx,nBmx)
       Common/Jfln/Jf(nLmx,nBmx)
+
+       idum=nSigmx  ! Prevent compiler warning (unused parameter)
+       idum=iFile   ! Prevent compiler warning (unused parameter)
+       idum=nBmx    ! Prevent compiler warning (unused parameter)
+       idum=nLmx    ! Prevent compiler warning (unused parameter)
+       idum=nIsotp  ! Prevent compiler warning (unused parameter)
+       idum=Jmax    ! Prevent compiler warning (unused parameter)
+       idum=Nlifmax ! Prevent compiler warning (unused parameter)
+       idum=Nwmax   ! Prevent compiler warning (unused parameter)
 C------------
 C     
 C     Check that Number of Bands is Not TOO Large
@@ -507,9 +531,8 @@ C*********************************************************************
 C     
       Implicit None
       include 'co2_parameters.inc'
-      include "../ggg_int_params.f"
       logical MixFull
-      integer*4 nBand,Isot,nLines,li,lf
+      integer*4 nBand,Isot,nLines,li,lf,idum
       integer*4 nSig,iSig,iBand,iLine,ji,jf
       real*8 Temp,Ptot,xCO2,xH2O,SigMin,DSig
       real*8 Sig,Dipo0,HWT,SHFT,PopuT,YT,DipoT
@@ -525,7 +548,7 @@ C     Results (Absorption Coefficients)
       real*8 AbsY(nSigmx)
       real*8 AbsW(nSigmx)
 C     Characteristic of the Bands
-      Character BandFile*14, path_to_sfile*(mpath+80)
+      Character BandFile*14, path_to_sfile*(128+80)
       Common/Bands/nBand,Isot(nBmx),BandFile(nBmx)
      ,   ,nLines(nBmx),li(nBmx),lf(nBmx)
 C     Data of the "Real" Lines
@@ -548,6 +571,15 @@ C
       Double Complex ZS,ZA
       Common/Zss/ZS(nLmx)
       Common/Zaa/ZA(nLmx)
+
+       idum=nSigmx  ! Prevent compiler warning (unused parameter)
+       idum=iFile   ! Prevent compiler warning (unused parameter)
+       idum=nBmx    ! Prevent compiler warning (unused parameter)
+       idum=nLmx    ! Prevent compiler warning (unused parameter)
+       idum=nIsotp  ! Prevent compiler warning (unused parameter)
+       idum=Jmax    ! Prevent compiler warning (unused parameter)
+       idum=Nlifmax ! Prevent compiler warning (unused parameter)
+       idum=Nwmax   ! Prevent compiler warning (unused parameter)
 C----------
       rdmult=30.d0
 
@@ -752,7 +784,7 @@ C
 
       Implicit None
       include 'co2_parameters.inc'
-      integer*4 iBand,IsotC,nLineC
+      integer*4 iBand,IsotC,nLineC,idum
       integer*4 iLine,iLineP,Ji,Jf
       real*8 SigMoy,Temp,Ptot,xH2O
       real*8 HWT0AIR,BHWAIR,HWT0H2O,BHWH2O,SHFT
@@ -784,7 +816,7 @@ C     Data for relaxation matrix
       Common/DiagnI/OpI(nLmx,nLmx)
 C     LM 1st order coefficient
       Common/YLT/YT(nLmx)
-C     Relaxation matrix elements	(output)
+C     Relaxation matrix elements(output)
       Common/Wmatrix/W(nLmx,nLmx)
 C Intensities and Positions+Widths of "Equivalent" Lines
       Common/FicLSR/SSR(nLmx)
@@ -792,6 +824,14 @@ C Intensities and Positions+Widths of "Equivalent" Lines
       Common/FicLPR/AlphR(nLmx)
       Common/FicLPI/AlphI(nLmx)
 
+       idum=nSigmx  ! Prevent compiler warning (unused parameter)
+       idum=iFile   ! Prevent compiler warning (unused parameter)
+       idum=nBmx    ! Prevent compiler warning (unused parameter)
+       idum=nLmx    ! Prevent compiler warning (unused parameter)
+       idum=nIsotp  ! Prevent compiler warning (unused parameter)
+       idum=Jmax    ! Prevent compiler warning (unused parameter)
+       idum=Nlifmax ! Prevent compiler warning (unused parameter)
+       idum=Nwmax   ! Prevent compiler warning (unused parameter)
 
 C----------
 C     
@@ -858,10 +898,10 @@ C*********************************************************************
 C     "CalcW": Calc the W matrix and the Y coefficients
 C     ..............................................................
 C     . Subroutine to compute the Wlk elements using the  .
-C     .	parameters readed in readW and the fitting law . 
-C     .			W(T)=W0*(T0/T)^(-B0)           .
-C     .	from the Wlk elements the Y coeffficients are  .
-C     .	        also computed and stored               .
+C     .parameters readed in readW and the fitting law . 
+C     .W(T)=W0*(T0/T)^(-B0)           .
+C     .from the Wlk elements the Y coeffficients are  .
+C     .       also computed and stored               .
 C     .....................................................
 C     
 C     
@@ -885,7 +925,7 @@ C
 C     Called Routines: 'Switch'
 C     ---------------  'SwitchInt'
 C     
-C     Called By:	'convTP' (CONVert to Temp and Press)
+C     Called By:'convTP' (CONVert to Temp and Press)
 C     ---------
 C     
 C     Double Precision Version
@@ -895,11 +935,11 @@ C*********************************************************************
 
       implicit none
       include 'co2_parameters.inc'
-      integer*4 i,j,lli,llf,iBand,jji,jjf,jjip,jjfp
+      integer*4 i,j,lli,llf,iBand,jji,jjf,jjip,jjfp,idum
       integer*4 nraies
       integer*4 iR,iRp
       integer*4 ji,jf
-      integer*4 nBand,Isot,nLines,li,lf	
+      integer*4 nBand,Isot,nLines,li,lf
       real*8 ycal,sum0,sumUP,sumLW,deltasig
       real*8 Sig,Dipo0,E,HWT,PopuT,DipoT
       real*8 W,YT,Temp,S(nLmx)
@@ -920,7 +960,7 @@ C     Data of the Lines at (Temp,Pressure) for the Current Band
       Common/Jiln/Ji(nLmx,nBmx)
       Common/Jfln/Jf(nLmx,nBmx)
       Common/DipoTcm/DipoT(nLmx,nBmx)
-C     Relaxation matrix elements	(output)
+C     Relaxation matrix elements(output)
       Common/Wmatrix/W(nLmx,nLmx)
       Common/YLT/YT(nLmx)
 C     Characteristic of the Bands
@@ -945,9 +985,20 @@ C     Relaxation matrix elements
       Common/Bfittedr/B0rp(0:Nlifmax,0:Nlifmax,0:jmax,0:jmax)
      ,     ,B0rq(0:Nlifmax,0:Nlifmax,0:jmax,0:jmax)
      ,     ,B0rr(0:Nlifmax,0:Nlifmax,0:jmax,0:jmax)
+
+       idum=nSigmx  ! Prevent compiler warning (unused parameter)
+       idum=iFile   ! Prevent compiler warning (unused parameter)
+       idum=nBmx    ! Prevent compiler warning (unused parameter)
+       idum=nLmx    ! Prevent compiler warning (unused parameter)
+       idum=nIsotp  ! Prevent compiler warning (unused parameter)
+       idum=Jmax    ! Prevent compiler warning (unused parameter)
+       idum=Nlifmax ! Prevent compiler warning (unused parameter)
+       idum=Nwmax   ! Prevent compiler warning (unused parameter)
 C----------
 C     
 C
+      W0=0.0D0
+      B0=0.0D0
       do i=1,nraies
          YT(i)=0.d0
          do j=1,nraies
@@ -1190,13 +1241,13 @@ C
 !!!!!!
 !     To be included if IMSL library is used
 !
-!	use MSIMSL
+!use MSIMSL
 !
 !!!!!!
 
       Implicit None
       include 'co2_parameters.inc'
-      Integer iBand,nLineC
+      Integer iBand,nLineC,idum
       Integer iLine,iLineP
          Double Precision PopuT,DipoT,OpR,OpI
          Double Precision SSR,SSI,AlphR,AlphI
@@ -1234,6 +1285,15 @@ C
       COMPLEX*16         VL(nLmx,nLmx)
       INTEGER            IPIV(nLmx),INFO
       intrinsic dimag, dcmplx
+
+       idum=nSigmx  ! Prevent compiler warning (unused parameter)
+       idum=iFile   ! Prevent compiler warning (unused parameter)
+       idum=nBmx    ! Prevent compiler warning (unused parameter)
+       idum=nLmx    ! Prevent compiler warning (unused parameter)
+       idum=nIsotp  ! Prevent compiler warning (unused parameter)
+       idum=Jmax    ! Prevent compiler warning (unused parameter)
+       idum=Nlifmax ! Prevent compiler warning (unused parameter)
+       idum=Nwmax   ! Prevent compiler warning (unused parameter)
 C
 C
 C----------
@@ -1378,8 +1438,17 @@ C*********************************************************************
 C
       Implicit None
       include 'co2_parameters.inc'
-      Integer*4 Iso
+      Integer*4 Iso,idum
       Real*8 Temp,PFCO2
+
+       idum=nSigmx  ! Prevent compiler warning (unused parameter)
+       idum=iFile   ! Prevent compiler warning (unused parameter)
+       idum=nBmx    ! Prevent compiler warning (unused parameter)
+       idum=nLmx    ! Prevent compiler warning (unused parameter)
+       idum=nIsotp  ! Prevent compiler warning (unused parameter)
+       idum=Jmax    ! Prevent compiler warning (unused parameter)
+       idum=Nlifmax ! Prevent compiler warning (unused parameter)
+       idum=Nwmax   ! Prevent compiler warning (unused parameter)
 C--------
 C
         If( (Temp.LT.70d0) .OR. (Temp.GT.500.d0) )Then
@@ -1403,8 +1472,8 @@ C*********************************************************************
       Subroutine Switch(F,j,i,N)
 **********************************************************************
 C
-C	Simple subroutine for swithcing 2 element in a vector
-C			F(j) transormed to F(i) and vice-versa
+CSimple subroutine for swithcing 2 element in a vector
+CF(j) transormed to F(i) and vice-versa
 C
       Implicit Double Precision(a-h,o-z)
       dimension F(N)
@@ -1419,8 +1488,8 @@ C
       Subroutine SwitchTwo(F,j,i,iB,N,Nb)
 **********************************************************************
 C
-C	Simple subroutine for swithcing 2 element in a vector
-C			F(j,iB) transormed to F(i,iB) and vice-versa
+CSimple subroutine for swithcing 2 element in a vector
+CF(j,iB) transormed to F(i,iB) and vice-versa
 C
       Implicit Double Precision(a-h,o-z)
       dimension F(N,Nb)
@@ -1436,7 +1505,7 @@ C
       Subroutine SwitchInt(IntF,j,i,iB,N,Nb)
 **********************************************************************
 C
-C	Same as Switch, but for a vector of integer values	
+C    Same as Switch, but for a vector of integer values
 C
       Implicit Double Precision(a-h,o-z)
       dimension IntF(N,Nb)
@@ -1534,7 +1603,7 @@ C
       EXTERNAL           XERBLA, ZDSCAL, ZSWAP
 *     ..
 *     .. Intrinsic Functions ..
-      INTRINSIC          MAX, MIN
+c      INTRINSIC          MAX, MIN
 *     ..
 *     .. Executable Statements ..
 *
@@ -1767,7 +1836,7 @@ C
       EXTERNAL           XERBLA, ZDSCAL, ZSWAP
 *     ..
 *     .. Intrinsic Functions ..
-      INTRINSIC          ABS, DBLE, DIMAG, MAX, MIN
+c      INTRINSIC          ABS, DBLE, DIMAG, MAX, MIN
 *     ..
 *     .. Statement Functions ..
       DOUBLE PRECISION   CABS1
@@ -2100,12 +2169,13 @@ C
       EXTERNAL           LSAME, IDAMAX, ILAENV, DLAMCH, DZNRM2, ZLANGE
 *     ..
 *     .. Intrinsic Functions ..
-      INTRINSIC          DBLE, DCMPLX, DCONJG, DIMAG, MAX, MIN, SQRT
+c      INTRINSIC          DBLE, DCMPLX, DCONJG, DIMAG, MAX, MIN, SQRT
 *     ..
 *     .. Executable Statements ..
 *
 *     Test the input arguments
 *
+      MAXWRK=0
       INFO = 0
       LQUERY = ( LWORK.EQ.-1 )
       WANTVL = LSAME( JOBVL, 'V' )
@@ -2462,7 +2532,7 @@ C
       EXTERNAL           XERBLA, ZLARF, ZLARFG
 *     ..
 *     .. Intrinsic Functions ..
-      INTRINSIC          DCONJG, MAX, MIN
+c      INTRINSIC          DCONJG, MAX, MIN
 *     ..
 *     .. Executable Statements ..
 *
@@ -2631,7 +2701,7 @@ C
       EXTERNAL           XERBLA, ZGEHD2, ZGEMM, ZLAHRD, ZLARFB
 *     ..
 *     .. Intrinsic Functions ..
-      INTRINSIC          MAX, MIN
+c      INTRINSIC          MAX, MIN
 *     ..
 *     .. External Functions ..
       INTEGER            ILAENV
@@ -2641,6 +2711,7 @@ C
 *
 *     Test the input parameters
 *
+      NX=0
       INFO = 0
       NB = MIN( NBMAX, ILAENV( 1, 'ZGEHRD', ' ', N, ILO, IHI, -1 ) )
       LWKOPT = N*NB
@@ -2900,7 +2971,7 @@ C
      $                   ZLARFG, ZLARFX, ZLASET, ZSCAL
 *     ..
 *     .. Intrinsic Functions ..
-      INTRINSIC          ABS, DBLE, DCONJG, DIMAG, MAX, MIN
+c      INTRINSIC          ABS, DBLE, DCONJG, DIMAG, MAX, MIN
 *     ..
 *     .. Statement Functions ..
       DOUBLE PRECISION   CABS1
@@ -3276,7 +3347,7 @@ C
       INTEGER            I, IOFF
 *     ..
 *     .. Intrinsic Functions ..
-      INTRINSIC          DCONJG
+c      INTRINSIC          DCONJG
 *     ..
 *     .. Executable Statements ..
 *
@@ -3358,7 +3429,7 @@ C
       EXTERNAL           LSAME
 *     ..
 *     .. Intrinsic Functions ..
-      INTRINSIC          MIN
+c      INTRINSIC          MIN
 *     ..
 *     .. Executable Statements ..
 *
@@ -3423,7 +3494,7 @@ C
       EXTERNAL           DLADIV
 *     ..
 *     .. Intrinsic Functions ..
-      INTRINSIC          DBLE, DCMPLX, DIMAG
+c      INTRINSIC          DBLE, DCMPLX, DIMAG
 *     ..
 *     .. Executable Statements ..
 *
@@ -3551,7 +3622,7 @@ C
       EXTERNAL           ZCOPY, ZLARFG, ZSCAL
 *     ..
 *     .. Intrinsic Functions ..
-      INTRINSIC          ABS, DBLE, DCONJG, DIMAG, MAX, MIN, SQRT
+c      INTRINSIC          ABS, DBLE, DCONJG, DIMAG, MAX, MIN, SQRT
 *     ..
 *     .. Statement Functions ..
       DOUBLE PRECISION   CABS1
@@ -3562,6 +3633,7 @@ C
 *     .. Executable Statements ..
 *
       INFO = 0
+      I2=0
 *
 *     Quick return if possible
 *
@@ -3938,7 +4010,7 @@ C
      $                   ZTRMV
 *     ..
 *     .. Intrinsic Functions ..
-      INTRINSIC          MIN
+c      INTRINSIC          MIN
 *     ..
 *     .. Executable Statements ..
 *
@@ -4116,10 +4188,11 @@ C
       EXTERNAL           ZLASSQ
 *     ..
 *     .. Intrinsic Functions ..
-      INTRINSIC          ABS, MAX, MIN, SQRT
+c      INTRINSIC          ABS, MAX, MIN, SQRT
 *     ..
 *     .. Executable Statements ..
 *
+      VALUE=0.0D0
       IF( MIN( M, N ).EQ.0 ) THEN
          VALUE = ZERO
       ELSE IF( LSAME( NORM, 'M' ) ) THEN
@@ -4259,10 +4332,11 @@ C
       EXTERNAL           ZLASSQ
 *     ..
 *     .. Intrinsic Functions ..
-      INTRINSIC          ABS, MAX, MIN, SQRT
+c      INTRINSIC          ABS, MAX, MIN, SQRT
 *     ..
 *     .. Executable Statements ..
 *
+      VALUE=0.0D0
       IF( N.EQ.0 ) THEN
          VALUE = ZERO
       ELSE IF( LSAME( NORM, 'M' ) ) THEN
@@ -4549,7 +4623,7 @@ C
       EXTERNAL           ZCOPY, ZGEMM, ZLACGV, ZTRMM
 *     ..
 *     .. Intrinsic Functions ..
-      INTRINSIC          DCONJG
+c      INTRINSIC          DCONJG
 *     ..
 *     .. Executable Statements ..
 *
@@ -5126,7 +5200,7 @@ C
       EXTERNAL           DLAMCH, DLAPY3, DZNRM2, ZLADIV
 *     ..
 *     .. Intrinsic Functions ..
-      INTRINSIC          ABS, DBLE, DCMPLX, DIMAG, SIGN
+c      INTRINSIC          ABS, DBLE, DCMPLX, DIMAG, SIGN
 *     ..
 *     .. External Subroutines ..
       EXTERNAL           ZDSCAL, ZSCAL
@@ -5505,7 +5579,7 @@ C
       EXTERNAL           ZGEMV, ZGERC
 *     ..
 *     .. Intrinsic Functions ..
-      INTRINSIC          DCONJG
+c      INTRINSIC          DCONJG
 *     ..
 *     .. Executable Statements ..
 *
@@ -6156,7 +6230,7 @@ C
       EXTERNAL           LSAME, DLAMCH
 *     ..
 *     .. Intrinsic Functions ..
-      INTRINSIC          ABS, MAX, MIN
+c      INTRINSIC          ABS, MAX, MIN
 *     ..
 *     .. External Subroutines ..
       EXTERNAL           XERBLA
@@ -6395,7 +6469,7 @@ C
       EXTERNAL           LSAME
 *     ..
 *     .. Intrinsic Functions ..
-      INTRINSIC          MIN
+c      INTRINSIC          MIN
 *     ..
 *     .. Executable Statements ..
 *
@@ -6517,7 +6591,7 @@ C
       DOUBLE PRECISION   TEMP1
 *     ..
 *     .. Intrinsic Functions ..
-      INTRINSIC          ABS, DBLE, DIMAG
+c      INTRINSIC          ABS, DBLE, DIMAG
 *     ..
 *     .. Executable Statements ..
 *
@@ -6745,7 +6819,7 @@ C
       EXTERNAL           DSCAL, XERBLA, ZAXPY, ZDSCAL, ZTRSV
 *     ..
 *     .. Intrinsic Functions ..
-      INTRINSIC          ABS, DBLE, DCMPLX, DCONJG, DIMAG, MAX, MIN
+c      INTRINSIC          ABS, DBLE, DCMPLX, DCONJG, DIMAG, MAX, MIN
 *     ..
 *     .. Statement Functions ..
       DOUBLE PRECISION   CABS1, CABS2
@@ -7594,7 +7668,7 @@ C
       EXTERNAL           XERBLA, ZCOPY, ZDSCAL, ZGEMV, ZLATRS
 *     ..
 *     .. Intrinsic Functions ..
-      INTRINSIC          ABS, DBLE, DCMPLX, DCONJG, DIMAG, MAX
+c      INTRINSIC          ABS, DBLE, DCMPLX, DCONJG, DIMAG, MAX
 *     ..
 *     .. Statement Functions ..
       DOUBLE PRECISION   CABS1
@@ -7891,7 +7965,7 @@ C
       EXTERNAL           XERBLA, ZLARF, ZSCAL
 *     ..
 *     .. Intrinsic Functions ..
-      INTRINSIC          MAX
+c      INTRINSIC          MAX
 *     ..
 *     .. Executable Statements ..
 *
@@ -8034,7 +8108,7 @@ C
       EXTERNAL           ILAENV
 *     ..
 *     .. Intrinsic Functions ..
-      INTRINSIC          MAX, MIN
+c      INTRINSIC          MAX, MIN
 *     ..
 *     .. Executable Statements ..
 *
@@ -8200,7 +8274,7 @@ C
       EXTERNAL           XERBLA, ZLARFB, ZLARFT, ZUNG2R
 *     ..
 *     .. Intrinsic Functions ..
-      INTRINSIC          MAX, MIN
+c      INTRINSIC          MAX, MIN
 *     ..
 *     .. External Functions ..
       INTEGER            ILAENV
@@ -8210,6 +8284,7 @@ C
 *
 *     Test the input arguments
 *
+      KI=0
       INFO = 0
       NB = ILAENV( 1, 'ZUNGQR', ' ', M, N, K, -1 )
       LWKOPT = MAX( 1, N )*NB
@@ -8372,7 +8447,7 @@ C
 *  =====================================================================
 *
 *     .. Intrinsic Functions ..
-      INTRINSIC          LOG10, SQRT
+c      INTRINSIC          LOG10, SQRT
 *     ..
 *     .. Executable Statements ..
 *
@@ -8431,7 +8506,7 @@ C
       DOUBLE PRECISION   E, F
 *     ..
 *     .. Intrinsic Functions ..
-      INTRINSIC          ABS
+c      INTRINSIC          ABS
 *     ..
 *     .. Executable Statements ..
 *
@@ -8488,7 +8563,7 @@ C
       DOUBLE PRECISION   W, XABS, YABS, Z
 *     ..
 *     .. Intrinsic Functions ..
-      INTRINSIC          ABS, MAX, MIN, SQRT
+c      INTRINSIC          ABS, MAX, MIN, SQRT
 *     ..
 *     .. Executable Statements ..
 *
@@ -8541,7 +8616,7 @@ C
       DOUBLE PRECISION   W, XABS, YABS, ZABS
 *     ..
 *     .. Intrinsic Functions ..
-      INTRINSIC          ABS, MAX, SQRT
+c      INTRINSIC          ABS, MAX, SQRT
 *     ..
 *     .. Executable Statements ..
 *
@@ -8633,6 +8708,7 @@ C
 *     ..
 *     .. Executable Statements ..
 *
+      RMACH=0.0D0
       IF( FIRST ) THEN
          FIRST = .FALSE.
          CALL DLAMC2( BETA, IT, LRND, EPS, IMIN, RMIN, IMAX, RMAX )
@@ -8957,7 +9033,7 @@ C
       EXTERNAL           DLAMC1, DLAMC4, DLAMC5
 *     ..
 *     .. Intrinsic Functions ..
-      INTRINSIC          ABS, MAX, MIN
+c      INTRINSIC          ABS, MAX, MIN
 *     ..
 *     .. Save statement ..
       SAVE               FIRST, IWARN, LBETA, LEMAX, LEMIN, LEPS, LRMAX,
@@ -9319,7 +9395,7 @@ C
       EXTERNAL           DLAMC3
 *     ..
 *     .. Intrinsic Functions ..
-      INTRINSIC          MOD
+c      INTRINSIC          MOD
 *     ..
 *     .. Executable Statements ..
 *
@@ -9328,6 +9404,7 @@ C
 *     approximately to the bound that is closest to abs(EMIN).
 *     (EMAX is the exponent of the required number RMAX).
 *
+      OLDY=0
       LEXP = 1
       EXBITS = 1
    10 CONTINUE
@@ -9493,7 +9570,7 @@ C
       EXTERNAL           XERBLA, ZGERU, ZSCAL, ZSWAP
 *     ..
 *     .. Intrinsic Functions ..
-      INTRINSIC          MAX, MIN
+c      INTRINSIC          MAX, MIN
 *     ..
 *     .. Executable Statements ..
 *
@@ -9628,7 +9705,7 @@ C
       EXTERNAL           ILAENV
 *     ..
 *     .. Intrinsic Functions ..
-      INTRINSIC          MAX, MIN
+c      INTRINSIC          MAX, MIN
 *     ..
 *     .. Executable Statements ..
 *
@@ -9914,7 +9991,7 @@ C
       EXTERNAL           XERBLA, ZGEMM, ZGEMV, ZSWAP, ZTRSM, ZTRTRI
 *     ..
 *     .. Intrinsic Functions ..
-      INTRINSIC          MAX, MIN
+c      INTRINSIC          MAX, MIN
 *     ..
 *     .. Executable Statements ..
 *
@@ -10106,7 +10183,7 @@ C
       EXTERNAL           XERBLA, ZSCAL, ZTRMV
 *     ..
 *     .. Intrinsic Functions ..
-      INTRINSIC          MAX
+c      INTRINSIC          MAX
 *     ..
 *     .. Executable Statements ..
 *
@@ -10253,7 +10330,7 @@ C
       EXTERNAL           XERBLA, ZTRMM, ZTRSM, ZTRTI2
 *     ..
 *     .. Intrinsic Functions ..
-      INTRINSIC          MAX, MIN
+c      INTRINSIC          MAX, MIN
 *     ..
 *     .. Executable Statements ..
 *
@@ -10609,16 +10686,18 @@ C
       CHARACTER*2        C2, C4
       CHARACTER*3        C3
       CHARACTER*6        SUBNAM
-      INTEGER            I, IC, IZ, NB, NBMIN, NX
+      INTEGER            I, IC, IZ, NB, NBMIN, NX,idum
 *     ..
 *     .. Intrinsic Functions ..
-      INTRINSIC          CHAR, ICHAR, INT, MIN, REAL
+c      INTRINSIC          CHAR, ICHAR, INT, MIN, REAL
 *     ..
 *     .. External Functions ..
       INTEGER            IEEECK
       EXTERNAL           IEEECK
 *     ..
 *     .. Executable Statements ..
+      idum=N3
+      idum=lnblnk(OPTS)
 *
       GO TO ( 100, 100, 100, 400, 500, 600, 700, 800, 900, 1000,
      $        1100 ) ISPEC
@@ -11074,7 +11153,7 @@ C     ILAENV = 0
 * =====================================================================
 *
 *     .. Intrinsic Functions ..
-      INTRINSIC          ICHAR
+c      INTRINSIC          ICHAR
 *     ..
 *     .. Local Scalars ..
       INTEGER            INTA, INTB, ZCODE
@@ -11369,7 +11448,7 @@ c
 *     .. External Subroutines ..
       EXTERNAL           XERBLA
 *     .. Intrinsic Functions ..
-      INTRINSIC          MAX
+c      INTRINSIC          MAX
 *     ..
 *     .. Executable Statements ..
 *
@@ -11573,7 +11652,7 @@ c
 *     .. External Subroutines ..
       EXTERNAL           XERBLA
 *     .. Intrinsic Functions ..
-      INTRINSIC          DCONJG, MAX
+c      INTRINSIC          DCONJG, MAX
 *     .. Local Scalars ..
       LOGICAL            LSIDE, NOCONJ, NOUNIT, UPPER
       INTEGER            I, INFO, J, K, NROWA
@@ -11968,12 +12047,13 @@ c
 *     .. External Subroutines ..
       EXTERNAL           XERBLA
 *     .. Intrinsic Functions ..
-      INTRINSIC          DCONJG, MAX
+c      INTRINSIC          DCONJG, MAX
 *     ..
 *     .. Executable Statements ..
 *
 *     Test the input parameters.
 *
+      KX=0
       INFO = 0
       IF     ( .NOT.LSAME( UPLO , 'U' ).AND.
      $         .NOT.LSAME( UPLO , 'L' )      )THEN
@@ -12309,7 +12389,7 @@ c
 *     .. External Subroutines ..
       EXTERNAL           XERBLA
 *     .. Intrinsic Functions ..
-      INTRINSIC          DCONJG, MAX
+c      INTRINSIC          DCONJG, MAX
 *     .. Local Scalars ..
       LOGICAL            LSIDE, NOCONJ, NOUNIT, UPPER
       INTEGER            I, INFO, J, K, NROWA
@@ -12656,7 +12736,7 @@ c
 *     .. External Subroutines ..
       EXTERNAL           XERBLA
 *     .. Intrinsic Functions ..
-      INTRINSIC          DCONJG, MAX
+c      INTRINSIC          DCONJG, MAX
 *     ..
 *     .. Executable Statements ..
 *
@@ -12980,7 +13060,7 @@ c
 *     .. External Subroutines ..
       EXTERNAL           XERBLA
 *     .. Intrinsic Functions ..
-      INTRINSIC          DCONJG, MAX
+c      INTRINSIC          DCONJG, MAX
 *     .. Local Scalars ..
       LOGICAL            CONJA, CONJB, NOTA, NOTB
       INTEGER            I, INFO, J, L, NCOLA, NROWA, NROWB
@@ -13377,7 +13457,7 @@ c
 *     .. External Subroutines ..
       EXTERNAL           XERBLA
 *     .. Intrinsic Functions ..
-      INTRINSIC          DCONJG, MAX
+c      INTRINSIC          DCONJG, MAX
 *     ..
 *     .. Executable Statements ..
 *
@@ -13652,12 +13732,13 @@ c
 *     .. External Subroutines ..
       EXTERNAL           XERBLA
 *     .. Intrinsic Functions ..
-      INTRINSIC          DCONJG, MAX
+c      INTRINSIC          DCONJG, MAX
 *     ..
 *     .. Executable Statements ..
 *
 *     Test the input parameters.
 *
+      KX=0
       INFO = 0
       IF     ( .NOT.LSAME( UPLO , 'U' ).AND.
      $         .NOT.LSAME( UPLO , 'L' )      )THEN
@@ -13921,7 +14002,7 @@ c
       INTEGER               IX
       DOUBLE PRECISION      NORM, SCALE, SSQ, TEMP
 *     .. Intrinsic Functions ..
-      INTRINSIC             ABS, DIMAG, DBLE, SQRT
+c      INTRINSIC             ABS, DIMAG, DBLE, SQRT
 *     ..
 *     .. Executable Statements ..
       IF( N.LT.1 .OR. INCX.LT.1 )THEN

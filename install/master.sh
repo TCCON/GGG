@@ -1,14 +1,57 @@
+#!/bin/bash
+
+usage() {
+    echo "$0 [ -y | --yes ] [ --no-py ] [ NPROCS ] "
+    echo "  -y | --yes : Assume user enters YES for all prompts."
+    echo "               WARNING: this effectively disables the"
+    echo "               GGGPATH check."
+    echo "  --no-py : Do not reinstall the Python packages needed, "
+    echo "            only recompile/retest GGG."
+}
+
+
+##### Command line argument parsing ####
+# Defaults first
+nprocessors=1
+install_py=true
+always_yes=false
+pyargs=""
+
+# Now parse
+for arg in $@; do
+    case $arg in 
+        -h|--help)
+            usage
+            exit 0
+            ;;
+        -y|--yes)
+            always_yes=true
+            pyargs="$pyargs --yes"
+            ;;
+        --no-py)
+            install_py=false
+            ;;
+        *)
+            nprocessors=$arg
+#            echo "nproc: $arg $nprocessors"
+            ;;
+    esac
+done
+
+##### End command line arg parsing #####
+#echo "nproc: $nprocessors"
+
 echo " Installing GGG"
 echo " Using GGGPATH =" $GGGPATH
 if [ ! $GGGPATH/install == `pwd` ] ; then
    echo " Your current directory: `pwd`"
    echo " Does not match the GGGPATH install directory."
    read -p " Continue? (Y/N) " req
-   if [[ $req == 'Y' || $req == 'y' ]] ; then
+   if [[ $req == 'Y' || $req == 'y' ]] || $always_yes  ; then
       echo " Continuing..."
    else
       echo " Quitting install. Please change your GGGPATH."
-      exit
+      exit 1
    fi
 fi
 
@@ -20,7 +63,29 @@ if [[ $? != 0 ]]; then
   exit
 fi
 
+ok=`echo $nprocessors | grep -q "^[0-9]*$" && echo "OK" || echo "Not OK"`
+if [ "$ok" != "OK" ] ; then
+  nprocessors=1
+#  echo " Selecting $nprocessors processors."
+fi
+echo " You've selected $nprocessors processors."
+
+if $install_py; then
+    chmod u+x pymaster.sh
+    ./pymaster.sh $pyargs
+else
+    echo "Not cloning/installing python components"
+fi
+
+if [ $? != 0 ]; then
+    echo "ERROR: Problem cloning netcdf_writer. ABORTING master.sh"
+    exit 1
+fi
+
 ./compile_ggg.sh
+echo " ********************************** "
+./i2s_master.sh
+echo " ********************************** "
 
 echo " Creating data_part.lst if it doesn't already exist"
 if [ ! -e ../config/data_part.lst ]; then 
@@ -159,6 +224,11 @@ if [ ! -d current_results ]; then
 fi 
 rm -f current_results/*
 cd current_results
+echo " Running list_maker"
+../../bin/list_maker < ../.list_maker.input
+mv list_maker.out pa_ggg_benchmark.gnd
+echo " Running create_sunrun"
+../../bin/create_sunrun < ../.create_sunrun.input
 echo " Running create_runlog"
 ../../bin/create_runlog < ../.create_runlog.input
 echo " Running gsetup"
@@ -171,7 +241,16 @@ echo "This will take ~15 minutes."
 time_start=`date +%s`
 
 chmod u+x multiggg.sh
-./multiggg.sh
+# If you wish to run on N processors, use the line starting with "parallel" and comment out the subsequent line. 
+# Be sure to change the number after "-j" to the number of processors you wish to use.
+if [ "$nprocessors" -eq 1 ] ; then
+ echo "Running multiggg.sh"
+ ./multiggg.sh
+else
+ echo "Running multiggg.sh in parallel"
+ parallel -j$nprocessors -t --delay 2 < multiggg.sh
+fi
+
 chmod u+x post_processing.sh
 ./post_processing.sh
 cd ../

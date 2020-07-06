@@ -1,4 +1,4 @@
-      subroutine read_runlog_data_record(lunr_rlg,data_fmt_read_rl,
+      subroutine read_runlog_data_record(lunr_rlg,data_fmt_rrlg,
      & col1,specname,iyr,iset,zpdtim,
      & oblat,oblon,obalt,asza,zenoff,azim,osds,opd,fovi,fovo,amal,
      & ifirst,ilast,graw,possp,bytepw,zoff,snr,apf,tins,pins,hins,
@@ -10,14 +10,14 @@ c  The purpose of this subroutine is to hide all the
 c  of the code that depends on the runlog format into
 c  a single subroutine. This has two advantages:
 c  1) It simplifies the calling programs
-c  2) It means that if the runlog Format is changed
-c  in the future, only read_runlog subroutine needs to be changed,
+c  2) It means that if the runlog format is changed
+c  only read_runlog subroutine needs to be changed,
 c  not the dozen main programs that read the runlog.
 c
 c
 c  Input:
-c    lunr_rlg          I*4   Logical Unit number of file to be read
-c    data_fmt_read_rl  C*(*) Runlog data format
+c    lunr_rlg        I*4   Logical Unit number of file to be read
+c    data_fmt_rrlg   C*(*) Runlog data format
 
 c  Outputs:
 c    everything else
@@ -67,8 +67,7 @@ c     & scalf,            ! Extra parameter in ATMOS tab-delimited runlogs
 
       character
      & col1*1,           ! first column of runlog record
-c     & record*400,       ! runlog record
-     & data_fmt_read_rl*256,
+     & data_fmt_rrlg*(*),
      & specname*(*),     ! spectrum name
      & apf*2             ! apodization function (e.g. BX N2, etc)
 
@@ -83,17 +82,17 @@ c      write(*,*) record
 c      write(*,*)'read_runlog: lr= ', lr
 
 c   Format was successfully read from runlog header, so use it.
-      if(lnbc(data_fmt_read_rl).gt.0) then  
-        read(lunr_rlg,data_fmt_read_rl,end=98,err=99)col1,specname,
-     &  iyr,iset,zpdtim,oblat,oblon,
-     &  obalt,asza,zenoff,azim,osds,opd,fovi,fovo,amal,ifirst,ilast,
-     &  graw,possp,bytepw,zoff,isnr,apf,tins,pins,hins,tout,pout,hout,
-     &  sia,fvsi,wspd,wdir,lasf,wavtkr,aipl
-        snr=float(isnr)
-        istat=0
+      if(lnbc(data_fmt_rrlg).gt.0) then  
+         read(lunr_rlg,data_fmt_rrlg,end=98,err=99)col1,specname,
+     &   iyr,iset,zpdtim,oblat,oblon,
+     &   obalt,asza,zenoff,azim,osds,opd,fovi,fovo,amal,ifirst,ilast,
+     &   graw,possp,bytepw,zoff,isnr,apf,tins,pins,hins,tout,pout,hout,
+     &   sia,fvsi,wspd,wdir,lasf,wavtkr,aipl
+         snr=float(isnr)
+         istat=0
       else                 !
-        istat=1
-        write(*,*) 'read_runlog_data_record: Missing runlog format'
+         istat=1
+         write(*,*) 'read_runlog_data_record: Missing runlog format'
       endif
       return
 98    istat=2

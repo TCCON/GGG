@@ -32,7 +32,7 @@ c
 c  ASCII output spectra are created in the local directory.
 c
       implicit none
-      include "../ggg_int_params.f"
+      include "../gfit/ggg_int_params.f"
 
       integer*4
      & lunr_rl,   ! LUN to read input runlogs from
@@ -43,7 +43,7 @@ c
      & mem,    ! maximum buffer size in bytes
      & nnum,   ! Number of numerator spectra
      & nden,   ! Number of Denominator spectra
-     & i,j,
+     & i,j,idum,
 c     & nhl, ncol,
      & iabpw,  ! absolute values of the bytes per word
      & lnbc,   ! function Last Non-Blank Character
@@ -117,6 +117,16 @@ c     & nhl, ncol,
 c
       equivalence (bbuf,bufi2,bufr4)
 
+      idum=mfilepath ! Prevent compiler warning (unused variable)
+      idum=mauxcol  ! Prevent compiler warning (unused variable)
+      idum=mcolvav  ! Prevent compiler warning (unused variable)
+      idum=mgas     ! Prevent compiler warning (unused variable)
+      idum=mlev     ! Prevent compiler warning (unused variable)
+      idum=mspeci   ! Prevent compiler warning (unused variable)
+      idum=ncell    ! Prevent compiler warning (unused variable)
+      idum=mrow_qc  ! Prevent compiler warning (unused variable)
+      idum=mvmode   ! Prevent compiler warning (unused variable)
+
       write(6,*)
       version=
      &' spectrum_ratioing         Version 1.11     15-Jan-2013    GCT'
@@ -132,9 +142,9 @@ c
          call getarg(3, nue_str)
          read(nue_str,*)nue
       else
-        write(*,*)'Usage: $gggpath/bin/spectrum_ratioing path/runlog '//
-     & 'start_frequency end_frequency (0 99999 to retain limits)'
-        stop
+         write(*,*)'Usage: $gggpath/bin/spectrum_ratioing path/runlog'//
+     &  ' start_frequency end_frequency (0 99999 to retain limits)'
+         stop
       endif
 
       eps=0.01
@@ -201,8 +211,9 @@ c  Write ratio spectrum
                write(lun_wbs,rec=1) (bufi2(i),i=1,npts)
             elseif(iabpw.eq.4) then
                do i=1,npts
-               bufr4(i)=(buf_num(i)/nnum+eps)/(buf_den(i)/nden+eps)
-               write(lunw_asc,'(f12.6,1pe12.4)') graw*(i+m1-1),bufr4(i)
+                  bufr4(i)=(buf_num(i)/nnum+eps)/(buf_den(i)/nden+eps)
+                  write(lunw_asc,'(f12.6,1pe12.4)') graw*(i+m1-1),
+     &            bufr4(i)
                end do
                write(lun_wbs,rec=1) (bufr4(i),i=1,npts)
             else
@@ -241,7 +252,7 @@ c  Check that buffer will be large enough
 
 c  Search for binary spectrum "specname"
          call gindfile(gggdir(:lr)//'config'//dl//'data_part.lst',
-     &    specname, inpath)
+     &   specname, inpath)
          if(lnbc(inpath).eq.0) then
             write(*,*) specname, ' Cant find input spectrum'
             cycle

@@ -8,8 +8,9 @@ COMN = $(GGGPATH)/src/comn
 SOURCES := \
   $(TSRC)/$(TARGET).f \
   $(COMN)/hitran_to_atmos_gas_numbering.f \
-  $(COMN)/read_isotop.f \
-  $(COMN)/lnbc.f \
+  $(COMN)/read_isotopolog.f \
+  $(COMN)/ciso2kiso.f \
+  $(COMN)/file_size_in_bytes.f \
   $(COMN)/get_ggg_environment.f 
 
 OBJECTS := $(patsubst %.f, %.o, $(SOURCES))
@@ -23,7 +24,7 @@ $(TARGET) : $(OBJECTS)
 	$(FC) $(LDFLAGS) -o $(GGGPATH)/bin/$@ $^
 
 #  Add dependencies to object files
-$(TSRC)/summarize_linelist.o:  $(GGGPATH)/src/ggg_int_params.f
+$(TSRC)/summarize_linelist.o:  $(GGGPATH)/src/gfit/ggg_int_params.f
 
 clean:
 	rm -f $(OBJECTS) $(GGGPATH)/bin/$(TARGET)

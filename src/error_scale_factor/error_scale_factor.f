@@ -10,7 +10,7 @@ c
 c  Output:
 c       Written to screen
 c       
-c  Due to errors/ommissions in the spectroscopy and perhaps also
+c  Due to errors/omissions in the spectroscopy and perhaps also
 c  in the modeling of the instrument response (e.g. continuum, ILS),
 c  the spectral fitting residuals produced by GFIT tend to be dominated
 c  by systematic artifacts, not random noise. These artifacts are generally
@@ -24,7 +24,7 @@ c  consistent with the scatter of the measured values. The average value
 c  of this ratio is calculated for each gas, the weights being given by
 c  a Lorentzian with a 5 minute half-width.
 c
-c  Uncertainties are also computes for the daily error scale factors.
+c  Uncertainties are also computed for the daily error scale factors.
 c  These are based on the sum of the weights for each day. For a day
 c  with a single pair of observation very close in time, the ESF
 c  uncertainty is assumed to be 100%. The uncertainty reduces as the
@@ -34,20 +34,34 @@ c  The fractional uncertainty is the same for every gas, because it
 c  depends only on the number and the timing of the observations.
 c
       implicit none
-      include "../ggg_int_params.f"
+      include "../gfit/ggg_int_params.f"
+      include "../comn/postproc_params.f"
 
       integer*4 lunr,ncoml,ncol,mcol,kcol,j,icount,
      & lunw_d,lunw_g,
-     & lnbc,naux,nrow,li,k,kspflag,kday,kwas,istat
+     & lnbc,naux,nrow,li,k,kspflag,kday,kwas,istat,idum
       parameter (lunr=14,lunw_d=15,lunw_g=16,mcol=150)
-      character header*1200,headarr(mcol)*12,specname*(nchar),
-     & inputfile*60,alloutputfile*80,dailyoutputfile*80,version*62
+      character header*2400,headarr(mcol)*12,specname*(nchar),
+     & inputfile*64,alloutputfile*80,dailyoutputfile*80,version*62,
+     & cdum*(mcharhead), headdum(maddln)*(mcharhead)
       real*8 yrow(mcol),ywas(mcol),dt,wt,
      & tdwt,totd(mcol),yy,dtiny,
-     & tgwt,totg(mcol)
+     & tgwt,totg(mcol),rdum
+
+      idum=mfilepath ! Avoid compiler warning (unused parameter)
+      idum=mauxcol  ! Avoid compiler warning (unused parameter)
+      idum=mcolvav  ! Avoid compiler warning (unused parameter)
+      idum=mgas     ! Avoid compiler warning (unused parameter)
+      idum=mlev     ! Avoid compiler warning (unused parameter)
+      idum=mrow_qc  ! Avoid compiler warning (unused parameter)
+      idum=mspeci   ! Avoid compiler warning (unused parameter)
+      idum=mvmode   ! Avoid compiler warning (unused parameter)
+      idum=ncell    ! Avoid compiler warning (unused parameter)
+      idum=nchar    ! Avoid compiler warning (unused parameter)
 
       version=
-     &' error_scale_factor           Version 1.21    2013-05-03   GCT'
+     &' error_scale_factor        Version 1.23a  2020-03-12   GCT,JLL'
+      write(*,*)version
       dtiny=0.000001d0
 
       kspflag=0
@@ -68,18 +82,19 @@ c
       li=lnbc(inputfile)
       open(lunr,file=inputfile, status='old')
 
-c  Read the header of the .ada file and figure out the
-      read(lunr,'(i2,i4,i7,i4)') ncoml,ncol,nrow,naux
+c  Read the header of the .ada file. Most of the information
+c  is not needed so we store it in dummy variables.
+      call read_postproc_header(lunr, ncoml, ncol, nrow, naux,
+     & rdum, cdum, headdum, idum)
+      read(lunr,'(a)') header
+      call substr(header,headarr,mcol,kcol)
+      call lowercase(header)
+      
       if(ncol.gt.mcol) stop 'increase mcol'
       do k=1,ncol
          totd(k)=0.0
          totg(k)=0.0
       end do
-      do j=2,ncoml
-         read(lunr,'(a)') header
-      end do
-      call substr(header,headarr,mcol,kcol)
-      call lowercase(header)
       if (index(header,'spectrum') .gt. 0) kspflag=1
       if(kcol.ne.ncol ) stop 'ncol/kcol mismatch'
 
@@ -133,12 +148,12 @@ c  skip because the ESF will be indeterminate (NaN)
 c  Don't let ESF fall below SQRT(0.0001) = 0.01
 c  for days when the measured columns are all identical
 c            if(icount.ge.2) then
-               write(lunw_d,'(2f12.6,1x,i4,64f12.6)')
-     &         ywas(1+kspflag),
-     &         ywas(2+kspflag),icount,
-     &         (sqrt(0.0001+totd(k)/tdwt),
-     &         sqrt(0.01+totd(k)/tdwt)/sqrt(tdwt),
-     &         k=naux+1,ncol-1,2)
+            write(lunw_d,'(2f12.6,1x,i4,70f12.6)')
+     &      ywas(1+kspflag),
+     &      ywas(2+kspflag),icount,
+     &      (sqrt(0.0001+totd(k)/tdwt),
+     &      sqrt(0.01+totd(k)/tdwt)/sqrt(tdwt),
+     &      k=naux+1,ncol-1,2)
 c            endif
 
 c  Augment global totals
@@ -173,10 +188,10 @@ c  Output global results.
 
 c  Output results to the screen.
       do k=naux+1,ncol-1,2
-         if(headarr(k).ne.'air') then ! avoid writing out the error
-c     scale factor for column air which isn't terribly meaningful
-         write(*,'(i4,2x,a,f9.3)') k,headarr(k),sqrt(totg(k)/tgwt)
-c         write(55,'(i4,2x,a,f9.3)') k,headarr(k),sqrt(totg(k)/tgwt)
+         if(headarr(k).ne.'luft') then ! avoid writing out the error
+c     scale factor for column luft which isn't terribly meaningful
+            write(*,'(i4,2x,a,f9.3)') k,headarr(k),sqrt(totg(k)/tgwt)
+c            write(55,'(i4,2x,a,f9.3)') k,headarr(k),sqrt(totg(k)/tgwt)
          endif
       end do
 

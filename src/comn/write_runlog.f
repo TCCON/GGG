@@ -37,7 +37,7 @@ c    istat
       real*8  wlimit,
      & oblat,            ! observation latitude (deg).
      & oblon,            ! observation longitude (deg).
-     & obalt,             ! observation altitude (km)
+     & obalt,            ! observation altitude (km)
      & asza,             ! astronomical solar zenith angle (unrefracted)
      & azim,             ! solar azimuth angle
      & osds,             ! Observer-Sun Doppler stretch (ppm)

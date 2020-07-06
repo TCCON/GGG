@@ -1,0 +1,211 @@
+2 2
+ Center   Width MIT A I F  Parameters_to_ fit  Bias      Gases_to_fit
+ 6146.90   1.60   0 1 1 0                     sf=1.000 : luft
+ 4038.95   0.32  15 1 1 0  ncbf=2  fs  so     sf=1.000 : hf  h2o
+ 4565.20   2.50  15 1 1 0  ncbf=2  fs  sg     sf=1.000 : h2o  co2 ch4
+ 4570.35   3.10  15 1 1 0  ncbf=2  fs  sg     sf=1.000 : h2o  co2  ch4
+ 4571.75   2.50  15 1 1 0  ncbf=2  fs  so     sf=1.000 : h2o  co2 ch4
+ 4576.85   1.90  15 1 1 0  ncbf=2  fs  so     sf=1.000 : h2o  ch4
+ 4598.69  10.78  20 1 1 0  ncbf=2  fs  sg     sf=1.000 : h2o  ch4  co2  n2o
+ 4611.05   2.20  15 1 1 0  ncbf=2  fs  so     sf=1.000 : h2o  ch4  co2  n2o
+ 4622.00   2.30  15 1 1 0  ncbf=2  fs  so     sf=1.000 : h2o  co2  n2o
+ 4631.55   1.40  20 1 1 0  ncbf=2  fs  so     sf=1.000 : h2o
+ 4699.55   4.00  15 1 1 0  ncbf=2  fs  so     sf=1.000 : h2o  co2  n2o
+ 4734.60   7.30  20 1 1 0  ncbf=2  fs  sg     sf=1.000 : h2o  co2  n2o
+ 4761.15  10.70  20 1 1 0  ncbf=2  fs  so     sf=1.000 : h2o  co2
+ 6076.90   3.85  15 1 1 0  ncbf=2  fs  sg     sf=1.000 : h2o  ch4 hdo co2
+ 6099.35   0.95  15 1 1 0  ncbf=2  fs  so     sf=1.000 : h2o  co2
+ 6125.85   1.45  15 1 1 0  ncbf=2  fs  sg     sf=1.000 : h2o  hdo co2 ch4
+:6177.30   0.83  15 1 1 0  ncbf=2  fs  so     sf=1.000 : h2o  hdo co2 ch4
+ 6177.51   1.26  15 1 1 0  ncbf=2  fs  sg     sf=1.000 : h2o  hdo co2 ch4
+:6219.00   7.00  15 1 1 0  ncbf=2  fs  so     sf=1.000 : h2o  co2 ch4
+:6244.40   7.20  15 1 1 0  ncbf=2  fs  so     sf=1.000 : h2o  co2 hdo
+ 6255.95   3.60  15 1 1 0  ncbf=2  fs  sg     sf=1.000 : h2o  co2 hdo
+ 6301.35   7.90  15 1 1 0  ncbf=2  fs  sg     sf=1.000 : h2o  co2 hdo
+ 6392.45   3.10  15 1 1 0  ncbf=2  fs  sg     sf=1.000 : h2o  hdo
+ 6401.15   1.15  15 1 1 0  ncbf=2  fs  sg     sf=1.000 : h2o  hdo co2
+ 6469.60   3.50  15 1 1 0  ncbf=2  fs  sg     sf=1.000 : h2o  co2 hdo
+ 4054.90   3.00  15 1 1 0  ncbf=2  fs  sg     sf=1.000 : th2o  ch4  n2o  hdo  
+ 4255.74   2.82  15 1 1 0  ncbf=2  fs  so     sf=1.000 : th2o  ch4  co  hdo
+ 4325.50   3.02  15 1 1 0  ncbf=2  fs  sg     sf=1.000 : th2o  ch4  co  hdo
+ 4493.90   1.80  15 1 1 0  ncbf=2  fs  so     sf=1.000 : th2o  ch4 
+ 4516.71   2.42  15 1 1 0  ncbf=2  fs  so     sf=1.000 : th2o  ch4
+ 4524.10   2.00  15 1 1 0  ncbf=2  fs  so     sf=1.000 : th2o  ch4  co2 
+:4596.65   1.40  15 1 1 0  ncbf=2  fs  so     sf=1.000 : th2o  ch4  co2  n2o   
+ 4633.64   1.82  15 1 1 0  ncbf=2  fs  sg     sf=1.000 : th2o  co2  n2o
+ 4054.60   3.30  15 1 1 0  ncbf=2  fs  sg     sf=1.000 : hdo  h2o  ch4
+ 4067.60   8.80  15 1 1 0  ncbf=2  fs  sg     sf=1.000 : hdo  h2o  ch4
+ 4116.10   8.00  15 1 1 0  ncbf=2  fs  sg     sf=1.000 : hdo  h2o  ch4
+ 4212.45   1.90  15 1 1 0  ncbf=2  fs  so     sf=1.000 : hdo  h2o  ch4
+ 4232.50  11.00  15 1 1 0  ncbf=2  fs  sg     sf=1.000 : hdo  h2o  ch4  co
+:4261.70   9.10  15 1 1 0  ncbf=2  fs  sg     sf=1.000 : hdo  h2o  ch4  co
+ 6330.05  45.50  15 1 1 0  ncbf=4  fs  sg     sf=1.000 : hdo  h2o  co2
+ 6377.40  50.20  15 1 1 0  ncbf=4  fs  sg     sf=1.000 : hdo  h2o  co2
+ 6458.10  41.40  15 1 1 0  ncbf=4  fs  sg     sf=1.000 : hdo  h2o  co2 
+ 4233.10  48.40  15 1 1 0  ncbf=3  fs  sg     sf=1.000 : co  ch4 h2o hdo
+ 4290.50  56.60  15 1 1 0  ncbf=4  fs  sg     sf=1.000 : co  ch4 h2o hdo
+ 4395.20  43.40  15 1 1 0  ncbf=4  fs  sg     sf=1.000 : n2o ch4 h2o hdo
+ 4430.10  23.10  15 1 1 0  ncbf=2  fs  sg     sf=1.000 : n2o ch4 h2o hdo co2
+ 4719.50  73.10  15 1 1 0  ncbf=3  fs  sg     sf=1.000 : n2o ch4 h2o co2
+ 5938.00 116.00  15 1 1 0  ncbf=4  fs  sg  nv sf=1.000 : ch4 co2 h2o n2o
+ 6002.00  11.10  15 1 1 0  ncbf=2  fs  sg  nv sf=1.000 : ch4 co2 h2o hdo
+ 6076.00 138.00  15 1 1 0  ncbf=5  fs  sg  nv sf=1.000 : ch4 co2 h2o hdo
+:6002.50 268.20  15 1 1 0  ncbf=6  fs  sg  nv sf=1.000 : 2ch4 ch4 co2 h2o hdo
+ 4852.87  86.26  15 1 1 0  ncbf=3  fs  sg  nv sf=1.000 : lco2 2co2 3co2 4co2 h2o hdo 
+ 4852.20  87.60  15 1 1 0  ncbf=3  fs  sg  nv          : zco2 h2o hdo
+ 4852.20  87.60  15 1 1 0  ncbf=3  fs  sg  nv  zo      : zco2 h2o hdo
+:2644.35 100.10  15 1 1 0  ncbf=4  fs  sg  cf          : fco2  h2o  hdo  ch4
+ 6154.70  75.50  15 1 1 0  ncbf=4  fs  sg  cf          : fco2 h2o hdo ch4
+:12881.20  31.60  15 1 1 0  ncbf=3  fs  sg  cf          : fco2 h2o o2
+ 6073.50  63.40  15 1 1 0  ncbf=2  fs  sg  nv sf=1.000 : wco2 h2o ch4
+ 6500.40  58.00  15 1 1 0  ncbf=2  fs  sg  nv sf=1.000 : wco2 h2o hdo 
+ 6220.00  80.00  15 1 1 0  ncbf=3  fs  sg  nv sf=1.000 : co2 h2o hdo ch4
+ 6339.50  85.00  15 1 1 0  ncbf=3  fs  sg  nv sf=1.000 : co2 h2o hdo
+ 7885.00 240.00  15 1 1 0  ncbf=5  fs  sg  nv sf=1.000 : o2 0o2 h2o hf co2 hdo
+:13082.50 225.00 15 1 1 0  ncbf=2  fs  sg     sf=1.000 : ao2
+:14465.00 234.00 15 1 1 0  ncbf=2  fs  sg     sf=1.000 : bo2 h2o    
+ 5577.30   0.40  15 0 1 0  ncbf=2  fs  so     sf=1.000 : hcl h2o ch4
+ 5597.80   0.40  15 0 1 0  ncbf=2  fs  so     sf=1.000 : hcl h2o ch4
+ 5625.02   0.29  15 0 1 0  ncbf=2  fs  so     sf=1.000 : hcl h2o ch4
+:5642.90   1.50  15 0 1 0  ncbf=2  fs  so     sf=1.000 : hcl h2o ch4
+ 5683.57   0.36  15 0 1 0  ncbf=2  fs  so     sf=1.000 : hcl h2o
+ 5687.65   1.10  15 0 1 0  ncbf=2  fs  sg     sf=1.000 : hcl h2o ch4
+ 5702.00   0.70  15 0 1 0  ncbf=2  fs  sg     sf=1.000 : hcl h2o ch4
+ 5706.20   0.50  15 0 1 0  ncbf=2  fs  sg     sf=1.000 : hcl h2o ch4
+ 5719.12   2.26  15 0 1 0  ncbf=2  fs  sg     sf=1.000 : hcl h2o ch4
+ 5735.05   0.52  15 0 1 0  ncbf=2  fs  sg     sf=1.000 : hcl h2o ch4
+ 5739.25   1.50  15 0 1 0  ncbf=2  fs  sg     sf=1.000 : hcl h2o ch4
+:5743.00 125.02  15 0 1 0  ncbf=6  fs  sg  zo sf=1.000 : hcl h2o ch4
+ 5749.80   0.60  15 0 1 0  ncbf=2  fs  so     sf=1.000 : hcl h2o ch4
+ 5754.00   0.80  15 0 1 0  ncbf=2  fs  so     sf=1.000 : hcl h2o ch4
+ 5763.20   0.68  15 0 1 0  ncbf=2  fs  so     sf=1.000 : hcl h2o ch4
+ 5767.35   1.70  15 0 1 0  ncbf=2  fs  sg     sf=1.000 : hcl h2o ch4
+ 5779.50   1.00  15 0 1 0  ncbf=2  fs  so     sf=1.000 : hcl h2o ch4 
+ 5790.45   0.90  15 0 1 0  ncbf=2  fs  so     sf=1.000 : hcl h2o ch4 
+: BEGIN InSb windows
+ 1959.65   0.70  15 1 1 0  cl  ct  fs  so     :  h2o
+:2819.45   2.60  15 1 1 0  cl  ct  fs  so     :  h2o   ch4    n2o    hcl
+ 2819.15   2.00  15 1 1 0  cl  ct  fs  so     :  h2o   ch4    n2o    hcl   hdo   h2co
+ 2871.10   2.20  15 1 1 0  cl  ct  fs  so     :  h2o   ch4    hdo
+ 3001.20   0.65  15 1 1 0  cl  ct  fs  so     :  h2o   ch4    o3
+ 3019.85   0.70  15 1 1 0  cl  ct  fs  so     :  h2o    o3    hdo
+ 3155.21   1.02  15 1 1 0  cl  ct  fs  so     :  h2o   ch4
+ 3163.80   3.10  15 1 1 0  cl  ct  fs  so     :  h2o   ch4  co2  2h2o  o3
+ 3205.45   1.20  15 1 1 0  cl  ct  fs  so     :  h2o
+:3206.67   0.40  15 1 1 0  cl  ct  fs  so     :  h2o
+:3270.50   5.00  15 1 1 0  cl  ct  fs  so     :  h2o
+:3299.30   0.40  15 1 1 0  cl  ct  fs  so     :  h2o
+:3302.25   5.50  15 1 1 0  cl  ct  fs  so     :  h2o   co2
+:3349.05   0.33  15 1 1 0  cl  ct  fs  so     :  h2o   n2o
+:3388.66   0.42  15 1 1 0  cl  ct  fs  so     :  h2o   n2o
+ 2482.44   0.69  15 1 1 0  cl  ct  fs  so     :  co2  n2o  h2o
+ 2486.974  2.308 15 1 1 0  cl  ct  fs  so     :  co2    h2o    n2o    hdo
+ 2626.68   0.74  15 1 1 0  cl  ct  fs  so     :  co2
+ 3161.71   0.20  15 1 1 0  cl  ct  fs  so     :  co2    h2o
+ 3204.76   0.48  15 1 1 0  cl  ct  fs  so     :  co2    h2o
+ 3315.80   0.84  15 1 1 0  cl  ct  fs  so     :  co2    h2o
+ 2391.65   0.26  15 1 1 0  cl  ct  fs  so     : tco2
+ 2392.70   1.18  15 1 1 0  cl  ct  fs  so     : tco2
+ 2644.35 100.10  15 1 1 0  ncbf=4  fs  sg  cf : fco2  h2o  hdo  ch4
+ 2102.71  16.80  15 1 1 0  cl  ct  cc  fs  sg :  o3  h2o  co2  1co  co
+ 2123.02  11.94  15 1 1 0  cl  ct  cc  fs  sg :  o3  h2o  co2  1co  co
+ 2781.45  46.20  15 1 1 0  cl  ct  cc  fs  sg :  o3  h2o  hdo  co2  ch4  hcl  n2o
+ 3023.45   0.08  15 1 1 0  cl  ct  fs  so     :  o3
+ 3027.51   0.18  15 1 1 0  cl  ct  fs  so     :  o3
+ 3039.63   0.28  15 1 1 0  cl  ct  fs  so     :  o3
+ 3040.00   0.18  15 1 1 0  cl  ct  fs  so     :  o3
+ 3042.37   6.39  15 1 1 0  cl  ct  cc  fs  sg :  o3  ch4  1h2o  h2o  c2h6
+ 3044.67   0.10  15 1 1 0  cl  ct  fs  so     :  o3
+ 3045.23   0.30  15 1 1 0  cl  ct  fs  so     :  o3
+ 2443.10   2.60  15 1 1 0  ncbf=2  fs  so     :  n2o  co2
+ 2481.85   1.30  15 1 1 0  ncbf=2  fs  so     :  n2o
+:2806.32   0.44  15 1 1 0  ncbf=2  fs  so     :  n2o  ch4
+ 2446.00  26.20  15 1 1 0  ncbf=3  fs  sg     :  n2o  co2  ch4  hdo  h2o
+ 2479.70  19.80  15 1 1 0  ncbf=3  fs  sg     :  n2o  co2  ch4  hdo  h2o
+ 2539.80  46.60  15 1 1 0  ncbf=3  fs  sg     :  n2o  hdo  h2o  ch4  co2
+ 2580.40  34.60  15 1 1 0  ncbf=3  fs  sg     :  n2o  hdo  h2o  ch4  co2 
+ 2781.70  25.20  15 1 1 0  ncbf=3  fs  sg     :  n2o  hdo  h2o  ch4  co2  o3  hcl  h2co
+ 2796.95   5.30  15 1 1 0  ncbf=3  fs  sg     :  n2o  hdo  h2o  ch4  co2  o3  hcl  h2co
+ 2813.00  26.80  15 1 1 0  ncbf=3  fs  sg     :  n2o  hdo  h2o  ch4  co2  o3  hcl  h2co
+ 3344.40   2.48  15 1 1 0  ncbf=2  fs  sg     :  n2o  1h2o  h2o  co2  hcn
+ 3372.70   2.20  15 1 1 0  ncbf=2  fs  sg     :  n2o  1h2o  h2o  co2  hdo
+ 2057.35   2.82  15 1 1 0  cl  ct  fs  sg  zo :  co  o3   co2  h2o  ocs
+:2057.84   0.28  15 1 1 0  cl  ct  fs  so     :  co  o3   co2  ocs
+ 2069.75   1.02  15 1 1 0  cl  ct  fs  sg     :  co  co2  o3   ocs  h2o
+:2069.65   0.55  15 1 1 0  cl  ct  fs  so     :  co  o3   ocs
+ 2111.55   1.10  15 1 1 0  cl  ct  fs  sg     :  co  o3   co2  h2o
+:2158.25   1.80  15 1 1 0  cl  ct  fs  so     :  co  h2o  n2o  o3   co2
+ 2160.00   6.00  15 1 1 0  cl  ct  fs  sg     :  co  h2o  o3   n2o
+ 2599.16   2.40  15 1 1 0  cl  ct  fs  sg     :  ch4  n2o  h2o  co2  hdo  hcl
+ 2602.93   2.44  15 1 1 0  cl  ct  fs  so     :  ch4  n2o  hdo  h2o  co2
+ 2644.35 100.30  15 1 1 0  ncbf=7  fs  sg     :  ch4  hdo  co2  h2o  n2o
+ 2903.87   0.66  15 1 1 0  cl  ct  fs  so     :  ch4  h2o  hdo  hcl
+ 2614.55   1.75  15 1 1 0  ncbf=2  fs  so     :  ch4  hdo  co2 
+ 2650.95   0.70  15 1 1 0  ncbf=2  fs  so     :  ch4  hdo  co2
+ 2835.65   0.30  15 1 1 0  ncbf=2  fs  so     :  ch4  hdo
+ 2903.815  0.43  15 1 1 0  ncbf=2  fs  so     :  ch4  h2o  no2
+ 2921.30   0.60  15 1 1 0  ncbf=2  fs  so     :  ch4  h2o  hdo  no2
+ 2852.37   0.80  15 1 1 0  cl  ct  fs  so     :  tch4
+ 2853.30   0.50  15 1 1 0  cl  ct  fs  so     :  tch4
+ 1900.00   0.34  15 1 1 0  cl  ct  fs  so     :   no   co2
+ 1903.05   0.70  15 1 1 0  cl  ct  fs  so     :   no   h2o   co2
+ 1929.02   0.11  15 1 1 0  cl  ct  fs  so     :   no
+ 1929.55   1.75  15 1 1 0  cl  ct  fs  so     :   no   co2   h2o
+ 2881.61   0.09  15 1 1 0  cl  ct  fs  so     :   no2
+ 2881.92   0.09  15 1 1 0  cl  ct  fs  so     :   no2
+ 2888.29   0.10  15 1 1 0  cl  ct  fs  so     :   no2
+ 2898.05   0.10  15 1 1 0  cl  ct  fs  so     :   no2
+ 2914.65   0.09  15 1 1 0  cl  ct  fs  so     :   no2    h2o
+ 2923.31   0.09  15 1 1 0  cl  ct  fs  so     :   no2
+ 2775.76   0.32  15 1 1 0  cl  ct  fs  so     :   hcl   o3
+ 2821.56   0.30  15 1 1 0  cl  ct  fs  so     :   hcl   ch4   hdo
+ 2843.62   0.11  15 1 1 0  cl  ct  fs  so     :   hcl
+ 2925.90   0.20  15 1 1 0  cl  ct  fs  so     :   hcl
+:2045.485  0.65  15 1 1 0  ncbf=2  fs  sg     :   ocs   o3   co   co2 
+:2055.805  0.33  15 1 1 0  ncbf=2  fs  sg     :   ocs   o3   co   co2
+:2045.485  0.37  15 1 1 0  ncbf=2  fs  sg     :   ocs   o3   co   co2 
+:2051.33   0.30  15 1 1 0  ncbf=2  fs  so     :   ocs   o3   h2o  co2
+:2055.80   0.32  15 1 1 0  ncbf=2  fs  sg     :   ocs   o3   co   co2
+:2038.95   0.30  15 1 1 0  ncbf=2  fs  sg     :   ocs   o3   co2  h2o
+:2048.25   0.90  15 1 1 0  ncbf=2  fs  sg     :   ocs   o3   co   co2   h2o
+:2051.40   0.40  15 1 1 0  ncbf=2  fs  sg     :   ocs   o3   co   co2   h2o
+:2054.95   4.90  15 1 1 0  ncbf=3  fs  sg     :   ocs   o3   co   co2   h2o
+:2048.00   0.44  15 1 1 0  ncbf=2  fs  sg     :   ocs   o3   co2
+:2049.935  0.37  15 1 1 0  ncbf=2  fs  sg     :   ocs   o3   co   co2  2co2  h2o
+:2051.33   0.29  15 1 1 0  ncbf=2  fs  so     :   ocs   o3   h2o  co2
+:2054.11   0.26  15 1 1 0  ncbf=2  fs  sg     :   ocs   o3   h2o  co2  co
+:2048.045  0.39  15 1 1 0  ncbf=2  fs  sg     :   ocs   o3   co2
+:2049.975  0.41  15 1 1 0  ncbf=2  fs  sg     :   ocs   o3   co   co2  2co2  h2o
+:2051.32   0.28  15 1 1 0  ncbf=2  fs  so     :   ocs   o3   h2o  co2
+:2054.50   0.34  15 1 1 0  ncbf=2  fs  so     :   ocs   o3   1h2o h2o  co2
+ 2051.30  13.10  15 1 1 0  ncbf=4  fs  sg  zo :   ocs   o3   1co  co   1co2  2co2  3co2  1h2o  h2o
+:2053.55   4.80  15 1 1 0  ncbf=3  fs  so  zo :   ocs   o3   co  1h2o  h2o   co2
+:2060.17  30.95  15 1 1 0  ncbf=5  fs  sg  zo :   ocs   o3   1co   co  1co2  2co2  co2  1h2o  h2o
+ 2071.12   9.14  15 1 1 0  ncbf=4  fs  sg  zo :   ocs   o3   1co  co   co2   1h2o  h2o
+ 2760.90   0.60  15 1 1 0  cl  ct  fs  so     :   h2co  ch4   o3   hdo   n2o  co2
+ 2762.13   3.06  15 1 1 0  cl  ct  fs  so     :   h2co  ch4   o3   hdo   n2o  co2
+ 2774.80   1.44  15 1 1 0  cl  ct  fs  so     :   h2co  ch4   o3   hdo   n2o
+ 2778.40   1.04  15 1 1 0  cl  ct  fs  so     :   h2co  ch4   o3   hdo   n2o
+ 2781.21   0.90  15 1 1 0  cl  ct  fs  so     :   h2co  ch4   o3   n2o
+:2798.00   2.25  15 1 1 0  cl  ct  fs  so     :   h2co  ch4   o3   hdo   n2o
+:2806.625  1.15  15 1 1 0  cl  ct  fs  so     :   h2co  ch4        hdo   n2o
+ 2833.10   0.78  15 1 1 0  cl  ct  fs  so     :   h2co  ch4        hdo
+:2869.88   0.89  15 1 1 0  cl  ct  fs  so     :   h2co  ch4   o3   hdo
+ 2914.50   0.60  15 1 1 0  cl  ct  fs  so     :   h2co  ch4   o3   hdo   h2o   no2
+ 2782.50  95.06  15 1 1 0  ncbf=7  fs  sg     :   h2co  hdo  ch4  h2o  n2o  o3  hcl  co2
+ 3287.36   0.88  15 1 1 0  cl  ct  fs  so     :    hcn   h2o
+ 3287.22   0.38  15 1 1 0  cl  ct  fs  so     :    hcn   h2o
+ 3292.00  29.22  15 1 1 0  cl  ct  fs  sg  zo :    hcn   h2o   2h2o   co2
+ 3299.53   0.22  15 1 1 0  cl  ct  fs  so     :    hcn   h2o
+:3305.51   0.23  15 1 1 0  cl  ct  fs  so     :    hcn   h2o
+ 2976.60   1.00  15 1 1 0  cl  ct  fs  so     :   c2h6   h2o    ch4
+ 2986.69   0.48  15 1 1 0  cl  ct  fs  so     :   c2h6   h2o     o3
+ 2986.50  22.10  15 1 1 0  cl  ct cc fs zo sg :  c2h6   h2o   hdo   o3   ch4   ch3cl  hcl
+ 3250.60   0.59  15 1 1 0  cl  ct  fs  so     :   c2h2    h2o
+ 3305.10   0.63  15 1 1 0  cl  ct  fs  so     :   c2h2    h2o    co2
+ 2403.56   0.60  15 1 1 0  cl  ct  fs  so     :    n2
+ 2411.25   0.78  15 1 1 0  cl  ct  fs  so     :    n2    h2o
+ 2418.65   0.50  15 1 1 0  cl  ct  fs  so     :    n2
+ 2612.39   1.78  15 1 1 0  cl  ct  fs  so     :  hdo  co2
+ 2641.77   2.74  15 1 1 0  cl  ct  fs  so     :  hdo  ch4  co2   h2o
+ 2967.32   5.40  15 1 1 0  cl  ct  fs  so  zo : c3h8  ch4  h2o  hdo  c2h6

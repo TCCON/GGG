@@ -1,0 +1,59 @@
+32 7
+File contains the following cell status information:
+   Time1    cell insertion date/time in YYYYMMDDHHMMSS format
+   Time2    cell  removal  date/time in YYYYMMDDHHMMSS format
+   Gas#     gas number (HCl=15, HBr=16, OCS=19)
+   Column1  Column of gas in cell (molecules/m2) at insertion
+   Column2  Column of gas in cell (molecules/m2) at removal
+   Peff1    Effective Pressure (mbar) at 296K at insertion
+   Peff2    Effective Pressure (mbar) at 296K at removal
+   Comment  Can be any text string (e.g. spectrum name, cell length)
+
+The Peff and Column values were obtained (by Frank Hase) using
+HIT2008. Changing to a different linelist will invalidate them.
+As of 20200523, atm.161 HCl was still indentical to HIT2008.
+If an instrument has never had a cell, this file will contain
+nothing below the column headers (line 32)
+
+Cell length is unnecessary if the gas column is known. Ideal Gas Law:
+    PV=nkT
+    n/V = P/kT  (molecules/m3)
+    Slant Column = Ln/V = LP/kT (molecules/m2)
+Slant column is preserved in the event of an inward leak into a cell
+kept at 1 atm, even though the pressure increases.
+
+    Peff = PP_gas + PP_air*(ABHW_gas/SBHW_gas) + PP_h2o*(WBHW_gas/SBHW_gas)
+Since PP_h2o =~0 for all cells, water broadening widths don't matter.
+For HCl cell, ABHW_gas/SBHW_gas ~0.25   
+For HBr,cell, ABHW_gas/SBHW_gas ~0.75  
+For OCS,cell, ABHW_gas/SBHW_gas ~0.80 
+
+format=(2(1x,i4,5i2),i3,2e12.4,2f7.3)
+    Time1          Time2      Gas#   Column1    Column2    Peff1  Peff2  Comments (not read)
+ 20091016183900 20091016190700 19  3.3500E+21  3.3500E+21  2.660  2.660  ! 10 cm leaky OCS cell 09289.025_032 09289.033_040 
+ 20091016205000 20091016211400 16  8.8100E+20  8.8100E+20  2.250  2.250  ! NDACC HBr cell (2cm) 09289.062_069 09289.070_073 
+ 20091017185600 20091017193300 19  3.3500E+21  3.3500E+21  2.710  2.710  ! 10 cm leaky OCS cell 09290.034_041 09290.042_04x
+ 20091017195400 20091017203000 16  8.8100E+20  8.8100E+20  2.250  2.250  ! NDACC HBr cell (2cm) 09290.050_057 09290.058_06x
+ 20091019191800 20091019194500 19  3.3500E+21  3.3500E+21  2.810  2.810  ! 10 cm leaky OCS cell 09292.066_073 09292.074_081
+ 20091019201900 20091019205000 16  8.8100E+20  8.8100E+20  2.250  2.250  ! NDACC HBr cell (2cm) 09292.082_091 09292.092_099
+ 20091019212000 20091019214500 19  3.3500E+21  3.3500E+21  2.810  2.810  ! 10 cm leaky OCS cell 09292.100_107 09292.108_113
+ 20091020192000 20091020194600 19  3.3500E+21  3.3500E+21  2.860  2.860  ! 10 cm leaky OCS cell 09293.068_075 09293.076_083
+ 20091020201500 20091020203600 16  8.8100E+20  8.8100E+20  2.250  2.250  ! NDACC HBr cell (2cm) 09293.084_091 09293.092_093
+ 20091022194500 20091022201100 19  3.3500E+21  3.3500E+21  2.950  2.950  ! 10 cm leaky OCS cell 09295.072_079 09295.080_087
+ 20091022204000 20091022211000 16  8.8100E+20  8.8100E+20  2.250  2.250  ! NDACC HBr cell (2cm) 09295.088_095 09295.096_103
+ 20091024194000 20091024200900 19  3.3500E+21  3.3500E+21  3.050  3.050  ! 10 cm leaky OCS cell 09297.068_075 09297.076_083
+ 20091024203800 20091024210200 16  8.8100E+20  8.8100E+20  2.250  2.250  ! NDACC HBr cell (2cm) 09297.084_091 09297.092_097
+ 20091025190000 20091025192700 19  3.3500E+21  3.3500E+21  3.100  3.100  ! 10 cm leaky OCS cell 09298.064_071 09298.072_077
+ 20091025195700 20091025201800 16  8.8100E+20  8.8100E+20  2.250  2.250  ! NDACC HBr cell (2cm) 09298.081_087 09298.088_091
+ 20091028173000 20091028174600 19  3.3500E+21  3.3500E+21  3.240  3.240  ! 10 cm leaky OCS cell 09301.046_049 09301.050_053
+ 20091028180000 20091028181600 19  3.3500E+21  3.3500E+21  3.240  3.240  ! 10 cm leaky OCS cell 09301.054_057 09301.059_061
+ 20091028184200 20091028190000 16  8.8100E+20  8.8100E+20  2.250  2.250  ! NDACC HBr cell (2cm) 09301.066_069 
+ 20091209191000 20091209194200 19  3.3500E+21  3.3500E+21  4.300  4.300  ! 10 cm leaky OCS cell 09343.001_005 09343.010_013
+ 20150115194200 20150115200700 16  8.8100E+20  8.8100E+20  2.250  2.250  ! NDACC HBr cell (2cm) 15015.001_007 15015.008_017
+ 20170807220300 20170807223300 16  8.8100E+20  8.8100E+20  2.250  2.250  ! NDACC HBr cell (2cm) 17219.001_007 17219.010_014
+ 20170905221300 20170905223500 16  8.8100E+20  8.8100E+20  2.250  2.250  ! NDACC HBr cell (2cm) 17248.001_007 17248.008_011
+ 20190724191900 20190724210600 16  8.8100E+20  8.8100E+20  2.250  2.250  ! NDACC HBr cell (2cm) 19205.002_005 19205.026_032
+ 20190808190500 20190808204200 16  8.8100E+20  8.8100E+20  2.250  2.250  ! NDACC HBr cell (2cm) 19220.002_005 19220.026_029
+ 20190809194100 20190809211200 16  8.8100E+20  8.8100E+20  2.250  2.250  ! NDACC HBr cell (2cm) 19221.001_005 19221.018_021
+ 20190816201800 20190816203300 16  8.8100E+20  8.8100E+20  2.250  2.250  ! NDACC HBr cell (2cm) 19228.020_023 19228.024_027
+ 20190901222400 20190901223700 16  8.8100E+20  8.8100E+20  2.250  2.250  ! NDACC HBr cell (2cm) 19244.016_019 19244.020_023

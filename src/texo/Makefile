@@ -10,10 +10,12 @@ SOURCES := \
   $(TSRC)/resample.f \
   $(TSRC)/polyinterp.f \
   $(TSRC)/write_binary_file.f \
+  $(COMN)/write_spt.f \
   $(COMN)/getendian.f \
   $(COMN)/gindfile.f \
   $(COMN)/gasdev.f \
   $(COMN)/ran1.f \
+  $(COMN)/vsubs.f \
   $(COMN)/fnbc.f \
   $(COMN)/lloc.f \
   $(COMN)/lnbc.f \
@@ -40,9 +42,8 @@ $(TARGET) : $(OBJECTS)
 	$(FC) $(LDFLAGS) -o $(GGGPATH)/bin/$@ $^
 
 #  Add dependencies to object files
-$(TSRC)/texo.o:      $(GGGPATH)/src/ggg_const_params.f $(GGGPATH)/src/ggg_int_params.f
-$(COMN)/gindfile.o:  $(GGGPATH)/src/ggg_int_params.f
-$(COMN)/profzl.o:    $(GGGPATH)/src/ggg_const_params.f
+$(TSRC)/texo.o:      $(GGGPATH)/src/gfit/ggg_int_params.f
+$(COMN)/gindfile.o:  $(GGGPATH)/src/gfit/ggg_int_params.f
 
 clean:
 	rm -f $(OBJECTS) $(GGGPATH)/bin/$(TARGET)

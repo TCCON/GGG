@@ -2,11 +2,10 @@
      &   oblon,obalt,tins,pins,hins,tout,pout,hout,sia,fvsi,
      &   wspd,wdir,nus,nue,fsf,lasf,wavtkr,aipl,tel_mag,istat)
 c
-c  Writes a single record to a sunrun file.
-c  The file must already have been opened.
-c  The goal of this subroutine is to hide all the of the code
-c  that depends on the sunrun format into pair of subroutines
-c  (writsunrun & readsunrun).
+c  Writes a single record to a sunrun file, which must already
+c  have been opened to logical unt number LUN. The goal of this
+c  subroutine is to hide all the of the code that depends on the
+c  sunrun format into pair of subroutines (writsunrun & readsunrun).
 c
 c  This has two advantages:
 c  1) It simplifies the calling programs
@@ -22,9 +21,9 @@ c  Outputs:
 c    istat
 
       implicit none
-      include "../ggg_int_params.f"
+      include "../gfit/ggg_int_params.f"
 
-      integer*4
+      integer*4 idum,
      & lun,              ! Logical unit number
      & obj,              ! Heavenly object (Moon=1, Sun=2)
      & istat             ! status flag (0=success, 1=EOF)
@@ -55,6 +54,17 @@ c    istat
       character
      & col1*1,           ! first column
      & specname*(nchar)  ! spectrum name
+
+      idum=mfilepath ! Avoid compiler warning (unused parameter)
+      idum=mauxcol  ! Avoid compiler warning (unused parameter)
+      idum=mcolvav  ! Avoid compiler warning (unused parameter)
+      idum=mgas     ! Avoid compiler warning (unused parameter)
+      idum=mlev     ! Avoid compiler warning (unused parameter)
+      idum=mrow_qc  ! Avoid compiler warning (unused parameter)
+      idum=mspeci   ! Avoid compiler warning (unused parameter)
+      idum=mvmode   ! Avoid compiler warning (unused parameter)
+      idum=ncell    ! Avoid compiler warning (unused parameter)
+      idum=nchar    ! Avoid compiler warning (unused parameter)
 
       write(lun,34,err=99) col1,specname,obj,tcorr,oblat,oblon,obalt,
      & tins,pins,hins,tout,pout,hout,sia,fvsi,wspd,wdir,nus,nue,fsf,

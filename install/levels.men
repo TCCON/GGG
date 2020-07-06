@@ -3,3 +3,4 @@ integral.gnd    71 levels from 0 to 70 km  at 1 km intervals
 integral.bal    101 levels from 0 to 100 km  at 1 km intervals
 integral.orb    171 levels from 0 to 170 km  at 1 km intervals
 one_level.lab   Single level 
+ap_51_level_0_to_70km.gnd 51 levels from 0 to 70 km with an arithmetic progression

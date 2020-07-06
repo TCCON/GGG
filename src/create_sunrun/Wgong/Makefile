@@ -40,9 +40,8 @@ OBJECTS := $(OBJECTSF) $(OBJECTSF90)
 	$(FC) $(LDFLAGS) -o $(GGGPATH)/bin/$@ $^
 
 #  Add dependencies to object files
-$(TSRC)/create_sunrun_from_Wgong.o: $(GGGPATH)/src/ggg_const_params.f
-$(COMN)/gindfile.o:                 $(GGGPATH)/src/ggg_int_params.f
-$(COMN)/write_sunrun.o:             $(GGGPATH)/src/ggg_int_params.f
+$(COMN)/gindfile.o:                 $(GGGPATH)/src/gfit/ggg_int_params.f
+$(COMN)/write_sunrun.o:             $(GGGPATH)/src/gfit/ggg_int_params.f
 
 clean:
 	rm -f $(OBJECTS) $(GGGPATH)/bin/$(TARGET)

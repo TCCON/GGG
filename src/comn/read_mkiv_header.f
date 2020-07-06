@@ -116,14 +116,14 @@ c  necessary to look at ALIAS value in header to decide whether
 c  byte reversal is required.
       iy=10*ichar(runlab(4:4))+ichar(runlab(5:5))-528
       if(iy.gt.80) then
-        iy=1900+iy
+         iy=1900+iy
       else
-        iy=2000+iy
+         iy=2000+iy
       endif
       im=1
       id=100*ichar(runlab(6:6))+10*ichar(runlab(7:7))+
      &   ichar(runlab(8:8))-5328
-      open(19,file=path,form='unformatted',access='direct',
+      open(19,file=path//runlab,form='unformatted',access='direct',
      &  status='old',recl=2048)
 c      read(19,rec=1)i2hedr
       read(19,rec=1)runinfo,strt,runloc,iset,irun,rund,ialias,pint,
@@ -137,28 +137,28 @@ c      read(19,rec=1)i2hedr
 c IALIAS should be a small integer (e.g. 1,2,3,4) unless byte-reversed
       bytepw=2*iend
       if(ialias.ge.256) then  
-        bytepw=-bytepw
-        call rbyte(tint,4,1)
-        call rbyte(pint,4,1)
-        call rbyte(hint,4,1)
-        call rbyte(totp,4,1)
-        call rbyte(spsv,4,1)
-        call rbyte(sspp,4,1)
-        call rbyte(ialias,2,1)
-        call rbyte(fftpow,2,1)
-        call rbyte(idecim,2,1)
-        call rbyte(lsem,8,1)
-        call rbyte(soze,4,1)
-        call rbyte(altd,4,1)
-        call rbyte(alat,4,1)
-        call rbyte(alon,4,1)
-        call rbyte(soaz,4,1)
-        call rbyte(soze,4,1)
-        call rbyte(zpdtim,4,1)
-        call rbyte(text,4,1)
-        call rbyte(pext,4,1)
-        call rbyte(hext,4,1)
-        call rbyte(stnr,4,1)
+         bytepw=-bytepw
+         call rbyte(tint,4,1)
+         call rbyte(pint,4,1)
+         call rbyte(hint,4,1)
+         call rbyte(totp,4,1)
+         call rbyte(spsv,4,1)
+         call rbyte(sspp,4,1)
+         call rbyte(ialias,2,1)
+         call rbyte(fftpow,2,1)
+         call rbyte(idecim,2,1)
+         call rbyte(lsem,8,1)
+         call rbyte(soze,4,1)
+         call rbyte(altd,4,1)
+         call rbyte(alat,4,1)
+         call rbyte(alon,4,1)
+         call rbyte(soaz,4,1)
+         call rbyte(soze,4,1)
+         call rbyte(zpdtim,4,1)
+         call rbyte(text,4,1)
+         call rbyte(pext,4,1)
+         call rbyte(hext,4,1)
+         call rbyte(stnr,4,1)
       endif
 c      write(*,*)'zpdtim=',strt,alat,alon,soaz,soze,text,pext
 
@@ -186,12 +186,12 @@ c      write(*,*)'zpdtim=',strt,alat,alon,soaz,soze,text,pext
       i4fftpow=fftpow
       fftsiz=2**i4fftpow
       if(runlab(2:3).eq.'hg') then
-        fovi=.0043
+         fovi=.0043
       elseif(runlab(2:3).eq.'in') then
-        fovi=.0036
+         fovi=.0036
       else
-        write(6,*)runlab,' ??'
-        write(6,*)'This cannot be M4'
+         write(6,*)runlab,' ??'
+         write(6,*)'This cannot be M4'
       endif
       ifirst=sspp+fftsiz*(ialias-1)-1
       ilast=ifirst+spsv-1
@@ -206,7 +206,7 @@ cc  Apply air-to-vacuum  & FOV corrections
 c      if(lasf.lt.9999.) write(6,*)'LASF =',lasf
 c      vbar=0.5*delwav*(ifirst+ilast)
 c      delwav=delwav*riair(sngl(lasf),tint,pint,hint)/
-c     $riair(vbar,tint,pint,hint)
+c     &riair(vbar,tint,pint,hint)
       delwav=delwav*(1.D0+(fovi**2)/16)  ! FOV correction
       return
       end

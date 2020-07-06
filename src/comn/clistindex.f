@@ -1,11 +1,12 @@
       subroutine clistindex(n1,list1,n2,list2,cindex)
-c  Finds the locations of the strings LIST1(N1) in LIST2(N2)
-c  and provides an index of the contents of LIST2 such that
+
+c  Provides an index of the locations of the strings LIST1(N1)
+c  in LIST2(N2) such that
 c         LIST1(i) = LIST2(cindex(i))  i=1,N1
 c
 c  Inputs:
 c     N1          I*4    Number of items in first list (LIST1)
-c     LIST1(N1)   C*(*)  First Array of character strings
+c     LIST1(N1)   C*(*)  First array of character strings
 c     N2          I*4    Number of items in the second list (LIST2)
 c     LIST2(N2)   C*(*)  Second array of character strings
 c
@@ -19,7 +20,7 @@ c  3) if LIST1(i) was not found anywhere in LIST2, then CINDEX(i) is unchanged
 c  4) If LIST2 contains duplicate entries, only the first one will be indexed.
 c  5) Array CINDEX should normally be set to zero before calling CLISTINDEX.
 c  6) CLISTINDEX is case sensitive. To make it case insensitive you should
-c     call LOWERCASE(LIST1) and/or LOWERCASE(LIST1) prior to calling CLISTINDEX.
+c     call LOWERCASE(LIST1) and/or LOWERCASE(LIST2) prior to calling CLISTINDEX.
 c  7) N1 can be >, =, or < N2.
 c  8) If N1=1, then CLISTINDEX simply searches for the single string LIST1
 c     in the string array LIST2. Its location is returned in CINDEX, which

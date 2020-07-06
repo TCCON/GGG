@@ -1,7 +1,7 @@
 1  Default values for the sunrun parameters - starred values should be changed to match the site
 2          ! *Instrument (1=MkIV,2=TCCON,3=Other)*
 2          ! *Obj   (1=moon, 2=sun)*
-0          ! *tcorr (time correction to UTC in hours)*
+0          ! *tcorr (time correction to UTC in seconds)*
 45.9448    ! *oblat (site latitude in degrees)*
 -90.2732   ! *oblon (site longitude in degrees)*
 0.442      ! *obalt (site altitude above sea level in km)*

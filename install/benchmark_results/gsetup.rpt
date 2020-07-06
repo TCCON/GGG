@@ -1,22 +1,12 @@
 
-  Spectrum        Zobs   Pobs    ASZA    BEND    FOVO    TANG
-                   km    mbar    deg.    deg.    mrad     km
- Reading NCEP_20040721_46N_090W.mod for pa20040721saaaaa.043                                     
-  Unable to find vmr profiles pa20040721.vmr                                                                  
- Reading gnd_summer.vmr for pa20040721saaaaa.043                                     
-pa20040721saaaaa.043                                          0.44200   950.70000    39.68400     0.01375     0.00240     0.47196     0.00010     0.00000
-  Cannot find vmr profile pa20040721.vmr   re-using: gnd_summer.vmr
-pa20040721saaaab.043                                          0.44200   950.70000    39.68400     0.01384     0.00240     0.47196     0.00010     0.00000
-  Cannot find vmr profile pa20040721.vmr   re-using: gnd_summer.vmr
-pa20040721saaaaa.119                                          0.44200   950.60000    63.79900     0.03348     0.00240     0.47288     0.00010     0.00000
-  Cannot find vmr profile pa20040721.vmr   re-using: gnd_summer.vmr
-pa20040721saaaab.119                                          0.44200   950.60000    63.79900     0.03370     0.00240     0.47288     0.00010     0.00000
- Reading NCEP_20041222_46N_090W.mod for pa20041222saaaaa.019                                     
-  Cannot find vmr profile pa20041222.vmr   re-using: gnd_summer.vmr
-pa20041222saaaaa.019                                          0.44200   965.10000    82.84800     0.13569     0.00240     0.47847     0.00010     0.00000
-  Cannot find vmr profile pa20041222.vmr   re-using: gnd_summer.vmr
-pa20041222saaaab.019                                          0.44200   965.10000    82.84800     0.13657     0.00240     0.47847     0.00010     0.00000
-  Cannot find vmr profile pa20041222.vmr   re-using: gnd_summer.vmr
-pa20041222saaaaa.020                                          0.44200   965.30000    82.45200     0.12936     0.00240     0.47694     0.00010     0.00000
-  Cannot find vmr profile pa20041222.vmr   re-using: gnd_summer.vmr
-pa20041222saaaab.020                                          0.44200   965.30000    82.45200     0.13021     0.00240     0.47694     0.00010     0.00000
+ Writing to mav: Next Spectrum: pa20040721saaaaa.043                                     
+Writing to .ray: pa20040721saaaaa.043                    
+Writing to .ray: pa20040721saaaab.043                    
+ Writing to mav: Next Spectrum: pa20040721saaaaa.119                                     
+Writing to .ray: pa20040721saaaaa.119                    
+Writing to .ray: pa20040721saaaab.119                    
+ Writing to mav: Next Spectrum: pa20041222saaaaa.019                                     
+Writing to .ray: pa20041222saaaaa.019                    
+Writing to .ray: pa20041222saaaab.019                    
+Writing to .ray: pa20041222saaaaa.020                    
+Writing to .ray: pa20041222saaaab.020                    

@@ -11,7 +11,9 @@ SOURCES := \
   $(COMN)/fnbc.f \
   $(COMN)/fbc.f \
   $(COMN)/substr.f \
-  $(COMN)/get_ggg_environment.f
+  $(COMN)/get_ggg_environment.f \
+  $(COMN)/read_postproc_header.f \
+  $(COMN)/write_postproc_header.f
 
 OBJECTS := $(patsubst %.f, %.o, $(SOURCES))
 
@@ -24,7 +26,9 @@ $(TARGET) : $(OBJECTS)
 	$(FC) $(LDFLAGS) -o $(GGGPATH)/bin/$@ $^
 
 #  Add dependencies to object files
-$(TSRC)/apply_insitu_correction.o:  $(GGGPATH)/src/ggg_int_params.f
+$(TSRC)/apply_insitu_correction.o:  $(GGGPATH)/src/gfit/ggg_int_params.f $(COMN)/postproc_params.f
+$(COMN)/read_postproc_header.o:     $(COMN)/postproc_params.f
+$(COMN)/write_postproc_header.o:     $(COMN)/postproc_params.f
 
 clean:
 	rm -f $(OBJECTS) $(GGGPATH)/bin/$(TARGET)

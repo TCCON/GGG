@@ -8,94 +8,112 @@ c     nnn = 162 (HITRAN_2004, DOS)
 c  There must be only one period in the file name.
 
       implicit none
-      include "../ggg_int_params.f"
+      include "../gfit/ggg_int_params.f"
 
-      integer*4 isot,molno,reclen,kgas,jgas,kiso,jiso,
-     & kspeci,jspeci,molewt,nvmode,specindex(mgas+1),
+      integer*4 reclen,
+     & usgas,usiso, ! User-selected gas and isotope #
+     & llgas,lliso, ! gas # and isotope # from linelist
+     & iigas,iiso,  ! gas # and isotope # from isotopologs.dat
+     & nlhead,ncol_iso,icode,i,ciso2kiso,
+     & llspeci,jspeci,molewt,nvmode,specindex(mgas+1),
      & lunr_iso,lunr_ll,nlps,jline,kline,lnbc,lloc,mchar,nline,posnall,
-     $ ldot,ierr,lr,ncol,istat
+     & ldot,ierr,lr,ncol_out,istat,idum
       integer*8 fsib,file_size_in_bytes
       parameter (lunr_iso=13,lunr_ll=14,nlps=18)
       real pbhw,pshift,sbhw,tdpbhw,
-     & fia,delta,epsilon,tdrpf,vibfrq(mvmode),dgen(mvmode)
-      real*8 eprime,fpos,freq,stren
-      character  ans*1,ccc*8,quantum*100,llformat*47,linfil*(mfilepath),
-     $ molnam(mspeci)*8,gggdir*(mpath), version*42,dl*1,
+     & fia,delta,lnfrd,ewvb,atc,tdrpf,vibfrq(mvmode),dgen(mvmode)
+      real*8 eprime,usfpos,freq,stren
+      character  ans*1,ccc*8,quantum*94,llformat*47,linfil*(mfilepath),
+     & molnam(mspeci)*8,gggdir*(mpath), version*54,dl*1,ciso*1,
      & menuinputfile*40,
-     & speci_id(mspeci)*24
+     & iso_fmt*80,
+     & speci_id(mspeci)*20
 c============================================================
       data linfil/' '/
-      ncol=0
 
-      version=' VLL    Version 2.22    2013-05-22    GCT '
+      idum=mfilepath ! Avoid compiler warning (unused parameter)
+      idum=mauxcol  ! Avoid compiler warning (unused parameter)
+      idum=mcolvav  ! Avoid compiler warning (unused parameter)
+      idum=mgas     ! Avoid compiler warning (unused parameter)
+      idum=mlev     ! Avoid compiler warning (unused parameter)
+      idum=mrow_qc  ! Avoid compiler warning (unused parameter)
+      idum=mspeci   ! Avoid compiler warning (unused parameter)
+      idum=mvmode   ! Avoid compiler warning (unused parameter)
+      idum=ncell    ! Avoid compiler warning (unused parameter)
+      idum=nchar    ! Avoid compiler warning (unused parameter)
+
+      ncol_out=0
+
+      version=' VLL        Version 2.35        2020-04-03        GCT '
       write(*,*) version
       write(*,*)
 
       llformat=
-     $'(i2,i1,f12.6,e10.3,10x,2f5.0,f10.4,f4.2,f8.6,a)'
+     $'(i2,a1,f12.6,e10.3,10x,2f5.0,f10.4,f4.2,f8.6,a)'
       call get_ggg_environment(gggdir, dl)
       lr=lnbc(gggdir)
       ierr=0
-      jgas=0
+      iigas=0
 c
 c  Read names of gases.
       open(lunr_iso,
      & file=gggdir(:lr)//'isotopologs'//dl//'isotopologs.dat')
+      read(lunr_iso,*) nlhead,ncol_iso
+      read(lunr_iso,'(7x,a)') iso_fmt
+      do i=3,nlhead
+         read(lunr_iso,*)
+      end do
       do jspeci=1,mspeci
-         call read_isotop(lunr_iso,kgas,kiso,
-     &   molnam(jspeci),speci_id(jspeci),
-     &   fia,delta,epsilon,molewt,tdrpf,
+         call read_isotopolog(lunr_iso,iso_fmt,iigas,iiso,
+     &   molnam(jspeci),speci_id(jspeci),icode,
+     &   fia,delta,lnfrd,molewt,ewvb,atc,tdrpf,
      &   vibfrq,dgen,nvmode,mvmode,istat)
          if(istat.ne.0) exit
-         if(kgas.lt.0) stop 'KGAS<0'
-         if(kiso.lt.0) stop 'KISO<0'
-         specindex(kgas)=jspeci-kiso
-c         write(*,*)jspeci,kgas,kiso,specindex(kgas)
+         if(iigas.lt.0) stop 'KGAS<0'
+         if(iiso.lt.0) stop 'KISO<0'
+         specindex(iigas)=jspeci-iiso
       end do
-c      do while (jgas.lt.mgas .and. ierr.eq.0)
-c         read(lunr_iso,'(1x,2i2,1x,a8)',iostat=ierr)jgas,jiso,molnam(jgas)
-c      end do
       close(lunr_iso)
-      specindex(kgas+1)=jspeci
-      write(*,*)' Reading isotopologs.dat which contains ',jgas,' gases'
+      specindex(iigas+1)=jspeci
+      write(*,*)'Reading isotopologs.dat which contains ',iigas,' gases'
       write(*,*)
-      if(jgas.ge.mgas) write(*,*) 'Warning: Increase parameter MGAS'
+      if(iigas.ge.mgas) write(*,*)'Warning: Increase parameter MGAS'
 c
 c Prompt user for name of linelist
       do while (lnbc(linfil) .eq. 0) 
-        if (iargc() == 0) then
-           write(6,*)'atm [a], gct [g], '//
-     $     'hitran04 [4], hitran08 [8], hitran12 [t], other [o]'
-           read(5,'(a1)') ans
-        elseif (iargc() == 1) then
-           call getarg(1, menuinputfile)
-           open(10, file=menuinputfile, status='old')
-           read(10,'(a1)') ans
-        else
-           write(*,*) 'Usage: $gggpath/bin/vll inputfile_containing_'//
-     &    'selections'
-           stop
-        endif
-        if(ans.eq.'a') linfil='atm.101'
-        if(ans.eq.'g') linfil='gct.101'
-        if(ans.eq.'f') linfil='fcia.101'
-        if(ans.eq.'s') linfil='scia.101'
-        if(ans.eq.'c') linfil='solar_dc.101'
-        if(ans.eq.'i') linfil='solar_di.101'
-        if(ans.eq.'0') linfil='hitran00.101'
-        if(ans.eq.'4') linfil='hitran04.162'
-        if(ans.eq.'8') linfil='hitran08.162'
-        if(ans.eq.'t') linfil='hitran13.161'
-        if(ans.eq.'o') then
-           do while (lnbc(linfil).eq.0)
-              if (iargc() == 0) then
-                 write(6,'(a16,$)') 'other linelist: '
-                 read(5,'(a)')linfil
-              elseif (iargc() == 1) then
-                 read(10,'(a)')linfil
-              endif
-           end do
-        endif
+         if (iargc() == 0) then
+            write(6,*)'atm [a], gct [g], pll (p), '//
+     $      'hit04 [4], hit08 [8], hit12 [t], hit16 (6), other [o]'
+            read(5,'(a1)') ans
+         elseif (iargc() == 1) then
+            call getarg(1, menuinputfile)
+            open(10, file=menuinputfile, status='old')
+            read(10,'(a1)') ans
+         else
+            write(*,*) 'Usage: $gggpath/bin/vll inputfile_containing_'//
+     &     'selections'
+            stop
+         endif
+         if(ans.eq.'a') linfil='atm.161'
+         if(ans.eq.'g') linfil='gct.101'
+         if(ans.eq.'p') linfil='pll.101'
+         if(ans.eq.'f') linfil='fcia.101'
+         if(ans.eq.'s') linfil='scia.101'
+         if(ans.eq.'0') linfil='hitran00.101'
+         if(ans.eq.'4') linfil='hitran04.162'
+         if(ans.eq.'8') linfil='hitran08.161'
+         if(ans.eq.'t') linfil='hitran13.161'
+         if(ans.eq.'6') linfil='hitran16.161'
+         if(ans.eq.'o') then
+            do while (lnbc(linfil).eq.0)
+               if (iargc() == 0) then
+                  write(6,'(a16,$)') 'other linelist: '
+                  read(5,'(a)')linfil
+               elseif (iargc() == 1) then
+                  read(10,'(a)')linfil
+               endif
+            end do
+         endif
       end do  ! while (lnbc(linfil).eq.0) 
       linfil=gggdir(:lr)//'linelist'//dl//linfil(:lnbc(linfil))
       write(*,*)linfil
@@ -110,7 +128,7 @@ c      write(*,*)ldot,linfil(ldot+1:),reclen
       fsib=file_size_in_bytes(lunr_ll,linfil)
       open(lunr_ll,file=linfil,access='direct',form='formatted',
      & status='old',recl=reclen)
-      nline=fsib/reclen
+      nline=int(fsib/reclen)
 c      if(mod(fsib,nline) .ne. 0) then
       if( nline*reclen .ne. fsib ) then
          write(*,*)' Linelist size not divisible by reclen'
@@ -122,8 +140,6 @@ c      if(mod(fsib,nline) .ne. 0) then
       write(*,*)' Total number of characters     = ',fsib
       write(*,*)
 c============================================================
-      kgas=0
-      kiso=0
       kline=1
       do                             ! G77
 c      do while ( ccc(1:1) .ne. 'q')  ! sun
@@ -139,18 +155,18 @@ c      do while ( ccc(1:1) .ne. 'q')  ! sun
             close(lunr_ll)
             stop
          elseif(ccc(1:1).eq.'g') then
-            read(ccc(2:),*)kgas
+            read(ccc(2:),*)usgas
          elseif(ccc(1:1).eq.'i') then
-            read(ccc(2:),*)kiso
+            read(ccc(2:),*)usiso
          elseif(ccc(1:1).eq.'c') then
-            read(ccc(2:),*)ncol
+            read(ccc(2:),*)ncol_out
          else
             mchar=lnbc(ccc)
             if(mchar.gt.0) then   
-               read(ccc,*)fpos  ! read real frequency entered
+               read(ccc,*)usfpos  ! read real frequency entered
                ccc='        '
-               if(fpos.ge.0)    ! if +ve position to frequency
-     $         kline=posnall(lunr_ll,fpos,nline)
+               if(usfpos.ge.0)    ! if +ve position to frequency
+     $         kline=posnall(lunr_ll,usfpos,nline)
             endif
          endif
 c
@@ -162,21 +178,24 @@ c
          jline=1
          do while (jline.le.nlps .and. kline.lt.nline)
             kline=kline+1
-            read(lunr_ll,llformat,rec=kline)molno,isot,freq,stren,
+            read(lunr_ll,llformat,rec=kline)llgas,ciso,freq,stren,
      &      pbhw,sbhw,eprime,tdpbhw,pshift,quantum
-            if(molno.eq.2 .and. isot.eq.0) isot=10
+            lliso=ciso2kiso(llgas,ciso)
+
             if(index(linfil,'hitran').gt.0) then
-               call hitran_to_atmos_gas_numbering(molno,isot)
-               if(molno.le.0) cycle
+               call hitran_to_atmos_gas_numbering(llgas,lliso)
+               if(llgas.le.0) cycle
             endif
-            kspeci= specindex(molno)+isot
-            if(kgas.eq.0 .or. kgas.eq.molno) then 
-               if(kiso.eq.0 .or. kiso.eq.isot) then 
+            llspeci= specindex(llgas)+lliso
+c            write(*,*)'usgas,llgas= ',usgas,llgas,freq
+            if(usgas.eq.0 .or. usgas.eq.llgas) then 
+c               write(*,*)'usiso,lliso= ',usiso,lliso,freq
+               if(usiso.eq.0 .or. usiso.eq.lliso) then 
                   jline=jline+1
                   write(6,'(a8,i2,i2,f13.6,1pe10.3,0pf10.4,2(1x,f5.4),
-     &            1x,f3.2,2x,f5.3,2x,a)') molnam(kspeci),molno,
-     &            isot,freq,stren,eprime,pbhw,sbhw,tdpbhw,pshift,
-     &            quantum(:reclen-68-10*ncol)
+     &            1x,f3.2,2x,f5.3,2x,a)') molnam(llspeci),llgas,
+     &            lliso,freq,stren,eprime,pbhw,sbhw,tdpbhw,pshift,
+     &            quantum(:reclen-68-10*ncol_out)
                endif
             endif
          enddo

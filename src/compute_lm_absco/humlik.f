@@ -10,8 +10,8 @@ C         .    Which Appears when Convoluting a Complex   .
 C         .     Lorentzian Profile by a Gaussian Shape    .
 C         .................................................
 C
-C		    N : Number of points 
-C		    z = X+iY
+C             N : Number of points 
+C                 z = X+iY
 C             K : Real Part of W(z)
 C             L : Imaginary Part of W(z)
 C
@@ -72,6 +72,36 @@ c procedure calls
       real*8 XP(0:5), XM(0:5), YP(0:5), YM(0:5) ! CPF12 temporary values
       real*8 MQ(0:5), PQ(0:5), MF(0:5), PF(0:5)
       real*8 D, YF, YPY0, YPY0Q  
+
+      A0=0.0 ! Avoid compiler warning (may be used uninitialized)
+      D0=0.0 ! Avoid compiler warning (may be used uninitialized)
+      D2=0.0 ! Avoid compiler warning (may be used uninitialized)
+      E0=0.0 ! Avoid compiler warning (may be used uninitialized)
+      E2=0.0 ! Avoid compiler warning (may be used uninitialized)
+      E4=0.0 ! Avoid compiler warning (may be used uninitialized)
+      H0=0.0 ! Avoid compiler warning (may be used uninitialized)
+      H2=0.0 ! Avoid compiler warning (may be used uninitialized)
+      H4=0.0 ! Avoid compiler warning (may be used uninitialized)
+      H6=0.0 ! Avoid compiler warning (may be used uninitialized)
+      P0=0.0 ! Avoid compiler warning (may be used uninitialized)
+      P2=0.0 ! Avoid compiler warning (may be used uninitialized)
+      P4=0.0 ! Avoid compiler warning (may be used uninitialized)
+      P6=0.0 ! Avoid compiler warning (may be used uninitialized)
+      P8=0.0 ! Avoid compiler warning (may be used uninitialized)
+      Z0=0.0 ! Avoid compiler warning (may be used uninitialized)
+      Z2=0.0 ! Avoid compiler warning (may be used uninitialized)
+      Z4=0.0 ! Avoid compiler warning (may be used uninitialized)
+      Z6=0.0 ! Avoid compiler warning (may be used uninitialized)
+      B1=0.0
+      F1=0.0
+      F3=0.0
+      F5=0.0
+      Q1=0.0
+      Q3=0.0
+      Q5=0.0
+      Q7=0.0
+
+      Z8=0.0 ! Avoid compiler warning (may be used uninitialized)
 
 ***** Start of executable code *****************************************
 

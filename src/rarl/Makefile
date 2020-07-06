@@ -32,8 +32,8 @@ $(TARGET) : $(OBJECTS)
 	$(FC) $(LDFLAGS) -o $(GGGPATH)/bin/$@ $^
 
 #  Add dependencies to object files
-$(TSRC)/rarl.o:     $(GGGPATH)/src/ggg_int_params.f
-$(COMN)/gindfile.o: $(GGGPATH)/src/ggg_int_params.f
+$(TSRC)/rarl.o:     $(GGGPATH)/src/gfit/ggg_int_params.f
+$(COMN)/gindfile.o: $(GGGPATH)/src/gfit/ggg_int_params.f
 
 clean:
 	rm -f $(OBJECTS) $(GGGPATH)/bin/$(TARGET)

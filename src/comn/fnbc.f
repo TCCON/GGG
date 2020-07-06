@@ -1,6 +1,6 @@
       integer function fnbc(string)
 c  Returns position of First Non-Blank Character in STRING
-c  LNBC=0 indicates that the entire string was blank
+c  FNBC=0 indicates that the entire string was blank
 c  GCT  9-Jul-1993
 c
 c  Blanks include:
@@ -14,8 +14,8 @@ c     comma           (ASCII character # 44)
       integer ic
       character string*(*)
       do fnbc=1,len(string)
-      ic=ichar(string(fnbc:fnbc))
-      if(     ic.ne.0
+         ic=ichar(string(fnbc:fnbc))
+         if(     ic.ne.0
      &  .and. ic.ne.9
      &  .and. ic.ne.13
      &  .and. ic.ne.32

@@ -13,7 +13,7 @@ c
 c  ASCII output spectra are created in the local directory.
 c
       implicit none
-      include "../ggg_int_params.f"
+      include "../gfit/ggg_int_params.f"
 
       integer*4
      & lunr_rl,   ! LUN to read input runlogs from
@@ -37,6 +37,7 @@ c
      & fullrlgfile*120,   ! runlog file name with absolute path
      & inpath*190,chead*1,
      & data_fmt_read_rl*256,col_labels_rl*320,
+     & cnus*16,cnue*16,
      & col1*1,
      & apf*2,
      & dl*1,
@@ -44,7 +45,7 @@ c
      & specname*(nchar),
      & version*64
 
-      integer*4
+      integer*4 idum,
      & istat,        ! status flag (0=success, 1=EOF)
      & iyr,          ! year
      & iset,         ! day of year
@@ -86,30 +87,43 @@ c
 
       equivalence (bbuf,bufi2,bufr4)
 
-      write(6,*)
+      idum=mfilepath ! Avoid compiler warning (unused parameter)
+      idum=mauxcol ! Avoid compiler warning (unused parameter)
+      idum=mcolvav ! Avoid compiler warning (unused parameter)
+      idum=mgas    ! Avoid compiler warning (unused parameter)
+      idum=mlev    ! Avoid compiler warning (unused parameter)
+      idum=mrow_qc ! Avoid compiler warning (unused parameter)
+      idum=mspeci  ! Avoid compiler warning (unused parameter)
+      idum=mvmode  ! Avoid compiler warning (unused parameter)
+      idum=ncell   ! Avoid compiler warning (unused parameter)
+
       version=
-     &' BIN2ASC                   Version 1.51     18-Dec-2012    GCT'
+     &' BIN2ASC                Version 1.52        2017-05-22       GCT'
+      write(*,*) version
       call getendian(iend)  ! Find endian-ness of host computer
 
       if (iargc() == 0) then
          write(*,*)'Enter path to input file/runlog:'
          read(*,'(a)') fullrlgfile
+         write(*,*)'Enter Starting & Ending frequencies:'
+         write(*,*)'Enter 0 99999 to retain original spectral limits'
+         read(*,*) nus,nue
       elseif (iargc() == 1) then
          call getarg(1, fullrlgfile)
+         nus=0.0d0
+         nue=999999.d0
+      elseif (iargc() == 3) then
+         call getarg(1, fullrlgfile)
+         call getarg(2, cnus)
+         call getarg(3, cnue)
+         read(cnus,*)nus
+         read(cnue,*)nue
       else
-         stop 'Usage: $gggpath/bin/bin2asc path/runlog'
+         stop 'Usage: $gggpath/bin/bin2asc path/runlog [nus, nue]'
       endif
-c      open(lunr_rl,file=fullrlgfile,status='old')
-c      read(lunr_rl,*) nlhead         ! Skip header line of runlog
-c      do i=2,nlhead
-c         read(lunr_rl,*)
-c      end do
+
       open(lunr_rl,file=fullrlgfile,status='old')
       call read_runlog_header(lunr_rl,data_fmt_read_rl,col_labels_rl)
-
-      write(*,*)'Enter Starting & Ending frequencies:'
-      write(*,*)'Enter 0 99999 to retain original spectral limits'
-      read(*,*) nus,nue
 
 c  Interrogate environmental variable GGGPATH to find location
 c  of root partition (e.g. "/home/toon/ggg/" ).
@@ -160,7 +174,7 @@ c  If necessary, byte-reverse data
          close(luns)
   
 c  Write ASCI spectrum
-         write(6,*)inpath(:lnbc(inpath))
+         write(*,*)inpath(:lnbc(inpath))
          open(lunw_asc,file='./asc_'//specname,status='unknown')
          write(lunw_asc,*)5,2
          write(lunw_asc,'(a)') version(:lnbc(version))
@@ -175,12 +189,12 @@ c  Write ASCI spectrum
          write(lunw_asc,*)' Frequency_(cm-1)  Signal'
          if(iabpw.eq.2) then
             do i=1,npts
-              write(lunw_asc,'(f12.6,f9.4)') graw*(i+m1-1),
-     &                         float(bufi2(i))/15000.
+               write(lunw_asc,'(f12.6,f9.4)') graw*(i+m1-1),
+     &         float(bufi2(i))/15000.
             end do
          elseif(iabpw.eq.4) then
             do i=1,npts
-              write(lunw_asc,'(f12.6,1pe12.4)') graw*(i+m1-1),bufr4(i)
+               write(lunw_asc,'(f12.6,1pe12.4)') graw*(i+m1-1),bufr4(i)
             end do
          else
             stop 'unknown format'

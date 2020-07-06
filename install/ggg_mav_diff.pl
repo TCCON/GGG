@@ -235,8 +235,10 @@ for my $ispec (0 .. $numspectrum1-1) {
                      my $dd = abs($previous[$i][$col1] - $install[$m][$col2]);
                      if ($previous[$i][$col1] !=0) {
                         $ddfrac = ($dd/abs($previous[$i][$col1]))*100.;
-                     } else {
+                     } elsif ($install[$m][$col2] !=0) {
                         $ddfrac = ($dd/abs($install[$m][$col2]))*100.;
+                     } else {
+                        $ddfrac = 0;
                      }
                      print "  absolute   difference=$dd\n";
                      print "  fractional difference=$ddfrac%\n";

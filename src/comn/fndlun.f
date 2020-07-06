@@ -47,7 +47,7 @@ C$ Declarations
       PARAMETER      ( MINLUN =  30 )
  
       INTEGER          MAXLUN
-      PARAMETER      ( MAXLUN = 99 )
+      PARAMETER      ( MAXLUN = 220 )
  
 C$ Brief_I/O
 C

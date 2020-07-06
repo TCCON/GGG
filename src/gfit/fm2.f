@@ -42,10 +42,14 @@ c     spxv(*,2)   ! Second target gases
 c     spxv(*,ntg) ! Last target gases
 c     spxv(*,n1)  ! Workspace
 c     spxv(*,n2)  ! Workspace
+
       implicit none
-      include "../ggg_const_params.f"
+
+      real*4  zero
+      parameter(zero=0.0)
+
       include "const_params.f"
-      include "../ggg_int_params.f"
+      include "ggg_int_params.f"
 
       integer ncp,nmp,ntg,jtg,nfp,nii,ldec,
      & iptg,ipcl,ipfs,ipzo,ipcf,ncbf,

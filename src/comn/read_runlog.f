@@ -69,15 +69,14 @@ c    everything else
      & specname*(*),     ! spectrum name
      & apf*2             ! apodization function (e.g. BX N2, etc)
 
-       read(lun_rlg,'(a1,a)',end=99) col1,record
-c1      read(lun_rlg,'(a1,a)',end=99) col1,record
+      read(lun_rlg,'(a1,a)',end=99) col1,record
+c1     read(lun_rlg,'(a1,a)',end=99) col1,record
 c      if( col1.eq.':') go to 1
 c      if(col1.ne.'-' .and. col1.ne.'+' .and. col1.ne.' ') then
 c         record=col1//record   ! Runlog is the old format
 c      endif
       lr=lnbc(record)
-c      write(*,*) record
-c      write(*,*)'read_runlog: lr= ', lr
+      write(*,*)'read_runlog: lr, record= ', lr,record
       osds=0.0
       wspd=0.0
       wdir=0.0
@@ -86,70 +85,70 @@ c      write(*,*)'read_runlog: lr= ', lr
 c
 c Note: ASCI character 9 is a horizontal tab.
       if(index(record,char(9)).gt.0) then    ! TAB delimited (e.g. ATMOS)
-        read(record,*) specname,iyr,iset,zpdtim,oblat,oblon,
-     &  obalt,asza,zenoff,opd,fovi,fovo,amal,ifirst,ilast,graw,
-     &  possp,bytepw,zoff,zerr,snr,scalf,apf
+         read(record,*) specname,iyr,iset,zpdtim,oblat,oblon,
+     &   obalt,asza,zenoff,opd,fovi,fovo,amal,ifirst,ilast,graw,
+     &   possp,bytepw,zoff,zerr,snr,scalf,apf
       elseif(lr.le.162) then     ! SPACE delimited (e.g. MkIV)
-        specname(1:1)=col1
-        read(record,331,err=97)specname(2:),iyr,iset,zpdtim,oblat,oblon,
-     &  obalt,asza,zenoff,opd,fovi,fovo,amal,ifirst,ilast,graw,possp,
-     &  bytepw,zoff,snr,apf,tout,pout,hout
- 331  format(a11,2x,2i4,f8.4,f7.3,f8.3,2f8.3,f7.0,f7.2,3f6.0,2i8,f14.11,
-     & i8,i3,2f5.0,1x,a2,f4.0,f8.0,f3.0)
-        tins=25.0
-        pins=pout
-        hins=15
-        sis=0.0
-        sia=0.0
-        lasf=15798.0138d0
-        wavtkr=9999.0d0
-        aipl=0.001
-        write(*,*)'OSDS set to zero (missing from old-format runlog)'
+         specname(1:1)=col1
+         read(record,331,err=97)specname(2:),iyr,iset,zpdtim,oblat,
+     &   oblon,obalt,asza,zenoff,opd,fovi,fovo,amal,ifirst,ilast,graw,
+     &   possp,bytepw,zoff,snr,apf,tout,pout,hout
+ 331     format(a11,2x,2i4,f8.4,f7.3,f8.3,2f8.3,f7.0,f7.2,3f6.0,2i8,
+     &   f14.11,i8,i3,2f5.0,1x,a2,f4.0,f8.0,f3.0)
+         tins=25.0
+         pins=pout
+         hins=15
+         sis=0.0
+         sia=0.0
+         lasf=15798.0138d0
+         wavtkr=9999.0d0
+         aipl=0.001
+         write(*,*)'OSDS set to zero (missing from old-format runlog)'
       elseif(lr.le.233) then     ! SPACE delimited (e.g. MkIV)
-        read(record,332,err=97) specname,iyr,iset,zpdtim,oblat,oblon,
-     &  obalt,asza,zenoff,opd,fovi,fovo,amal,ifirst,ilast,graw,possp,
-     &  bytepw,zoff,snr,apf,tins,pins,hins,tout,pout,hout,lasf,wavtkr,
-     &  sia,sis,aipl
-        write(*,*)'OSDS set to zero (missing from old-format runlog)'
-        if(sia.ne.0.0) fvsi=sis/sia
- 332  format(a21,1x,2i4,f8.4,f8.3,f9.3,2f8.3,f7.0,f7.2,3f6.0,2i8,f15.11,
+         read(record,332,err=97) specname,iyr,iset,zpdtim,oblat,oblon,
+     &   obalt,asza,zenoff,opd,fovi,fovo,amal,ifirst,ilast,graw,possp,
+     &   bytepw,zoff,snr,apf,tins,pins,hins,tout,pout,hout,lasf,wavtkr,
+     &   sia,sis,aipl
+         write(*,*)'OSDS set to zero (missing from old-format runlog)'
+         if(sia.ne.0.0) fvsi=sis/sia
+ 332     format(a21,1x,2i4,f8.4,f8.3,f9.3,2f8.3,f7.0,f7.2,3f6.0,2i8,f15.11,
      & i8,i3,1x,2f5.0,1x,a2,2(f6.0,f8.0,f5.0),f10.0,f7.0,2f6.1,f7.3)
       elseif(lr.eq.268) then
-        read(record,333,err=98) specname,iyr,iset,zpdtim,oblat,oblon,
-     &  obalt,asza,zenoff,azim,osds,opd,fovi,fovo,amal,ifirst,ilast,
-     &  graw,possp,bytepw,zoff,snr,apf,tins,pins,hins,tout,pout,hout,
-     &  fvsi,wspd,wdir,lasf,wavtkr,aipl
-        sia=0.0
- 333  format(a35,1x,2i4,f8.4,f8.3,f9.3,2f8.3,f7.0,f8.3,f7.3,
-     & f7.2,3f6.0,2i8,f15.11,
-     & i8,i3,1x,2f5.0,1x,a2,2(f6.0,f8.0,f5.0),
-     & f6.4,f6.1,f6.0,f10.0,f7.0,f7.3)
+         read(record,333,err=98) specname,iyr,iset,zpdtim,oblat,oblon,
+     &   obalt,asza,zenoff,azim,osds,opd,fovi,fovo,amal,ifirst,ilast,
+     &   graw,possp,bytepw,zoff,snr,apf,tins,pins,hins,tout,pout,hout,
+     &   fvsi,wspd,wdir,lasf,wavtkr,aipl
+         sia=0.0
+ 333     format(a35,1x,2i4,f8.4,f8.3,f9.3,2f8.3,f7.0,f8.3,f7.3,
+     &  f7.2,3f6.0,2i8,f15.11,
+     &  i8,i3,1x,2f5.0,1x,a2,2(f6.0,f8.0,f5.0),
+     &  f6.4,f6.1,f6.0,f10.0,f7.0,f7.3)
       elseif(lr.eq.282) then
-        read(record,334,err=98) specname,iyr,iset,zpdtim,oblat,oblon,
-     &  obalt,asza,zenoff,azim,osds,opd,fovi,fovo,amal,ifirst,ilast,
-     &  graw,possp,bytepw,zoff,snr,apf,tins,pins,hins,tout,pout,hout,
-     &  sia,fvsi,wspd,wdir,lasf,wavtkr,aipl
- 334  format(a38,1x,2i4,f8.4,f8.3,f9.3,2f8.3,f7.0,f8.3,f7.3,
-     & f7.2,3f6.0,2i9,f15.11,
-     & i9,i3,1x,2f5.0,1x,a2,2(f6.0,f8.0,f5.0),
-     & f7.1,f7.4,f6.1,f6.0,f10.0,f7.0,f7.3)
+         read(record,334,err=98) specname,iyr,iset,zpdtim,oblat,oblon,
+     &   obalt,asza,zenoff,azim,osds,opd,fovi,fovo,amal,ifirst,ilast,
+     &   graw,possp,bytepw,zoff,snr,apf,tins,pins,hins,tout,pout,hout,
+     &   sia,fvsi,wspd,wdir,lasf,wavtkr,aipl
+ 334     format(a38,1x,2i4,f8.4,f8.3,f9.3,2f8.3,f7.0,f8.3,f7.3,
+     &   f7.2,3f6.0,2i9,f15.11,
+     &   i9,i3,1x,2f5.0,1x,a2,2(f6.0,f8.0,f5.0),
+     &   f7.1,f7.4,f6.1,f6.0,f10.0,f7.0,f7.3)
       elseif(lr.eq.301) then
-        read(record,335,err=98) specname,iyr,iset,zpdtim,oblat,oblon,
-     &  obalt,asza,zenoff,azim,osds,opd,fovi,fovo,amal,ifirst,ilast,
-     &  graw,possp,bytepw,zoff,snr,apf,tins,pins,hins,tout,pout,hout,
-     &  sia,fvsi,wspd,wdir,lasf,wavtkr,aipl
- 335  format(a57,1x,2i4,f8.4,f8.3,f9.3,2f8.3,f7.0,f8.3,f7.3,
-     & f7.2,3f6.0,2i9,f15.11,
-     & i9,i3,1x,2f5.0,1x,a2,2(f6.0,f8.0,f5.0),
-     & f7.1,f7.4,f6.1,f6.0,f10.0,f7.0,f7.3)
+         read(record,335,err=98) specname,iyr,iset,zpdtim,oblat,oblon,
+     &   obalt,asza,zenoff,azim,osds,opd,fovi,fovo,amal,ifirst,ilast,
+     &   graw,possp,bytepw,zoff,snr,apf,tins,pins,hins,tout,pout,hout,
+     &   sia,fvsi,wspd,wdir,lasf,wavtkr,aipl
+ 335     format(a57,1x,2i4,f8.4,f8.3,f9.3,2f8.3,f7.0,f8.3,f7.3,
+     &   f7.2,3f6.0,2i9,f15.11,
+     &   i9,i3,1x,2f5.0,1x,a2,2(f6.0,f8.0,f5.0),
+     &   f7.1,f7.4,f6.1,f6.0,f10.0,f7.0,f7.3)
       else                 ! New GDS-format runlog
-        read(record,336,err=98) specname,iyr,iset,zpdtim,oblat,oblon,
-     &  obalt,asza,zenoff,opd,fovi,fovo,amal,ifirst,ilast,graw,possp,
-     &  bytepw,zoff,snr,apf,tins,pins,hins,tout,pout,hout,lasf,wavtkr,
-     &  sia,sis,aipl
-        if(sia.ne.0.0) fvsi=sis/sia
- 336  format(a35,1x,2i4,f8.4,f8.3,f9.3,2f8.3,f7.0,f7.2,3f6.0,2i8,f15.11,
-     & i8,i3,1x,2f5.0,1x,a2,2(f6.0,f8.0,f5.0),f10.0,f7.0,2f6.1,f7.3)
+         read(record,336,err=98) specname,iyr,iset,zpdtim,oblat,oblon,
+     &   obalt,asza,zenoff,opd,fovi,fovo,amal,ifirst,ilast,graw,possp,
+     &   bytepw,zoff,snr,apf,tins,pins,hins,tout,pout,hout,lasf,wavtkr,
+     &   sia,sis,aipl
+         if(sia.ne.0.0) fvsi=sis/sia
+ 336     format(a35,1x,2i4,f8.4,f8.3,f9.3,2f8.3,f7.0,f7.2,3f6.0,2i8,f15.11,
+     &   i8,i3,1x,2f5.0,1x,a2,2(f6.0,f8.0,f5.0),f10.0,f7.0,2f6.1,f7.3)
       endif
       istat=0
       return

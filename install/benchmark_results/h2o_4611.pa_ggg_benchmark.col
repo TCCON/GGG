@@ -1,28 +1,25 @@
- 24 18
- GFIT                     Version 4.37       2014-03-21    GCT  
- GSETUP                   Version 3.92     2013-12-20    GCT
-eef67b8c0f131c30bfb7f9e548764f94  /net/nicolet/nobackup/dwunch/ggg_devel/ggg_working/config/data_part.lst
-b726bee6d1ef790129ee605640fa6af1  /net/nicolet/nobackup/dwunch/ggg_devel/ggg_working/apriori/gfit_ap.gnd
-045ad2bcf91b0eb10a9321f526da8bfd  /net/nicolet/nobackup/dwunch/ggg_devel/ggg_working/runlogs/gnd/pa_ggg_benchmark.grl
-7ff3c96fbfd4e17b9b04e78805c67363  /net/nicolet/nobackup/dwunch/ggg_devel/ggg_working/levels/integral.gnd
-                                  /net/nicolet/nobackup/dwunch/ggg_devel/ggg_working/models/gnd/
-                                  /net/nicolet/nobackup/dwunch/ggg_devel/ggg_working/vmrs/gnd/
-f8d9103b025e43bf33cf0dc8bcd4d330  pa_ggg_benchmark.mav
-2d1a86aa2db12d965ba6a27c63a8a7f1  pa_ggg_benchmark.ray
-f1c0115d620d0ea6540a509df7cccafc  /net/nicolet/nobackup/dwunch/ggg_devel/ggg_working/isotopologs/isotopologs.dat
-f8b8c93f1aebb1df552b921df2451f8d  /net/nicolet/nobackup/dwunch/ggg_devel/ggg_working/windows/gnd/tccon.gnd
-a7166ef14ce39657269fb9e6ddef9df7  /net/nicolet/nobackup/dwunch/ggg_devel/ggg_working/linelist/atm.101
-3cda33e3bd74093012454d3adfb9b726  /net/nicolet/nobackup/dwunch/ggg_devel/ggg_working/linelist/gct.101
-6fd821359b77fa5a0f3bb7608ffa007e  /net/nicolet/nobackup/dwunch/ggg_devel/ggg_working/linelist/fcia.101
-61e34bb86814b4d71a3a74f517412a19  /net/nicolet/nobackup/dwunch/ggg_devel/ggg_working/linelist/scia.101
-44ee608e578d3c1565bcd5ea8fa3b685  /net/nicolet/nobackup/dwunch/ggg_devel/ggg_working/linelist/solar_merged.108
-                                  /net/nicolet/nobackup/dwunch/ggg_devel/ggg_working/ak/k
-                                  /net/nicolet/nobackup/dwunch/ggg_devel/ggg_working/spt/z
+ 21 26
+ GFIT                     Version 5.28        2020-04-24   GCT  
+ GSETUP                   Version 4.70        2020-06-29   GCT
+eed19ecbb7ace7f78ea36fec0bf34c7d  /home/jlaugh/GGG/ggg-devel/config/data_part.lst
+b2e976c6a7b471f8a3e381261b09048a  /home/jlaugh/GGG/ggg-devel/apriori/gfit_ap.gnd
+af52ead7942098d0635c96847c368583  /home/jlaugh/GGG/ggg-devel/runlogs/gnd/pa_ggg_benchmark.grl
+890935e1a57e041d3097a3a6674778c9  /home/jlaugh/GGG/ggg-devel/levels/ap_51_level_0_to_70km.gnd
+                                  /home/jlaugh/GGG/ggg-devel/models/gnd/
+                                  /home/jlaugh/GGG/ggg-devel/vmrs/gnd/
+fdade21b808a0eb6741177430902b02e  pa_ggg_benchmark.mav
+5d6bc4a301bdb9d47341bf27adef4af6  pa_ggg_benchmark.ray
+b6ecd749a6ec0c72530bec31475f4f25  /home/jlaugh/GGG/ggg-devel/isotopologs/isotopologs.dat
+db73c954a1be4986f1b93a752364dd49  /home/jlaugh/GGG/ggg-devel/windows/gnd/tccon.gnd
+580572bd6b6b05ab437ed3447be4d8a9  telluric_linelists.md5
+893b127f4833ed5d9904ba989fcbb2ab  /home/jlaugh/GGG/ggg-devel/linelist/solar_merged.108
+                                  /home/jlaugh/GGG/ggg-devel/ak/j_h2o_4611.pa_ggg_benchmark
+                                  /home/jlaugh/GGG/ggg-devel/spt/z
                                   h2o_4611.pa_ggg_benchmark.col
-                                  (1x,a20,1x,i2,1x,f5.3,1x,f5.1,2(1x,f4.1),1x,f5.2,1x,f5.3,1x,f6.4,f8.3,15(0pf7.3,1pe11.4,0pf9.4,1pe8.1))
- 4611.05   2.20  15 1 1 0  cl  ct  fs  so    : h2o  ch4
-  Spectrum            Nit  CL    CT   CC   FS   S-G  ZO   RMS/CL   Zpres  AM_h2o    OVC_h2o    VSF_h2o    VSF_h2o_error  AM_ch4    OVC_ch4    VSF_ch4    VSF_ch4_error
- pa20040721saaaaa.043  6 0.321  -0.3  0.0 -0.5 -3.89 0.000 0.1965   0.472  1.297 1.4722E+23   0.8657 6.2E-03  1.298 3.5790E+19   0.9922 2.3E-01
- pa20040721saaaaa.119  6 0.309  -0.4  0.0 -0.6 -7.85 0.000 0.2939   0.473  2.251 1.4716E+23   0.7546 9.2E-03  2.252 3.5786E+19   0.9896 2.1E-01
- pa20041222saaaaa.019  6 0.572  -0.3  0.0  0.8 -0.11 0.000 0.4438   0.478  7.779 5.5442E+21   1.1804 1.5E-02  7.524 3.6076E+19   1.1154 9.5E-02
- pa20041222saaaaa.020  6 0.572  -0.3  0.0  0.8 -0.50 0.000 0.4472   0.477  7.396 5.5483E+21   1.1731 1.5E-02  7.174 3.6084E+19   1.1193 9.9E-02
+                                  (1x,a20,1x,i2,1x,f5.3,1x,f5.1,1x,f4.1,1x,f5.2,1x,f5.2,1x,f6.4,1x,f6.4,f8.3,15(0pf7.3,1pe11.4,0pf10.5,1pe8.1))
+ 4611.05   2.20  15 1 1 0  ncbf=2  fs  so     sf=1.000 : h2o  ch4  co2  n2o
+  Spectrum            Nit  CL    CT    CC   FS    SG    ZO   RMS/CL   Zpres AM_h2o OVC_h2o      VSF_h2o VSF_h2o_error AM_ch4 OVC_ch4      VSF_ch4 VSF_ch4_error AM_co2 OVC_co2      VSF_co2 VSF_co2_error AM_n2o OVC_n2o      VSF_n2o VSF_n2o_error
+ pa20040721saaaaa.043  6 0.322  -0.3  0.0 -0.10  0.00 0.0000 0.1291   0.461  1.302 1.3291E+23   0.96263 4.2E-03  1.300 3.5158E+19   1.09474 1.7E-01  1.300 7.5306E+21   1.01390 8.8E-02  1.300 6.1525E+18   1.04522 1.9E-01
+ pa20040721saaaaa.119  6 0.310  -0.4  0.0 -0.18  0.00 0.0000 0.1557   0.467  2.265 9.2990E+22   1.17294 5.2E-03  2.256 3.5162E+19   1.04865 1.3E-01  2.255 7.5387E+21   0.94375 6.7E-02  2.256 6.1536E+18   1.12460 1.5E-01
+ pa20041222saaaaa.019  6 0.569  -0.3  0.0  0.29  0.00 0.0000 0.1590   0.472  7.778 6.6534E+21   0.97278 5.2E-03  7.542 3.6260E+19   0.97990 3.5E-02  7.510 7.8385E+21   0.98880 1.8E-02  7.549 6.2312E+18   1.04479 3.8E-02
+ pa20041222saaaaa.020  6 0.570  -0.3  0.0  0.30  0.00 0.0000 0.1564   0.470  7.397 6.6566E+21   0.96448 5.1E-03  7.191 3.6268E+19   0.97778 3.6E-02  7.163 7.8402E+21   0.99007 1.9E-02  7.198 6.2326E+18   1.03340 3.9E-02

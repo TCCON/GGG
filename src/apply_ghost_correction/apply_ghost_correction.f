@@ -19,13 +19,14 @@ c  Output Files:
 c       runlog.gaa.vav.ada.aia
 c       
       implicit none
-      include "../ggg_int_params.f"
+      include "../gfit/ggg_int_params.f"
+      include "../comn/postproc_params.f"
 
       integer*4 lunr,luns,lunw,ncoml,ncol,mcol,kcol,icol,j,
      & kgas,lnbc,irow,naux,ngas,nrow,li,k,ngrow,ngas1,kk,mrow
       parameter (lunr=14,luns=15,lunw=16,mcol=150,mrow=5)
       character header*800,headarr(mcol)*20,gasname(mgas)*20,
-     & gggdir*(mpath),inputfile*40,outputfile*40, version*62,gaserr*32,
+     & gggdir*(mpath),inputfile*40,outputfile*40, version*63,gaserr*32,
      & filename*(mpath+40)
       real*8 yrow(mcol),gcf(mrow,mgas),gcfe(mrow,mgas),scl(mrow,mgas),
      & cf(mcol,mgas)
@@ -35,13 +36,26 @@ c
 
       character outfmt*42,specname*(nchar),site*2,dl*1,input_fmt*40
       character cl*1
-      integer spec_flag,colindyear,colindday
+      integer spec_flag,colindyear,colindday,idum
+
+      idum=mfilepath ! Avoid compiler warning (unused parameter)
+      idum=mauxcol ! Avoid compiler warning (unused parameter)
+      idum=mcolvav ! Avoid compiler warning (unused parameter)
+      idum=mgas    ! Avoid compiler warning (unused parameter)
+      idum=mlev    ! Avoid compiler warning (unused parameter)
+      idum=mrow_qc ! Avoid compiler warning (unused parameter)
+      idum=mspeci  ! Avoid compiler warning (unused parameter)
+      idum=mvmode  ! Avoid compiler warning (unused parameter)
+      idum=ncell   ! Avoid compiler warning (unused parameter)
+      idum=maddln  ! Avoid compiler warning (unused parameter)
+      idum=mcharhead! Avoid compiler warning (unused parameter)
+
       spec_flag=0
       colindyear=0  ! prevent compiler warning (may be used uninitialized)
       colindday =0  ! prevent compiler warning (may be used uninitialized)
 
       version=
-     & ' apply_ghost_correction      Version 1.11    2013-01-15   GCT'
+     & ' apply_ghost_correction    Version 1.13    2020-03-12   GCT/JLL'
 c     & ' apply_ghost_correction      Version 1.0.1   2012-03-08   GCT'
 c     & ' apply_ghost_correction      Version 1.0.0   2011-07-19   NMD'
 
@@ -89,8 +103,8 @@ c  factors (GCF) and break times for each gas. 'xx' is the site notation
 c  Read the header of the .aia file and figure out the
 c  mapping between the gases in the corrections.dat
 c  and those in the .vav file header
-      read(lunr,'(i2,i4,i7,i4)') ncoml,ncol,nrow,naux
-      write(lunw,'(i2,i4,i7,i4)') ncoml+1+ngrow+1,ncol,nrow,naux
+      read(lunr,countfmt) ncoml,ncol,nrow,naux
+      write(lunw,countfmt) ncoml+1+ngrow+1,ncol,nrow,naux
       write(lunw,'(a)') version
       if(ncol.gt.mcol) stop 'increase mcol'
       do j=2,ncoml-2

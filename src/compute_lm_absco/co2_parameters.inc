@@ -1,16 +1,16 @@
 C
 C Parameters to be included in the program
 C
-	Integer*4 nSigmx,iFile
-	Integer*4 nBmx,nLmx,nIsotp
-      	Integer*4 Jmax,Nlifmax,Nwmax
+      Integer*4 nSigmx,iFile
+      Integer*4 nBmx,nLmx,nIsotp
+      Integer*4 Jmax,Nlifmax,Nwmax
 
 C Max number of spectral points
       Parameter (nSigmx=500000)
 C Unit Number for File access
       Parameter (iFile=3)
 C Max Number of Bands
-      Parameter (nBmx=600)	
+      Parameter (nBmx=600)
 C Max Number of Lines per Band
       Parameter (nLmx=400)
 C Number of CO2 Isotopomers 
@@ -36,7 +36,7 @@ C Constants
 C      
 C Polynomial Coefficients for the Various Isotopomers
        integer*4 Jcoef
-      	real*8 co2_Qcoef(nIsotp,4)
+       real*8 co2_Qcoef(nIsotp,4)
 C Iso=1, i.e. O(16)-C(12)-O(16)
       DATA (co2_Qcoef(1,Jcoef),Jcoef=1,4)/-.13617D+01, .94899D+00,
      +               -.69259D-03, .25974D-05/

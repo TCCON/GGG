@@ -30,7 +30,7 @@
 
       character logfile*80,logdate*10,logtime*8,root*64,dl*1
       character fhlogdate*18
-      integer*4  j,jj,jd,doy,nrpts,nlogvals,lnbc,lr,lrt
+      integer*4  j,jj,jd,doy,nrpts,nlogvals,lnbc,lr,lrt,idum
       integer*4 logmon(1440),logday(1440),logyear(1440),
      & loghour(1440),logmin(1440),logsec(1440),ierr,last,first
       integer*4 fhlogyear(999999),fhlogmon(999999),
@@ -39,6 +39,11 @@
      & r8spectime,r8logtime(1440),r8specfin,avg_p,avg_t,avg_h,
      & tot_time,difftime,fhlogpress(999999),fhlogtemp(999999),
      & r8fhlogtime(999999)
+
+      idum=iend  ! Prevent compiler warning
+      idum=ms    ! Prevent compiler warning
+      first=0    ! Avoid compiler warning
+      last=0     ! Avoid compiler warning
 
 !     Begin
       dl='/'

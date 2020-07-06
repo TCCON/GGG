@@ -1,18 +1,21 @@
-#! /bin/csh
+#!/bin/bash
 
-if( $#argv < 2 ) then
-echo "Usage: diff_versions new_directory old_directory"
-echo "Example: ./diff_versions current_results benchmark_results"
-exit(0)
-endif
+if [ $# -lt 2 ]; then
+    echo "Usage: diff_versions new_directory old_directory"
+    echo "Example: ./diff_versions current_results benchmark_results"
+    exit 0
+fi
 
 echo " "
 echo " Computing and displaying any differences from the benchmark installation"
-diff --brief --new-file $1/pa_ggg_benchmark.mav $2/pa_ggg_benchmark.mav > differences.out
+cat differences.i2s.out > differences.out
+echo " " >> differences.out
+echo "--------------------------------" >> differences.out
+echo " " >> differences.out
+diff --brief --new-file $1/pa_ggg_benchmark.mav $2/pa_ggg_benchmark.mav >> differences.out
 diff --brief --new-file $1/pa_ggg_benchmark.ray $2/pa_ggg_benchmark.ray >> differences.out
 diff --brief --new-file $1/pa_ggg_benchmark.vav $2/pa_ggg_benchmark.vav >> differences.out
 diff --brief --new-file $1/pa_ggg_benchmark.vsw $2/pa_ggg_benchmark.vsw >> differences.out
-diff --brief --new-file $1/pa_ggg_benchmark.vav.ada.aia.eof $2/pa_ggg_benchmark.vav.ada.aia.eof >> differences.out
 echo " "
 ls -lt differences.out
 echo " "
@@ -28,5 +31,8 @@ echo "Check difference between "$1"/pa_ggg_benchmark.vav and "$2"/pa_ggg_benchma
 ./gggdiff.pl $1/pa_ggg_benchmark.vav $2/pa_ggg_benchmark.vav >> differences.out
 echo "Check difference between "$1"/pa_ggg_benchmark.vsw and "$2"/pa_ggg_benchmark.vsw" >> differences.out
 ./gggdiff.pl $1/pa_ggg_benchmark.vsw $2/pa_ggg_benchmark.vsw >> differences.out
-echo "Check difference between "$1"/pa_ggg_benchmark.vav.ada.aia.eof and "$2"/pa_ggg_benchmark.vav.ada.aia.eof" >> differences.out
-./gggdiff_eof.pl $1/pa_ggg_benchmark.vav.ada.aia.eof $2/pa_ggg_benchmark.vav.ada.aia.eof >> differences.out
+echo "Check difference between "$1"/pa_ggg_benchmark.vav.ada.aia.oof and "$2"/pa_ggg_benchmark.vav.ada.aia.oof" >> differences.out
+./gggdiff_oof.pl $1/pa_ggg_benchmark.vav.ada.aia.oof $2/pa_ggg_benchmark.vav.ada.aia.oof >> differences.out
+echo "Check difference between "$1"/pa20040721_20041222.private.nc and "$2"/pa20040721_20041222.private.nc" >> differences.out
+# note: order reversed from others
+../bin/compare_netcdf $2/pa20040721_20041222.private.nc $1/pa20040721_20041222.private.nc >> differences.out 2>&1

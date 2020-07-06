@@ -1,0 +1,25 @@
+ 21 14
+ GFIT                     Version 5.28        2020-04-24   GCT  
+ GSETUP                   Version 4.70        2020-06-29   GCT
+eed19ecbb7ace7f78ea36fec0bf34c7d  /home/jlaugh/GGG/ggg-devel/config/data_part.lst
+b2e976c6a7b471f8a3e381261b09048a  /home/jlaugh/GGG/ggg-devel/apriori/gfit_ap.gnd
+af52ead7942098d0635c96847c368583  /home/jlaugh/GGG/ggg-devel/runlogs/gnd/pa_ggg_benchmark.grl
+890935e1a57e041d3097a3a6674778c9  /home/jlaugh/GGG/ggg-devel/levels/ap_51_level_0_to_70km.gnd
+                                  /home/jlaugh/GGG/ggg-devel/models/gnd/
+                                  /home/jlaugh/GGG/ggg-devel/vmrs/gnd/
+fdade21b808a0eb6741177430902b02e  pa_ggg_benchmark.mav
+5d6bc4a301bdb9d47341bf27adef4af6  pa_ggg_benchmark.ray
+b6ecd749a6ec0c72530bec31475f4f25  /home/jlaugh/GGG/ggg-devel/isotopologs/isotopologs.dat
+db73c954a1be4986f1b93a752364dd49  /home/jlaugh/GGG/ggg-devel/windows/gnd/tccon.gnd
+580572bd6b6b05ab437ed3447be4d8a9  telluric_linelists.md5
+00000000000000000000000000000000  -
+                                  /home/jlaugh/GGG/ggg-devel/ak/j_luft_6146.pa_ggg_benchmark
+                                  /home/jlaugh/GGG/ggg-devel/spt/z
+                                  luft_6146.pa_ggg_benchmark.col
+                                  (1x,a20,1x,i2,1x,f5.3,1x,f5.1,1x,f4.1,1x,f5.2,1x,f5.2,1x,f6.4,1x,f6.4,f8.3,15(0pf7.3,1pe11.4,0pf10.5,1pe8.1))
+ 6146.90   1.60   0 1 1 0                     sf=1.000 : luft
+  Spectrum            Nit  CL    CT    CC   FS    SG    ZO   RMS/CL   Zpres AM_luft OVC_luft     VSF_luft VSF_luft_error
+ pa20040721saaaaa.043  0 1.000  -0.0  0.0  0.00  0.00 0.0000 9.9999   0.461  1.300 2.0145E+25   1.00000 1.0E-08
+ pa20040721saaaaa.119  0 1.000  -0.0  0.0  0.00  0.00 0.0000 9.9999   0.467  2.255 2.0165E+25   1.00000 1.0E-08
+ pa20041222saaaaa.019  0 1.000  -0.0  0.0  0.00  0.00 0.0000 9.9999   0.472  7.505 2.0531E+25   1.00000 1.0E-08
+ pa20041222saaaaa.020  0 1.000  -0.0  0.0  0.00  0.00 0.0000 9.9999   0.470  7.159 2.0535E+25   1.00000 1.0E-08

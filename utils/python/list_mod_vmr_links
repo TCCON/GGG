@@ -1,0 +1,83 @@
+#!/usr/bin/env python
+from __future__ import print_function
+from argparse import ArgumentParser, RawDescriptionHelpFormatter
+import datetime as dt
+import os
+import sys
+
+_me = os.path.join('$GGGPATH', 'utils', 'python', os.path.basename(__file__))
+_ftp_root = 'ftp://ccycle.gps.caltech.edu/ginput-std-sites/tarballs'
+_help_epilog = '''The links will be printed to stdout, you may redirect this into a file 
+to use with wget -i. For example, to download the files for Caltech for
+January 2018, use the command:
+
+    {me} ci 20180101 20180201 > links.txt
+
+to write the download links into the file "links.txt". Then to download
+the links, use the command:
+
+     wget --user=anonymous --password=your_ccycle_ftp_password -nd -nH -i links.txt
+
+For more details, including how to set up a .netrc file to store the
+ccycle FTP username and password, please see:
+
+https://tccon-wiki.caltech.edu/Software/GGGNext_Beta_Test/GGGNext_installation_notes#Obtaining_.mod_and_.vmr_files
+'''.format(me=_me)
+
+def make_ftp_link_list(site, start_date, end_date):
+    curr_date = start_date
+    links = []
+    while curr_date < end_date:
+        tar_file = '{site}_ggg_inputs_{ymd}.tgz'.format(site=site, ymd=curr_date.strftime('%Y%m%d'))
+        links.append('/'.join([_ftp_root, site, tar_file]))
+        curr_date += dt.timedelta(days=1)
+
+    return links
+
+
+def write_links_to_screen(site, start_date, end_date):
+    links = make_ftp_link_list(site=site, start_date=start_date, end_date=end_date)
+    print('\n'.join(links))
+
+
+def add_std_cl_args(parser):
+    def parse_site(cl_input):
+        if len(cl_input) != 2:
+            print('The value for site ({}) should be exactly two letters'.format(cl_input), file=sys.stderr)
+            sys.exit(1)
+        else:
+            return cl_input
+
+    def parse_date(cl_input, argname):
+        try:
+            return dt.datetime.strptime(cl_input, '%Y%m%d')
+        except ValueError:
+            msg = 'The value for {} ({}) was not in YYYYMMDD format or was not a valid date'.format(argname, cl_input)
+            print(msg, file=sys.stderr)
+            sys.exit(1)
+
+    parser.add_argument('site', type=parse_site, help='The two letter abbreviation of the site you wish to download data for')
+    parser.add_argument('start_date', type=lambda x: parse_date(x, 'start_date'),
+                        help='The first date to download data for, in YYYYMMDD format.')
+    parser.add_argument('end_date', type=lambda x: parse_date(x, 'end_date'),
+                        help='The last date (exclusive) to download data for, in YYYYMMDD format. Note that this is '
+                             'exclusive, so requesting 20180101 to 20180102 would only get data for 20180101.')
+
+
+def parse_write_file_args():
+    parser = ArgumentParser(formatter_class=RawDescriptionHelpFormatter)
+    parser.description = 'Create a list of GGG inputs tarballs suitable for use with wget -i'
+    add_std_cl_args(parser)
+    parser.epilog = _help_epilog
+    parser.set_defaults(driver_fxn=write_links_to_screen)
+    return vars(parser.parse_args())
+
+
+def main():
+    args = parse_write_file_args()
+    driver = args.pop('driver_fxn')
+    driver(**args)
+
+
+if __name__ == '__main__':
+    main()

@@ -1,5 +1,22 @@
 c modfft.f
 c
+c  Revision 1.7  2016/12/09
+c  Replaced all instances of "24" with MFFT
+c  and added MFFT to the common statement.
+c  Now MFFT is defined in a single place.
+c
+c  Revision 1.6  2012/03/11
+c  Replaced the obsolete arithmetic if-statements, e.g.
+c      if (m-n8pow*3-1) 50, 40, 30                                       
+c  to prevent compiler warnings such as:
+c  Warning: Obsolete: arithmetic IF statement at (1)
+c  This was done in 9 different places.
+c  Results appear identical to those previously.
+c
+c  Also added STOP statments when NFFT exceeds 2**24.
+c  Previously the program returned after writing a warning message
+
+c
 c  Revision 1.5  2004/05/14  JFB
 c    Replaced leading tabs with spaces
 c    Fixed indentation of variable declarations
@@ -60,7 +77,9 @@ c  in-place reordering and the trig functions are computed as needed.
       integer*4 nfft
       real*4 b(nfft)
 
-      integer n, i, m, nn, int, n8pow, it
+      integer n, i, m, nn, int, n8pow, it, mfftpow
+      parameter (mfftpow=24)
+
       real*4 pi8
 
       real*4 cos, sin
@@ -68,7 +87,7 @@ c  in-place reordering and the trig functions are computed as needed.
       real*4 pii, p7, p7two, c22, s22, pi2
       common /con/ pii, p7, p7two, c22, s22, pi2
 
-      pii = 2*acos(0.0)
+      pii = 4*atan(1.)
       pi8 = pii/8.
       p7 = 1./sqrt(2.)
       p7two = 2.*p7
@@ -76,43 +95,39 @@ c  in-place reordering and the trig functions are computed as needed.
       s22 = sin(pi8)
       pi2 = 2.*pii
       n = 1
-      do i=1,24
-        m = i
-        n = n*2
-        if (n.eq.nfft) go to 20
+      do i=1,mfftpow
+         m = i
+         n = n*2
+         if (n.eq.nfft) go to 20
       enddo
-      write (*,*) ' nfft not a power of 2 for ffak - stopped'
-      return
+      stop 'ffak:  nfft not a power of 2 <= 2^24 '
+c      return
 
   20  n8pow = m/3
 
 c  do a radix 2 or radix 4 iteration first if one is required
-      if ((m-n8pow*3-1) <0) then
-         goto 50
-      elseif ((m-n8pow*3-1) ==0) then
-         goto 40
-      elseif ((m-n8pow*3-1) >0) then
-         goto 30
+      if (m.gt.n8pow*3+1) then        !  GCT 201203122
+         nn = 4
+         int = n/nn
+         call r4tr (int, b(1), b(int+1), b(2*int+1), b(3*int+1))
+      elseif(m.eq.n8pow*3+1) then
+         nn = 2
+         int = n/nn
+         call r2tr (int, b(1), b(int+1))
+      else
+         nn = 1
       endif
-  30  nn = 4
-      int = n/nn
-      call r4tr (int, b(1), b(int+1), b(2*int+1), b(3*int+1))
-      go to 60
-  40  nn = 2
-      int = n/nn
-      call r2tr (int, b(1), b(int+1))
-      go to 60
-  50  nn = 1
-      ! perform radix 8 iterations
-  60  if (n8pow .gt. 0) then
-          do it=1,n8pow
-              nn = nn*8
-              int = n/nn
-              call r8trk (int,nn,b(1),b(int+1),b(2*int+1),b(3*int+1),
-     &          b(4*int+1), b(5*int+1), b(6*int+1), b(7*int+1), b(1),
-     &          b(int+1),b(2*int+1),b(3*int+1),b(4*int+1),b(5*int+1),
-     &          b(6*int+1), b(7*int+1))
-          enddo
+
+c   Perform radix 8 iterations
+      if (n8pow .gt. 0) then
+         do it=1,n8pow
+            nn = nn*8
+            int = n/nn
+            call r8trk (int,nn,b(1),b(int+1),b(2*int+1),b(3*int+1),
+     &        b(4*int+1), b(5*int+1), b(6*int+1), b(7*int+1), b(1),
+     &        b(int+1),b(2*int+1),b(3*int+1),b(4*int+1),b(5*int+1),
+     &        b(6*int+1), b(7*int+1))
+         enddo
       end if
       ! perform in-place reordering
       call ord1 (m, b)
@@ -133,9 +148,9 @@ c-----------------------------------------------------------------------
       real*4 t
 
       do k=1,int
-        t = b0(k) + b1(k)
-        b1(k) = b0(k) - b1(k)
-        b0(k) = t
+         t = b0(k) + b1(k)
+         b1(k) = b0(k) - b1(k)
+         b0(k) = t
       enddo
       return
       end
@@ -151,14 +166,14 @@ c-----------------------------------------------------------------------
       integer*4 k
       real*4 r0, r1
 
-      do 10 k=1,int
-        r0 = b0(k) + b2(k)
-        r1 = b1(k) + b3(k)
-        b2(k) = b0(k) - b2(k)
-        b3(k) = b1(k) - b3(k)
-        b0(k) = r0 + r1
-        b1(k) = r0 - r1
-  10  continue
+      do k=1,int
+         r0 = b0(k) + b2(k)
+         r1 = b1(k) + b3(k)
+         b2(k) = b0(k) - b2(k)
+         b3(k) = b1(k) - b3(k)
+         b0(k) = r0 + r1
+         b1(k) = r0 - r1
+      end do
       return
       end
 c-----------------------------------------------------------------------
@@ -169,12 +184,13 @@ c-----------------------------------------------------------------------
      &    br7, bi0, bi1, bi2, bi3, bi4, bi5, bi6, bi7)
 
       implicit none
-      integer*4 int, nn
+      integer*4 int, nn, mfftpow
+      parameter (mfftpow=24)
       real*4 br0(*), br1(*), br2(*), br3(*), br4(*),
      &  br5(*), br6(*), br7(*), bi0(*), bi1(*), bi2(*),
      &  bi3(*), bi4(*), bi5(*), bi6(*), bi7(*)
 
-      integer*4 l(24), l1, l2, l3, l4, l5, l6, l7, l8, l9, l10,
+      integer*4 l(mfftpow), l1, l2, l3, l4, l5, l6, l7, l8, l9, l10,
      &  l11, l12, l13, l14, l15, l16, l17, l18, l19, l20,
      &  l21, l22, l23, l24
 
@@ -224,19 +240,14 @@ c  intermediate results and ji steps through starting locations
 c  of the imaginary part of the intermediate results.
 
       l(1) = nn/8
-      do 40 k=2,24
-        if ((l(k-1)-2) <0) then
-           goto 10
-        elseif ((l(k-1)-2) ==0) then
-           goto 20
-        elseif ((l(k-1)-2) >0) then
-           goto 30
-        endif
-  10    l(k-1) = 2
-  20    l(k) = 2
-        go to 40
-  30    l(k) = l(k-1)/2
-  40  continue
+      do k=2,mfftpow
+         if (l(k-1).gt.2) then        !  GCT 201203122
+            l(k) = l(k-1)/2
+         else
+            if (l(k-1).lt.2) l(k-1) = 2
+            l(k) = 2
+         endif
+      end do
       piovn = pii/float(nn)
       ji = 3
       jl = 2
@@ -265,157 +276,157 @@ c  of the imaginary part of the intermediate results.
       do 120 j22=j21,l22,l21
       do 120 j23=j22,l23,l22
       do 120 jthet=j23,l24,l23
-        th2 = jthet - 2
-        if (th2 .gt. 0) go to 90
-        do 60 k=1,int
-          t0 = br0(k) + br4(k)
-          t1 = br1(k) + br5(k)
-          t2 = br2(k) + br6(k)
-          t3 = br3(k) + br7(k)
-          t4 = br0(k) - br4(k)
-          t5 = br1(k) - br5(k)
-          t6 = br2(k) - br6(k)
-          t7 = br3(k) - br7(k)
-          br2(k) = t0 - t2
-          br3(k) = t1 - t3
-          t0 = t0 + t2
-          t1 = t1 + t3
-          br0(k) = t0 + t1
-          br1(k) = t0 - t1
-          pr = p7*(t5-t7)
-          pi = p7*(t5+t7)
-          br4(k) = t4 + pr
-          br7(k) = t6 + pi
-          br6(k) = t4 - pr
-          br5(k) = pi - t6
-  60    continue
-        if (nn-8 .le. 0) go to 120
+         th2 = jthet - 2
+         if (th2 .gt. 0) go to 90
+         do k=1,int
+            t0 = br0(k) + br4(k)
+            t1 = br1(k) + br5(k)
+            t2 = br2(k) + br6(k)
+            t3 = br3(k) + br7(k)
+            t4 = br0(k) - br4(k)
+            t5 = br1(k) - br5(k)
+            t6 = br2(k) - br6(k)
+            t7 = br3(k) - br7(k)
+            br2(k) = t0 - t2
+            br3(k) = t1 - t3
+            t0 = t0 + t2
+            t1 = t1 + t3
+            br0(k) = t0 + t1
+            br1(k) = t0 - t1
+            pr = p7*(t5-t7)
+            pi = p7*(t5+t7)
+            br4(k) = t4 + pr
+            br7(k) = t6 + pi
+            br6(k) = t4 - pr
+            br5(k) = pi - t6
+         end do
+         if (nn-8 .le. 0) go to 120
 
-        k0 = int*8 + 1
-        kl = k0 + int - 1
-        do 80 k=k0,kl
-          pr = p7*(bi2(k)-bi6(k))
-          pi = p7*(bi2(k)+bi6(k))
-          tr0 = bi0(k) + pr
-          ti0 = bi4(k) + pi
-          tr2 = bi0(k) - pr
-          ti2 = bi4(k) - pi
-          pr = p7*(bi3(k)-bi7(k))
-          pi = p7*(bi3(k)+bi7(k))
-          tr1 = bi1(k) + pr
-          ti1 = bi5(k) + pi
-          tr3 = bi1(k) - pr
-          ti3 = bi5(k) - pi
-          pr = tr1*c22 - ti1*s22
-          pi = ti1*c22 + tr1*s22
-          bi0(k) = tr0 + pr
-          bi6(k) = tr0 - pr
-          bi7(k) = ti0 + pi
-          bi1(k) = pi - ti0
-          pr = (-tr3)*s22 - ti3*c22
-          pi = tr3*c22 - ti3*s22
-          bi2(k) = tr2 + pr
-          bi4(k) = tr2 - pr
-          bi5(k) = ti2 + pi
-          bi3(k) = pi - ti2
-  80    continue
-        go to 120
+         k0 = int*8 + 1
+         kl = k0 + int - 1
+         do k=k0,kl
+            pr = p7*(bi2(k)-bi6(k))
+            pi = p7*(bi2(k)+bi6(k))
+            tr0 = bi0(k) + pr
+            ti0 = bi4(k) + pi
+            tr2 = bi0(k) - pr
+            ti2 = bi4(k) - pi
+            pr = p7*(bi3(k)-bi7(k))
+            pi = p7*(bi3(k)+bi7(k))
+            tr1 = bi1(k) + pr
+            ti1 = bi5(k) + pi
+            tr3 = bi1(k) - pr
+            ti3 = bi5(k) - pi
+            pr = tr1*c22 - ti1*s22
+            pi = ti1*c22 + tr1*s22
+            bi0(k) = tr0 + pr
+            bi6(k) = tr0 - pr
+            bi7(k) = ti0 + pi
+            bi1(k) = pi - ti0
+            pr = (-tr3)*s22 - ti3*c22
+            pi = tr3*c22 - ti3*s22
+            bi2(k) = tr2 + pr
+            bi4(k) = tr2 - pr
+            bi5(k) = ti2 + pi
+            bi3(k) = pi - ti2
+         end do
+         go to 120
 
-  90    arg = float(th2)*piovn
-        c1 = cos(arg)
-        s1 = sin(arg)
-        c2 = c1**2 - s1**2
-        s2 = c1*s1 + c1*s1
-        c3 = c1*c2 - s1*s2
-        s3 = c2*s1 + s2*c1
-        c4 = c2**2 - s2**2
-        s4 = c2*s2 + c2*s2
-        c5 = c2*c3 - s2*s3
-        s5 = c3*s2 + s3*c2
-        c6 = c3**2 - s3**2
-        s6 = c3*s3 + c3*s3
-        c7 = c3*c4 - s3*s4
-        s7 = c4*s3 + s4*c3
-        int8 = int*8
-        j0 = jr*int8 + 1
-        k0 = ji*int8 + 1
-        jlast = j0 + int - 1
-        do 100 j=j0,jlast
-          k = k0 + j - j0
-          tr1 = br1(j)*c1 - bi1(k)*s1
-          ti1 = br1(j)*s1 + bi1(k)*c1
-          tr2 = br2(j)*c2 - bi2(k)*s2
-          ti2 = br2(j)*s2 + bi2(k)*c2
-          tr3 = br3(j)*c3 - bi3(k)*s3
-          ti3 = br3(j)*s3 + bi3(k)*c3
-          tr4 = br4(j)*c4 - bi4(k)*s4
-          ti4 = br4(j)*s4 + bi4(k)*c4
-          tr5 = br5(j)*c5 - bi5(k)*s5
-          ti5 = br5(j)*s5 + bi5(k)*c5
-          tr6 = br6(j)*c6 - bi6(k)*s6
-          ti6 = br6(j)*s6 + bi6(k)*c6
-          tr7 = br7(j)*c7 - bi7(k)*s7
-          ti7 = br7(j)*s7 + bi7(k)*c7
+  90     arg = float(th2)*piovn
+         c1 = cos(arg)
+         s1 = sin(arg)
+         c2 = c1**2 - s1**2
+         s2 = c1*s1 + c1*s1
+         c3 = c1*c2 - s1*s2
+         s3 = c2*s1 + s2*c1
+         c4 = c2**2 - s2**2
+         s4 = c2*s2 + c2*s2
+         c5 = c2*c3 - s2*s3
+         s5 = c3*s2 + s3*c2
+         c6 = c3**2 - s3**2
+         s6 = c3*s3 + c3*s3
+         c7 = c3*c4 - s3*s4
+         s7 = c4*s3 + s4*c3
+         int8 = int*8
+         j0 = jr*int8 + 1
+         k0 = ji*int8 + 1
+         jlast = j0 + int - 1
+         do j=j0,jlast
+            k = k0 + j - j0
+            tr1 = br1(j)*c1 - bi1(k)*s1
+            ti1 = br1(j)*s1 + bi1(k)*c1
+            tr2 = br2(j)*c2 - bi2(k)*s2
+            ti2 = br2(j)*s2 + bi2(k)*c2
+            tr3 = br3(j)*c3 - bi3(k)*s3
+            ti3 = br3(j)*s3 + bi3(k)*c3
+            tr4 = br4(j)*c4 - bi4(k)*s4
+            ti4 = br4(j)*s4 + bi4(k)*c4
+            tr5 = br5(j)*c5 - bi5(k)*s5
+            ti5 = br5(j)*s5 + bi5(k)*c5
+            tr6 = br6(j)*c6 - bi6(k)*s6
+            ti6 = br6(j)*s6 + bi6(k)*c6
+            tr7 = br7(j)*c7 - bi7(k)*s7
+            ti7 = br7(j)*s7 + bi7(k)*c7
 
-          t0 = br0(j) + tr4
-          t1 = bi0(k) + ti4
-          tr4 = br0(j) - tr4
-          ti4 = bi0(k) - ti4
-          t2 = tr1 + tr5
-          t3 = ti1 + ti5
-          tr5 = tr1 - tr5
-          ti5 = ti1 - ti5
-          t4 = tr2 + tr6
-          t5 = ti2 + ti6
-          tr6 = tr2 - tr6
-          ti6 = ti2 - ti6
-          t6 = tr3 + tr7
-          t7 = ti3 + ti7
-          tr7 = tr3 - tr7
-          ti7 = ti3 - ti7
+            t0 = br0(j) + tr4
+            t1 = bi0(k) + ti4
+            tr4 = br0(j) - tr4
+            ti4 = bi0(k) - ti4
+            t2 = tr1 + tr5
+            t3 = ti1 + ti5
+            tr5 = tr1 - tr5
+            ti5 = ti1 - ti5
+            t4 = tr2 + tr6
+            t5 = ti2 + ti6
+            tr6 = tr2 - tr6
+            ti6 = ti2 - ti6
+            t6 = tr3 + tr7
+            t7 = ti3 + ti7
+            tr7 = tr3 - tr7
+            ti7 = ti3 - ti7
 
-          tr0 = t0 + t4
-          ti0 = t1 + t5
-          tr2 = t0 - t4
-          ti2 = t1 - t5
-          tr1 = t2 + t6
-          ti1 = t3 + t7
-          tr3 = t2 - t6
-          ti3 = t3 - t7
-          t0 = tr4 - ti6
-          t1 = ti4 + tr6
-          t4 = tr4 + ti6
-          t5 = ti4 - tr6
-          t2 = tr5 - ti7
-          t3 = ti5 + tr7
-          t6 = tr5 + ti7
-          t7 = ti5 - tr7
-          br0(j) = tr0 + tr1
-          bi7(k) = ti0 + ti1
-          bi6(k) = tr0 - tr1
-          br1(j) = ti1 - ti0
-          br2(j) = tr2 - ti3
-          bi5(k) = ti2 + tr3
-          bi4(k) = tr2 + ti3
-          br3(j) = tr3 - ti2
-          pr = p7*(t2-t3)
-          pi = p7*(t2+t3)
-          br4(j) = t0 + pr
-          bi3(k) = t1 + pi
-          bi2(k) = t0 - pr
-          br5(j) = pi - t1
-          pr = (-p7)*(t6+t7)
-          pi = p7*(t6-t7)
-          br6(j) = t4 + pr
-          bi1(k) = t5 + pi
-          bi0(k) = t4 - pr
-          br7(j) = pi - t5
- 100    continue
-        jr = jr + 2
-        ji = ji - 2
-        if (ji-jl .gt. 0) go to 120
-        ji = 2*jr - 1
-        jl = jr
+            tr0 = t0 + t4
+            ti0 = t1 + t5
+            tr2 = t0 - t4
+            ti2 = t1 - t5
+            tr1 = t2 + t6
+            ti1 = t3 + t7
+            tr3 = t2 - t6
+            ti3 = t3 - t7
+            t0 = tr4 - ti6
+            t1 = ti4 + tr6
+            t4 = tr4 + ti6
+            t5 = ti4 - tr6
+            t2 = tr5 - ti7
+            t3 = ti5 + tr7
+            t6 = tr5 + ti7
+            t7 = ti5 - tr7
+            br0(j) = tr0 + tr1
+            bi7(k) = ti0 + ti1
+            bi6(k) = tr0 - tr1
+            br1(j) = ti1 - ti0
+            br2(j) = tr2 - ti3
+            bi5(k) = ti2 + tr3
+            bi4(k) = tr2 + ti3
+            br3(j) = tr3 - ti2
+            pr = p7*(t2-t3)
+            pi = p7*(t2+t3)
+            br4(j) = t0 + pr
+            bi3(k) = t1 + pi
+            bi2(k) = t0 - pr
+            br5(j) = pi - t1
+            pr = (-p7)*(t6+t7)
+            pi = p7*(t6-t7)
+            br6(j) = t4 + pr
+            bi1(k) = t5 + pi
+            bi0(k) = t4 - pr
+            br7(j) = pi - t5
+         end do
+         jr = jr + 2
+         ji = ji - 2
+         if (ji-jl .gt. 0) go to 120
+         ji = 2*jr - 1
+         jl = jr
  120  continue
 
       return
@@ -435,24 +446,17 @@ c-----------------------------------------------------------------------
       k = 4
       kl = 2
       n = 2**m
-      do 40 j=4,n,2
-        if ((k-j) >0) then
-           goto 10
-        else
-           goto 20
-        endif
-  10    t = b(j)
-        b(j) = b(k)
-        b(k) = t
-  20    k = k - 2
-        if ((k-kl) >0) then
-           goto 40
-        else
-           goto 30
-        endif
-  30    k = 2*j
-        kl = j
-  40  continue
+      do j=4,n,2
+         if (k.gt.j) then        !  GCT 20120311
+            t = b(j)
+            b(j) = b(k)
+            b(k) = t
+         endif       ! GCT 20120311
+         k = k - 2
+         if (k.gt.kl) cycle        !  GCT 20120311
+         k = 2*j
+         kl = j
+      end do
       return
       end
 c-----------------------------------------------------------------------
@@ -462,10 +466,11 @@ c-----------------------------------------------------------------------
       subroutine ord2k (m, b)
 
       implicit none
-      integer*4 m
+      integer*4 m,mfftpow
+      parameter (mfftpow=24)
       real*4 b(2**m)
 
-      integer*4 l(24), l1, l2, l3, l4, l5, l6, l7, l8, l9, l10,
+      integer*4 l(mfftpow), l1, l2, l3, l4, l5, l6, l7, l8, l9, l10,
      &  l11, l12, l13, l14, l15, l16, l17, l18, l19, l20,
      &  l21, l22, l23, l24
 
@@ -504,10 +509,10 @@ c-----------------------------------------------------------------------
       n = 2**m
       l(1) = n
       do k=2,m
-        l(k) = l(k-1)/2
+         l(k) = l(k-1)/2
       enddo
       do k=m,23
-        l(k+1) = 2
+         l(k+1) = 2
       enddo
       ij = 2
       do 40 j1=2,l1,2
@@ -534,18 +539,15 @@ c-----------------------------------------------------------------------
       do 40 j22=j21,l22,l21
       do 40 j23=j22,l23,l22
       do 40 ji=j23,l24,l23
-        if ((ij-ji) <0) then
-           goto 30
-        else
-           goto 40
-        endif
-  30    t = b(ij-1)
-        b(ij-1) = b(ji-1)
-        b(ji-1) = t
-        t = b(ij)
-        b(ij) = b(ji)
-        b(ji) = t
-  40    ij = ij + 2
+         if (ij.lt.ji) then        !  GCT 20120311
+            t = b(ij-1)
+            b(ij-1) = b(ji-1)
+            b(ji-1) = t
+            t = b(ij)
+            b(ij) = b(ji)
+            b(ji) = t
+         endif                     ! GCT 20120311
+  40     ij = ij + 2
       return
       end
 
@@ -565,7 +567,8 @@ c The subroutine is called as ffsk(b,n) where n=2**m and b is the n term
 c real array discussed above.
 
       implicit none
-      integer*4 nfft
+      integer*4 nfft,mfftpow
+      parameter (mfftpow=24)
       real*4 b(nfft)
 
       integer*4 i, n, nn, n8pow, it, int, m
@@ -576,7 +579,7 @@ c real array discussed above.
       real*4 pii, p7, p7two, c22, s22, pi2
       common /con1/ pii, p7, p7two, c22, s22, pi2
 
-      pii = real(4.d0*datan(1.d0))
+      pii = 4*atan(1.)
       pi8 = pii/8.
       p7 = 1./sqrt(2.)
       p7two = 2.*p7
@@ -584,18 +587,18 @@ c real array discussed above.
       s22 = sin(pi8)
       pi2 = 2.*pii
       n = 1
-      do i=1,24
-          m = i
-          n = n*2
-          if (n.eq.nfft) go to 20
+      do i=1,mfftpow
+         m = i
+         n = n*2
+         if (n.eq.nfft) go to 20
       enddo
-        write (*,*) ' nfft not a power of 2 < 24 for ffsk'
-        return
+      write(*,*)'mfftpow, 2**mfftpow, nfft=',mfftpow,2**mfftpow,nfft
+      stop 'ffsk: nfft not a power of 2 <= 2^24 '
 
-20      continue
+20    continue
       con = 1.0/float(nfft)
       do i=1,nfft
-          b(i) = b(i)*con
+         b(i) = b(i)*con
       enddo
 
       n8pow = m/3
@@ -607,33 +610,28 @@ c reorder the input Fourier coefficients
 
 c perform the radix 8 iterations
       if (n8pow .gt. 0) then
-        nn = n
-        do it=1,n8pow
+         nn = n
+         do it=1,n8pow
 c            write (*,'(a1,i1,$)') '^H',it
-          int = n/nn
-          call r8synk(int, nn, b, b(int+1), b(2*int+1), b(3*int+1),
+            int = n/nn
+            call r8synk(int, nn, b, b(int+1), b(2*int+1), b(3*int+1),
      &        b(4*int+1), b(5*int+1), b(6*int+1), b(7*int+1), b(1),
      &        b(int+1), b(2*int+1), b(3*int+1), b(4*int+1), b(5*int+1),
      &        b(6*int+1), b(7*int+1))
-          nn = nn/8
-        enddo
+            nn = nn/8
+         enddo
 
       end if
 
-c do a radix 2 or radix 4 iteration if one is required
-      if ((m-n8pow*3-1) <0) then
-         goto 90
-      elseif ((m-n8pow*3-1) ==0) then
-         goto 80
-      elseif ((m-n8pow*3-1) >0) then
-         goto 70
+c  Do a radix 2 or radix 4 iteration if one is required
+      if (m.gt.n8pow*3+1) then        ! GCT 20120311
+         int = n/4
+         call r4syn(int, b(1), b(int+1), b(2*int+1), b(3*int+1))
+      elseif (m.eq.n8pow*3+1) then
+         int = n/2
+         call r2tr(int, b(1), b(int+1))
       endif
-  70  int = n/4
-      call r4syn(int, b(1), b(int+1), b(2*int+1), b(3*int+1))
-      go to 90
-  80  int = n/2
-      call r2tr(int, b(1), b(int+1))
-  90  return
+      return
       end
 c
 c-----------------------------------------------------------------------
@@ -644,12 +642,13 @@ c-----------------------------------------------------------------------
      &    bi0, bi1, bi2, bi3, bi4, bi5, bi6, bi7)
 
       implicit none
-      integer*4 int, nn
+      integer*4 int, nn, mfftpow
+      parameter(mfftpow=24)
       real*4 br0(*), br1(*), br2(*), br3(*), br4(*),
      &  br5(*), br6(*), br7(*), bi0(*), bi1(*), bi2(*),
      &  bi3(*), bi4(*), bi5(*), bi6(*), bi7(*)
 
-      integer*4 l(24), l1, l2, l3, l4, l5, l6, l7, l8, l9, l10,
+      integer*4 l(mfftpow), l1, l2, l3, l4, l5, l6, l7, l8, l9, l10,
      &  l11, l12, l13, l14, l15, l16, l17, l18, l19, l20,
      &  l21, l22, l23, l24
 
@@ -695,19 +694,14 @@ c-----------------------------------------------------------------------
      & (l1,l(24))
 
       l(1) = nn/8
-      do 40 k=2,24
-        if ((l(k-1)-2) <0) then
-           goto 10
-        elseif ((l(k-1)-2) ==0) then
-           goto 20
-        elseif ((l(k-1)-2) >0) then
-           goto 30
-        endif
-  10    l(k-1) = 2
-  20    l(k) = 2
-        go to 40
-  30    l(k) = l(k-1)/2
-  40  continue
+      do k=2,mfftpow
+         if (l(k-1).le.2) then      !  GCT 20120311
+            if(l(k-1).lt.2) l(k-1) = 2
+            l(k) = 2
+         else
+            l(k) = l(k-1)/2
+         endif
+      end do
       piovn = pii/float(nn)
       ji = 3
       jl = 2
@@ -737,157 +731,145 @@ c-----------------------------------------------------------------------
       do 120 j22=j21,l22,l21
       do 120 j23=j22,l23,l22
       do 120 jthet=j23,l24,l23
-        th2 = jthet - 2
-        if (th2 >0) then
-           goto 90
-        else
-           goto 50
-        endif
-  50    do 60 k=1,int
-          t0 = br0(k) + br1(k)
-          t1 = br0(k) - br1(k)
-          t2 = br2(k) + br2(k)
-          t3 = br3(k) + br3(k)
-          t4 = br4(k) + br6(k)
-          t6 = br7(k) - br5(k)
-          t5 = br4(k) - br6(k)
-          t7 = br7(k) + br5(k)
-          pr = p7*(t7+t5)
-          pi = p7*(t7-t5)
-          tt0 = t0 + t2
-          tt1 = t1 + t3
-          t2 = t0 - t2
-          t3 = t1 - t3
-          t4 = t4 + t4
-          t5 = pr + pr
-          t6 = t6 + t6
-          t7 = pi + pi
-          br0(k) = tt0 + t4
-          br1(k) = tt1 + t5
-          br2(k) = t2 + t6
-          br3(k) = t3 + t7
-          br4(k) = tt0 - t4
-          br5(k) = tt1 - t5
-          br6(k) = t2 - t6
-          br7(k) = t3 - t7
-  60    continue
-        if ((nn-8) >0) then
-           goto 70
-        else
-           goto 120
-        endif
-  70    k0 = int*8 + 1
-        kl = k0 + int - 1
-        do 80 k=k0,kl
-          t1 = bi0(k) + bi6(k)
-          t2 = bi7(k) - bi1(k)
-          t3 = bi0(k) - bi6(k)
-          t4 = bi7(k) + bi1(k)
-          pr = t3*c22 + t4*s22
-          pi = t4*c22 - t3*s22
-          t5 = bi2(k) + bi4(k)
-          t6 = bi5(k) - bi3(k)
-          t7 = bi2(k) - bi4(k)
-          t8 = bi5(k) + bi3(k)
-          rr = t8*c22 - t7*s22
-          ri = (-t8)*s22 - t7*c22
-          bi0(k) = (t1+t5) + (t1+t5)
-          bi4(k) = (t2+t6) + (t2+t6)
-          bi1(k) = (pr+rr) + (pr+rr)
-          bi5(k) = (pi+ri) + (pi+ri)
-          t5 = t1 - t5
-          t6 = t2 - t6
-          bi2(k) = p7two*(t6+t5)
-          bi6(k) = p7two*(t6-t5)
-          rr = pr - rr
-          ri = pi - ri
-          bi3(k) = p7two*(ri+rr)
-          bi7(k) = p7two*(ri-rr)
-  80    continue
-        go to 120
-  90    arg = float(th2)*piovn
-        c1 = cos(arg)
-        s1 = -sin(arg)
-        c2 = c1**2 - s1**2
-        s2 = c1*s1 + c1*s1
-        c3 = c1*c2 - s1*s2
-        s3 = c2*s1 + s2*c1
-        c4 = c2**2 - s2**2
-        s4 = c2*s2 + c2*s2
-        c5 = c2*c3 - s2*s3
-        s5 = c3*s2 + s3*c2
-        c6 = c3**2 - s3**2
-        s6 = c3*s3 + c3*s3
-        c7 = c3*c4 - s3*s4
-        s7 = c4*s3 + s4*c3
-        int8 = int*8
-        j0 = jr*int8 + 1
-        k0 = ji*int8 + 1
-        jlast = j0 + int - 1
-        do 100 j=j0,jlast
-          k = k0 + j - j0
-          tr0 = br0(j) + bi6(k)
-          ti0 = bi7(k) - br1(j)
-          tr1 = br0(j) - bi6(k)
-          ti1 = bi7(k) + br1(j)
-          tr2 = br2(j) + bi4(k)
-          ti2 = bi5(k) - br3(j)
-          tr3 = bi5(k) + br3(j)
-          ti3 = bi4(k) - br2(j)
-          tr4 = br4(j) + bi2(k)
-          ti4 = bi3(k) - br5(j)
-          t0 = br4(j) - bi2(k)
-          t1 = bi3(k) + br5(j)
-          tr5 = p7*(t0+t1)
-          ti5 = p7*(t1-t0)
-          tr6 = br6(j) + bi0(k)
-          ti6 = bi1(k) - br7(j)
-          t0 = br6(j) - bi0(k)
-          t1 = bi1(k) + br7(j)
-          tr7 = (-p7)*(t0-t1)
-          ti7 = (-p7)*(t1+t0)
-          t0 = tr0 + tr2
-          t1 = ti0 + ti2
-          t2 = tr1 + tr3
-          t3 = ti1 + ti3
-          tr2 = tr0 - tr2
-          ti2 = ti0 - ti2
-          tr3 = tr1 - tr3
-          ti3 = ti1 - ti3
-          t4 = tr4 + tr6
-          t5 = ti4 + ti6
-          t6 = tr5 + tr7
-          t7 = ti5 + ti7
-          ttr6 = ti4 - ti6
-          ti6 = tr6 - tr4
-          ttr7 = ti5 - ti7
-          ti7 = tr7 - tr5
-          br0(j) = t0 + t4
-          bi0(k) = t1 + t5
-          br1(j) = c1*(t2+t6) - s1*(t3+t7)
-          bi1(k) = c1*(t3+t7) + s1*(t2+t6)
-          br2(j) = c2*(tr2+ttr6) - s2*(ti2+ti6)
-          bi2(k) = c2*(ti2+ti6) + s2*(tr2+ttr6)
-          br3(j) = c3*(tr3+ttr7) - s3*(ti3+ti7)
-          bi3(k) = c3*(ti3+ti7) + s3*(tr3+ttr7)
-          br4(j) = c4*(t0-t4) - s4*(t1-t5)
-          bi4(k) = c4*(t1-t5) + s4*(t0-t4)
-          br5(j) = c5*(t2-t6) - s5*(t3-t7)
-          bi5(k) = c5*(t3-t7) + s5*(t2-t6)
-          br6(j) = c6*(tr2-ttr6) - s6*(ti2-ti6)
-          bi6(k) = c6*(ti2-ti6) + s6*(tr2-ttr6)
-          br7(j) = c7*(tr3-ttr7) - s7*(ti3-ti7)
-          bi7(k) = c7*(ti3-ti7) + s7*(tr3-ttr7)
- 100    continue
-        jr = jr + 2
-        ji = ji - 2
-        if ((ji-jl) >0) then
-           goto 120
-        else
-           goto 110
-        endif
- 110    ji = 2*jr - 1
-        jl = jr
+      th2 = jthet - 2
+      if (th2.gt.0.0) go to 90        !  GCT 201203122
+      do k=1,int
+         t0 = br0(k) + br1(k)
+         t1 = br0(k) - br1(k)
+         t2 = br2(k) + br2(k)
+         t3 = br3(k) + br3(k)
+         t4 = br4(k) + br6(k)
+         t6 = br7(k) - br5(k)
+         t5 = br4(k) - br6(k)
+         t7 = br7(k) + br5(k)
+         pr = p7*(t7+t5)
+         pi = p7*(t7-t5)
+         tt0 = t0 + t2
+         tt1 = t1 + t3
+         t2 = t0 - t2
+         t3 = t1 - t3
+         t4 = t4 + t4
+         t5 = pr + pr
+         t6 = t6 + t6
+         t7 = pi + pi
+         br0(k) = tt0 + t4
+         br1(k) = tt1 + t5
+         br2(k) = t2 + t6
+         br3(k) = t3 + t7
+         br4(k) = tt0 - t4
+         br5(k) = tt1 - t5
+         br6(k) = t2 - t6
+         br7(k) = t3 - t7
+      end do
+      if (nn.le.8) cycle        !  GCT 201203122
+      k0 = int*8 + 1
+      kl = k0 + int - 1
+      do k=k0,kl
+         t1 = bi0(k) + bi6(k)
+         t2 = bi7(k) - bi1(k)
+         t3 = bi0(k) - bi6(k)
+         t4 = bi7(k) + bi1(k)
+         pr = t3*c22 + t4*s22
+         pi = t4*c22 - t3*s22
+         t5 = bi2(k) + bi4(k)
+         t6 = bi5(k) - bi3(k)
+         t7 = bi2(k) - bi4(k)
+         t8 = bi5(k) + bi3(k)
+         rr = t8*c22 - t7*s22
+         ri = (-t8)*s22 - t7*c22
+         bi0(k) = (t1+t5) + (t1+t5)
+         bi4(k) = (t2+t6) + (t2+t6)
+         bi1(k) = (pr+rr) + (pr+rr)
+         bi5(k) = (pi+ri) + (pi+ri)
+         t5 = t1 - t5
+         t6 = t2 - t6
+         bi2(k) = p7two*(t6+t5)
+         bi6(k) = p7two*(t6-t5)
+         rr = pr - rr
+         ri = pi - ri
+         bi3(k) = p7two*(ri+rr)
+         bi7(k) = p7two*(ri-rr)
+      end do
+      go to 120
+  90  arg = float(th2)*piovn
+      c1 = cos(arg)
+      s1 = -sin(arg)
+      c2 = c1**2 - s1**2
+      s2 = c1*s1 + c1*s1
+      c3 = c1*c2 - s1*s2
+      s3 = c2*s1 + s2*c1
+      c4 = c2**2 - s2**2
+      s4 = c2*s2 + c2*s2
+      c5 = c2*c3 - s2*s3
+      s5 = c3*s2 + s3*c2
+      c6 = c3**2 - s3**2
+      s6 = c3*s3 + c3*s3
+      c7 = c3*c4 - s3*s4
+      s7 = c4*s3 + s4*c3
+      int8 = int*8
+      j0 = jr*int8 + 1
+      k0 = ji*int8 + 1
+      jlast = j0 + int - 1
+      do j=j0,jlast
+         k = k0 + j - j0
+         tr0 = br0(j) + bi6(k)
+         ti0 = bi7(k) - br1(j)
+         tr1 = br0(j) - bi6(k)
+         ti1 = bi7(k) + br1(j)
+         tr2 = br2(j) + bi4(k)
+         ti2 = bi5(k) - br3(j)
+         tr3 = bi5(k) + br3(j)
+         ti3 = bi4(k) - br2(j)
+         tr4 = br4(j) + bi2(k)
+         ti4 = bi3(k) - br5(j)
+         t0  = br4(j) - bi2(k)
+         t1  = bi3(k) + br5(j)
+         tr5 = p7*(t0+t1)
+         ti5 = p7*(t1-t0)
+         tr6 = br6(j) + bi0(k)
+         ti6 = bi1(k) - br7(j)
+         t0  = br6(j) - bi0(k)
+         t1  = bi1(k) + br7(j)
+         tr7 = (-p7)*(t0-t1)
+         ti7 = (-p7)*(t1+t0)
+         t0  = tr0 + tr2
+         t1  = ti0 + ti2
+         t2  = tr1 + tr3
+         t3  = ti1 + ti3
+         tr2 = tr0 - tr2
+         ti2 = ti0 - ti2
+         tr3 = tr1 - tr3
+         ti3 = ti1 - ti3
+         t4  = tr4 + tr6
+         t5  = ti4 + ti6
+         t6  = tr5 + tr7
+         t7  = ti5 + ti7
+         ttr6 = ti4 - ti6
+         ti6 = tr6 - tr4
+         ttr7 = ti5 - ti7
+         ti7 = tr7 - tr5
+         br0(j) = t0 + t4
+         bi0(k) = t1 + t5
+         br1(j) = c1*(t2+t6) - s1*(t3+t7)
+         bi1(k) = c1*(t3+t7) + s1*(t2+t6)
+         br2(j) = c2*(tr2+ttr6) - s2*(ti2+ti6)
+         bi2(k) = c2*(ti2+ti6) + s2*(tr2+ttr6)
+         br3(j) = c3*(tr3+ttr7) - s3*(ti3+ti7)
+         bi3(k) = c3*(ti3+ti7) + s3*(tr3+ttr7)
+         br4(j) = c4*(t0-t4) - s4*(t1-t5)
+         bi4(k) = c4*(t1-t5) + s4*(t0-t4)
+         br5(j) = c5*(t2-t6) - s5*(t3-t7)
+         bi5(k) = c5*(t3-t7) + s5*(t2-t6)
+         br6(j) = c6*(tr2-ttr6) - s6*(ti2-ti6)
+         bi6(k) = c6*(ti2-ti6) + s6*(tr2-ttr6)
+         br7(j) = c7*(tr3-ttr7) - s7*(ti3-ti7)
+         bi7(k) = c7*(ti3-ti7) + s7*(tr3-ttr7)
+      end do
+      jr = jr + 2
+      ji = ji - 2
+      if (ji.gt.jl) cycle        !  GCT 201203122
+      ji = 2*jr - 1
+      jl = jr
  120  continue
       return
       end
@@ -905,16 +887,16 @@ c-----------------------------------------------------------------------
       integer*4 k
       real*4 t0, t1, t2, t3
 
-      do 10 k=1,int
-        t0 = b0(k) + b1(k)
-        t1 = b0(k) - b1(k)
-        t2 = b2(k) + b2(k)
-        t3 = b3(k) + b3(k)
-        b0(k) = t0 + t2
-        b2(k) = t0 - t2
-        b1(k) = t1 + t3
-        b3(k) = t1 - t3
-  10  continue
+      do k=1,int
+         t0 = b0(k) + b1(k)
+         t1 = b0(k) - b1(k)
+         t2 = b2(k) + b2(k)
+         t3 = b3(k) + b3(k)
+         b0(k) = t0 + t2
+         b2(k) = t0 - t2
+         b1(k) = t1 + t3
+         b3(k) = t1 - t3
+      end do
       return
       end
 c-----------------------------------------------------------------------

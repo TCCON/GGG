@@ -1,11 +1,11 @@
       subroutine read_sunrun(lun,col1,specname,object,tcorr,oblat,
      &   oblon,obalt,tins,pins,hins,tout,pout,hout,sia,fvsi,
      &   wspd,wdir,fmin,fmax,fsf,lasf,wavtkr,aipl,tel_mag,istat)
-c
-c  Reads a single record from a sunrun file, which must already have been opened.
-c  The goal of this subroutine is to hide all the of the code
-c  that depends on the sunrun format into pair of subroutines
-c  (writsunrun & readsunrun).
+
+c  Reads a single record from a sunrun file, which must already
+c  have been opened to logical unit number LUN.  The goal of this
+c  subroutine is to hide all the of the code that depends on the
+c  sunrun format into pair of subroutines (writsunrun & readsunrun).
 c
 c  This has two advantages:
 c  1) It simplifies the calling programs
@@ -58,6 +58,7 @@ c    istat
      & obalt,tins,pins,hins,tout,pout,hout,sia,fvsi,wspd,wdir,
      & fmin,fmax,fsf,lasf,wavtkr,aipl,tel_mag 
       if( col1.eq.':' .or. col1.eq.';' ) go to 1
+c      write(*,*) specname
 
  34   format(a1,a57,1x,i2,f8.0,f9.4,f10.4,
      & f7.3,f6.1,f8.2,f6.1,f6.1,f8.2,f6.1,f7.1,f7.4,f6.1,f6.0,

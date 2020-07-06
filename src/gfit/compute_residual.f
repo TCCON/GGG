@@ -3,6 +3,7 @@ c
 c  Computes the difference between vectors OBSRVD and CALCUL
 c  If MODE=1 it returns the arithmetic residual = OBSRVD-CALCUL
 c  If MODE=2 it returns the logarithmic residual = CALCUL*LOGe[OBSRVD/CALCUL]
+c  In the limit of small residuals are small, these two definitions are the same
 c
 c  Inputs:
 c        MODE         I*4   Mode
@@ -15,15 +16,14 @@ c        RESIDS(NMP)  R*4   The residual spectrum
 c
 c  Explanation:
 c     In situations where you are solving a non-linear equation
-c  of the form  y(i) = a.exp(-c(i).x(j)), you achieve much
+c  of the form  y(i,j) = a.exp(-c(i).x(j)), you achieve much
 c  faster convergence if you calculate the residuals as
 c     RESIDS=CALCUL*LOGe(OBSRVD/CALCUL)
 c  rather than the more usual
 c     RESIDS=OBSRVD-CALCUL
 c
-c  To understand why, assume that
-c  x' is the current best estimate of the state vector, and
-c  x is its unknown true value. Hence
+c  To understand why, assume that x' is the current best estimate
+c  of the state vector, and x is its unknown true value. Hence
 c     OBSRVD = a.exp(-c.x)
 c     CALCUL = a.exp(-c.x')
 c  Therefore
@@ -31,8 +31,8 @@ c     OBSRVD/CALCUL = exp(-c.(x-x'))
 c     LOGe[OBSRVD/CALCUL] = -c.(x-x')
 c  So   x - x' = LOGe[OBSRVD/CALCUL]/c 
 c  So the update to x' is proportional to LOGe[OBSRVD/CALCUL]
-c  Hence the problem is much more linear if the residuals are
-c  computed as LOGe[OBSRVD/CALCUL] rather than [OBSRVD-CALCUL]
+c  Hence the problem is linear if the residuals are computed
+c  as LOGe[OBSRVD/CALCUL] rather than [OBSRVD-CALCUL]
 c
 c  The problem with so-called logarithmic residuals is that
 c  the LOG function has a nasty habit of returning NAN's if,
@@ -55,14 +55,14 @@ c            =CALCUL*LOGe(1+(OBSRVD-CALCUL)/CALCUL)
 c            =CALCUL*(OBSRVD-CALCUL)/CALCUL)
 c            =OBSRVD-CALCUL
 c
-c This means that if the spectral fits are good, it makes no
-c difference whether we use arithmetic or logarithmic residuals 
-c They are the same thing.
+c  This means that if the spectral fits are good, it makes no
+c  difference whether we use arithmetic or logarithmic residuals:
+c  they are the same thing.
 c
 c  To avoid the NaN problem we don't actually use the LOGe function.
 c  Instead we approximate LOGe(1+del)= del - del^2/2 + del^3/3
-c  LOGe(1+del)= del*(1-0.5*del*(1+0.6666*del) 
-c  CALCUL*LOGe(1+del)= RES*(1-0.5*(RES/CALCUL)*(1+0.666*RES/CALCUL)) 
+c  LOGe(1+del)= del*(1-0.5*del*(1-0.6666*del)) 
+c  CALCUL*LOGe(1+del) = RES*(1-0.5*(RES/CALCUL)*(1-0.666*RES/CALCUL)) 
 c    RESIDUAL=CALCUL*LOGe(OBSRVD/CALCUL)
 c            =CALCUL*LOGe(1+(OBSRVD-CALCUL)/CALCUL)
 c            =CALCUL*(OBSRVD-CALCUL)/CALCUL*(1-0.5*(OBSRVD-CALCUL)/CALCUL)
@@ -74,7 +74,10 @@ c            =(OBSRVD-CALCUL)*(3-OBSRVD/CALCUL)/2
 c            =(OBSRVD-CALCUL)*(2*CALCUL+CALCUL-OBSRVD)/CALCUL/2
 c   RES= OBSRVD-CALCUL
 c   CORR = RES/CALCUL
-c   CALCUL*LOGe(1+del)= RES*(1-0.5*CORR*(1+0.666*CORR)) 
+c   CALCUL*LOGe(1+del)= RES*(1-0.5*CORR*(1-0.666*CORR)) 
+c
+c   To speed up the calculation, the implementation below
+c   does not utilize the second-order term
 
       implicit none
       integer*4 mode,nmp,imp
@@ -82,11 +85,11 @@ c   CALCUL*LOGe(1+del)= RES*(1-0.5*CORR*(1+0.666*CORR))
 
 c  Calculate residuals
       call vsub(obsrvd,1,calcul,1,resids,1,nmp) ! residuals
-      if(mode.gt.1) then ! use logarithmic residuals 1'st convergence
+      if(mode.gt.1) then ! use logarithmic residuals
          do imp=1,nmp
-            if (calcul(imp).ne.0) then
-            resoc=resids(imp)/calcul(imp)
-            if(abs(resoc).lt.0.5) resids(imp)=resids(imp)*(1-resoc/2)
+            if(abs(calcul(imp)).gt.0) then
+               resoc=resids(imp)/calcul(imp)
+               if(abs(resoc).lt.0.5) resids(imp)=resids(imp)*(1-resoc/2)
             endif
          end do   ! imp=1,nmp
       endif   !  mode.gt.1

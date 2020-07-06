@@ -22,14 +22,14 @@ OBJECTS := $(patsubst %.f, %.o, $(SOURCES))
 
 #  Compile the .f files that are newer than the corresponding .o files
 .f.o:
-	$(FC)  $(CFLAGS) -o $@ $<
+	$(FC)  $(CFLAGS) -mcmodel=medium -o $@ $<
 
 #  Link the object files to create the executable
 $(TARGET) : $(OBJECTS)
 	$(FC) $(LDFLAGS) -o $(GGGPATH)/bin/$@ $^
 
 #  Add dependencies to object files
-$(TSRC)/adjust_solar_linelist.o:  $(GGGPATH)/src/ggg_const_params.f $(TSRC)/params.f
+$(TSRC)/adjust_solar_linelist.o:  $(TSRC)/params.f
 
 clean:
 	rm -f $(OBJECTS) $(GGGPATH)/bin/$(TARGET)

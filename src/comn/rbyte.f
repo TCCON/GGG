@@ -22,12 +22,12 @@ c
       byte b(lenw,nword),temporary
 
       do iword=1,nword
-          do ibyte=1,lenw/2
-              kbyte=lenw+1-ibyte
-              temporary=b(kbyte,iword)
-              b(kbyte,iword)=b(ibyte,iword)
-              b(ibyte,iword)=temporary
-          end do              !  ibyte=1,lenw/2
+         do ibyte=1,lenw/2
+            kbyte=lenw+1-ibyte
+            temporary=b(kbyte,iword)
+            b(kbyte,iword)=b(ibyte,iword)
+            b(ibyte,iword)=temporary
+         end do              !  ibyte=1,lenw/2
       end do               !  iword=1,nword
       return
       end
