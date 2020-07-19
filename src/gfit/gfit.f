@@ -472,5 +472,5 @@ c Do the real spectral fitting.
 
       close(lunw_col)
       close(lunw_cbf)
-      stop
+c     stop
       end

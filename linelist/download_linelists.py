@@ -21,9 +21,9 @@ CHUNK_SIZE = 1000000
 LINELIST_INFO_FILE = '.linelist_info.json'
 PREV_LINELISTS_FILE = '.prev_linelist_info.json'
 ALWAYS_KEEP_FILES = {
-    os.path.relpath(__file__),
-    os.path.relpath(LINELIST_INFO_FILE),
-    os.path.relpath(PREV_LINELISTS_FILE),
+    os.path.basename(__file__),
+    os.path.basename(LINELIST_INFO_FILE),
+    os.path.basename(PREV_LINELISTS_FILE),
 }
 
 class QuitOnInput(Exception):
@@ -191,6 +191,9 @@ def check_files(all_downloads, prev_linelists):
     to_delete = []
     to_del_no_backup = []
     already_present = [[] for _ in all_downloads]
+    # must do the relpath operation here, because we aren't in the linelist directory until the main function
+    # is called.
+    always_keep = [os.path.relpath(p) for p in ALWAYS_KEEP_FILES]
 
     # assume we are in the linelist subdirectory
     for currdir, subdirs, basenames in os.walk('.'):
@@ -200,7 +203,7 @@ def check_files(all_downloads, prev_linelists):
                 # Ignore hidden files and backups we've made at any directory level
                 continue
         
-            if fullname in ALWAYS_KEEP_FILES:
+            if fullname in always_keep:
                 # Ignore this file and the list of files to download
                 continue
 

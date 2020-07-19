@@ -1036,8 +1036,9 @@ c  name plus two for quotes (to facilitate free form reading).
             write(cbffile_format(3:4),'(i2.2)') lspmax+2
             write(lunw_cbf,cbffile_format)
      &      '"'//specname_rl(:lspmax)//'"',
-     &      wlimit(cfamp/cont_level, 'f8.5'),cfperiod*graw,cfphase,
-     &      (cx(j+ntg),j=1,ncbf)
+     &      wlimit(dble(cfamp/cont_level), 'f8.5'),cfperiod*graw,
+     &      cfphase,(cx(j+ntg),j=1,ncbf)
+
 
 c  Write the state vector and uncertainties to the .col file
             call write_col(lunw_col,colfile_format,nspectra0-nspectra,

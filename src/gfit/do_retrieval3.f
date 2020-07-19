@@ -119,6 +119,9 @@ c      character winfo*(*),ss(nfp)*4
       cont_tilt=0.0
       cont_curv=0.0
       nmpfp=nmp+nfp
+      cfamp=0.0
+      cfperiod=0.0
+      cfphase=0.0
 
 c  Check that static array dimensions are adequate
       if(nfp.gt.mfp) then

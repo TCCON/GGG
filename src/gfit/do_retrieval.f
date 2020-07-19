@@ -119,6 +119,9 @@ c      logical prf_flag(ntg)
       cont_tilt=0.0
       cont_curv=0.0
       nmpfp=nmp+nfp
+      cfamp=0.0
+      cfperiod=0.0
+      cfphase=0.0
 
 c      do j=1,ntg
 c        prf_flag(j)=.false.

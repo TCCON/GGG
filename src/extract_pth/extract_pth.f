@@ -112,9 +112,12 @@ c -------------------------------------------------------------
       open(lunw,file='extract_pth.out', status='unknown')
       write(lunw,*)4,9
       write(lunw,*)version
-      write(lunw,*)' Runlog= ',runlog
-      write(lunw,*)'year  doy   uthour   tout      tmod       pout     
-     &pmod       hout     hmod'
+c JLL: Mysterious newlines appear in `runlog` when compiled under
+c ifort. trim() seems to remove them (and so keep the header the
+c correct number of lines)
+      write(lunw,'(a)')' Runlog= '//trim(runlog)
+      write(lunw,'(a)')' year  doy   uthour   tout      tmod       pout
+     &     pmod       hout     hmod'
       
       open(lunr_rlg,file=gggdir(:lrt)//'runlogs'//dl//ext//dl//runlog,
      & status='old')
