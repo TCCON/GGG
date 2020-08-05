@@ -1,5 +1,17 @@
  GGG Code Updates.
 
+COLLATE_RESULTS             Version 2.09  2020-07-31  GCT JLL
+AVERAGE_RESULTS             Version 1.37  2020-07-31  GCT JLL
+APPLY_AIRMASS_CORRECTION    Version 1.37  2020-07-31  GCT JLL
+APPLY_INSITU_CORRECTION     Version 1.39  2020-07-31  GCT JLL
+WRITE_OFFICIAL_OUTPUT_FILE  Version 1.38  2020-07-31  GCT JLL
+ All these programs updated to use ISCLOSE_S or ISCLOSE_D as
+ appropriate to compare a value vs. a fill value. NB: 
+ average_with_add_bias *not* updated. Corrected bug in average
+ results that caused NaNs and Infinities when all windows for
+ a gas with >2 windows were fill values. Fill value should now 
+ stay constant across all these programs.
+
 DIURNRET     Version 4.30      2020-06-30   GCT'
  Increased the size of "ray_format” from 20 to 64 to accomodate
  the longer format statement. Aslo fixed a dozen compiler warnings.

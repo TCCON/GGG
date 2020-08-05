@@ -12,7 +12,8 @@ SOURCES := \
   $(COMN)/fbc.f \
   $(COMN)/wlimit.f \
   $(COMN)/substr.f \
-  $(COMN)/get_ggg_environment.f
+  $(COMN)/get_ggg_environment.f \
+  $(COMN)/isclose_s.f
 
 OBJECTS := $(patsubst %.f, %.o, $(SOURCES))
 

@@ -97,7 +97,9 @@ c the runlogs directory)
 c -------------------------------------------------------------
 
 c -------- Parse the runlog/model user input ------------------
-      ldot=index(runlog,'.')
+c Find the index of the last '.' in the runlog to get the viewing
+c geometry.
+      ldot=lnbc(runlog)-3
       if(runlog(ldot+1:ldot+1).eq.'g') ext='gnd'
       if(runlog(ldot+1:ldot+1).eq.'b') ext='bal'
 c     write(*,*)ldot,ext

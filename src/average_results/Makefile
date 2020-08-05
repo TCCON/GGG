@@ -17,7 +17,9 @@ SOURCES := \
   $(COMN)/lnbc.f \
   $(COMN)/substr.f \
   $(COMN)/read_postproc_header.f \
-  $(COMN)/write_postproc_header.f 
+  $(COMN)/write_postproc_header.f \
+  $(COMN)/isclose_s.f \
+  $(COMN)/wlimit.f
 
 OBJECTS := $(patsubst %.f, %.o, $(SOURCES))
 

@@ -29,7 +29,7 @@ c  in completely saturated windows in which GFIT has increased CL.
       include "../comn/postproc_params.f"
 
       integer irow,jtg,j,k,ktg,kt0,lnbc,lloc,idot,lr,
-     & iggg,igog,lsf,sflag,
+     & iggg,igog,lsf,sflag,mask1,mask2,
      & npp,ldot,totnit,ntc,mlabel,mval,jval,lunw_nts,
      & lunr_mul,lunr_rl,lunr_col,lunw_rpt,lunw_xsw,lunw_sites,
      & lunw_trp,mcol,ncol,icol,mrow,lnit,lg,ld,tnt,tnd,
@@ -103,6 +103,7 @@ c     & rversion,
 
       logical append_qcflag
       logical append_spectrum_name
+      logical isclose_s ! function to test value equivalence within float erro
 
       data ntot/msite*0/
       data nday/msite*0/
@@ -124,7 +125,7 @@ c     & rversion,
 
       call get_ggg_environment(gggdir,dl)
       version=
-     &' collate_results          Version 2.08    2020-04-19   GCT,JLL'
+     &' collate_results          Version 2.09    2020-07-31   GCT,JLL'
       write(6,*) version
       lr=0
 
@@ -343,6 +344,18 @@ c         New site
                lg=lnbc(specname_rlg)
                ldot=index(specname_rlg,'.')
                if(ldot.eq.0) ldot=lnbc(specname_rlg)+1
+               if(ldot.eq.17) then ! TCCON spectrum naming convention
+                 mask1=ldot-1
+                 mask2=ldot-1
+               else if(ldot.eq.9) then ! MkIV spectrum naming convention
+                 mask1=2
+                 mask2=3
+               else
+c Other spectrum naming convention; this will just check to see whether
+c the spectrum name is identical (i.e., a do-nothing check)
+                 mask1=2
+                 mask2=1
+               end if
                delta_t=zpdtim-zpdwas
 c               write(*,*)lg,ldot,specname_rlg(:lg),delta_t, max_delta_t
 c
@@ -356,7 +369,10 @@ c
 c  The following if-statement shouldn't be necessary. But occasionally
 c  you get simultaneous InGaAs/Si scans with very different ZPD times.
 c  You don't want them to have separate entries in the .vsw file. So
-                  if(specname_rlg(4:lg).ne.specname_was(4:lg)
+                  if(specname_rlg(:mask1-1)//specname_rlg(mask2+1:lg)
+     &               .ne.
+     &               specname_was(:mask1-1)//specname_was(mask2+1:lg)
+c                  if(specname_rlg(4:lg).ne.specname_was(4:lg)
 c                  if(specname_rlg(4:ldot-2).ne.specname_was(4:ldot-2)
 c     &           .or. specname_rlg(ldot:).ne.specname_was(ldot:)
      &            ) then
@@ -601,8 +617,8 @@ c  to support both the new and the old runlog formats.
             jval=jval+1     !    jval=k+ncol*(irow-1)
 c            if( yobs(jval).eq.ymiss .and.
 c     &          yerr(jval).eq.ymiss) then
-            if( abs(yobs(jval)-ymiss).lt.small*ymiss .and.
-     &          abs(yerr(jval)-ymiss).lt.small*ymiss) then
+            if( isclose_s(yobs(jval), ymiss) .and.
+     &          isclose_s(yerr(jval), ymiss) ) then
                nmiss=nmiss+1
                write(lunw_miss,*)'Missing: ',windows(k),
      &       '  '//spectrum(irow)

@@ -54,6 +54,8 @@ c
 
       integer*4 specflag,idum 
       logical isavg  ! set to .true. if corrected averaged Xgas value, not individual windows
+      logical isclose_d  ! function used to test is values are within
+                         ! floating point error of fill value
       specflag=0
 
       idum=mcolvav   ! Avoid compiler warning (unused parameter)
@@ -66,7 +68,7 @@ c
       idum=ncell     ! Avoid compiler warning (unused parameter)
 
       version=
-     &' apply_airmass_correction   Version 1.36 2020-06-08   GCT,JLL'
+     &' apply_airmass_correction   Version 1.37 2020-07-31   GCT,JLL'
       write(*,*) version
       call get_ggg_environment(gggdir, dl)
       ko2=0
@@ -168,10 +170,6 @@ c  append all the airmass dependent correction factors
 c  Check that we have enough columns to read data into
       if(ncolvxx.gt.mcolvsw) stop 'increase mcolvsw'
 
-c  Reduce ymiss slightly so that we're guaranteed to 
-c  get all missing values greater that it
-      ymiss = ymiss * 0.9999
-      
       call substr(header,headarr,mcolvsw,kcolvxx)
       if (index(header,'spectrum') .gt. 0) specflag=1
 
@@ -246,7 +244,7 @@ c         if(kh2o.gt.0) yrow(kluft)=yrow(kluft)-yrow(kh2o)*18.02/28.964
          endif
          sbf=((yrow(ksza)+13)/(90+13))**3-((45.+13)/(90+13))**3  ! Symmetric Basis Function
          do k=naux+1,ncolvxx-1,2
-            if(yrow(k).lt.ymiss) then
+            if(.not. isclose_d(yrow(k), ymiss)) then
                if(k.eq.ko2 .or. .not. isavg) then
 c  JLL 2020-06-04: error propagation is handled differently 
                   gfu=yrow(k+1)   ! Gas Fractional Uncertainty
@@ -257,7 +255,7 @@ c                  write(*,*) 'Not adding O2 error for column ', k ! debugging o
                endif
                yrow(k)=yrow(k)/vc_air/(1+cf(k)*sbf)   ! apply airmass correction
                yrow(k+1)=gfu/vc_air/(1+cf(k)*sbf)
-            endif  ! if(yrow(k).lt.ymiss
+            endif  ! if(.not. isclose_d(yrow(k), ymiss))
          end do
          if (specflag .eq. 1) then
             write(lunw,output_fmt) specname, col1, (yrow(j),j=2,ncolvxx)

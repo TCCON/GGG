@@ -108,6 +108,7 @@ c     & yemin,yemax,
      & scal(ncol),serr(ncol),rew(nrow),cew(ncol),tew,twas
       real*8 num_irow,den_irow,num_jcol,den_jcol,wt,
      & chi2_irow,chi2_jcol,chi2
+      logical isclose_s  ! function to compare values with floating point error
 
        small=1.0e-18
 c      parameter (ww=0.04)   !  inverse a priori uncertainty (variance) on SCAL = 1 +/-5 
@@ -162,8 +163,10 @@ c            write(*,*) 'irow,ybar(irow)  aa=',irow,ybar(irow)
             do jcol=1,ncol
 c               if(yerr(irow,jcol).ne.ymiss .and.
 c     &         yerr(irow,jcol).ne.0.) then
-               if( abs(yerr(irow,jcol)-ymiss).gt.small ! if(yerr.ne.ymiss)
-     &         .and. abs(yerr(irow,jcol)).gt.small) then ! if(yerr.ne.0)
+c                if( abs(yerr(irow,jcol)-ymiss).gt.small 
+c     &         .and. abs(yerr(irow,jcol)).gt.small) then
+               if( .not. isclose_s(yerr(irow,jcol), ymiss) ! if(yerr.ne.ymiss)
+     &         .and. abs(yerr(irow,jcol)).gt.small ) then ! if(yerr.ne.0)
                   wt=scal(jcol)/yerr(irow,jcol)
                   num_irow=num_irow+wt*yobs(irow,jcol)/yerr(irow,jcol)
                   den_irow=den_irow+wt**2
@@ -174,12 +177,14 @@ c     &         yerr(irow,jcol).ne.0.) then
                endif
             end do
             if (nval_irow.gt.0) then
+               ybar(irow)=sngl(num_irow/den_irow)
+               eybar(irow)=sngl(1/dsqrt(den_irow))
                rew(irow)=sngl(dsqrt(chi2_irow/nval_irow))
             else
+               ybar(irow)=ymiss
+               eybar(irow)=ymiss
                rew(irow)=ymiss
             endif
-            ybar(irow)=sngl(num_irow/den_irow)
-            eybar(irow)=sngl(1/dsqrt(den_irow))
 c            write(*,*) 'irow,ybar(irow) bb=',irow,ybar(irow),
 c     &      num_irow,den_irow
          end do  ! do irow=1,nrow
@@ -196,7 +201,8 @@ c            write(*,*)'jit,jcol,spscal,apserr=',
 c     &      jit,jcol,apscal(jcol),apserr(jcol),apscal(jcol),scal(jcol)
             nval_jcol=0
             do irow=1,nrow
-               if(abs(yerr(irow,jcol)-ymiss) .gt. small  ! if(yerr.ne.ymiss)
+c               if( .not. isclose_s(yerr(irow, jcol), ymiss)  ! if(yerr.ne.ymiss)
+                if(abs(yerr(irow,jcol)-ymiss) .gt. small
      &         .and. abs(yerr(irow,jcol)) .gt. small) then  ! if(yerr.ne.0)
                   wt=ybar(irow)/yerr(irow,jcol)
                   num_jcol=num_jcol+wt*yobs(irow,jcol)/yerr(irow,jcol)
@@ -211,8 +217,6 @@ c     &            yerr(irow,jcol))**2
 
                   if (((yobs(irow,jcol)-ybar(irow)*scal(jcol))/
      &            yerr(irow,jcol))**2 .gt. ymiss) then
-                    write(*,*)irow,jcol,yobs(irow,jcol),yerr(irow,jcol),
-     &              ybar(irow),scal(jcol)
                      stop 'chi2_jcol = Inf'
                   endif
                else
@@ -247,13 +251,15 @@ c         write(*,*)'chi2,nval=',chi2,nval
       end do  !  jit=1,mit
 c      write(*,*)'mit,nit,tew=',mit,jit-1,tew,chi2,nval
 c
-c  Scale EYBAR by MAX(1,TEW)
+c  Scale EYBAR by MAX(1,TEW) (unless EYBAR is a fill value)
 c  Not scaling EYBAR would imply that the GFIT-supplied error bars are correct
 c  Scaling EYBAR by TEW would imply that the residuals represent the measurement incertainties
       sf=amax1(1.0,tew)
       do irow=1,nrow
-         eybar(irow)=sf*eybar(irow)
+        if(.not. isclose_s(eybar(irow), ymiss))
+     &      eybar(irow)=sf*eybar(irow)
       end do
+
 
       return
       end

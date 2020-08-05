@@ -1,16 +1,16 @@
  21 22
  GFIT                     Version 5.28        2020-04-24   GCT  
  GSETUP                   Version 4.70        2020-06-29   GCT
-e048cfd4778fdc8f351545810f5fa404  /home/dwunch/ggg2020/config/data_part.lst
+9abea7fd1dd86df51a331fb96a7a598f  /home/dwunch/ggg2020/config/data_part.lst
 b2e976c6a7b471f8a3e381261b09048a  /home/dwunch/ggg2020/apriori/gfit_ap.gnd
 af52ead7942098d0635c96847c368583  /home/dwunch/ggg2020/runlogs/gnd/pa_ggg_benchmark.grl
 890935e1a57e041d3097a3a6674778c9  /home/dwunch/ggg2020/levels/ap_51_level_0_to_70km.gnd
                                   /home/dwunch/ggg2020/models/gnd/
                                   /home/dwunch/ggg2020/vmrs/gnd/
-0e76affdc5c75a673c8c1bacf313356b  pa_ggg_benchmark.mav
+8b6a58343a648d75cbb5cd7d264eb56f  pa_ggg_benchmark.mav
 5d6bc4a301bdb9d47341bf27adef4af6  pa_ggg_benchmark.ray
 b6ecd749a6ec0c72530bec31475f4f25  /home/dwunch/ggg2020/isotopologs/isotopologs.dat
-db73c954a1be4986f1b93a752364dd49  /home/dwunch/ggg2020/windows/gnd/tccon.gnd
+9dabd956bcbbea1d9233328d7eab5bb5  /home/dwunch/ggg2020/windows/gnd/tccon.gnd
 580572bd6b6b05ab437ed3447be4d8a9  telluric_linelists.md5
 893b127f4833ed5d9904ba989fcbb2ab  /home/dwunch/ggg2020/linelist/solar_merged.108
                                   /home/dwunch/ggg2020/ak/j_hdo_6330.pa_ggg_benchmark

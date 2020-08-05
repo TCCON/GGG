@@ -34,6 +34,7 @@ c
      & addn_lines(maddln)*(mcharhead)
       
       integer specflag,idum
+      logical isclose_d ! function to test if values are within float error
       specflag=0
 
       idum=mauxcol   ! Avoid compiler warning (unused parameter)
@@ -46,7 +47,7 @@ c
       idum=ncell     ! Avoid compiler warning (unused parameter)
 
       version=
-     & ' apply_insitu_correction   Version 1.38  2020-03-20   GCT,JLL'
+     & ' apply_insitu_correction   Version 1.39  2020-07-31   GCT,JLL'
       write(*,*) version
 
       call get_ggg_environment(gggdir, dl)
@@ -168,7 +169,7 @@ c  appropriate correction factors.
             read(lunr,input_fmt,end=99) c1,(yrow(j),j=1,ncolvav)
          endif
          do k=naux+1,ncolvav-1,2
-              if(yrow(k).lt.ymiss) then  ! Dont correct missing values
+              if(.not. isclose_d(yrow(k), ymiss)) then  ! Dont correct missing values
                  yrow(k)=yrow(k)/cf(k)
                  yrow(k+1)=yrow(k+1)/cf(k)
               endif  !  (yrow(k).lt.ymiss) then

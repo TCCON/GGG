@@ -60,6 +60,8 @@ c     & nhead_gaa,nrow_gaa,ngas_gaa,
      & vmin(mrow_qc),vmax(mrow_qc),ymiss,apesf
       real*8 wlimit
 
+      logical isclose_s ! function to test is values are within float error
+
       data kflag/mrow_qc*0/
       
       krow_year=0    ! Prevent compiler warning (may be used before...)
@@ -75,7 +77,7 @@ c     & nhead_gaa,nrow_gaa,ngas_gaa,
       idum=mcharhead ! Prevent compiler warning (unused parameter)
 
       version=
-     & ' write_official_output_file  Version 1.37  2020-03-12  GCT,JLL'
+     & ' write_official_output_file  Version 1.38  2020-07-31  GCT,JLL'
       write(*,*) version
 
       spectrum_flag=0    ! initialise to avoid compiler warnings
@@ -342,7 +344,7 @@ c  the variable that was furthest out of range. Then write out the data.
          dmax=0.0
          do icol=1+spectrum_flag,ncol_gaa
             krow_qc=pindex(icol)
-            if (yrow(icol).ge.0.9*ymiss) then
+            if (isclose_s(yrow(icol), ymiss)) then
 c              write(*,*)'Missing field found.'
                dev=0.0 ! Don't include missing fields in the flags
             else
@@ -355,7 +357,7 @@ c              write(*,*)'Missing field found.'
             endif
             if(flag(krow_qc).ge.1) then
                nco=nco+1
-               if (yrow(icol).ge.0.9*ymiss) then
+               if (isclose_s(yrow(icol), ymiss)) then
                   yrow(nco)=yrow(icol)
                else
                   yrow(nco)=yrow(icol)*rsc(krow_qc)

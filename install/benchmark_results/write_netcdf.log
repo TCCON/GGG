@@ -1,7 +1,7 @@
 
-07/07/2020 09:26:50 PM New write_netcdf log session
+07/29/2020 10:44:20 PM New write_netcdf log session
 [INFO]: Running write_netcdf.py (Version 1.0; 2019-11-15; SR)
-[INFO]: tccon_netcdf repository HEAD: ad427c9
+[INFO]: tccon_netcdf repository HEAD: a2ac07a
 [INFO]: Python executable used: /home/dwunch/anaconda3/envs/ggg-tccon-default/bin/python
 [INFO]: GGGPATH=/home/dwunch/ggg2020
 [INFO]: cwd=/home/dwunch/ggg2020/install/current_results
@@ -19,31 +19,5 @@
 [INFO]:   9  solzen                    2     50.000
 [INFO]:      TOTAL                     2     50.000
 [INFO]: Writing data:
-[INFO]: Finished writing pa20040721_20041222.private.nc 15.29 MB
-[INFO]: Finished write_eof log session at 07/07/2020 09:28:05 PM
-
-07/19/2020 01:56:42 PM New write_netcdf log session
-[INFO]: Running write_netcdf.py (Version 1.0; 2019-11-15; SR)
-[INFO]: tccon_netcdf repository HEAD: ad427c9
-[INFO]: Python executable used: /home/dwunch/anaconda3/envs/ggg-tccon-default/bin/python
-[INFO]: GGGPATH=/home/dwunch/ggg-devel/upgraded_hg/ggg-test_20200703
-[INFO]: cwd=/home/dwunch/ggg-devel/upgraded_hg/ggg-test_20200703/install/benchmark_results
-[INFO]: netCDF file format: NETCDF4_CLASSIC
-[INFO]: Input file: pa_ggg_benchmark.tav
-[INFO]: Reading MAV file ...
-[INFO]: Finished reading MAV file
-[INFO]: The output of "hg summary" from the GGG repository:
- 
-[INFO]: Writing prior data ...
-[INFO]: Finished writing prior data
-[INFO]: Writing scaled aia data and determining qc flags
-[INFO]: Summary of flags:
-[INFO]:   #  Parameter              N_flag      %
-[INFO]:   9  solzen                    2     50.000
-[INFO]:      TOTAL                     2     50.000
-[INFO]: Writing data:
-[WARNING]: Checksum mismatch for /home/dwunch/ggg2020/config/data_part.lst
-[WARNING]: New: b22bc81a4f8ff1e0b028740a88d6c23d
-[WARNING]: Old: e048cfd4778fdc8f351545810f5fa404
-[INFO]: Finished writing pa20040721_20041222.private.nc 15.29 MB
-[INFO]: Finished write_eof log session at 07/19/2020 01:58:16 PM
+[INFO]: Finished writing pa20040721_20041222.private.nc 15.30 MB
+[INFO]: Finished write_eof log session at 07/29/2020 10:45:11 PM

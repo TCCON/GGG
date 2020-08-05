@@ -6,9 +6,32 @@ if [ $# -lt 2 ]; then
     exit 0
 fi
 
+echo " Displaying compiler information:" > differences.out
+echo " " >> differences.out
+cat $GGGPATH/install/.compiler_ggg >> differences.out
+echo " " >> differences.out
+compiler=`head -n1 $GGGPATH/install/.compiler_ggg | awk -F= '{print $2}'`
+`echo "$compiler --version"` >> differences.out
+
+
+osname=`uname -s`
+echo "The operating system is $osname. The details are: " >> differences.out
+echo " " >> differences.out
+if [ $osname == "Linux" ]
+then
+lsb_release -a >> differences.out
+elif [ $osname == "Darwin" ]
+then
+sw_vers -productVersion >> differences.out
+else
+echo "Unknown version." >> differences.out
+fi
+echo " " >> differences.out
+
+
 echo " "
 echo " Computing and displaying any differences from the benchmark installation"
-cat differences.i2s.out > differences.out
+cat differences.i2s.out >> differences.out
 echo " " >> differences.out
 echo "--------------------------------" >> differences.out
 echo " " >> differences.out

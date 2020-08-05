@@ -286,6 +286,7 @@ c      path_h2o_n2_cia_fundamental='/home/toon/ddd/linelist/CT-N2.H2O'
 c      path_n2_cia_overtone=
 c     & '/home/toon/ddd/linelist/N2_in_air_CIA_0-2_band.dat'
       calc_lm=.false.
+      calc_nv=.false.
       oaflag=1
       mavflag=0
       imode=0

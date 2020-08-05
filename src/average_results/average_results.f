@@ -48,6 +48,10 @@ c  sf-values given in the header.
      & nauxcol,nlhead,ncol,kcol,jcol,icol,cwas,
      & nrow,nss,loc_,loc,lwas,mit,naddn,ihead, kxo2
       logical isada
+      logical isclose_s            ! function that tests whether real*4
+                                   ! values are within floating point error 
+                                   ! of each other
+
       parameter (lunr_xsw=51)      ! input file (.xsw)
       parameter (lunw_xav=54)      ! output file (.xav)
       parameter (lunw_cew=55)      ! wincomp file (.cew)
@@ -80,6 +84,7 @@ c  sf-values given in the header.
 
       real*8 year(mrow),ty(mgas),t2(mgas),te(mgas),wt,
      & dtiny,covmat(mavg*mavg),ymiss_dbl,tt
+      real*8 wlimit
 
       real*4
      & yobs(mval),yerr(mval), ! Data from inout file
@@ -100,7 +105,7 @@ c  sf-values given in the header.
       idum=nchar      ! prevent compiler warning (unused parameter)
 
       version=
-     &' average_results          Version 1.36    2020-06-04   GCT,JLL'
+     &' average_results          Version 1.37    2020-07-31   GCT,JLL'
       write(*,*) version
       spectrum_flag=0
       loc=0
@@ -211,8 +216,8 @@ c         endif
 c
       open(lunw_cew,file=avfile(:lr)//'.cew',status='unknown')
       write(lunw_cew,'(2i3)') 2,5
-      write(lunw_cew,'(a)')'  Window          VSF   VSF_error  Chi2/N   
-     &CC_bar'
+      write(lunw_cew,'(a)')
+     &'  Window           VSF    VSF_error   Chi2/N    CC_bar'
 
 c  Pre-delete existing outlier file in case no outliers are found.
 c  (it won't be over-written). Then open new empty outlier file.
@@ -275,7 +280,8 @@ c  (usually in 'luft_nnnn') beyond the auxiliary variables.
       write(lunw_rew,'(2i3)') 4,ngas+1
       write(lunw_rew,'(a)') ' Row Error Weights (.rew values).'
       write(lunw_rew,'(a)') ' Gases with only one window have zeros.'
-      write(lunw_rew,'(a9,48a8)')' ispec   ',(avlabel(kgas),kgas=1,ngas)
+      write(lunw_rew,'(a9,48a13)')' ispec   ',
+     & (avlabel(kgas),kgas=1,ngas)
 
 c      write(*,*) '      kgas   indx(k)  indx(k+1)-1   navg   Gas'
       do kgas=1,ngas
@@ -334,10 +340,11 @@ c   error_sigma=(yobs(jj)-ybar(irow)-bias(jav))/yerr(jj)
 
          if(navg.gt.1) then
             do jav=1,navg
-               write(lunw_cew,'(a14,4f9.4)') 
+               write(lunw_cew,'(a14,4(1x,f9.4))') 
      &         clab(nauxcol+2*(avindx(kgas)+jav-1)-1),
      &         bias(avindx(kgas)-1+jav),ebias(avindx(kgas)-1+jav)*
-     &         sqrt(float(nrow)),cew(jav),ccbar(jav)
+     &         sqrt(float(nrow)),wlimit(dble(cew(jav)), 'f9.4'),
+     &         ccbar(jav)
             end do
             write(lunw_cew,*)
          endif
@@ -362,8 +369,26 @@ c  O2 column.
             do irow=1,nrow
 c               Pointer to the corresponding xo2 error value
                 kk = nrow*(kxo2-1) + irow
-                eybar(irow) = sqrt(eybar(irow)**2 +
+
+c               Only if all quantities needed for this calculation 
+c               are not missing values do we compute it. If ANY
+c               are missing, then we set the average error to a
+c               missing value. In most cases, it will already be,
+c               but may as well be sure.
+c                write(*,*) avlabel(kgas), 'irow=', irow, 'ymiss=', 
+c     & ymiss, 'ybar=', ybar(irow), 'eybar=', eybar(irow), 'yerr=', 
+c     & yerr(kk), 'tew=', tew, 'rew(1)=', rew(1,kgas)
+                if( isclose_s(eybar(irow), ymiss)
+     &              .or. isclose_s(ybar(irow), ymiss)
+     &              .or. isclose_s(yerr(kk), ymiss) ) then
+
+                    eybar(irow) = ymiss
+
+                else
+                    eybar(irow) = sqrt(eybar(irow)**2 +
      & (ybar(irow)*yerr(kk)/0.2095)**2)
+                endif
+c                write(*,*) 'eybar after=', eybar(irow)
             end do ! do irow=1,nrow
          else
 c            write(*,*) 'Not adding O2 error for ', avlabel(kgas)
@@ -376,7 +401,7 @@ c            jcol=avindx(kgas)
             if(navg.gt.1) then
                do jav=1,navg
                   jj=irow+nrow*((avindx(kgas)+jav-1)-1)
-                  if(abs(yerr(jj)-ymiss).gt.small*ymiss) then !  if(yerr.ne.ymiss)
+                  if(.not. isclose_s(yerr(jj), ymiss)) then
                      yy=kflag*ybar(irow)*bias(avindx(kgas)-1+jav)-
      &               (kflag-1)*(ybar(irow)+bias(avindx(kgas)-1+jav))
                      error_sigma=(yobs(jj)-yy)/yerr(jj)
@@ -399,7 +424,6 @@ c  This stores the average values prior to them all being written
 c  to the .xav file at the end, but over-writes yobs and yerr.
          call vmov( ybar,1,yobs(1+nrow*(kgas-1)),1,nrow)
          call vmov(eybar,1,yerr(1+nrow*(kgas-1)),1,nrow)
-
       end do   ! do kgas=1,ngas
       close(lunw_outlier)
       close(lunw_cew)
@@ -429,7 +453,7 @@ c  Write averaged values to file
          nused(k)=0
       end do
       do irow=1,nrow
-         write(lunw_rew,'(i6,444f8.4)') irow,
+         write(lunw_rew,'(i9,444(1pe13.6))') irow,
      &   (rew(irow,jcol),jcol=1,ngas)
          if (spectrum_flag .eq. 1) then   ! Spectrum names are included
             write(lunw_xav,output_fmt)

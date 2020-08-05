@@ -20,7 +20,7 @@
  6177.51   1.26  15 1 1 0  ncbf=2  fs  sg     sf=1.000 : h2o  hdo co2 ch4
 :6219.00   7.00  15 1 1 0  ncbf=2  fs  so     sf=1.000 : h2o  co2 ch4
 :6244.40   7.20  15 1 1 0  ncbf=2  fs  so     sf=1.000 : h2o  co2 hdo
- 6255.95   3.60  15 1 1 0  ncbf=2  fs  sg     sf=1.000 : h2o  co2 hdo
+ 6255.95   3.60  15 1 1 0  ncbf=2  fs  sg  nv sf=1.000 : h2o  co2 hdo
  6301.35   7.90  15 1 1 0  ncbf=2  fs  sg     sf=1.000 : h2o  co2 hdo
  6392.45   3.10  15 1 1 0  ncbf=2  fs  sg     sf=1.000 : h2o  hdo
  6401.15   1.15  15 1 1 0  ncbf=2  fs  sg     sf=1.000 : h2o  hdo co2
@@ -40,7 +40,7 @@
  4232.50  11.00  15 1 1 0  ncbf=2  fs  sg     sf=1.000 : hdo  h2o  ch4  co
 :4261.70   9.10  15 1 1 0  ncbf=2  fs  sg     sf=1.000 : hdo  h2o  ch4  co
  6330.05  45.50  15 1 1 0  ncbf=4  fs  sg     sf=1.000 : hdo  h2o  co2
- 6377.40  50.20  15 1 1 0  ncbf=4  fs  sg     sf=1.000 : hdo  h2o  co2
+ 6377.40  50.20  15 1 1 0  ncbf=4  fs  sg  nv sf=1.000 : hdo  h2o  co2
  6458.10  41.40  15 1 1 0  ncbf=4  fs  sg     sf=1.000 : hdo  h2o  co2 
  4233.10  48.40  15 1 1 0  ncbf=3  fs  sg     sf=1.000 : co  ch4 h2o hdo
  4290.50  56.60  15 1 1 0  ncbf=4  fs  sg     sf=1.000 : co  ch4 h2o hdo

@@ -1,16 +1,16 @@
  21 22
  GFIT                     Version 5.28        2020-04-24   GCT  
  GSETUP                   Version 4.70        2020-06-29   GCT
-e048cfd4778fdc8f351545810f5fa404  /home/dwunch/ggg2020/config/data_part.lst
+9abea7fd1dd86df51a331fb96a7a598f  /home/dwunch/ggg2020/config/data_part.lst
 b2e976c6a7b471f8a3e381261b09048a  /home/dwunch/ggg2020/apriori/gfit_ap.gnd
 af52ead7942098d0635c96847c368583  /home/dwunch/ggg2020/runlogs/gnd/pa_ggg_benchmark.grl
 890935e1a57e041d3097a3a6674778c9  /home/dwunch/ggg2020/levels/ap_51_level_0_to_70km.gnd
                                   /home/dwunch/ggg2020/models/gnd/
                                   /home/dwunch/ggg2020/vmrs/gnd/
-0e76affdc5c75a673c8c1bacf313356b  pa_ggg_benchmark.mav
+8b6a58343a648d75cbb5cd7d264eb56f  pa_ggg_benchmark.mav
 5d6bc4a301bdb9d47341bf27adef4af6  pa_ggg_benchmark.ray
 b6ecd749a6ec0c72530bec31475f4f25  /home/dwunch/ggg2020/isotopologs/isotopologs.dat
-db73c954a1be4986f1b93a752364dd49  /home/dwunch/ggg2020/windows/gnd/tccon.gnd
+9dabd956bcbbea1d9233328d7eab5bb5  /home/dwunch/ggg2020/windows/gnd/tccon.gnd
 580572bd6b6b05ab437ed3447be4d8a9  telluric_linelists.md5
 893b127f4833ed5d9904ba989fcbb2ab  /home/dwunch/ggg2020/linelist/solar_merged.108
                                   /home/dwunch/ggg2020/ak/j_th2o_4524.pa_ggg_benchmark
@@ -19,7 +19,7 @@ db73c954a1be4986f1b93a752364dd49  /home/dwunch/ggg2020/windows/gnd/tccon.gnd
                                   (1x,a20,1x,i2,1x,f5.3,1x,f5.1,1x,f4.1,1x,f5.2,1x,f5.2,1x,f6.4,1x,f6.4,f8.3,15(0pf7.3,1pe11.4,0pf10.5,1pe8.1))
  4524.10   2.00  15 1 1 0  ncbf=2  fs  so     sf=1.000 : th2o  ch4  co2
   Spectrum            Nit  CL    CT    CC   FS    SG    ZO   RMS/CL   Zpres AM_th2o OVC_th2o     VSF_th2o VSF_th2o_error AM_ch4 OVC_ch4      VSF_ch4 VSF_ch4_error AM_co2 OVC_co2      VSF_co2 VSF_co2_error
- pa20040721saaaaa.043  6 0.310   0.3  0.0 -0.02  0.00 0.0000 0.1106   0.461  1.302 1.3291E+23   0.96238 3.8E-03  1.300 3.5158E+19   0.81931 7.1E-02  1.300 7.5306E+21   1.05125 6.1E-01
- pa20040721saaaaa.119  6 0.298   0.4  0.0 -0.07  0.00 0.0000 0.1147   0.467  2.265 9.2990E+22   1.15572 4.1E-03  2.256 3.5162E+19   0.96858 4.8E-02  2.255 7.5387E+21   1.28987 7.3E-01
- pa20041222saaaaa.019  6 0.557   0.6  0.0  0.26  0.00 0.0000 0.2178   0.472  7.778 6.6534E+21   0.99776 1.2E-02  7.542 3.6260E+19   0.93780 2.4E-02  7.510 7.8385E+21   1.25956 7.2E-01
- pa20041222saaaaa.020  6 0.558   0.6  0.0  0.27  0.00 0.0000 0.2179   0.470  7.397 6.6566E+21   0.99060 1.2E-02  7.191 3.6268E+19   0.93795 2.5E-02  7.163 7.8402E+21   1.29136 6.6E-01
+ pa20040721saaaaa.043  6 0.310   0.3  0.0 -0.02  0.00 0.0000 0.1106   0.461  1.302 1.3291E+23   0.96238 3.8E-03  1.300 3.5158E+19   0.81932 7.1E-02  1.300 7.5306E+21   1.05124 6.1E-01
+ pa20040721saaaaa.119  6 0.298   0.4  0.0 -0.07  0.00 0.0000 0.1147   0.467  2.265 9.2990E+22   1.15572 4.1E-03  2.256 3.5162E+19   0.96858 4.8E-02  2.255 7.5387E+21   1.28989 7.3E-01
+ pa20041222saaaaa.019  6 0.557   0.6  0.0  0.26  0.00 0.0000 0.2178   0.472  7.778 6.6534E+21   0.99776 1.2E-02  7.542 3.6260E+19   0.93780 2.4E-02  7.510 7.8385E+21   1.25958 7.2E-01
+ pa20041222saaaaa.020  6 0.558   0.6  0.0  0.27  0.00 0.0000 0.2179   0.470  7.397 6.6566E+21   0.99060 1.2E-02  7.191 3.6268E+19   0.93795 2.5E-02  7.163 7.8402E+21   1.29139 6.6E-01

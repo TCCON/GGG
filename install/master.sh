@@ -82,7 +82,7 @@ if [ $? != 0 ]; then
     exit 1
 fi
 
-./compile_ggg.sh
+./compile_ggg.sh $nprocessors
 echo " ********************************** "
 ./i2s_master.sh
 echo " ********************************** "

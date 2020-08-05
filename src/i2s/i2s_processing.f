@@ -256,8 +256,9 @@ c      write(*,*)'zeroing: nip+1  to  nfftpc =',nxxlong+izpd+l2+1,
 c     & izpd+nfftpc
 c  Zero the parts of the igram that won't be needed as a pre-caution
       if(conv_method.eq.2) then
-         call vmov(zero,0,ac_igram(1),1,ifurip-1)  ! before first used point
-         call vmov(zero,0,ac_igram(ilurip+1),1,nfftpc-ilurip) ! after last
+       call vmov(zero,0,ac_igram(1),1,ifurip-1)  ! before first used point
+c      call vmov(zero,0,ac_igram(ilurip+1),1,nfftpc-ilurip) ! after last
+       call vmov(zero,0,ac_igram(ilurip+1),1,nfftpc+ifurip-ilurip-1) ! after last
       endif
 
 c  Perform in-place convolution of raw igram in AC_IGRAM with PCO
@@ -333,9 +334,12 @@ c  first imaginary location) in case the saved spectrum will extend
 c  to Nyquist.
       y_nyquist=ac_igram(2) !  GCT 20190310
       call vmul(ac_igram,2,0.125,0,ac_igram,1,nffthr/nside)
-c      ac_igram(nffthr/nside+1)=0.125*y_nyquist  !  GCT 20190310
+      ac_igram(nffthr/nside+1)=0.125*y_nyquist  !  GCT 20190310
 c  The statement above, that scales the Nyquist amplitude, although
 c  correct, inexplicably changes the values of most of the spectrum.
+c  This problem appears to have been corrected by the vmov indexing
+c  change on line 261 in July 2020.
+
 
 c      write(*,*) 'Exiting i2s_processing'
       return

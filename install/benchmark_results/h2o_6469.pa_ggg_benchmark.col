@@ -1,16 +1,16 @@
  21 22
  GFIT                     Version 5.28        2020-04-24   GCT  
  GSETUP                   Version 4.70        2020-06-29   GCT
-e048cfd4778fdc8f351545810f5fa404  /home/dwunch/ggg2020/config/data_part.lst
+9abea7fd1dd86df51a331fb96a7a598f  /home/dwunch/ggg2020/config/data_part.lst
 b2e976c6a7b471f8a3e381261b09048a  /home/dwunch/ggg2020/apriori/gfit_ap.gnd
 af52ead7942098d0635c96847c368583  /home/dwunch/ggg2020/runlogs/gnd/pa_ggg_benchmark.grl
 890935e1a57e041d3097a3a6674778c9  /home/dwunch/ggg2020/levels/ap_51_level_0_to_70km.gnd
                                   /home/dwunch/ggg2020/models/gnd/
                                   /home/dwunch/ggg2020/vmrs/gnd/
-0e76affdc5c75a673c8c1bacf313356b  pa_ggg_benchmark.mav
+8b6a58343a648d75cbb5cd7d264eb56f  pa_ggg_benchmark.mav
 5d6bc4a301bdb9d47341bf27adef4af6  pa_ggg_benchmark.ray
 b6ecd749a6ec0c72530bec31475f4f25  /home/dwunch/ggg2020/isotopologs/isotopologs.dat
-db73c954a1be4986f1b93a752364dd49  /home/dwunch/ggg2020/windows/gnd/tccon.gnd
+9dabd956bcbbea1d9233328d7eab5bb5  /home/dwunch/ggg2020/windows/gnd/tccon.gnd
 580572bd6b6b05ab437ed3447be4d8a9  telluric_linelists.md5
 893b127f4833ed5d9904ba989fcbb2ab  /home/dwunch/ggg2020/linelist/solar_merged.108
                                   /home/dwunch/ggg2020/ak/j_h2o_6469.pa_ggg_benchmark
@@ -22,4 +22,4 @@ db73c954a1be4986f1b93a752364dd49  /home/dwunch/ggg2020/windows/gnd/tccon.gnd
  pa20040721saaaaa.043  6 0.230  -0.3  0.0 -0.10 -0.22 0.0000 0.1255   0.461  1.302 1.3291E+23   0.95725 5.9E-03  1.300 7.5306E+21   1.02833 4.1E-02  1.302 1.1455E+23   0.96453 2.0E-02
  pa20040721saaaaa.119  6 0.223  -0.5  0.0 -0.08 -0.11 0.0000 0.1568   0.467  2.265 9.2990E+22   1.15235 6.8E-03  2.255 7.5387E+21   1.02190 2.9E-02  2.265 7.9608E+22   1.18614 2.1E-02
  pa20041222saaaaa.019  5 0.327  -0.2  0.0  0.03  0.09 0.0000 0.1072   0.472  7.778 6.6534E+21   0.96396 1.0E-02  7.510 7.8385E+21   1.01852 8.1E-03  7.785 4.4416E+21   0.96436 6.2E-02
- pa20041222saaaaa.020  4 0.327  -0.3  0.0  0.08 -0.00 0.0000 0.1070   0.470  7.397 6.6566E+21   0.96907 1.1E-02  7.163 7.8402E+21   1.01662 8.4E-03  7.403 4.4438E+21   0.98086 6.4E-02
+ pa20041222saaaaa.020  4 0.327  -0.3  0.0  0.08 -0.00 0.0000 0.1070   0.470  7.397 6.6566E+21   0.96908 1.1E-02  7.163 7.8402E+21   1.01662 8.4E-03  7.403 4.4438E+21   0.98087 6.4E-02

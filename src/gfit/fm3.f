@@ -134,6 +134,7 @@ c  used in the computation of averaging kernels and in GFIT2.
       idum=ipsg      ! Prevent compiler warnings (unused variable)
       rdum=tiny      ! Prevent compiler warnings (unused variable)
 
+      shshs=0.d0
       if(ncbf.ge.1) cont_level=cx(ipcl)
       if(ncbf.ge.2) cont_tilt=cx(ipcl+1)
       if(ncbf.ge.3) cont_curv=cx(ipcl+2)

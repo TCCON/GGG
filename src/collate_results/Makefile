@@ -16,7 +16,8 @@ SOURCES := \
   $(COMN)/read_runlog_data_record.f \
   $(COMN)/get_ggg_environment.f \
   $(COMN)/substr.f \
-  $(COMN)/write_postproc_header.f
+  $(COMN)/write_postproc_header.f \
+  $(COMN)/isclose_s.f
 
 OBJECTS := $(patsubst %.f, %.o, $(SOURCES))
 

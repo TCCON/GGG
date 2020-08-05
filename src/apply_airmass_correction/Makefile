@@ -13,7 +13,8 @@ SOURCES := \
   $(COMN)/substr.f \
   $(COMN)/get_ggg_environment.f \
   $(COMN)/read_postproc_header.f \
-  $(COMN)/write_postproc_header.f
+  $(COMN)/write_postproc_header.f \
+  $(COMN)/isclose_d.f
 
 OBJECTS := $(patsubst %.f, %.o, $(SOURCES))
 
