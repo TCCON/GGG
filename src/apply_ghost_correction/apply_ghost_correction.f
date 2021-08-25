@@ -25,7 +25,7 @@ c
       integer*4 lunr,luns,lunw,ncoml,ncol,mcol,kcol,icol,j,
      & kgas,lnbc,irow,naux,ngas,nrow,li,k,ngrow,ngas1,kk,mrow
       parameter (lunr=14,luns=15,lunw=16,mcol=150,mrow=5)
-      character header*800,headarr(mcol)*20,gasname(mgas)*20,
+      character header*1800,headarr(mcol)*20,gasname(mgas)*20,
      & gggdir*(mpath),inputfile*40,outputfile*40, version*63,gaserr*32,
      & filename*(mpath+40)
       real*8 yrow(mcol),gcf(mrow,mgas),gcfe(mrow,mgas),scl(mrow,mgas),
@@ -107,12 +107,13 @@ c  and those in the .vav file header
       write(lunw,countfmt) ncoml+1+ngrow+1,ncol,nrow,naux
       write(lunw,'(a)') version
       if(ncol.gt.mcol) stop 'increase mcol'
-      do j=2,ncoml-2
+      do j=2,ncoml-3
          read(lunr,'(a)') header
          write(lunw,'(a)') header(:lnbc(header))
       end do
+      read(lunr,'(a)') header
       read(lunr,'(7x,a)') input_fmt
-      write(lunw,'(a)') 'format='//input_fmt
+c      write(lunw,'(a)') 'format='//input_fmt
       outfmt=input_fmt
 c     write(*,*) endyear(1),ngrow
       
@@ -125,7 +126,9 @@ c     write(*,*) endyear(1),ngrow
      & ' xco', gcf(j,4)*scl(j,4),gcfe(j,4)*scl(j,4),
      & ' xh2o',gcf(j,5)*scl(j,5),gcfe(j,5)*scl(j,5)
       enddo
+      write(lunw,'(a)') header(:lnbc(header))
 
+      write(lunw,'(a)') 'format='//input_fmt
       read(lunr,'(a)') header
       write(lunw,'(a)') header(:lnbc(header))
       call lowercase(header)
@@ -191,6 +194,7 @@ c                 write(*,*)'b',j,ngrow,cf(k,j)
 97         continue !write(*,*) j,ngrow,cf(k,j)
          end do
          if (spec_flag .eq. 1) then
+            outfmt(6:7) = '1x'
             write(lunw,outfmt) specname,(yrow(j),j=1+spec_flag,ncol)
          else
             write(lunw,outfmt) cl,(yrow(j),j=1,ncol)

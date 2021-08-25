@@ -210,8 +210,8 @@ c      write(*,*) krow_day,gaa_headarr(krow_day)
 
       do krow_qc=1,nrow_qc
          read(lunr_qc,'(a)') ssss
-         write(lunw_oof,'(i2,a)') krow_qc,ssss(:lnbc(ssss))
-         write(lunw_csv,'(i2,a)') krow_qc,ssss(:lnbc(ssss))
+         write(lunw_oof,'(i3,a)') krow_qc,ssss(:lnbc(ssss))
+         write(lunw_csv,'(i3,a)') krow_qc,ssss(:lnbc(ssss))
          read(ssss,*) parname(krow_qc),flag(krow_qc),scale(krow_qc),
      &   fmt(krow_qc),unit(krow_qc),vmin(krow_qc),vmax(krow_qc)
          rsc(krow_qc)=scale(krow_qc)

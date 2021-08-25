@@ -134,7 +134,7 @@ c  The spectral signal is in the second column but there's no header
          dwas=1.0
          open(19,file=specpath,status='old')
 c         read(19,*) nlhead, ncol
-         call skiprec(19,nlhead-1+iskip/bytepw)  !  Skip header & unwanted data
+         call skiprec(19,nlhead+iskip/bytepw)  !  Skip header & unwanted data
          do jpts=1,npts  !
             read(19,*)freq,buf(jpts)  ! read wanted data
             del=freq-fwas

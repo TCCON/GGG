@@ -1,5 +1,20 @@
  GGG Code Updates.
 
+APPLY_AIRMASS_CORRECTION    Version 1.38  2020-12-16  GCT JLL
+ apply_airmass_correction now reads g and p parameters from the
+ corrections .dat file if present.
+
+DERIVE_AIRMASS_CORRECTION   Version 1.27  2020-12-16  GCT JLL
+ derive_airmass_correction now optionally accepts second,
+ third, and fourth command line arguments. The second and 
+ third are the g and p parameters in the symmetrical basis
+ function polynomial, and the fourth is a window name to 
+ fit. If g and p are not given on the command line, they 
+ default to 13 and 3, respectively. If the window is not
+ given to fit, all the normal windows are fit. This supports
+ the GGG2020 change of fitting each window with its best
+ functional form
+
 COLLATE_RESULTS             Version 2.09  2020-07-31  GCT JLL
 AVERAGE_RESULTS             Version 1.37  2020-07-31  GCT JLL
 APPLY_AIRMASS_CORRECTION    Version 1.37  2020-07-31  GCT JLL

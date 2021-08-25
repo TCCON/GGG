@@ -23,7 +23,7 @@ c
       include "../comn/postproc_params.f"
 
       integer*4 lunr,luns,lunw,ncoml,ncolvav,kcolvav,icol,j,
-     & kgas,lnbc,irow,naux,ngas,nrow,li,k,ncolcorr,naddn,has_err
+     & kgas,lnbc,irow,naux,ngas,nrow,li,k,ncolcorr,naddn,corr_fmt
       parameter (lunr=14,luns=15,lunw=16)
       real*8 yrow(mcolvav),ymiss,
      & aicf(mgas),aicf_err(mgas),cf(mcolvav)
@@ -31,7 +31,7 @@ c
       character header*1800,headarr(mcolvav)*40,gasname(mgas)*20,dl*1,
      & gggdir*(mpath),inputfile*64,outputfile*64, version*62,gaserr*32
       character output_fmt*40, input_fmt*40, specname*(nchar), c1*1,
-     & addn_lines(maddln)*(mcharhead)
+     & addn_lines(maddln)*(mcharhead), wmo_scales(mgas)*32
       
       integer specflag,idum
       logical isclose_d ! function to test if values are within float error
@@ -62,26 +62,33 @@ c  Factors (AICF) for each gas. Only the former is used by this prog.
          read(luns,*)
       end do
 
-      if(ncolcorr .eq. 2) then
-        has_err = 0
-      elseif(ncolcorr .eq. 3) then
-        has_err = 1
-      else
+      corr_fmt = 0
+      if(ncolcorr .eq. 3) then
+        corr_fmt = 1
+      elseif(ncolcorr .eq. 4) then
+        corr_fmt = 2
+      elseif(ncolcorr .ne. 2) then
          write(*,*)'ncol=',ncolcorr
          stop 'Unrecognized NCOLCORR value'
       end if
 
 
-      if(has_err .eq. 0) then
+      if(corr_fmt .eq. 0) then
          do k=1,mgas
             read(luns,*,end=88) gasname(k),aicf(k)
          end do
-      elseif(has_err .eq. 1) then
+      elseif(corr_fmt .eq. 1) then
          do k=1,mgas
             read(luns,*,end=88) gasname(k),
      &     aicf(k),aicf_err(k)
          end do
+      elseif(corr_fmt .eq. 2) then
+         do k=1,mgas
+            read(luns,*,end=88) gasname(k),
+     &     aicf(k),aicf_err(k),wmo_scales(k)
+         end do
       else
+         stop 'Correction file format not implemented'
       endif
       stop 'increase parameter MGAS'
 88    ngas=k-1
@@ -117,12 +124,22 @@ c  to the header.
       naddn = naddn + 1
 
       write(addn_lines(naddn+1),'(a,i2,1x,i1)')
-     & 'Airmass-Independent/In-Situ Correction Factors:', ngas, has_err
+     & 'Airmass-Independent/In-Situ Correction Factors:', ngas,
+     & corr_fmt+2
       do k=1,ngas
-         if(has_err .eq. 0) write(addn_lines(naddn+1+k),'(a,f9.4)') 
-     & gasname(k), aicf(k)
-         if(has_err .eq. 1) write(addn_lines(naddn+1+k),'(a,2f9.4)') 
-     & gasname(k), aicf(k), aicf_err(k)
+         if(corr_fmt .eq. 0) then
+           write(addn_lines(naddn+1+k),'(a,f9.4)') 
+     &      gasname(k), aicf(k)
+         elseif(corr_fmt .eq. 1) then 
+           write(addn_lines(naddn+1+k),'(a,2f9.4)') 
+     &      gasname(k), aicf(k), aicf_err(k)
+         elseif(corr_fmt .eq. 2) then 
+           write(addn_lines(naddn+1+k),'(a,2f9.4,1x,a1,a,a1)')
+     &      gasname(k), aicf(k), aicf_err(k), 
+     &      '"', trim(wmo_scales(k)), '"'
+         else
+           stop 'Writing header not implemented for corr. file fmt'
+         endif
       end do
       naddn = naddn + ngas + 1
 

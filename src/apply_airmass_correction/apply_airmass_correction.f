@@ -31,11 +31,14 @@ c
       integer*4 lunr,luns,lunw,ncoml,ncolvxx,
      & kcolvxx,jcol,j,nhead,naddn,
      & kgas,ko2,kh2o,kluft,ksza,lnbc,irow,naux,ngas,nrow,li,k,ncolcorr,
-     & has_err
+     & has_err, has_gp
       parameter (lunr=14,luns=15,lunw=16,nhead=20)
+c      parameter (default_g=13.0, default_p=3.0)
+
+      real*8 default_g, default_p
       real*8 yrow(mcolvsw),ymiss,
-     & adcf(mgas),adcf_err(mgas),
-     & cf(mcolvsw),gfu,sbf,vc_air
+     & adcf(mgas),adcf_err(mgas),gval_gas(mgas),pval_gas(mgas),
+     & cf(mcolvsw),gval_col(mcolvsw),pval_col(mcolvsw),gfu,sbf,vc_air
       character
      & dl*1,
      & gggdir*(mpath),
@@ -68,13 +71,15 @@ c
       idum=ncell     ! Avoid compiler warning (unused parameter)
 
       version=
-     &' apply_airmass_correction   Version 1.37 2020-07-31   GCT,JLL'
+     &' apply_airmass_correction   Version 1.38 2020-12-16   GCT,JLL'
       write(*,*) version
       call get_ggg_environment(gggdir, dl)
       ko2=0
       kh2o=0
       kluft=0
       ksza=0
+      default_g=13.0
+      default_p=3.0
 
 
       if (iargc() == 0) then
@@ -116,16 +121,36 @@ c  we're working on a .vsw or .vav file
          read(luns,*)
       end do
 
+      
       if (ncolcorr .eq. 2) then
         has_err = 0
+        has_gp = 0
       elseif (ncolcorr .eq. 3) then
         has_err = 1
+        has_gp = 0
+      elseif (ncolcorr .eq. 5) then
+        has_err = 1
+        has_gp = 1
       else
          write(*,*) 'ncolcorr=',ncolcorr
          stop 'Unrecognized ncolcorr value'
       endif
 
-      if(has_err .eq. 1) then
+c  JLL: Make sure all parameters are initialized to their
+c  default values
+      do k=1,mgas
+         adcf(k) = 0.0
+         adcf_err(k) = 0.0
+         gval_gas(k) = default_g
+         pval_gas(k) = default_p
+      end do
+
+      if(has_err .eq. 1 .and. has_gp .eq. 1) then
+         do k=1,mgas
+            read(luns,*,end=88) gasname(k),
+     &   adcf(k),adcf_err(k),gval_gas(k),pval_gas(k)
+         end do
+      elseif(has_err .eq. 1) then
          do k=1,mgas
             read(luns,*,end=88) gasname(k),
      &   adcf(k),adcf_err(k)
@@ -154,14 +179,14 @@ c  append all the airmass dependent correction factors
       naddn = naddn + 1
       addn_lines(1) = version
       write(addn_lines(naddn+1),'(a,i2,1x,i1)') 
-     & ' Airmass-Dependent Correction Factors: ', ngas, has_err
+     & ' Airmass-Dependent Correction Factors: ', ngas, has_err+4
       do k=1,ngas
          if(has_err .eq. 1) then
-           write(addn_lines(k+naddn+1),'(a,2f9.4)') 
-     & gasname(k), adcf(k), adcf_err(k)
+           write(addn_lines(k+naddn+1),'(a,2(1x,f9.4),2(1x,f6.2))') 
+     & gasname(k), adcf(k), adcf_err(k), gval_gas(k), pval_gas(k)
          else
-           write(addn_lines(k+naddn+1),'(a,f9.4)') 
-     & gasname(k), adcf(k)
+           write(addn_lines(k+naddn+1),'(a,1x,f9.4,2(1x,f6.2))') 
+     & gasname(k), adcf(k), gval_gas(k), pval_gas(k)
          end if
       end do
       naddn = naddn + ngas + 1
@@ -188,10 +213,21 @@ c  and those in the .vav file header.  Avoid assuming that they
 c  are all present or in the same order.
       do jcol=1,ncolvxx
          cf(jcol)=0.0
+         gval_col(jcol)=default_g
+         pval_col(jcol)=default_p
          do kgas=1,ngas
-            if(headarr(jcol).eq.gasname(kgas)) cf(jcol)=adcf(kgas)
+            if(headarr(jcol).eq.gasname(kgas)) then
+               cf(jcol)=adcf(kgas)
+               gval_col(jcol)=gval_gas(kgas)
+               pval_col(jcol)=pval_gas(kgas)
+            endif
+
             gaserr=gasname(kgas)(:lnbc(gasname(kgas)))//'_error'
-            if(headarr(jcol).eq.gaserr) cf(jcol)=adcf(kgas)
+            if(headarr(jcol).eq.gaserr) then
+               cf(jcol)=adcf(kgas)
+               gval_col(jcol)=gval_gas(kgas)
+               pval_col(jcol)=pval_gas(kgas)
+            endif
          end do
          if (isavg) then
             if(headarr(jcol) .eq. 'xo2') ko2=jcol
@@ -203,8 +239,8 @@ c  are all present or in the same order.
 c         if(headarr(jcol) .eq. 'xh2o') kh2o=jcol
          if(headarr(jcol) .eq. 'asza' .or. 
      &     headarr(jcol) .eq. 'solzen' ) ksza=jcol
-         if(jcol.gt.naux) write(*,'(i3,f8.4,2x,a)')
-     &   jcol,cf(jcol),headarr(jcol)
+         if(jcol.gt.naux) write(*,'(i3,f8.4,2(1x,f6.2),2x,a)')
+     &   jcol,cf(jcol),gval_col(jcol),pval_col(jcol),headarr(jcol)
       end do
 
       if(ko2.eq.0) stop ' o2 column not found'
@@ -242,8 +278,9 @@ c         if(kh2o.gt.0) yrow(kluft)=yrow(kluft)-yrow(kh2o)*18.02/28.964
             write(*,'(a,i6,a)')'Warning: O2_column=0 for spectrum',irow,
      &      '  (lamp run?)  Your output file will contain Inf'
          endif
-         sbf=((yrow(ksza)+13)/(90+13))**3-((45.+13)/(90+13))**3  ! Symmetric Basis Function
          do k=naux+1,ncolvxx-1,2
+            sbf=((yrow(ksza)+gval_col(k))/(90+gval_col(k)))**pval_col(k)
+     &      -((45.+gval_col(k))/(90+gval_col(k)))**pval_col(k)  ! Symmetric Basis Function
             if(.not. isclose_d(yrow(k), ymiss)) then
                if(k.eq.ko2 .or. .not. isavg) then
 c  JLL 2020-06-04: error propagation is handled differently 

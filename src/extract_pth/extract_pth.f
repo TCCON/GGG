@@ -64,7 +64,7 @@ c  Useful for comparing the site weather station data with NCEP.
      &   version*50,runlog*80
      
       real*4 roc,ecc2,alat,gs,zz,pfact,ptrop,pmod,tmod,hmod,
-     &   scht,log1pxox,svp_wv_over_ice,tout_k,hout_vmr,
+     &   scht,log1pxox,wexler_svp,svp_wv_over_ice,tout_k,hout_vmr,
      &   p0,t0,z0,m0,h0,p1,t1,z1,m1,h1
 
       logical read_mod    ! controls whether a new model file needs read
@@ -112,14 +112,14 @@ c     write(*,*)ldot,ext
 c -------------------------------------------------------------
       iwas=0
       open(lunw,file='extract_pth.out', status='unknown')
-      write(lunw,*)4,9
+      write(lunw,*)4,10
       write(lunw,*)version
 c JLL: Mysterious newlines appear in `runlog` when compiled under
 c ifort. trim() seems to remove them (and so keep the header the
 c correct number of lines)
       write(lunw,'(a)')' Runlog= '//trim(runlog)
-      write(lunw,'(a)')' year  doy   uthour   tout      tmod       pout
-     &     pmod       hout     hmod'
+      write(lunw,'(a)')' spectrum  year  doy   uthour   tout      tmod
+     &       pout     pmod       hout     hmod'
       
       open(lunr_rlg,file=gggdir(:lrt)//'runlogs'//dl//ext//dl//runlog,
      & status='old')
@@ -206,14 +206,47 @@ c -----------------------------------------------------------
          scht=8.3144*t0/m0/gs/log1pxox(tmod/t0-1)
          pmod=p0*exp(-(obalt-z0)/scht)
          tout_k=tout+273.16
-         hout_vmr=(hout/100)*svp_wv_over_ice(tout_k)/pout
-         write(lunw,'(2i4,7f10.4)') iyr,idoy,zpdtim,
+c         hout_vmr=(hout/100)*svp_wv_over_ice(tout_k)/pout
+         hout_vmr=(hout/100)*wexler_svp(tout_k)/pout
+         write(lunw,'(a47,2i4,7f10.4)') specname,iyr,idoy,zpdtim,
      &    tout+273.16,tmod,pout,pmod,hout_vmr,hmod
       end do
 c      write(*,*)i-1
       close(lunr_rlg)
       stop
       end
+
+      function wexler_svp(t)
+c Wexler 1976 J Res Natl Bur Stand A Phys Chem (doi:
+c 10.6028/jres.080A.071) gives an update to SVP over liquid water 
+c coinciding with an update to the temperature scale that happened 
+c in 1968. Their Eq. 15 is used for the Vaisala calibration in 
+c Miloshevich et al. 2004 (doi:10.1175/1520-0426(2004)021%3C1305:DAVOAT%3E2.0.CO;2),
+c Eq. 6.
+c 
+c Inputs:
+c   t: REAL*4 - temperature in Kelvin
+c
+c Outputs:
+c   REAL*4 - saturation vapor pressure of water over liquid water in
+c   mbar
+
+      implicit none
+
+      real*4 t, tmp, wexler_svp
+
+      tmp = 2.858487*log(t) 
+     & + -2.9912729e3*t**-2 + -6.0170128e3*t**-1
+     & + 1.887643854e1      + -2.8354721e-2*t
+     & + 1.7838301e-5*t**2  + -8.4150417e-10*t**3
+     & + 4.4412543e-13*t**4
+
+c exp(tmp) will give the SVP in Pa, convert to hPa i.e. mbar
+      wexler_svp = exp(tmp) * 1e-2 
+
+      end function
+
+
 
       function svp_wv_over_ice(temp)
 c Uses the Goff-Gratch equation to calculate the saturation vapor

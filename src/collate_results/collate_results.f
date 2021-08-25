@@ -226,7 +226,7 @@ c         write(*,'(a)') 'header_string='//header_string
 c         write(*,*) 'lnit= ',lnit
 
          kt0=index(header_string,' OVC_')
-         if(colfile(1:1).eq.'m') then ! Kludge for InSb+InGaAs
+         if(colfile(1:1).eq.'m'.or.colfile(1:1).eq.'v') then ! Kludge for InSb+InGaAs/InGaAs+Si
            ktg=1+index(header_string,'OVC_'//colfile(2:idot-1))
          else
            ktg=1+index(header_string,' OVC_'//colfile(:idot-1))
@@ -456,7 +456,7 @@ c            yaux(1,irow)=r8year
      &      obslat,obslon,zobs,zmin,asza+zenoff,azim,osds,opd,
      &      fovi,amal,graw,tins,pins,tout,pout,
      &      hout,sia,fvsi,wspd,wdir
-            read(yaux_string,*) (yaux(j,irow),j=2,23)
+            read(yaux_string,*) (yaux(j,irow),j=2,24)
 c               write(*,*)'2:asza,zenoff=',asza,zenoff,asza+zenoff
 c               write(*,*)'yaux(9)=',yaux(9,irow)
 
@@ -576,7 +576,7 @@ c          write(*,*)' mauxcol, nauxcol = ',mauxcol,nauxcol
 c          stop 'increase parameter mauxcol'
 c      endif
 
-      output_fmt='(a1,f13.8,NNf13.5,MMMM(1pe12.4))'
+      output_fmt='(a1,f13.8,NNf13.5,MMMM(1pe13.5))'
       write(output_fmt(11:12),'(i2.2)') nauxcol-1
       write(output_fmt(19:22),'(i4.4)') 2*ncol
       if (append_spectrum_name) then

@@ -56,6 +56,8 @@ echo "Check difference between "$1"/pa_ggg_benchmark.vsw and "$2"/pa_ggg_benchma
 ./gggdiff.pl $1/pa_ggg_benchmark.vsw $2/pa_ggg_benchmark.vsw >> differences.out
 echo "Check difference between "$1"/pa_ggg_benchmark.vav.ada.aia.oof and "$2"/pa_ggg_benchmark.vav.ada.aia.oof" >> differences.out
 ./gggdiff_oof.pl $1/pa_ggg_benchmark.vav.ada.aia.oof $2/pa_ggg_benchmark.vav.ada.aia.oof >> differences.out
+echo "Check difference between "$1"/pa_ggg_benchmark.vav.ada.aia.flg.oof and "$2"/pa_ggg_benchmark.vav.ada.aia.flg.oof" >> differences.out
+./gggdiff_oof.pl $1/pa_ggg_benchmark.vav.ada.aia.flg.oof $2/pa_ggg_benchmark.vav.ada.aia.flg.oof >> differences.out
 echo "Check difference between "$1"/pa20040721_20041222.private.nc and "$2"/pa20040721_20041222.private.nc" >> differences.out
 # note: order reversed from others
 ../bin/compare_netcdf $2/pa20040721_20041222.private.nc $1/pa20040721_20041222.private.nc >> differences.out 2>&1

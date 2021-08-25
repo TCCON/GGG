@@ -1,20 +1,20 @@
  21 22
  GFIT                     Version 5.28        2020-04-24   GCT  
  GSETUP                   Version 4.70        2020-06-29   GCT
-9abea7fd1dd86df51a331fb96a7a598f  /home/dwunch/ggg2020/config/data_part.lst
-b2e976c6a7b471f8a3e381261b09048a  /home/dwunch/ggg2020/apriori/gfit_ap.gnd
-af52ead7942098d0635c96847c368583  /home/dwunch/ggg2020/runlogs/gnd/pa_ggg_benchmark.grl
-890935e1a57e041d3097a3a6674778c9  /home/dwunch/ggg2020/levels/ap_51_level_0_to_70km.gnd
-                                  /home/dwunch/ggg2020/models/gnd/
-                                  /home/dwunch/ggg2020/vmrs/gnd/
-8b6a58343a648d75cbb5cd7d264eb56f  pa_ggg_benchmark.mav
+938151d4a86e6c17b19bfc7a9b43ac47  /home/jlaugh/GGG/ggg-my-devel/config/data_part.lst
+b2e976c6a7b471f8a3e381261b09048a  /home/jlaugh/GGG/ggg-my-devel/apriori/gfit_ap.gnd
+af52ead7942098d0635c96847c368583  /home/jlaugh/GGG/ggg-my-devel/runlogs/gnd/pa_ggg_benchmark.grl
+890935e1a57e041d3097a3a6674778c9  /home/jlaugh/GGG/ggg-my-devel/levels/ap_51_level_0_to_70km.gnd
+                                  /home/jlaugh/GGG/ggg-my-devel/models/gnd/
+                                  /home/jlaugh/GGG/ggg-my-devel/vmrs/gnd/
+37344f65985aa3424ede4f56106d70cb  pa_ggg_benchmark.mav
 5d6bc4a301bdb9d47341bf27adef4af6  pa_ggg_benchmark.ray
-b6ecd749a6ec0c72530bec31475f4f25  /home/dwunch/ggg2020/isotopologs/isotopologs.dat
-9dabd956bcbbea1d9233328d7eab5bb5  /home/dwunch/ggg2020/windows/gnd/tccon.gnd
+b6ecd749a6ec0c72530bec31475f4f25  /home/jlaugh/GGG/ggg-my-devel/isotopologs/isotopologs.dat
+3d9853a3a7135c29e0d57707579ab9f6  /home/jlaugh/GGG/ggg-my-devel/windows/gnd/tccon.gnd
 580572bd6b6b05ab437ed3447be4d8a9  telluric_linelists.md5
-893b127f4833ed5d9904ba989fcbb2ab  /home/dwunch/ggg2020/linelist/solar_merged.108
-                                  /home/dwunch/ggg2020/ak/j_wco2_6073.pa_ggg_benchmark
-                                  /home/dwunch/ggg2020/spt/z
+893b127f4833ed5d9904ba989fcbb2ab  /home/jlaugh/GGG/ggg-my-devel/linelist/solar_merged.108
+                                  /home/jlaugh/GGG/ggg-my-devel/ak/j_wco2_6073.pa_ggg_benchmark
+                                  /home/jlaugh/GGG/ggg-my-devel/spt/z
                                   wco2_6073.pa_ggg_benchmark.col
                                   (1x,a20,1x,i2,1x,f5.3,1x,f5.1,1x,f4.1,1x,f5.2,1x,f5.2,1x,f6.4,1x,f6.4,f8.3,15(0pf7.3,1pe11.4,0pf10.5,1pe8.1))
  6073.50  63.40  15 1 1 0  ncbf=2  fs  sg  nv sf=1.000 : wco2 h2o ch4

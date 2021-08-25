@@ -107,6 +107,12 @@ c     &   rlgfile(:lr-3)//'vav.ada.aia'
          write(lunw_pp,'(a)')
      &   gggdir(:lrt)//'bin'//dl//'write_official_output_file '//
      &   rlgfile(:lr-3)//'vav.ada.aia'
+      
+      if( usetccon .ne. 'n' ) then
+         write(lunw_pp,'(a)')
+     &   gggdir(:lrt)//'bin'//dl//'apply_manual_flags '//
+     &   rlgfile(:lr-3)//'vav.ada.aia.oof'
+      endif
 
          write(lunw_pp,'(a)')
      &   gggdir(:lrt)//'bin'//dl//'write_netcdf '//rlgfile(:lr-3)//'tav'

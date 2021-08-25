@@ -83,7 +83,8 @@ c
       character header*2400,headarr(mcol)*12,gas*4,
      & header_av*800,headarr_av(mcol)*12,
      & inputfile*40,outputfile*40,version*62, specname*(nchar),
-     & avfile*40, specname_av*(nchar), gas_window*10
+     & avfile*40, specname_av*(nchar), gas_window*10,gsza_cl*10,
+     & p_cl*10,gas_cl*10
       real*4 
      & yy(mrowpd),uy(mrowpd),
      & bf(mrowpd,nfp),apx(nfp),apu(nfp),
@@ -96,8 +97,8 @@ c
      & fugas,fuo2,
      & solar_noon,b,eot,diff,
      & yrow(mcol),chi2,dpi,
-     & yrow_av(mcol)
-      logical isavg
+     & yrow_av(mcol),gsza,p
+      logical isavg,onegas
       parameter(dpi=3.14159265359D0)
 
 
@@ -117,7 +118,7 @@ c  Do-nothing code to use parameters in include files
     
 
       version=
-     &' derive_airmass_correction        1.26    2020-03-20   GCT/JLL'
+     &' derive_airmass_correction        1.27    2020-12-16   GCT/JLL'
       write(*,*) version
 
       qc_threshold=2.
@@ -134,15 +135,33 @@ c  Do-nothing code to use parameters in include files
       klon=0
       ksza=0
       kqcflag=0
+
+      gsza = 13.0
+      p = 3.0
+      gas_cl = '          '
       if (iargc() == 0) then
          write(*,*)'Enter name of input file (e.g. paIn_1.0lm.vav):'
          read(*,'(a)') inputfile
-      elseif (iargc() == 1) then
+      elseif (iargc() .ge. 1) then
          call getarg(1, inputfile)
       else
          stop 'Usage: $gggpath/bin/derive_airmass_correction vavfile'
       endif
+
+      if (iargc() .ge. 2) then
+         call getarg(2, gsza_cl)
+         read(gsza_cl, '(f10.0)') gsza
+      endif
+      if (iargc() .ge. 3) then
+         call getarg(3, p_cl)
+         read(p_cl, '(f10.0)') p
+      endif
+      if (iargc() .ge. 4) then
+         call getarg(4, gas_cl)
+      endif
+c      write(*,'(a,f10.2)') 'Will use gsza=', gsza
       li=lnbc(inputfile)
+      onegas = lnbc(gas_cl) .gt. 0
 
 c Determine is working from an averaged file or not
       if(inputfile(li-3:li) .eq. '.vav') then
@@ -199,9 +218,26 @@ c      write(*,*)'Enter name of gas:'
 c      read(*,'(a)') gas
 
 c     write(*,*)'naux,ncol=',naux,ncol
-      write(*,*) 'gas         ybar   ybar_error     asdc    asdc_error  
-     &  sdc     sdc_error'
+      write(*,'(2(a,f10.6))') 'gsza = ', gsza, ', p = ', p
+      write(*,'(a16,6a12)') 'gas','ybar','ybar_error','asdc',
+     &'asdc_error','sdc','sdc_error'
       do kgas=naux+1,ncol,2
+
+c  JLL: get which gas or window we are fitting in this loop
+         if (isavg) then
+            gas=headarr(kgas)(1:4)
+            gas_window=gas
+         else
+            iunder=lnbc(headarr(kgas))
+            gas_window=headarr(kgas)(1:iunder)
+            iunder=index(headarr(kgas),'_')-1
+            gas=headarr(kgas)(1:iunder)
+         endif ! isavg
+
+c  JLL: if we're only supposed to fit one gas, and this loop
+c  isn't that gas, skip to the next one.
+         if (onegas .and. gas_window(1:lnbc(gas_window)) .ne.
+     &       gas_cl(1:lnbc(gas_cl))) cycle
 
 c  Read the header of the primary input file 
 c  (.vav or .vsw) and figure out which columns 
@@ -225,6 +261,7 @@ c  contain the values that we need.
             if(headarr(icol) .eq. 'lat') klat=icol
             if(headarr(icol) .eq.'long') klon=icol
             if(headarr(icol) .eq.'asza') ksza=icol
+            if(headarr(icol) .eq.'solzen') ksza=icol
             if(headarr(icol) .eq.'qcflag') kqcflag=icol
          end do
 
@@ -244,16 +281,6 @@ c  file to do the luft water correction
            end do ! icol=1,ncol_av
          endif ! (.not isavg)
 
-         gas=headarr(kgas)(1:4)
-         if (isavg) then
-            gas=headarr(kgas)(1:4)
-            gas_window=gas
-         else
-            iunder=lnbc(headarr(kgas))
-            gas_window=headarr(kgas)(1:iunder)
-            iunder=index(headarr(kgas),'_')-1
-            gas=headarr(kgas)(1:iunder)
-         endif ! isavg
 
 c  Set loose A Priori constraints on ybar, ASDC, & SDC.
 c  This prevents the solution going crazy whenever there are
@@ -276,6 +303,9 @@ c  fewer than 3 linearly-independent observations in a day.
          elseif(gas.eq.'luft') then
             apx(1)=1.0E-00
             apu(1)=2.0E-00
+         elseif(gas.eq.'hcl') then
+            apx(1)=1E-10
+            apu(1)=5E-11
          else
 c           write(*,*)'Skipping column/gas: ',kgas, gas
             close(lunr)
@@ -297,7 +327,7 @@ c  Set large A Priori constraints on the coefficients of the ASDC and SDC
      &   ybar_error     asdc     asdc_error     sdc      sdc_error'
 
 c  Read each day of data into memory.
-         nday=1
+         nday=0
          chi2=0.0d0
          idwas=99999
          iywas=99999
@@ -383,8 +413,8 @@ c   Divide measurements (YY) and basis functions (BF) by uncertainties (UY)
             yy(iopd)=yy(iopd)/uy(iopd)
             bf(iopd,1)=sngl(1.0d0/uy(iopd))
             bf(iopd,2)=sngl(dsin(2*dpi*diff)/uy(iopd))
-            bf(iopd,3)=sngl((((yrow(ksza)+13)/103)**3-((45.+13)/103)**3)
-     &      /uy(iopd))
+            bf(iopd,3)=sngl((((yrow(ksza)+gsza)/(90+gsza))**p
+     &      -((45.+gsza)/(90+gsza))**p)/uy(iopd))
             iywas=iyear
             idwas=idoy
             iopd=iopd+1
@@ -433,10 +463,11 @@ c               tae(j)=tae(j)+1/ae(j)**2
          write(*,*)
 c        write(*,*) 'gas     ybar   ybar_error      asdc    asdc_error   
 c    &    sdc     sdc_error'
-         write(*,'(a,6f11.4)') 'X'//gas_window//'(ppm)',(ty(j)/tee(j),
+         write(*,'(a,6(1x,f11.4))')'X'//gas_window//'(ppm)',
+     &    (ty(j)/tee(j),
      &    sqrt(tyy(j)/tee(j)-(ty(j)/tee(j))**2),j=1,nfp)
          ybar=ty(1)/tee(1)
-         write(*,'(a,6f11.5)') 'X'//gas_window//'/ybar',
+         write(*,'(a,6(1x,f11.5))') 'X'//gas_window//'/ybar',
      &    (ty(j)/tee(j)/ybar,
      &    sqrt(tyy(j)/tee(j)-(ty(j)/tee(j))**2)/ybar,j=1,nfp)
 

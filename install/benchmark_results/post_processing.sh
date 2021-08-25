@@ -1,12 +1,13 @@
-/home/dwunch/ggg2020/bin/collate_results t
-/home/dwunch/ggg2020/bin/collate_results v
-/home/dwunch/ggg2020/bin/average_results pa_ggg_benchmark.tsw
-/home/dwunch/ggg2020/bin/average_results pa_ggg_benchmark.vsw
-/home/dwunch/ggg2020/bin/apply_airmass_correction pa_ggg_benchmark.vsw
-/home/dwunch/ggg2020/bin/average_results pa_ggg_benchmark.vsw.ada
-/home/dwunch/ggg2020/bin/apply_insitu_correction pa_ggg_benchmark.vav.ada
-/home/dwunch/ggg2020/bin/error_scale_factor pa_ggg_benchmark.vav.ada.aia
-/home/dwunch/ggg2020/bin/extract_pth pa_ggg_benchmark.grl y
-/home/dwunch/ggg2020/bin/write_official_output_file pa_ggg_benchmark.vav.ada.aia
-/home/dwunch/ggg2020/bin/write_netcdf pa_ggg_benchmark.tav
-/home/dwunch/ggg2020/bin/write_aux pa_ggg_benchmark.mav
+/home/jlaugh/GGG/ggg-my-devel/bin/collate_results t
+/home/jlaugh/GGG/ggg-my-devel/bin/collate_results v
+/home/jlaugh/GGG/ggg-my-devel/bin/average_results pa_ggg_benchmark.tsw
+/home/jlaugh/GGG/ggg-my-devel/bin/average_results pa_ggg_benchmark.vsw
+/home/jlaugh/GGG/ggg-my-devel/bin/apply_airmass_correction pa_ggg_benchmark.vsw
+/home/jlaugh/GGG/ggg-my-devel/bin/average_results pa_ggg_benchmark.vsw.ada
+/home/jlaugh/GGG/ggg-my-devel/bin/apply_insitu_correction pa_ggg_benchmark.vav.ada
+/home/jlaugh/GGG/ggg-my-devel/bin/error_scale_factor pa_ggg_benchmark.vav.ada.aia
+/home/jlaugh/GGG/ggg-my-devel/bin/extract_pth pa_ggg_benchmark.grl y
+/home/jlaugh/GGG/ggg-my-devel/bin/write_official_output_file pa_ggg_benchmark.vav.ada.aia
+/home/jlaugh/GGG/ggg-my-devel/bin/apply_manual_flags pa_ggg_benchmark.vav.ada.aia.oof
+/home/jlaugh/GGG/ggg-my-devel/bin/write_netcdf pa_ggg_benchmark.tav
+/home/jlaugh/GGG/ggg-my-devel/bin/write_aux pa_ggg_benchmark.mav

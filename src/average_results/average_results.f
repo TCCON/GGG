@@ -47,7 +47,7 @@ c  sf-values given in the header.
      & mwin,nwin,iwin,ngas,kgas,mrow,idum,
      & nauxcol,nlhead,ncol,kcol,jcol,icol,cwas,
      & nrow,nss,loc_,loc,lwas,mit,naddn,ihead, kxo2
-      logical isada
+      logical isada, force_iter
       logical isclose_s            ! function that tests whether real*4
                                    ! values are within floating point error 
                                    ! of each other
@@ -80,7 +80,8 @@ c  sf-values given in the header.
      & data_fmt*40,
      & input_fmt*40,
      & output_fmt*40,
-     & addn_lines(maddln)*(mcharhead)
+     & addn_lines(maddln)*(mcharhead),
+     & fiter_cl*6
 
       real*8 year(mrow),ty(mgas),t2(mgas),te(mgas),wt,
      & dtiny,covmat(mavg*mavg),ymiss_dbl,tt
@@ -118,9 +119,15 @@ c  sf-values given in the header.
          read(*,'(a)') swfile
       elseif (iargc() == 1) then
          call getarg(1, swfile)
+      elseif (iargc() == 2) then
+         call getarg(1, swfile)
+         call getarg(2, fiter_cl)
       else
          stop 'Usage: $gggpath/bin/average_results xswfile'
       endif
+
+      force_iter = fiter_cl .eq. '--iter'
+
       lr=lnbc(swfile)
 c JLL: average_results may be getting an .xsw or .xsw.ada file
 c it doesn't matter which except that we need to change the right
@@ -158,7 +165,7 @@ c go ahead and insert this program's version into the additional lines
 
 c Initially, assume that we will need to iteratively find the window-to
 c window biases. Set the number of iterations to 25 and initialize these
-c biases to 1
+c biases to 1.
       mit = 25
       do jcol=1,nwin
         bias(jcol) = 1.0
@@ -170,7 +177,8 @@ c Once done, remove the scale factors from the header - they
 c don't make sense post-averaging because they won't line up
 c with the columns.
       do ihead=1,naddn
-        if (index(addn_lines(ihead),'sf=') .gt. 0) then
+        if (index(addn_lines(ihead),'sf=') .gt. 0 
+     &      .and. .not. force_iter) then
           mit = 1
           read(addn_lines(ihead), '(3x,400f8.3)') 
      & (bias(jcol),jcol=1,nwin)
@@ -182,8 +190,9 @@ c with the columns.
           goto 30
         endif
       end do
-     
  30   continue
+c     write(*,*) 'mit = ', mit
+
       read(lunr_xsw,'(a)') collabel
 c      write(*,*) collabel(:256)
       if (index(collabel, 'spectrum') .gt. 0) spectrum_flag=1
@@ -430,11 +439,11 @@ c  to the .xav file at the end, but over-writes yobs and yerr.
 
 c
       if (spectrum_flag .eq. 1) then
-         output_fmt='(a57,a1,f13.8,NNf13.5,MMM(1pe12.4))'
+         output_fmt='(a57,a1,f13.8,NNf13.5,MMM(1pe13.5))'
          write(output_fmt(15:16),'(i2.2)') nauxcol-1-spectrum_flag
          write(output_fmt(23:25),'(i3.3)') 2*ngas
       else
-         output_fmt='(a1,f13.8,NNf13.5,MMM(1pe12.4))'
+         output_fmt='(a1,f13.8,NNf13.5,MMM(1pe13.5))'
          write(output_fmt(11:12),'(i2.2)') nauxcol-1-spectrum_flag
          write(output_fmt(19:21),'(i3.3)') 2*ngas
       endif
