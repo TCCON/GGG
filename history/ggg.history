@@ -1,5 +1,10 @@
  GGG Code Updates.
 
+LICENSE - 2021-10-27
+ After dicussions with JPL and Caltech, the license for GGG
+ has been changed from a custom one to the standard Apache 2.0
+ license.
+
 APPLY_AIRMASS_CORRECTION    Version 1.38  2020-12-16  GCT JLL
  apply_airmass_correction now reads g and p parameters from the
  corrections .dat file if present.
