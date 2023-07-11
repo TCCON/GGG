@@ -1,0 +1,17 @@
+{
+    "@context": "https://doi.org/10.5063/schema/codemeta-2.0",
+    "@type": "SoftwareSourceCode",
+    "name": "GGG",
+    "author": [
+        {
+            "@type": "Person",
+            "givenName": "Geoffrey C.",
+            "familyName": "Toon",
+            "email": "geoffrey.c.toon@jpl.nasa.gov",
+            "affiliation": {
+                "@type": "Organization",
+                "name": "Jet Propulsion Laboratory, California Institute of Technology"
+            }
+        }
+    ]
+}
