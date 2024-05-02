@@ -19,9 +19,15 @@ printf "\n======== GETTING TCCON_NETCDF ========\n\n"
 
 # In some cases, an active environment does not persist when a subshell
 # is created by executing a script so we double check that here.
-if [ $(basename $CONDA_PREFIX) != ggg-tccon-default ] ; then
-    echo "The ggg-tccon-default python environment is not active. CONDA_PREFIX=$(basename ${CONDA_PREFIX}). Cannot proceed." 
-    exit 1
+# Use realpath on both to avoid any comparisons failing because one uses
+# the real physical path and the other goes through symlinks.
+if [ -z $NO_CONDA_ACTIVATE ] || [ $NO_CONDA_ACTIVATE == 0 ]; then
+  conda_prefix=$(realpath $CONDA_PREFIX)
+  expected_prefix=$(realpath $GGGPATH/install/.condaenv)
+  if [ $conda_prefix != $expected_prefix ] ; then
+      echo "The $expected_prefix python environment is not active. CONDA_PREFIX=$conda_prefix. Cannot proceed." 
+      exit 1
+  fi
 fi
 
 was_cloned=false
@@ -64,7 +70,9 @@ git reset --hard $last_commit_for_ggg
 git_head=$(git show --oneline -s | awk '{print $1}')
 echo "The ggg branch HEAD is now at $git_head"
 
-printf "\n======== INSTALLING TCCON_NETCDF ========\n\n"
-./install_tccon_netcdf.sh || exit $?
+
+printf "\n======== INSTALLING TCCON_NETCDF ========\n"
+printf "        Using new GGG install script\n\n"
+$GGGPATH/install/install_tccon_netcdf_condaenv.sh || exit $?
 printf "\n================= DONE =================\n\n"
 

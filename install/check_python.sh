@@ -15,6 +15,24 @@ done
 # have problems
 mydir=$(cd `dirname $0` && pwd)
 
+# Try micromamba first - since it's a standalone executable, we shouldn't
+# need all of the shell init stuff like for conda below
+if [ ! -z $GGG_USE_MICROMAMBA ] && [ $GGG_USE_MICROMAMBA -gt 0 ]; then
+  which micromamba > /dev/null
+  mm_found=$?
+  if [ $mm_found == 0 ] || [ $GGG_USE_MICROMAMBA == 2]; then
+    echo "CONDACMD='micromamba --yes'" > $mydir/.init_conda
+    echo "CREATECMD='env create'" >> $mydir/.init_conda
+    echo "UPDATECMD='update'" >> $mydir/.init_conda
+    echo "export PYTHONCMD='micromamba run -p $mydir/.condaenv python'" >> $mydir/.init_conda
+    echo "export NO_CONDA_ACTIVATE=1" >> $mydir/.init_conda
+    exit 0
+  else
+    echo "micromamba not on path, trying conda"
+  fi
+fi
+  
+
 conda_base="$(conda info --base 2>/dev/null)" || conda_base=false
 if [ $conda_base == false ] ; then
         cat << MSG 
@@ -62,5 +80,10 @@ if [ ! -f $conda_init_file ]; then
     exit 1
 else
     echo "source $conda_init_file" > $mydir/.init_conda
+    echo "CONDACMD=conda" >> $mydir/.init_conda
+    echo "CREATECMD='env create'" >> $mydir/.init_conda
+    echo "UPDATECMD='env update'" >> $mydir/.init_conda
+    echo "export PYTHONCMD=python" >> $mydir/.init_conda
+    echo "export NO_CONDA_ACTIVATE=0" >> $mydir/.init_conda
 fi
 

@@ -1,5 +1,5 @@
-atm.101
-fcia.101
-gct.101
-scia.101
-solar_merged.108
+*
+!.gitignore
+!download_linelists.sh
+!.linelist_info
+!.prev_linelist_info.json
