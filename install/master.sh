@@ -12,6 +12,14 @@ if [ ! $GGGPATH/install == `pwd` ] ; then
    fi
 fi
 
+$GGGPATH/linelist/download_linelists.py
+
+if [[ $? != 0 ]]; then
+  echo "An error occurred downloading the linelists (see the previous lines)."
+  echo "Correct this error and rerun master.sh. Quitting install."
+  exit
+fi
+
 ./compile_ggg.sh
 
 echo " Creating data_part.lst if it doesn't already exist"
