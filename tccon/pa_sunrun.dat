@@ -1,0 +1,29 @@
+1  Default values for the sunrun parameters - starred values should be changed to match the site
+2          ! *Instrument (1=MkIV,2=TCCON,3=Other)*
+2          ! *Obj   (1=moon, 2=sun)*
+0          ! *tcorr (time correction to UTC in seconds)*
+45.9448    ! *oblat (site latitude in degrees)*
+-90.2732   ! *oblon (site longitude in degrees)*
+0.442      ! *obalt (site altitude above sea level in km)*
+60.0       ! tins (instrument temperature null value)
+-.1        ! pins (instrument pressure null value)
+-9.0       ! hins (instrument humidity null value)
+99.0       ! tout (outside temperature null value)
+-99.0      ! pout (outside pressure null value)
+0.7        ! *pout_corr (pressure correction in hPa to be added)*
+-9.0       ! hout (outside humidity null value)
+-1.0       ! sia  (solar tracker average intensity null value)
+-.9999     ! fvsi (fractional variation in solar intensity null value)
+-1.0       ! wspd (wind speed null value)
+-1.0       ! wdir (wind direction null value)
+3          ! *ndet (number of detectors)*
+16 16 'a'  4000 11000  ! *Nus Nue (lower and upper limits for detector 'a')*
+16 16 'b' 11000 15000  ! *Nus Nue (lower and upper limits for detector 'b')*
+16 16 'c'  1800  6000  ! *Nus Nue (lower and upper limits for detector 'c')*
+0.99999999 ! *FSF (frequency shift factor)*
+15798.0138 ! *lasf (laser frequency)*
+9900.      ! *wavtkr (tracker wavenumber)*
+0.002      ! *AIPL (airmass independent path length)*
+1.00       ! *TM (telescope magnification)*
+
+

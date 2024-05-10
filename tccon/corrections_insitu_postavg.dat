@@ -1,0 +1,27 @@
+19 4
+2017-02-16  GCT
+2015-08-11  DW
+2021-07-26  JLL
+This file contains airmass-independent correction factors (AICFs) determined
+offline by comparison against in situ data. CO2, wCO2, lCO2, CH4, and H2O use AICFs 
+determined as the weighted mean ratio of TCCON to in situ Xgas values. N2O
+uses the ratio of TCCON to surface-derived in situ XN2O fit to a mid-tropospheric
+potential temperature of 310 K, ensuring that it is fixed to the same temperature
+as the ADCFs. CO, H2O, and Luft are not corrected.
+For CO2, wCO2, lCO2, CH4, H2O, and CO the AICF_Err (uncertainties) are 2-sigma standard 
+deviations of bootstrapped mean ratios. For N2O, the error equals the fit vs. potential 
+temperature multiplied by twice the standard deviation of potential temperatures 
+experienced by the TCCON network.
+The WMO_Scale column gives the WMO scale from the in situ data that the scale
+factor ties to. There must be something in this column and must be quoted; 
+use "N/A" for gases with no WMO scaling. NB: although CO has no WMO scale (because it
+is not scaled), the uncertainty was determined from the measurements on the WMO X2014A scale.
+ Gas     AICF  AICF_Err  WMO_Scale
+"xco2"   1.0101  0.0005  "WMO CO2 X2007"
+"xwco2"  1.0008  0.0005  "WMO CO2 X2007"
+"xlco2"  1.0014  0.0007  "WMO CO2 X2007"
+"xch4"   1.0031  0.0014  "WMO CH4 X2004"
+"xn2o"   0.9821  0.0098  "NOAA 2006A"
+"xco"    1.0000  0.0526  "N/A"
+"xh2o"   0.9883  0.0157  "ARM Radiosondes (Lamont+Darwin)"
+"xluft"  1.0000  0.0000  "N/A"

@@ -1,0 +1,29 @@
+15 5
+2017-02-16  GCT
+2015-08-11  DW
+2019-01-14  JLL
+2020-12-04  JLL: extrapolated to Xluft = 0.999
+2021-02-22  JLL: fit for mid-trop PT = 310 K
+2021-07-15  JLL: uncertainties added from 2-sigma std dev of bootstrapped PT = 310 K fits
+Contains airmass-dependent correction factors to be applied to the 
+column-averaged mole fractions. These are determined offline from the 
+symmetric component of the diurnal variation using derive_airmass_correction.
+The ADCF_Err should be the 1-sigma standard deviations which represent day-to-
+day variability. This vastly overestimates the uncertainty in the average
+value, however the standard error underestimates the uncertainty.
+g and p are the zero-SZA and exponent in the ADCF form.
+ Gas         ADCF      ADCF_Err  g    p
+"xco2_6220"  -0.00903  0.00025   15   4
+"xco2_6339"  -0.00512  0.00025   45   5
+"xlco2_4852"  0.00008  0.00018  -45   1
+"xwco2_6073" -0.00235  0.00016  -45   1
+"xwco2_6500" -0.00970  0.00026   45   5
+"xch4_5938"  -0.00971  0.00046   25   4
+"xch4_6002"  -0.00602  0.00053  -5    2
+"xch4_6076"  -0.00594  0.00044   15   3
+"xn2o_4395"   0.00523  0.00054  -5    2
+"xn2o_4430"   0.00426  0.00042   13   3
+"xn2o_4719"  -0.00267  0.00056  -15   2
+"xco_4233"    0.00000  0.00000   13   3
+"xco_4290"    0.00000  0.00000   13   3
+"xluft_6146"  0.00053  0.00017  -45   1

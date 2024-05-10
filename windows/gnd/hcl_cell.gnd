@@ -1,0 +1,19 @@
+2 2
+ Center   Width MIT A I F  Parameters to fit       Gases to fit
+ 5577.30   0.40  10 1 1 0 cl  ct  fs  so     : hcl h2o ch4
+ 5597.80   0.40  10 1 1 0 cl  ct  fs  so     : hcl h2o ch4
+ 5625.02   0.29  10 1 1 0 cl  ct  fs  so     : hcl h2o ch4
+:5642.90   1.50  10 1 1 0 cl  ct  fs  so     : hcl h2o ch4
+ 5683.57   0.36  10 1 1 0 cl  ct  fs  so     : hcl h2o
+ 5687.65   1.10  10 1 1 0 cl  ct  fs  so     : hcl h2o ch4
+ 5702.00   0.70  10 1 1 0 cl  ct  fs  so     : hcl h2o ch4
+ 5706.20   0.50  10 1 1 0 cl  ct  fs  so     : hcl h2o ch4
+ 5719.00   1.50  10 1 1 0 cl  ct  fs  so     : hcl h2o ch4
+ 5735.05   0.52  10 1 1 0 cl  ct  fs  so     : hcl h2o ch4
+ 5739.30   1.10  10 1 1 0 cl  ct  fs  so     : hcl h2o ch4
+ 5749.80   0.60  10 1 1 0 cl  ct  fs  so     : hcl h2o ch4
+ 5754.00   0.80  10 1 1 0 cl  ct  fs  so     : hcl h2o ch4
+ 5763.20   0.70  10 1 1 0 cl  ct  fs  so     : hcl h2o ch4
+ 5767.35   1.70  10 1 1 0 cl  ct  fs  so     : hcl h2o ch4
+ 5779.50   1.00  10 1 1 0 cl  ct  fs  so     : hcl h2o ch4 
+ 5790.45   0.90  10 1 1 0 cl  ct  fs  so     : hcl h2o ch4 

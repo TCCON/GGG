@@ -1,0 +1,48 @@
+[
+  {
+    "download_url": "https://data.caltech.edu/records/kfvxb-2e522/files/ggg2020.terrestrial.voigt.tgz",
+    "output_name": "ggg2020.terrestrial.voigt.tgz",
+    "contents": [
+      {"file": "atm.161", "md5": "900f41f6a691e796d077cd3b58622876"},
+      {"file": "fcia.101", "md5": "6fd821359b77fa5a0f3bb7608ffa007e"},
+      {"file": "pll.101", "md5": "66a39c0e85a487616f9f49a588eede96"},
+      {"file": "scia.101", "md5": "61e34bb86814b4d71a3a74f517412a19"}
+    ]
+  },
+  {
+    "download_url": "https://data.caltech.edu/records/58bfv-27g69/files/ggg2020.terrestrial.nonvoigt.tgz",
+    "output_name": "ggg2020.terrestrial.nonvoigt.tgz",
+    "contents": [
+      {"file": "addlmflag_official.161", "md5": "f65cc5024ca9200354a41dd5be48efd4"},
+      {"file": "atmnv.275", "md5": "8b9dd6612ad0614292c5a8051d55c52f"},
+      {"file": "co2_data/co2_792Q/WQT_self.dat", "md5": "8ed2a6cc90d27eb76f7791ca7e1057ae"},
+      {"file": "co2_data/co2_792Q/WQ_self.dat", "md5": "de6d470d037a0abe2ee61e6d58a63b35"},
+      {"file": "co2_data/co2_792Q/WQ_air.dat", "md5": "2a1af03a654db0352dba2c699a3566f9"},
+      {"file": "co2_data/co2_792Q/WQT_air.dat", "md5": "8ed2a6cc90d27eb76f7791ca7e1057ae"},
+      {"file": "co2_data/co2_792Q/co2_792_Q.dat", "md5": "2eb80b66e8cfdf5d44c128f4b449c5f1"},
+      {"file": "ch4_data/WPT_air.dat", "md5": "acf4ddf2894cbb23af75d052cb3fdcdf"},
+      {"file": "ch4_data/WPT_self.dat", "md5": "61ce111e3af2c8f828dfb09a50569427"},
+      {"file": "ch4_data/WRT_air.dat", "md5": "d329b82499f97418ac3b95d563057529"},
+      {"file": "ch4_data/ch4_2nu3_R.dat", "md5": "2774024bd81b7f3598d5473e58bfb3f5"},
+      {"file": "ch4_data/ch4_2nu3      .dat", "md5": "8a5ef4dcdde83f1d8aee72351b7e9ff5"},
+      {"file": "ch4_data/WQ_self.dat", "md5": "391d2654115b2788871e103186b4efa7"},
+      {"file": "ch4_data/WP_self.dat", "md5": "0796f6bf68c550416d788a297fa31aee"},
+      {"file": "ch4_data/WR_self.dat", "md5": "782b23f44190c1a158554ba94d156798"},
+      {"file": "ch4_data/WQT_air.dat", "md5": "38afa21ef51d712425f508060e501825"},
+      {"file": "ch4_data/WQ_air.dat", "md5": "fd31a7305b35e2cbea7b5dbd0b759b5e"},
+      {"file": "ch4_data/WQT_self.dat", "md5": "38afa21ef51d712425f508060e501825"},
+      {"file": "ch4_data/WR_air.dat", "md5": "6ca1669492942cc9a7a78f396bbc8b2a"},
+      {"file": "ch4_data/ch4_2nu3_Q.dat", "md5": "ac85d1a28243bfab91c5acb654ad277e"},
+      {"file": "ch4_data/WRT_self.dat", "md5": "2161cb1f2913913f83942086a9733b73"},
+      {"file": "ch4_data/ch4_2nu3_P.dat", "md5": "fe46ddb12c194a96dd84c877181ea1a4"},
+      {"file": "ch4_data/WP_air.dat", "md5": "786b05da5930cfbca30d18c38287bca1"}
+    ]
+  },
+  {
+    "download_url": "https://data.caltech.edu/records/jba2m-w2t72/files/solar_merged.108.gz",
+    "output_name": "solar_merged.108.gz",
+    "contents": [
+      {"file": "solar_merged.108", "md5": "893b127f4833ed5d9904ba989fcbb2ab"}
+    ]
+  }
+]

@@ -1,0 +1,5 @@
+ 4 columns:(1)TERM env. var. (2)local s/w name (3)grafpak gks term.code (4)color flag (5) idl device code
+sun-cmd  sunw  5452  .true.  sun
+xterm    xwin  5350  .false.  x
+xcterm   xwin  5350  .true.   x
+vt100    xwin  5350  .false.  x

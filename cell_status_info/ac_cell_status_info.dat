@@ -1,0 +1,32 @@
+32 7
+File contains the following cell status information:
+   Time1    cell insertion date/time in YYYYMMDDHHMMSS format
+   Time2    cell  removal  date/time in YYYYMMDDHHMMSS format
+   Gas#     gas number (HCl=15, HBr=16, OCS=19)
+   Column1  Column of gas in cell (molecules/m2) at insertion
+   Column2  Column of gas in cell (molecules/m2) at removal
+   Peff1    Effective Pressure (mbar) at 296K at insertion
+   Peff2    Effective Pressure (mbar) at 296K at removal
+   Comment  Can be any text string (e.g. spectrum name, cell length)
+
+The Peff and Column values were obtained (by Frank Hase) using
+HIT2008. Changing to a different linelist will invalidate them.
+As of 20200523, atm.161 HCl was still indentical to HIT2008.
+If an instrument has never had a cell, this file will contain
+nothing below the column headers (line 32)
+
+Cell length is unnecessary if the gas column is known. Ideal Gas Law:
+    PV=nkT
+    n/V = P/kT  (molecules/m3)
+    Slant Column = Ln/V = LP/kT (molecules/m2)
+Slant column is preserved in the event of an inward leak into a cell
+kept at 1 atm, even though the pressure increases.
+
+    Peff = PP_gas + PP_air*(ABHW_gas/SBHW_gas) + PP_h2o*(WBHW_gas/SBHW_gas)
+Since PP_h2o =~0 for all cells, water broadening widths don't matter.
+For HCl cell, ABHW_gas/SBHW_gas ~0.25   
+For HBr,cell, ABHW_gas/SBHW_gas ~0.75  
+For OCS,cell, ABHW_gas/SBHW_gas ~0.80 
+
+format=(2(1x,i4,5i2),i3,2e12.4,2f7.3)
+    Time1          Time2      Gas#   Column1    Column2    Peff1  Peff2  Comments (not read)

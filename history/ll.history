@@ -1,0 +1,3158 @@
+GGG spectral linelists documentation.
+
+atm.161  2020-04-28
+ Modifications to the WV to make the results more consistent
+ amongst the TCCON windows. Also replaced all the "Toon fudge"
+ H2O lines having E"=1111.111 with their HIT16 counterparts
+ which have proper E" values. These lines were mostly weak.
+ The total number of lines in atm.161 is now 3687590. Of these:
+   H2O has 148774 lines covering 0 to 25711 cm-1
+   HDO has  71423 lines covering 0 to 19935 CM-1
+   D2O has  24226 lines covering 0 to 12796 cm-1
+
+atm.161  2020-04-19
+ Added 20526 NH3 lines above 7000 cm-1 from HIT16. The resulting
+ NH3 linelist now extends to 10349 cm-1. These are needed to analyze
+ KP lab spectra
+
+atm.161  2020-04-17
+ Deleted all H2O lines above 500 cm-1 with strengths below 1E-29,
+ i.e. with E-3? in the intensity field.  A disproportionate number
+ of these had strengths of 9.9??E-30; not sure why. A lot of the
+ removed lines were from Toth's linelist, which had been replaced
+ by HIT16, but the Toth line was retained, just in case, by multi-
+ plying its intensity by 1E-10.
+
+ This reduced the total number of lines in atm.161 by 187, from
+ 3666963 to 3666776.  There are still many H2O lines below 500 cm-1
+ with much weaker strengths.
+
+atm.161  2016-04-04
+ There were several hundred "*****" in the linelist due to HCN lines
+ with SBHW > 1.0  In HITRAN these had been shoe-horned into the f5.4
+ format by writing them as f5.3, which is fine when you read it, but
+ not when you re-write using a fixed format of f5.4.
+
+ When I was adjusting the widths of the O2 lines, all the other lines
+ were also read and then immediately re-written. Even though no changes
+ were performed to HCN, the "1.030" became "*****".
+
+
+atm.161  2016-04-04
+ Lots of improvements to H2O which are detailed in the report
+ "H2O spectroscopy evaluation 700-1200"
+
+ Also scaled the O2 lines beteen 7700 and 8200 cm-1
+ Intensities:   x 1.01
+ Widths:        x 1.002
+ TDPBHW:        x 0.93
+ These same changes were made to O2 in the atmnv.275 linelist.
+ At the same time, the TDSBHW parameters were set to the new
+ TDPBHW values rather then zero. This makes it feasible, in
+ future, to simplify the code in abscoj.f. This is also a step
+ toward being able to analyze pure O2 spectra once more.
+
+pll.101  2020-03-23
+ Removed 28000 pseudo-lines of CHF3 (HFC-23) covering 1100-1240 cm-1
+ at 0.005 cm-1 spacing which were created in 2011 using the lab
+ measurements of PNNL and Chung.
+ Replaced them with 82000 pseudo-lines covering 1105-1425 cm-1 at
+ 0.004 cm-1 spacing, based on the lab measurements of Gohar (2004)
+ PNNL (Sharpe et al. 2004), Chung (2005), and Harrison (2013).
+
+pll.101  2020-02-16
+ Added isoprene (C5H8) PLL containing 528122 lines over two regions:
+  799.9 to 1870.1 cm-1 at 0.0025 cm-1 spacing
+ 2699.9 to 3200.1 cm-1 at 0.005  cm-1 spacing
+
+atm.161 & atmnv.275
+ Decided that the R11 CH4 manifold in the 2nu3 band at 6114 cm-1
+ was better represented without LM and speed-dependence than with.
+ This is the last manifold in the band to have LM or SD. The manifold
+ has 10 lines, six of which require full LM while the other four
+ require only SD.  To undo the LM and SD for this manifold required
+ - unflag all 10 lines in atm.161
+ - delete the 4 SD lines in atmnv275.275
+ - modify the following 5 files in $gggpath/linelist/ch4_data/
+   WR_air.dat, WR_self.dat, WRT_air.dat, WRT_self.dat & ch4_2nu3_R.dat
+   to reflect the reduced number of CH4 lines.
+ - modified abscoj.f to change the number of CH4 lines from 48 to 42.
+ 
+atm.161  2020-01-17
+ Improved NH3 linelist for the deuterated isotopologs based on
+ Job_etal.NH2D_GCT.085
+ hi.Kartha.NHD2.Ia_GCT.084
+ Added dozens of lines that seemed to be missing from these
+ lists and adjusted ABHW, SBHW, and PSHIFT values for some of
+ the stronger lines, based on PNNL and Keeyoon's lab spectra.
+ It was actually quite difficult to determine whether a missing
+ line was NH2D or NHD2, or even ND3.
+
+ Multiplied all the deuterated line intensities by
+ 0.00046547/0.00034363 = 1.3546
+ This is because Keeyoon, in converting his linelist to hitran format,
+ and hence from per molecule of the particular isotopolog to per total
+ ammonia molecules, had multiplied the deuterated intensities by
+ 0.00034363 instead of the correct value of 0.00046547. And indeed,
+ when fitting D-enriched lab spectra with the linelists supplied by
+ Keeyoon, the VSFs ranged from 1.2 to 1.4 for deuterated isotopologs.
+
+ So the atm.161 linelist contains 52678 ammonia lines covering
+ 0 to 7000 cm-1.  This includes
+ Gas Iso  Count    Vmin    Vmax    Smin     Smax    ABHWmin ABHWmax SBHWmin SBHWmax PShmin PShmax
+ 11   1   45391     0.1  6999.4  2.11E-39 5.49E-19   0.029   0.110   0.100   0.650 -0.0160  0.0110
+ 11   2    1556     0.4  5179.8  5.46E-29 1.90E-21   0.053   0.108   0.103   0.650 -0.0050  0.0100
+ 11   3    4562   702.8  1389.7  6.50E-30 7.99E-23   0.080   0.100   0.300   0.490  0.0000  0.0040
+ 11   5    1169   661.8   997.3  2.47E-38 4.88E-27   0.090   0.100   0.360   0.460  0.0000  0.0000
+ There are no lines of isotopolog #4, 15NH2D, nor any heavier isotopologs.
+
+
+pll.101  2019-09-27
+ Added the following pseudo-linelists to pll.101:
+ hno3_2nu8_nu5+nu6_pll_1380_1570.101
+ with 38001 lines at a spacing of 5 mK.
+ Also tweaked some of the line positions in the
+ nu1 band at 3550 cm-1.
+
+
+atm.161  2019-09-20
+ Replaced the entire HNO3 with HITRAN16, which includes
+ MIPAS-1220-1396pre.par and lines for the 15N isotopolog.
+ This increases the number of HNO3 lines from 279941 to
+ 1008972, while still covering just 0 to 1770 cm-1.
+ Added a few empirical lines to improve the fits in the
+ 886 cm-1 region which seems to contain a missing hot-band,
+ and also in the 1300 cm-1 region.
+
+atm.161  20190623
+ More work on the H2O spectroscopy in the 6170-6390 cm-1 and
+ 7699-8046 cm-1 regions used for TCCON co2 and O2, respectively.
+ The improvements were based on fitting KP lab spectra and
+ TCCON ground-based spectra.  This mostly involved including
+ weak HDO lines from  HIT16 that were previously missing. Also
+ some stronger HDO lies were replaced in cases where the
+ HIT16 HDO lines gave better fits than Toth's HDO lines.
+
+ Elsewhere, the HDO linelist was completely replaced by HIT16.
+
+ The first step is to extract a HDO linelist from 01_hitran16.161,
+ which require running strip.f three times (for isotopes 4,5,6)
+ and changing the gas/isotope numbers as follows:
+    14 --> 491
+    15 --> 492
+    16 --> 493
+ The three resulting files are thern merged, producing a file,
+ 01_hitran16_g49.161, contains 73460 lines.
+
+ Next, the 6170-6390 cm-1 and 7699-8046 cm-1 regions were deleted
+ and filled with the HDO lines from stripped49_atm18.161
+ 
+ 1) HDO lines were stripped from stripped49_atm.161 over 6170-6390 cm-1.
+ 2) HDO lines were stripped from stripped49_hit16.161 over 6170-6390 cm-1.
+ 3) The remaining/leftover HIT16 HDO lines were re-numbered 49.
+ 4) leftover01_hit16 lines were merged with stripped49_atm
+ This process was repeated for the 7699-8046 cm-1 region.
+
+
+pll.101  20190425
+ Added 50,001 HNO3 lines representing the 2nu4 and nu2+nu8 bands
+ over the 2440_2690 cm-1 region.  These PLL parameters were
+ determined by fitting PNNL spectra, since the bands are too
+ weak to be seen in Kitt Peak lab HNO3 spectra.
+
+ Had to reduce the strength of the overlapping 2nu3 and nu3+nu4
+ bands, created in 2006 to cover 2600 to 2670 cm-1, by a factor 2
+ to maintain consistency of the two band strengths.
+
+atm.161  20190303
+ Partial update of weak H2O lines in the TCCON CO2 and O2
+ windows.  In particular, in the 7755-8013 cm-1 region,
+ most of which is used for TCCON O2 retrievals, there were
+ previously no HDO lines.  Hundreds of missing absorption
+ lines had been given the isotopolog # "11", along with
+ empirically determined positions, intensities, and widths,
+ along with the comment "Toon fudge 2005" or "Toon fudge 2008".
+
+ Although this old, patched up linelist still gave better
+ fits than HIT16, there were nevertheless regions where HIT16
+ did better.  These empirical "11" lines were all replaced with
+ HDO lines from HIT16.  Additionally, lines that caused poor
+ residuals were replaced with the equivalent lines from HIT16,
+ in most cases improving the spectral fits. A few of the 
+ "Toon fudge: lines still exist, because there wasn't anything
+ in HIT16 to fill the absorption dips.
+ 
+ This change should only make a discernable difference at high
+ airmasses or under humid conditions.
+
+
+atm.161  20190224
+ Moved the D2O linelist (gas# 71) from pll.101 to atm.161
+ to facilitate the H2O linelist evaluation.
+
+
+atm.161  20190223
+ A major change in the CO2 linelist.  Most lines have been
+ replaced by HIT2016 except for:
+  - Using atm16.161 over 3419-3923 and 5750-6598 cm-1
+  - Using HIT2008 over 6715 - 7000 cm-1 
+  - For isotopologs 10,11,12, using HIT16b throughout.
+  - Scaling CO2 line intensities by 1.05 over 1800 to 1993 cm-1
+  - Scaling 12CO2 line intensities by 0.96 over  6720 to 6800 cm-1 
+ On top of this, ad hoc corrections (mainly position adjustments)
+ were applied where beneficial.  This work is described in the 
+ 34-page PPT presentation "CO2 Spectroscopy Evaluation".
+
+2019-01-30  pll.101
+  Merge a new C6H6 linelist into pll.101 consisting of:
+  626.0 to  726.0 at  2 mK  (50,001 lines)
+  735.0 to  825.0 at 2.5 mK (36,001 lines)
+ 1003.0 to 1073.0 at  3 mK  (23,332 lines)
+ 1435.0 to 1522.2 at  4 mK  (21,801 lines)
+ 3000.0 to 3140.0 at  5 mK  (28,001 lines)
+
+ For a total of 159,136 lines. These were based
+ on lab measurements by Keeyoon Sung.
+
+
+2018-10-28  atm.161
+  Modified the HCOOH linelists in three ways:
+  1) Re-copied it from HIT 2012 preserving the quantum
+   assignments and accuracy codes, which were previously
+   moved and/or lost due to the .101 format
+  2) Moved ~200 line positions to improve fits to KP lab spectra.
+  3) Changed HITRAN gas number (32) to ATM number (46).
+ Still 62,684 HCOOH lines as before.
+
+2018-10-27  pll.101
+  Sorted the pll.101 linelist.  Initially. there were over
+  400,000 mis-sorted lines out of 1.75M, but 10 iterations
+  of summarize_linelist/merge sorted them all out.
+
+2018-10-26  atm.161
+  Implemented a secondary sorting criterion based on
+  lexicographic (i.e. dictionary) ordering for lines
+  with identical frequencies. Over 130,000 lines were
+  affected by this re-ordering.
+
+  Fixed 64473 anomalies due to the SBWH being zero for gases:
+  13 (OH), 18 (ClO), 21 (HOCl), 22 (HO2), and 14 (HF).
+  
+  Fixed 1 anomaly due to a HDO line being labelled at "1 4"
+  instead of '49 1'.  This was probably copied from HITRAN
+  without re-numbering.
+
+2018-10-19  atm.161
+  Fixed several hundred anomalies due to the wavenumber
+  sorting having been disrupted.
+
+2018-10-08  pll.101
+  Added a NH3 empirical linelist covering 5550 to 6350 cm-1
+  containing 1761 1nh3 lines and 908 2nh3 lines.
+
+  Also, fixed a few anomalies. Mainly gases with SBHW=0.0,
+  set these to values slightly bigger than the ABHW values.
+  Lines with zero or negative strengths were set to +1.E-25
+  Out of frequency order lines were moved.
+
+  The pll.101 linelist now produces no anomalies when run
+  through the summarize_linelist program.
+
+2018-09-18  atm.161
+  Replace the entire CO2 linelist with a new one consisting
+  of HITRAN 2016 for most regions with the following exceptions:
+   - ATM16 is used for 3419 - 3923 cm-1 and 5750 - 6598 cm-1 
+   - HIT2008 is used for 6715 - 7000 cm-1 
+   - For isotopologs 10, 11, 12 HITRAN 2016 is used throughpout.
+   - Intensity scaling of 1.05 was performed over 1800-1993 cm-1
+   - Intensity scaling of 0.96 was performed over 6720-6810 cm-1
+  See report "CO2_Spectroscopy Evaluation" for more detail.
+  This will have little impact on the TCCON CO2 retrievals.
+
+2018-08-16  atm.161
+  Modified the positions of CO2 lines in the 3500 cm-1 region 
+
+2018-08-10  atm.161
+  Replaced the H2O2 linelist which consisted of
+  100781 lines covering 0 to 1500 cm-1
+  with the list from HITRAN2016 which contains
+  126983 lines covering 0 to 1731 cm-1
+
+  While fitting Kitt Peak lab spectra (8006026R0.003,4)
+  with the new linelist, I noticed that dozens of lines
+  had obvious position errors so I fixed the worst of
+  these manually.  Also added 18 new lines, each clearly
+  labeled "Toon fudge 2018", to fill absorption dips
+  where there was no nearby absorption spikes to be
+  recruited. Also set the SBHW (previously 0.00 for all
+  lines) to 0.12 cm-1. It was also noted that all 127,000
+  lines had the same ABHW=0.10, except for 24 lines which
+  have individual values ranging from 0.092 to 0.116 cm-1.
+
+2018-08-08  atm.161
+  Replaced the ATM H2S linelist which consisted of
+  20788 lines covering 3-4257 cm-1
+  with the list from HITRAN 2012 which contains
+  54325 lines covering 3-11330 cm-1
+
+  Replaced the ATM PH3 linelist which consisted of 
+  2886 lines covering 708 to 1410 cm-1
+  with the list from HITRAN 2012 containing
+  22189 lines covering 0 to 3602 cm-1
+
+2018-07-31  atm.161
+  Revision to the CH4 lines in the 5830-6174 cm-1 region.
+  Added over 600 weak lines from the GOSAT 2014 linelist,
+  corresponding to dips in the fitting residuals to high CH4
+  lab spectra.  Based on fits to cold lab spectra, I also
+  adjusted the E" of over 100 lines, many of which were
+  previously set to a default value (e.g. 555.5555). Also
+  deleted all CH4 lines throughout the MIR and SWIR with
+  S < 1.E-30.  Few changes to the strong lines. Resulting
+  new linelist gives better fits to lab and atmospheric
+  spectra, especially at high airmass or cold temperatures.
+ 
+  The transfer of lines from GOSAT into ATM is a multi-step process:
+1) Fit the lab spectra with GFIT and ATM.161.  Choose the lab spectrum
+  in which the dips corresponding to missing lines are clearest (deep,
+  high SNR, narrow).
+2) Run LINEFINDER on the spectral residuals for the chosen spectrum.
+  This generates a new linelist containing pseudo-lines that represent
+  the dips.  Although these lines will have reasonable positions and
+  intensities, their widths, E", quantum assignments will be fiction.
+  LINEFINDER found 549 such lines over 5880 to 6193 cm-1.
+3) Run the MATCHLL progam on the two linelists.  For each line in
+  linelist A (the pseudo-list), it finds the closest-matching line
+  in linelist B (GOSAT_2014).  If the match is good enough in terms
+  of position and strength, it writes the GOSAT line in to an new
+  output linelist.  There were 525/549 cases of good matches.  The
+  24 rejected dips represent cases in which the dip has no matching
+  GOSAT CH4 line, because the dip is of non-CH4 origin or the GOSAT
+  list in deficient.  More often this happens because the GOSAT line
+  is too strong and would turn the dip into an even larger peak. In
+  this case it means the ATM linelist already has the GOSAT line,
+  but it is not quite strong enough (hence the dip).
+4) Merge the MATCHLL output linelist (a 525-line subset of GOSAT_2014)
+  with ATM.161
+5) Repeat if necessary until all significant residual dips have gone.
+  Repetition may be needed if clusters of missing lines overlap each
+  other or perturb the fitted continuum level. On the second iteration
+  an additional 109 dips were found from which 84 GOSAT lines were
+  selected and 23 rejected.  On iteration #2, insufficiently strong
+  GOSAT lines, selected on the first iteration, can still cause dips,
+  which the program tries to remedy by adding the same GOSAT line again.
+
+  In summary, the GOSAT lines are only included in the final linelist
+  if they match a dip in the GFIT spectral fitting residuals in terms
+  of position and depth.  If this is the case, they will extremely
+  likely improve the fit to the chosen spectrum.  It must also be
+  checked that the extra lines improve fits to the non-chosen spectra.
+  This can be ascertained by looking at the overall RMS fit outputted
+  by GFIT.
+
+
+2018-05-17  pll.101
+  Merged the CFH2CF3 pseudo linelist (235,202 lines) with
+  pll.101.
+
+2018-03-16  solar_merged.101
+  Realized that the FOVO value for spectrum pin92258.600 in
+  the solar_all.grl runlog was too small, resulting in the
+  calculated solar lines being too deep & narrow with W-shaped
+  fitting residuals.  Increased FOVO from 0.0025 to 0.0042 rads
+  broadening the calculated lines, resulting in a corresponding
+  reduction in the fitted solar line widths.
+
+  Also increase the ZLO runlog parameter
+  from 0.010 to 0.012 for spectrum pin92258.600
+  from 0.000 to 0.002 for spectrum 910424R0.003
+  from 0.000 to 0.003 for spectrum 910424R0.004
+  from 0.000 to 0.002 for spectrum 810222R0.005
+  from 0.000 to 0.002 for spectrum 810509R0.004
+
+  Added CH4 and HDO as secondary fitted gases, in addition to h2o,
+  as needed.
+
+  Fixed some solar lines with strengths of zero, which was
+  causing a problem for adjust_solar_linelist.f
+
+  Then refitted all the solar spectra and re-derived the solar
+  line parameters over the 4000-5600 cm-1 region, which is most
+  affected.
+
+2018-02-03   gct.101
+  Merged the C3H6 (propene) PLL created by Keeyoon Sung into
+  gct.101.  New linelist covers 800-1121 and 1320-1524 cm-1
+  intervals at 0.005 cm-1 line spacing, giving 104,000 total
+  lines. This linelist is intended primarily for planetary
+  use (Titan).
+
+2017-08-01   gct.101
+  Created a new pseudo-linelist representing the optical
+  properties of Mars dust, based on the work of Kleinboehl
+  [2009,2011].  The new Mars dust PLL contains 6571 lines
+  covering 150-33,000 cm-1 at 5 cm-1 intervals.  The old
+  Mars dust linelist had 5981 lines covering 100-30,000 cm-1.
+
+2017-06-28   gct.101
+  Sorted the gct.101 linelist. Several hundred HNO3 lines
+  were out of place owing to overlapping manifolds being
+  written by J-value. This sorting required first splitting
+  out the v>10000 cm-1 lines because these have no delimiter
+  between the gas/iso field and v, so the Linux sort command
+  doesn't work. For v < 10000, the Linux command below works:
+      sort -k2n,2 gct_lt_10000.101 > outfile
+  the wavenumber being the second column.
+  For v > 10000, the sorting would need to be done by hand.
+  Fortunately, summarize_linelist revealed that this was
+  not needed.
+
+  The resulting linelist has the same lines with the same
+  frequencies, intensities, etc. Nothing has changed except
+  the order of the lines. So this should make no difference
+  to the retrieval results, although it will change the md5sum. 
+
+2017-05-16   atm.101
+  Miscellaneous tweaks to H2O and CH4, especially in the
+  strong CO2 band (4750-5000 cm-1)
+
+2017-05-08   gct.101
+  For most bands the HNO3 PLL previously had SBHW=0.0, so
+  changed these to 0.8 cm-1/atm.
+
+2017-03-04 atm.161: 
+  Tweaked the width/shift of three H2O lines around 5870 cm-1
+  based on fits to lab sectra.
+
+2017-02-12   gct.101
+  Added HNO3 PLL covering 2950-3052 cm-1 and 3094-3096 cm-1.
+  
+2017-01-17   atm.161
+  Replaced all 409697 O3 lines in atm.101 with 445970 lines
+  from 03_hitran_beta_gct.161.  This is the prospective
+  HITRAN_2016 O3 linelist received from Iouli Gordon in
+  Oct 2016, with over 1000 empirical modifications, 
+  mainly position adjustments and adding pressure shifts
+  for the stronger lines that were previously zero.
+
+  So as not to lose the information on the O3 accuracy codes,
+  the new ATM linelist has 161 CPL. There are no longer any
+  plans to maintain atm.101.
+
+atm_20160926.101
+  Replaced the H2O and HDO lines from 0 to 600 cm-1 with those
+  from HITRAN 2012, increasing the number of lines from 4085
+  to 13082.
+
+atm_20160913.101
+  A major revision of NH3 over 650-1250 cm-1 was performed.
+  The missing D isotopes, NH2D and NHD2, were added based
+  on the work of Jobs et al. 1986 and Kartha et al. 1987,
+  respectively.  Keeyoon Sung read in these linelists from
+  the paper using OCR, and then converted them into HITRAN
+  format. The resulting lists were empirically corrected by
+  fitting to D-enriched lab spectra measured by Keeyoon at
+  JPL (B150 & B152 series) to account for OCR errors (mainly
+  confusing 6 & 8, 1 & 7), and obvious line position errors.
+  Widths of ABHW=0.085, SBHW=0.4 were adopted for the NH2D
+  and NHD2 linelists, since Keeyoon's measurements were all
+  low pressure.  This work allowed a more definitive attribution
+  of missing lines to 14NH3 versus 15NH3 from un-enriched and
+  15N-enriched spectra.
+
+solar_20160609.108
+  As a result of replacing all instances of "sg" with "so"
+  in GGGPATH/windows/gnd/solar_all.gnd, it came to light
+  that in certain spectral regions the solar lines were all
+  shifted by a few mK, a fact that was previously hidden
+  (from an rms residual perspective) by the sg-fitting.
+  The affected regions were 8300-8600, 14900-15700 cm-1,
+  and 24000+ cm-1.  Also extended the solar spectrum from
+  33300 to 33529 cm-1 after finding and fitting additional
+  Kitt Peak spectra.
+
+atm_20160608.101
+  Replaced the entire atm.101 C2H4 linelist with that in
+  HITRAN2012.
+  atm.101 contained 12978 lines covering 701-3242 cm-1
+ hit_2012 contained 18378 lines covering 701-3243 cm-1
+  Makes <1 part in 10^4 difference to C2H2 retrievals.
+
+atm_20160511.101
+  Replaced the O2 linelist covering 14000-16000 cm-1
+  (534 lines) with that from HITRAN_2012 plus the
+  B-band hot-band.
+
+atm_20160421.101
+  Realised that above 8100 cm-1 the HITRAN2012 H2O
+  lines were better that those in ATM.101 with some
+  exceptions that were easily fixed.  So replaced
+  22636 H2O lines from above 8100 cm-1 with 112159
+  lines from HITRAN2012, after changing the " 14"
+  isotopolog lines to "491". Didn't find any " 15" lines.
+
+atm_20160413.101
+  Added 51 O2 lines covering 14234-14377 cm-1 from
+  Iouli Gordon representing the B-band hot-band.
+
+  Replaced 7385 NO lines covering 0 to 3966 cm-1 with
+  18349 lines from HITRAN2012 covering 0 9257 cm-1.
+  I filtered the NO line intensities for S > 1E-30
+  otherwise there would have been 105,079 NO lines.
+  So 83% of the HITRAN NO lines have strength weaker
+  by ten orders of magnitude than the ones we use
+  for remote sensing atmospheric NO. I decided not
+  to clutter up the atm.101 with these.
+
+gct_20160315.101
+  Removed 40000 HCFC-142b pseudo-lines that covered
+  870-1270 cm-1 based on the work of Newnham & Ballard (1995).
+  Replaced it with a non-contiguous linelist of 0.01 cm-1 spacing
+  containing 51605 lines covering 640-1490 cm-1 based on
+  N&B (1995) plus Le Bris and Strong (2010).  See mark4sun
+  website for more details.
+
+solar_merged_20160127.108
+ Improved solar linelist in the 16000 - 26316 cm-1 region.
+ Also improved in regions with strong H2O absorption. A solar
+ pseudo-transmittance spectrum based on this linelist posted to:
+ http://mark4sun.jpl.nasa.gov/toon/solar/solar_spectrum.html
+
+atm_20151211.101
+ Tweaks to CH4, H2O and solar linelists in 5680-5800 cm-1 region
+ to support new super-wide HCl window for ILS determination
+ 5743.00 125.02  15 0 1 0  ncbf=6  fs  sg  zo : hcl h2o ch4
+ previously I had tweaked spectroscopy in vicinity of HCl lines.
+ This latest effort focussed on regions between HCl lines.
+
+gct_20151024.101
+ Tweaked the D2O linelist and added some new lines to try to get
+ better fits to D-enriched lab HDO spectra
+
+atm_20151024.101
+ Tweaks to H2O in 950 cm-1 region (C2H4 retrievals)
+ Tweaks to HDO in 2600 - 2900 cm-1 region.
+
+atm20151008 
+1) Adjusted th2o windows to make them more self-consistent and
+consistent with the h2o windows for the Lamont sonde days.
+2) Improvements to the CH4 list over 5300 to 6200 cm-1, including
+a complete replacement by HITRAN 2012 over 5300 to 5880 cm-1, and
+a partial replacement from 5880 to 6200 cm-1 (adding missing lines
+with S>1E-25 from HITRAN 2012), but with no changes to the strong
+Frankenberg 2nu3 lines.
+3) Modifications to the E" of CH4 lines previously assigned default
+values (328, 333 or 999 cm-1). These mods based on fits to low-temp
+Kitt Peak lab spectra and winter Park Falls spectra.
+4) Fixed incorrect CH4 SBHWs. These matter little for atmospheric
+observations but degrade fits to pure lab spectra.
+5) Fixed CH4 lines whose pressure shifts were previously zero (never measured)
+6) Added 13CH4 lines below 5551 cm-1 where HITRAN_2012 abruptly ends.
+  Also tweaked a few 13CH4 lines abouve 5551 cm-1, based on fits to
+  KP lab spectra.
+
+Net result is an improvement in the rms fits, especially for the HCl windows,
+which were previously missing many CH4 lines at the sub 1% level. This has
+allowed the fitting of a 125 cm-1 wide HCl window, encompassing the entire
+R-branch of the overtone band. This window has several saturated H2O lines,
+allowing the fitting of zero level offset, simultaneous with HCl.
+
+
+atm.101  2015-04-22
+Over 600 tweaks to the linelist.
+ 2740 - 2805 cm-1  O3 and CH4
+ 3450 - 3550 cm-1  13CO2
+ 4500 - 4700 cm-1  CH4
+ 4800 - 5200 cm-1  13CO2
+15800 -15900 cm-1  O2
+16900 -17100 cm-1  H2O
+
+
+solar_merged_20150408.108
+Major update in which the 1550-1860 cm-1 region was run
+through adjust_solar_linelist for the first time ever.
+
+Many lines with negative strengths, which were overlapping
+a stronger line with a positive strength, were corrected
+by hand to create two lines each with positive strengths
+with the same total strength.
+
+The spectral bands covered by GOSAT were refitted in an effort
+to improve the disk-integrated spectrum. This was validated by
+the use of GOSAT spectra in which the earthshine was corrected.
+
+Finally the entire 13700-26238 cm-1 region was refitted. 
+Previously the DI and DC parameters were identical.
+The latter wavenumber corresponds to the end of the
+Delbouile solar atlas.
+
+
+atm.101  2014-11-12
+Tweaked H2O lines in the 5879 to 6145 cm-1 region, based on fits
+to KP spectra (primarily 840815.007 for intensity and position),
+and the GGG benchmark spectra for width and shift (the air-
+broadened KP spectra are too weak in this particular region).
+
+gct.101  2014-11-08
+Replaced 341 lines of HO2NO2 (HNO4) covering the Q-branch
+from 802.5 to 803.65 cm-1 which were derived by Linda Brown
+by 7238 lines covering the entire band from 780 to 830 cm-1.
+The new lines were based on fits to spectra generated from
+the 220K cross sections of May and Friedl [1993], which I
+downloaded from HITRAN. Since these measurements were only
+at one temperature, the E"=333.3333 cm-1 was assumed.
+The new PLL has a non uniform spacing.
+In fits to MkIV balloon spectra, using the 2 cm-1 wide
+window containing the Q-branch, the new PLL gives 
+HO2NO2 VSFs that are 2-4% lower than previously, and
+slightly better spectral fits.
+
+gct.101  2014-10-20
+Added 63001 C3H8 pseudo-lines covering 2765 to 3080 cm-1
+on a 0.005 cm-1 grid. These were derived from Harrison &
+Bernath's lab spectra.  c3h8_pll_2560_3280.101
+
+Removed all the CH3OH lines above 400 cm-1. These included
+15234 lines covering  911-1407 cm-1
+ 7458 lines covering 2790-2925 cm-1
+The former are from HITRAN 2004 and the latter are a private
+linelist from Linda Brown with E"=333 for all lines.
+
+These were all replaced by a Pseudo-linelist (PLL) based on
+the CH3OH lab measurements of Harrison and Bernath [2012]. 
+This PLL (ch3oh_pll.101) has an unequal line spacing and consists of:
+ 6829 lines covering  900 to 1150 cm-1
+31406 lines covering 2725 to 3115 cm-1
+
+atm_20140930.101
+Tweaked 47 H2O lines covering 4308-4418 cm-1 based on fits to TCCON
+and KP lab spectra.
+
+atm_20140820.101
+Extended the HCN linelist (currently based on HITRAN) beyond 3424 cm-1
+by adding 54014 HCN lines from GEISA which now extend it to 17,000 cm-1.
+Based on fits to Kitt Peak lab H2O spectra, modified a few of the
+new line positions in the 4004 and 6520 cm-1 regions containing 
+he strongest of the new bands.
+
+atm_20140722.101
+Tweaks to the CH4 lines (mainly widths & shifts) in the 2800-3000 cm-1
+region based on MkIV balloon and KP lab spectra.
+
+atm_20140710.101
+Replaced the H2CO linelist (from HITRAN 2008) which contains
+37050 lines covering 0-100, 1620 - 1840, and 2600 - 3100 cm-1
+with a new list from HITRAN 2012 containing 44601 lines covering
+   0 -  508 cm-1
+1620 - 1840 cm-1
+2600 - 3100 cm-1
+The new list gives significantly better fits to KP lab spectra,
+at least in the 2600 3060 cm-1 region that can be seen from the
+ground.
+
+Added 5078 NH3 lines covering 6301 to 7000 cm-1 from
+HITRAN 2012. This is to help fit Kitt Peak H2O spectra
+that are contaminated with NH3.  Previously the ATM.101
+NH3 linelist extended only to 5295 cm-1.
+
+atm.101  20140624
+Further tweaks to H2O and HDO in the 6000-8000 cm-1 region.
+
+atm.101  20140603
+Made changes to H2O and HDO lines in 6300-6500 cm-1 region
+based on fits to KP lab spectra (strong lines) and to wet
+and dry Darwin TCCON spectra (the weak lines).
+Added about a dozen extra H2O lines (labelled "Toon 2014")
+Also tweaked the solar linelist over this same interval.
+
+atm.101  20140413
+Replaced entire NH3 linelist below 4000 cm-1 with HITRAN 2012
+Old linelist included 25954 lines covering 0 3634 cm-1
+New linelist included 38184 lines covering 0 3634 cm-1
+Did not update above 4000 cm-1 because I had made empirical
+adjustments in the 4200-4800 cm-1 region in atm.101, which
+wasn't updated in HITRAN 2012 anyway.
+
+Also included 97 missing/supplemental 14NH3 lines covering
+4178-5192 cm-1 derived from fits to lab spectra. 
+
+atm.101  20140403
+Entirely replaced the old discrete N2 linelist covering
+1992 to 2625 cm-1 containing 120 lines, with the list
+from HITRAN 2012 covering 11 to 9354 cm-1 with 1268 lines,
+after changing the gas number from 22 to 41. In the
+2400 cm-1 region, the quadrupole lines are 4% stronger
+than previously, which should reduced retrieved N2 by 4%.
+
+atm_20140304.101
+Many changes to CH4 in the 4030 to 4756 cm-1 region
+based on fits to Kitt Peak 12CH4 and 13CH4 lab spectra.
+
+Firstly, I should explain that the HITRAN 2012 linelist
+gave worse fits to lab and atmospheric spectra in this
+region than the previous linelist that we had been using
+(without line mixing).  So I made the decision to use the
+old linelist as the starting point, with the exception of
+the 13CH4, which was missing from the old linelist.
+
+Extracted 13CH4 for this region from HITRAN 2012, but
+in fitting KP lab 13CH4 spectra, discovered many missing
+lines. So generated over 660 new 13CH4 lines in this region
+(all identified as "Toon fudge 2014" and having a E"=555.5555)
+to plug the biggest gaps. Alas, there are no low-temp 13CH4
+KP lab spectra with which to determine the true E".
+
+Realized that many of the 13CH4 lines were also present
+in the previous CH4 linelist, but mis-identified as 12CH4.
+These duplicated lines were manually removed.
+
+atm_20140114.101
+Tweaks to H2O and HDO lines in the 4000 to 6500 cm-1
+region to improve fits to lab spectra and to reduce
+window-to-window biases in the regions used by TCCON.
+
+atm_20131231.101
+Replaced the CO linelist consisting of 3600 lines covering
+3 to 8464 cm-1 with that from HITRAN 2012 containing 4606
+lines covering the same region.  The main difference for
+TCCON is that the new lines are narrower, resulting in
+larger retrieved CO amounts by 2.1 % in P-branch to
+1.7% in R-branch, which slightly reduces the P/R bias
+in the retrieved CO. Spectral fits were marginally
+better for the new linelist for the benchmark set.
+
+atm_20131230.101
+Tweaks to the CH4 in the CO and N2O windows (4100-4500 cm-1)
+based on fits to Kitt Peak lab spectra.
+
+atm_20131217.101
+Tweaked some of the H2O lines in the N2O windows based
+on fits to KP lab spectra of H2O.
+
+atm_20131211.101
+Replaced all 102893 CO2 lines covering 0 to 12784 cm-1
+with HITRAN 2012 which includes 471847 lines over the
+same spectral region. The larger number of lines is
+due to the lower intensity threshold (for Venus & Mars).
+
+Noticed that the fits were worse in the TCCON windows so
+reverted the 5740-6600 cm-1 region back to the old Toth
+CO2 linelist.
+
+Updated solar_merged.101 in 6500 cm-1 region to support
+potential new CO2 window.
+
+
+atm_20131018.101
+Total replacement of the NO2 linelist from HITRAN 2008.
+Previous NO2 linelist included 44975 lines covering 0-2939 cm-1
+and probably pre-dates HITRAN 2000.
+New NO2 linelist has 104223 lines covering 0-3075 cm-1.
+
+atm_20131008.101
+Tweaked some CH4 and H2O lines in the 2900-3000 cm-1 region, 
+plus four H2O lines around 6300 cm-1.
+Added eight isotopic CH4 lines (62) to the 4200-4300 cm-1 region.
+
+atm_20130424.101
+Replaced the 6657 CH3Cl lines covering 2920-3198 cm-1 with
+22963 lines from "ch3cl_agnes_perrin_20120330.101" which
+is based on two papers by Bray et al [JQSRT, 2011, 2012]
+Also note that there is code in abscoj.f that, for gas #30,
+reduces the Q-branch line widths by ~35% to crudely account
+for the effects of line mixing.
+
+solar_merged_20130401.108
+Added over 12000 new lines, extending the linelist from 25000 to
+33300 cm-1. These new lines were generated by the linefinder
+program using a ground-based Kitt Peak spectrum from kp_solar_lf.grl
+
+solar_merged_20130228.108
+Added a few missing H-atom lines, and corrected some more H-atom
+lines which were mis-identified (as Fe). Refitted the regions
+around all H-atom lines.
+
+atm_20130228.101
+Tweaked a few H2O and CH4 lines to give better fits to
+atmospheric spectra.
+
+atm_20121204.101
+Updated to the NH3 linelist from HITRAN_2008.
+The old linelist contained 5817 lines covering 0.2 to 2154 cm-1
+with widths of 0.075 or 0.090 cm-1/atm (two values only).
+The new linelist contains 29084 lines covering 0.058 to 5295 cm-1
+with a continuum of width values.
+
+atm_20121031.101
+Replace all 38853 SO2 lines with the 95121 lines of the 2009
+HITRAN update. The new linelist covers 0-4093 cm-1, as did
+the old one.  But the new linelist has a lower intensity
+threshold and includes additional isotopologs.
+
+solar_merged_20121017.108
+Refitted the entire 4160-4550 cm-1 region.
+Deleted two lines whose intensities were negligible.
+
+atm.101
+Pair of HDO lines at 2489.75 cm-1 were too strong by a factor 6.
+They were causeing large positive residuals when fitting N2O on humid days.
+This was confirmed by fitting KP lab spectra.
+491 2489.734930 1.170E-26 1.646E-04.0639.3390  709.1678 .64 .000000  4  1 5 4 2    6 5 1     TOTH03
+491 2489.750270 1.364E-26 1.918E-04.0643.3640  709.1666 .64 .000000  4  1 5 4 1    6 5 2     TOTH03
+changed to
+491 2489.734930 0.170E-26 1.646E-04.0639.3390  709.1678 .64 .000000  4  1 5 4 2    6 5 1     TOTH03
+491 2489.750270 0.194E-26 1.918E-04.0643.3640  709.1666 .64 .000000  4  1 5 4 1    6 5 2     TOTH03
+
+Also changed
+ 11 2485.625470 3.510E-26 3.753E-07.0678.3130 1079.0796 .45 .008900  2  110 6 5    9 1 8     TOTH03
+to
+ 11 2485.625470 6.000E-26 3.753E-07.0678.3130 1079.0796 .45 .008900  2  110 6 5    9 1 8     TOTH03
+
+
+solar_merged_20120927.108
+Refitted several regions and added 138 new lines, bringing
+the new total to 39117
+Refitted the  2105- 2165 cm-1 region (using adjust_solar_linelist)
+Refitted the  4042- 4067 cm-1 region adding 3 new lines
+Refitted the  4398- 4422 cm-1 region adding 0 new lines
+Refitted the  4452- 4477 cm-1 region adding 0 new lines
+Refitted the  6594- 6630 cm-1 region adding 3 new lines
+Refitted the  7193- 7773 cm-1 region adding 70 new lines
+Refitted the 10450-10490 cm-1 region adding 7 new lines
+Refitted the 10759-10952 cm-1 region adding 62 new lines
+including a broad 10% deep H line centered at 10833 cm-1
+
+Also modified ~100 lines in which the disk-integrated intensity
+was -ve but the disk-center intensity was small and +ve. Changed
+the -ve values to small +ve values to prevent the calculated
+disk-integrated transmittance from being > 1.
+
+Deleted a couple of lines for which the DC and DI intensities
+were both very small. Added a couple of misc lines.
+
+gct_20120822.101
+Added Toth's D2O linelist (Toth_D2O.101) which contains 2752
+lines covering 2198-4255 cm-1.
+This is used for fitting D-enriched lab spectra.
+
+gct_20120516.101
+ Created an empirical OCS linelist representing missing bands in the nu3
+region (1980-2073 cm-1). This was done using Kitt peak spectra:
+850530R0.022
+850530R0.023
+The list contains 709 lines.
+
+
+gct_20120503.101
+Extended dust_m (gas=54) linelist from 5000 cm-1 to 30000 cm-1
+using a constant extinction value.
+
+solar_merged_20120308.108
+  Redid 3420-3990 cm-1
+
+solar_merged_20120210.108
+  Redid the following 3 regions
+  2200-2250 cm-1
+  2410-2720 cm-1
+  3080-3420 cm-1
+
+solar_merged_20120124.108
+  Added over 400 solar lines to the 11,000 to 12700 cm-1 region.
+Some of the previously missing lines had depths of up to 4%.
+And some H2O lines had been mis-identified as solar lines.
+This region now has a solar transmittance error that is better than
+1% absolute or 3% of the solar line depths.
+
+atm_20111027.101
+  Replaced the previous H2CO linelist, which contained 2702 lines covering
+0-100 cm-1, 2700 - 3000 cm-1
+with the linelist from HITRAN 2008 which contains 37,050 lines covering
+0-100, 1620 - 1840, and 2600 - 3100 cm-1
+The new list contains the strongest IR band of H2CO centered at 1745 cm-1.
+
+gct_20110810.101
+ Generated pseudo-linelists for cirrus6 and cirrus15, representing
+6 micron and 15 micron ice particle extinction. Each linelist covers
+500 to 30000 cm-1 at 5 cm-1 intervals (5901 lines).
+
+gct_20110808.101
+ Extended the dust_m (gas 54) linelist from 500 cm-1 down to 100 cm-1
+ to help with Mars thermal emission calculations.
+
+gct_20110730.101
+ Fixed a problem with the COFCl linelist which had narrow "gaps"
+ in the absorption spectrum every 4-5 cm-1. Don't know what caused these
+ missing lines. So I simply stripped out the old linelist
+ and merged the leftovers with cofcl_agnes_perrin_20100930.101
+
+gct_20110509.101
+  Added a pseudo-linelist of CH3COOH (Acetic Acid) containing 118868 lines
+covering all important absorption bands in the 551-3623 cm-1 range.
+Based on PNNL spectra at 298 and 343K.
+
+gct_20110422.101
+  Added a pseudo-linelist for CHF3 extending from 1100-1240 cm-1 at a
+point spacing of 0.01 cm-1.  Thus this linelist contains 14,001 lines.
+It was derived from the 24 spectra acquired by Chung (2005), which were
+re-acaled by Jeremy Harrison at U York, England. Three PNNL spectra were
+also used to provide a check on the absolute band intensities, which were
+not very reliable in the Chung spectra.
+
+This repeats what I did back in late 2009, but somehow the CHF3 went
+AWOL (must have had two gct linelists in use at the same time and
+inadvertantly added it to the older one)
+
+gct_20110413.101
+ Added a kludged HNO3 linelist covering the 2nu2 band from
+ 3377 to 3424 cm-1 region with 9407 lines. For more info,
+ see report titled: HNO3_2nu2_3404.pdf
+
+solar_merged_20101003.108
+ Refitted the O2 A-band and B-band regions, using GFIT_LM
+ to prevent the neglect of line mixing from distorting the
+ solar lines in the vicinity of strong O2 lines in ground-
+ based spectra.
+
+atm_20110307.101
+ Replaced the 59 lines of the O2 A-band hot band with a new
+ calculation from Iouli Gordon covering 12847-13011 cm-1.
+ This change slightly improves A-band fits.
+
+ Replace the O2 linelist for frequencies > 14000 cm-1 with
+ Iouli Gordon's new list covering 14284-15928 cm-1 and
+ containing the O2 B-band and Gamma band. The old list
+ contained 328 lines. The new list contains 483 lines
+ and represents a huge improvement.
+
+ Added 111 CO2 lines of the 
+       2 1 1 01       0 0 0 01
+ band of 13CO2 covering 3369-3494 cm-1.
+
+ Fixed a bunch of CH4 lines in the 4060 cm-1 region which
+ seemed to have the wrong positions of strengths or E".
+ Some of these lines had E"=555.5555, meaning that they
+ are unassigned.
+
+atm_20101209.101
+Added two missing O2 lines to the Gamma band (from Iouli Gordon).
+ 7115927.701191 7.022E-27 1.943E-09.0441.0432  438.44140.71-.008000  7  1         R17Q18  d00423 4 2
+ 7115927.805868 9.911E-27 1.731E-09.0458.0449  343.74810.71-.008000  7  1         R15Q16  d00423 4 2
+
+atm_20100908.101
+  Made some minor changes in the mid-IR linelist based on fits
+  to ground-based and balloon borne MkIV spectra.
+ - Added pressures shifts to several CO2 lines in the 720-850 cm-1 region
+   that were missing them (it was 0.0).
+ - Added a pressure shift to the CO2 line at 3204.76 cm-1
+ - Tweaked a few O3 line widths in the 966-969 cm-1 region.
+ - Tweaked a few H2O line shifts in the 1080-1120 cm-1 region
+ - Shifted a few HNO3 lines around 1190 cm-1
+ - Added a missing CH4 line at 1192.069325cm-1 from HITRAN
+
+solar_merged_20101003.108
+  Re-did the solar linelist over the 4000-4800 cm-1 region.
+Previously the lines were all too wide due to an underestimate
+in the effective external FOV in the ATMOS shuttle spectra.
+This was fixed, plus hundreds of extra weak lines were added.
+
+gct_20100913.101
+Replaced the COFCl linelist which was based on ATMOS era work
+by Linda Brown, with a new calculation by Demaison & Perrin.
+ 
+Previous list included:
+ nu3 Q-branch of the 35Cl isotopolog(764.1-764.7 cm-1, 413 lines)
+ nu1 band of the 35Cl isotopolog(1850.0-1907.9 cm-1, 2036 lines; E"=345 cm-1)
+
+New linelist includes both the 35Cl and 37Cl isotopologs and covers:
+  nu1 band: PQR  1805 - 1913 cm-1  84959 lines
+  nu2 band: PQR  1049 - 1136 cm-1  74824 lines
+  nu3 band: PQR   735 -  796 cm-1  55856 lines
+
+gct_20100730.101
+Developed a f141b pseudo-linelist covering most of the 700-1500 cm-1
+region.  It consists of 36504 lines with a spacing of 0.01 cm-1. 
+It is based on the absorption cross-sections reported by Clerbaux
+et al. (1993) and downloaded from the HITRAN website.
+The regions covered are:
+  720- 790 cm-1  7001 lines
+  900- 950 cm-1  5001 lines
+ 1055-1200 cm-1 14501 lines
+ 1365-1465 cm-1 10001 lines
+The original lab spectra are broader than this but I didn't
+see any point in keeping lines with < 0.1% absorption in
+the atmosphere
+
+atm_20100725.101
+  Replaced all 151466 CH4 lines from 0 to 3400 cm-1
+  with HITRAN 2008 which contains 182431 lines.
+
+atm_20100630.101
+  I gave Iouli Gordon the list of my 722 missing H2O lines.
+He was able to assign 422 of them, which means that we now
+know their E" and have a better idea of their width and shifts.
+
+Additionally, Iouli was able to assign 219 lines from 
+Toth's 2003 H2O linelist, which had E"=-1.000.
+
+atm_20100622.101
+Replace the existing 324 HCl lines covering 
+   20 - 438 cm-1
+  2398-3160
+  5159-5829
+  7895-8454
+with the 613 lines from HITRAN2008 covering the same
+bands and also including the fourth and fifth overtones at:
+ 10649-11002 cm-1
+ 13262-13458 cm-1
+
+The new linelist has slightly improved positions and strengths
+in the fundamental.
+ 
+gct_20100621.101
+  Added the "missing" ATMOS COClF linelist to gct.101.
+  This contains 2449 lines covering
+   764.1 - 764.7 cm-1
+  1850 - 1907 cm-1
+  This linelist was used by Rinsland and Dejein Fu to retrieve COClF
+  from ACE spectra.
+
+atm_20100616.101
+  Added 6250 additional lines of HCOOH covering 1723-1889 cm-1
+  These were obtained from HITRAN 2008.
+
+gct_20100527.101
+  Replaced the C2H6 linelist containing 1446 lines between
+  2953 and 3018 cm-1 with a new empirical pseudo-linelist (PLL)
+  based on laboratory meassurements made at RAL by Jeremy Harrison 
+  (student of Peter Bernath). The new linelist contains 80397 lines
+  and covers 2720-3100 cm-1.
+
+solar_merged_20100419.108
+  Refitted the new merged solar linelist over the following regions:
+  5800-6600
+  7750-8050
+ 12750-13300
+This won't have much effect on the disk-center spectra, but it will improve 
+the disk-integrated solar spectra.
+
+atm_20100419.101
+  Replaced all the CO2 lines at frequencies above 6396 cm-1 with HITRAN08.
+  This seems to fix several problems:
+     the too-strong Q-branch at 6435 cm-1
+     frequency errors at 7700 cm-1
+  The old CO2 linelist (Toth) included 5485 lines in the 6396 -  9648 cm-1 interval
+  The HITRAN08 CO2 linelist includes  26856 lines in the 6396 - 12784 cm-1 interval
+
+atm_20100418.101
+  Left-shifted all the O2 lines in the 7600 8200 cm-1 region by 0.0012 cm-1.
+  This improves the contistency of line positions between this and other
+  regions in the same spectra.
+
+  Went through the 5800 - 6600 cm-1 region looking for missing H2O lines.
+  Added weak H2O lines from Jenouvrier (which covers 4200-6600 cm-1)
+  whenever they made the fits better.
+  
+
+atm_20100303.101
+  Noticed that the strong H2O line at 1106.7 cm-1 was producing large
+  residuals in fits to ground-based spectra in the HCOOH window.
+  So I increased the width and pressure shift 
+ from
+ 11 1106.743920 6.293E-23 1.745E-02.0590.3260 1581.3360 .45-.017500  2  1 9 1 8   10 4 7     TOTH03
+ to
+ 11 1106.743920 6.293E-23 1.745E-02.0620.3260 1581.3360 .45-.021000  2  1 9 1 8   10 4 7     TOTH03
+
+atm_20100303.101
+  Replaced all the H2O (and HDO) lines at frequencies > 9500 cm-1 with the
+  June 2009 HITRAN update.  This resulted in losing 17355 old lines and
+  gaining 23352 new lines. At frequencies < 9500 cm-1, the HITRAN update
+  seemed to make things worse, largely as a result of my having manually
+  added 700+ H2O weak lines, and was therefore not implemented there.
+
+atm_20100131.101
+  There was a problem with the 311011 000011 CO2 band centered at 4939 cm-1.
+  This was causing large residuals to fits of MkIV balloon spectra and to
+  ground-based TCCON spectra, especially in the 4910-4920 cm-1 region.
+
+  In Bob Toth's original CO2 linelist, currently used by TCCON, the
+  P-branch is a third of the strength of the R-branch, and the weak
+  Q-branch is completely missing. In reality, the P-branch is 2x
+  stronger than the R-branch, and the Q-branch is 10x weaker still.
+
+  Bob realized that there was a problem but was unable to change the relative
+  strengths of the P/R lines in his calculation. He thought it better to get
+  the stronger R-branch lines right and have a big error in the weaker lines.
+
+  HITRAN2008 used a new calculation for much of the 311011 000011 CO2 band.
+  This new calculation was somehow merged with Toth's old linelist based
+  on a strength criterion. I believe that all Toth's lines stronger than
+  1.0E-26 Toth's lines were retained while the weaker ones were replaced.
+  So what actually happened was that only 4 of Bob Toth's 311011 000011
+  CO2 lines survived, the four strongest P-branch lines. Their strengths
+  are in error by a factor 6.  Below is an excerpt from HITRAN 2008:
+
+ 21 4901.458720 2.930E-26 1.404E-04.06860.074  917.05720.75-.006344       3 1 1 01       0 0 0 01
+ 21 4902.963390 3.450E-26 1.205E-04.06780.075  843.03000.76-.006242       3 1 1 01       0 0 0 01
+ 21 4904.472500 4.000E-26 1.036E-04.06730.076  772.11060.75-.006148       3 1 1 01       0 0 0 01
+ 21 4905.985770 4.550E-26 8.890E-05.06800.078  704.30040.80-.006062       3 1 1 01       0 0 0 01
+ 21 4907.502950 5.100E-26 7.649E-05.06850.080  639.60030.88-.005985       3 1 1 01       0 0 0 01
+ 21 4909.023790 5.610E-26 6.574E-05.06850.081  578.01150.79-.005915       3 1 1 01       0 0 0 01
+ 21 4910.548070 6.060E-26 5.649E-05.06890.083  519.53500.81-.005851       3 1 1 01       0 0 0 01
+ 21 4912.077033 1.003E-26 7.575E-06.06910.084  464.17170.73-.005794       3 1 1 01       0 0 0 01
+ 21 4913.607330 1.041E-26 6.490E-06.06930.086  411.92250.74-.005743       3 1 1 01       0 0 0 01
+ 21 4915.140431 1.045E-26 5.482E-06.07030.088  362.78830.76-.005697       3 1 1 01       0 0 0 01
+ 21 4916.676171 1.014E-26 4.565E-06.07070.090  316.76980.77-.005655       3 1 1 01       0 0 0 01
+ 21 4918.213930 6.480E-26 2.556E-05.07100.092  273.86800.75-.005616       3 1 1 01       0 0 0 01
+ 21 4919.754750 6.110E-26 2.156E-05.07200.093  234.08330.72-.005579       3 1 1 01       0 0 0 01
+ 21 4921.297770 5.590E-26 1.806E-05.07270.096  197.41660.73-.005543       3 1 1 01       0 0 0 01
+ 21 4922.842840 4.960E-26 1.502E-05.07420.098  163.86840.71-.005505       3 1 1 01       0 0 0 01
+
+See how the four lines between 4912.077 and 4916.676 cm-1 are 6x weaker
+than they should be?  This is because they have retained original Toth
+strengths.  I suspect that for the R-branch, nearly all of Toth's lines
+were retained, which is fine because he got those right.
+
+So I did the following: 
+1) I deleted from that atm.101 linelist the 83 lines of the 311011 000011
+   CO2 iband that came directly from Toth.
+2) I extracted the 135 lines of the same band (including the Q-branch) from
+   HITRAN2008 and corrected the strengths of the 4 strongest P-branch lines.
+3) I then merged the new 311011 000011 CO2 linelist into the remainder of
+   the atm.101 linelist.
+I strongly recommend the HITRAN make a similar correction.
+
+So whereas previously the atm.101 linelist (CO2 directly from Toth)
+produced slightly worse fits than HITRAN2008 in the 4910-4920 cm-1
+region, the new version produes much better fits than HITRAN2008. 
+
+
+gct_20091223.101
+  Added a pseudo-linelist for CHF3 extending from 1100-1240 cm-1 at a
+point spacing of 0.01 cm-1.  Thus this linelist contains 14,001 lines. 
+It was derived from the 24 spectra acquired by Chung (2005), which were
+re-acaled by Jeremy Harrison at U York, England. Three PNNL spectra were
+also used to provide a check on the absolute band intensities, which were
+not very reliable in the Chung spectra.
+
+Also extended the CHClF2 linelist (gas #42) from 1150 to 1153 cm-1 to make
+the discontinuity at the edge of the band less abrupt.
+
+atm_20091209.101
+   I noticed that there were large position errors (0.010 cm-1) in the
+       0 1 1 01       0 0 0 01  
+  band of the 4'th isotopolog of CO2 in the 685-710 cm-1 region.
+  Iouli sent be a replacement, which was *much* better.
+
+Made 75 corrections to the O3 linelist. These mainly involve shifts
+in line position.  There were 3 new O3 lines invoked. For a full list,
+see the file o3_corrections.dat
+
+It seem that all the remaining O3 lines in the P-branch of the 3nu3 band 
+(3020 to 3048 cm-1) need to be shifted in position by about +0.001 cm-1.
+Conversely, all the O3 lines in the R-branch (3048 to 3059 cm-1) 
+need to be shifted by about -0.001 cm-1.
+There is a general tendency in the 4600 cm-1 O3 band for all lines to be shifted
+down in frequency by a couple of mK.
+
+
+
+Moved
+ 61 2746.967500 2.373E-22 2.277E-05.0626.0890  376.82130.72-.004000  6  1 7E  11   8E   2  356312119
+to
+ 61 2746.968500 2.373E-22 2.277E-05.0626.0890  376.82130.72-.004000  6  1 7E  11   8E   2  356312119
+
+Moved
+ 61 2756.725000 1.020E-22 6.506E-06.0580.0780  376.82630.72-.006000  6  1 7F1 19   8F2  2  352312119
+to
+ 61 2756.725000 1.020E-22 6.506E-06.0580.0780  376.82630.72-.006000  6  1 7F1 19   8F2  2  352312119
+
+Moved
+ 62 3048.261200 2.193E-21 3.766E-03.0580.0790   62.88110.80-.001000  8  1 4A1  7   3A2  1  466352123
+to
+ 62 3048.262400 2.193E-21 3.766E-03.0580.0790   62.88110.80-.001000  8  1 4A1  7   3A2  1  466352123
+
+Changed
+ 11 4408.770660 4.438E-25 2.891E-04.0300.2410 2042.3106 .36 .000000  5  114 311   13 112     TOTH03
+to
+ 11 4408.770660 4.438E-25 2.891E-04.0320.2410 2042.3106 .36-.010000  5  114 311   13 112     TOTH03
+gave much improved fits to ground-based summer-time spectra
+
+2009-12-02  atm.101
+In the TCCON N2O region (4370 to 4450 cm-1) the residuals are dominated
+by CH4. There are dozens of lines for which E"=-1 in HITRAN 2008.
+Some of these give rise to large residuals, which I fixed by
+looking a cold Park Falls spectra and then guessing the true E".
+I also modified the strengths, widths and shifts of a couple of CH4 lines
+by changing the T-dependence of the widths.  Added some extra CH4 lines
+(denoted by "Toon Fudge (2010).
+
+While doing all this, I noticed an error (below) in the TDPBHW, which
+Linda confirmed was a typo. Complained to Larry and Iouli who also agreed.
+
+Changed
+ 61 4377.841446 5.442E-22 0.000E+00.0674.0830   62.87680.20-.006840 40  1 4F1 36   3F2  1  466342427
+to
+ 61 4377.841446 5.442E-22 0.000E+00.0674.0830   62.87680.80-.006840 40  1 4F1 36   3F2  1  466342427
+
+
+atm_20091111.101
+Replaced old HBr linelist with the new one from HITRAN 2008
+
+Replaced the old OCS linelist containing 19921 lines extending to
+4118 cm-1 with the HITRAN July 2009 update containing 29361 lines
+extending up to 4200 cm-1.  The nu3 lines of the main isotopolog
+(2000-2100 cm-1) are 16% stronger in the new linelist.
+
+atm_20091110.101
+Replaced the following 9 empirical O2 lines:
+ 73 7892.017000 1.500E-28 0.000E-10.0370.0400  000.00000.73-.005000     Toon Fudge 2005-05-08
+ 73 7909.786000 0.700E-28 0.000E-10.0370.0400  100.00000.73-.005000     Toon Fudge 2005-05-08
+ 73 7926.664000 1.550E-28 0.000E-10.0370.0400  200.00000.73-.005000     Toon Fudge 2005-05-08
+ 73 7943.346000 1.600E-28 0.000E-10.0370.0400  300.00000.73-.005000     Toon Fudge 2005-05-08
+ 73 7959.846000 1.700E-28 0.000E-10.0370.0400  400.00000.73-.005000     Toon Fudge 2005-05-08
+ 73 7976.174000 1.680E-28 0.000E-10.0370.0400  500.00000.73-.005000     Toon Fudge 2005-05-08
+ 73 7992.318000 1.500E-28 0.000E-10.0370.0400  600.00000.73-.005000     Toon Fudge 20R5-05-08
+ 73 8008.286000 1.400E-28 0.000E-10.0370.0400  700.00040.73-.005000     Toon Fudge 2005-05-08
+ 73 8024.078000 1.200E-28 0.000E-10.0370.0400  800.00040.73-.005000     Toon Fudge 2005-05-08
+
+with a proper quantum-mechanically derived O2 quadrupole linelist containing 87 lines
+from Iouli Gordon, which is described in the paper: 
+Gordon, Sassi, Campargue, and Toon, First identification of electric quadrupole
+transitions of oxygen in solar and laboratory spectra, JQSRT, 111, 1174-1183, 2010.
+
+The new quadrupole lines are assigned to isotopolog 1. Previously, thesy were assigned to
+isotopolog 3 as a convenience.
+
+
+atm_20091001.101
+Replaced the entire O3 linelist icontaining 315030 lines covering 0 - 4700 cm-1,
+with the new one from HITRAN_2008 containing 409697 lines covering 0 - 5785 cm-1.
+Noticed a problem with the two lines at the same frequency in HITRAN 2008:
+their quantum assignments had been switched, resulting in a much worse fits
+to MkIV balloon spectra.
+
+HITRAN 2004
+ 31 2773.156300 3.300E-25 3.665E-03.0699.0821  727.95710.770.000000          0 1 2          0 0 0 31 11 21       31 10 22      4555401311 1 2 3 0    63.0   63.0
+ 31 2773.158400 4.220E-25 2.624E-03.0684.0930  638.97690.800.000000          1 1 1          0 0 0 36  5 32       36  5 31      4525401311 2 2 3 0    73.0   73.0
+ 31 2773.158500 3.450E-23 7.031E-02.0805.1000  189.00920.710.000000          1 1 1          0 0 0 12  6  7       13  6  8      4555401311 5 2 3 0    25.0   27.0
+ 31 2773.176000 7.460E-23 8.824E-02.0777.1049   77.08250.710.000000          1 1 1          0 0 0 12  1 12       13  1 13      4555401311 5 2 3 0    25.0   27.0
+
+HITRAN 2008
+ 31 2773.156200 3.280E-25 3.642E-03.07360.082  727.95710.810.000000          0 1 2          0 0 0 31 11 21       31 10 22      4645502130 8 2 4 0    63.0   63.0
+ 31 2773.158500 4.182E-25 8.523E-04.08050.100  189.00920.710.000000          1 1 1          0 0 0 12  6  7       13  6  8      4655502130 5 2 3 0    25.0   27.0
+ 31 2773.158500 3.424E-23 2.129E-01.06840.093  638.97690.800.000000          1 1 1          0 0 0 36  5 32       36  5 31      4605502130 0 2 3 0    73.0   73.0
+ 31 2773.175900 7.396E-23 8.749E-02.07770.105   77.08250.710.000000          1 1 1          0 0 0 12  1 12       13  1 13      4655502130 5 2 3 0    25.0   27.0
+
+Reported this problem to Larry Rothman and Iouli Gordon.  But in general,
+the new O3 linelist in HITRAN2008 is a big improvement.
+
+
+atm_20090928.101  28-Sep 2009
+ I was evaluating the HITRAN 2008 linelist in the 4750-4950 cm-1 region.
+It uses Toth's line positions and intensities, but different widths and
+shifts. In most cases, the new HITRAN 2008 widths/shifts are better,
+but not always. I therefore "cherry-picked' the width/shift between
+the two linelists (Toth2003/HITRAN08). Whatever gave the best fits,
+to Park Falls spectra, that's what I put into the new H2O linelist.
+
+I realize that this method isn't very scientific.  If the wrong H2O
+profile was assumed, this would bias my choice of widths. I should
+really be fitting laboratory H2O spectra, but I don't have any.
+
+
+solar_dc_20090102.101   2-Jan-2009
+Added the following two weak solar lines:
+ 56 6170.800000 0.382E-02 1.900E-02.0535.0000    0.0000  0.0000 Fe      ?
+ 56 6171.050042 0.422E-02 1.700E-02.0535.0000    0.0000  0.0000 Fe      ?
+The linelist now contains 27552 lines.
+
+gct.101   1-Dec-2008
+Deleted 2302 O2 CIA lines covering 7068 to 9699 cm-1.
+These represent an older attempt to model the O2 CIA
+and should have been deleted years ago when the new
+scia.101 and fcia.101 linelists were developed.
+
+This problem came to light when I noticed that I was
+getting VSF ~0.6 for the 0o2 when fitting ground-based
+Park Falls spectra in the 7900 cm-1 region.
+
+Apparently, when I fitted the Smith and Newman O2 CIA
+laboratory spectra, I didn't bother including the gct.101
+linelist since I "knew" that it shouldn't matter. This
+allowed me to retrieve 0o2 VSF's of close to 1.0 and
+lulled me into believing the everything was hunky dory
+wrt the O2 CIA.
+
+The gct.101 linelist now ends at 5000 cm-1 and contains
+498106 lines.
+
+
+atm.101  21-Nov 2008
+The following O3 lines were giving large antisymmetric residuals
+whereas all the other O3 lines in this region were fitted nicely.
+
+ 31 2133.535200 4.202E-22 2.100E+00.0702.0923  728.31580.84-.003000          1 0 1          0 0 0 41
+ 31 2133.948600 3.087E-22 2.082E+00.0700.0910  799.59100.85-.003000          1 0 1          0 0 0 43
+ 31 2134.467900 1.567E-22 2.031E+00.0660.0883  951.97230.76-.003000          1 0 1          0 0 0 47
+So I shifted them by 1-2 mK. It worked wonders.
+
+
+2008-10-13   GCT   atm.101
+The following H2O line was producing a large antisymmetric residual
+So I changed the (previously zero) pressure shift to -0.012
+ 11 4114.558400 3.227E-25 3.608E-03.0370.1730 2612.7998 .37-.012000  4  113 8 5   12 7 6     TOTH03
+
+Added the following H2O line to atm.101
+ 11 4118.158200 1.002E-25 3.545E-03.0346.3170 2586.5298 .36-.014500     Toon fudge
+
+2008-10-13   GCT   atm_20081013.101
+Removed all 6687 CH3CL lines in the 2907-3172 cm-1 interval
+(from the HITRAN update) and replaced them with my old
+linelist which has fixed widths of 0.08 cm-1, This
+improves the fits and produces a more realistic UTLS
+CH3Cl vmr (~600 ppt). 
+
+This essentially undoes the change made 2005-04-28
+in the 2907-3172 cm-1 interval
+
+
+2008-10-13   GCT   atm_20081013.101
+Adjusted 2 CH4 lines that were producing systematic residuals in
+the 2967 cm-1 CH3Cl window.
+
+Moved the CH4 line from
+ 61 2967.677300 1.741E-23 1.031E-06.0580.0780  376.82630.67-.006000  6  1 9F1 25   8F2  2  352312119
+to
+ 61 2967.682000 1.741E-23 1.031E-06.0580.0780  376.82630.67-.006000  6  1 9F1 25   8F2  2  352312119
+This +4.7 mK shift improved spectral fits in the CH3Cl window
+and made this particular line position more consistent with the
+other CH4 lines in this region.
+
+Also increased the width of the CH4 line
+ 61 2966.623800 1.715E-23 5.160E-06.0410.0620  689.88630.65-.006000  6  112E  20  11E   1  352312119
+from 0.041 cm-1/atm to 0.048, to improve fits to the CH3Cl window.
+
+
+2008-10-10   GCT   gct_20081010.101
+  Improved the 2964.5-2968.5 cm-1 region of the C2H6
+pseudolinelist in gct.101 based on Peter Bernath's lab
+spectra measured at RAL. This particular region was
+selected because it contains the main CH3Cl windows.
+
+2008-09-24   GCT
+  Added some extra F113 lines at each end of the
+band to smooth out the discontinuities at the edges.
+The F113 linelist now extends from 770-1000 cm-1
+and contains 461 lines at a 0.5 cm-1 spacing.
+
+2008-08-16   GCT
+ Moved the 3o2 line at
+ 73 7909.896623 1.008E-28 2.404E-10.0370.0399  100.00000.73-.004332
+to
+ 73 7909.786000 1.008E-28 0.000E-10.0370.0400  100.00000.73-.005000
+For some inexplicable reason this was off by 0.11 cm-1
+At the same time I labelled all nine of the 3o2 lines
+in this spectral region as Toon Fudge 2005-05-20" since
+they are all completely fictitious.
+ 73 7892.017000 1.508E-28 0.000E-10.0370.0400  000.00000.73-.005000 
+ 73 7909.788000 0.708E-28 0.000E-10.0370.0400  100.00000.73-.005000 
+ 73 7926.664020 1.558E-28 0.000E-10.0370.0400  200.00000.73-.005000 
+ 73 7943.346000 1.608E-28 0.000E-10.0370.0400  300.00000.73-.005000 
+ 73 7959.846000 1.708E-28 0.000E-10.0370.0400  400.00000.73-.005000 
+ 73 7976.174000 1.688E-28 0.000E-10.0370.0400  500.00000.73-.005000 
+ 73 7992.318000 1.508E-28 0.000E-10.0370.0400  600.00000.73-.005000 
+ 73 8008.286000 1.408E-28 0.000E-10.0370.0400  700.00000.73-.005000 
+ 73 8024.078000 1.208E-28 0.000E-10.0370.0400  700.00000.73-.005000 
+
+
+2008-08-05   GCT
+ Replaced Frankenberg's original CH4 linelist with a new
+ version in which the E" of some lines had been manually
+ corrected (by Frankenberg) to give improved fits.
+
+2008-08-03   GCT
+ Added a few more H2O lines to the 5850-6150 cm-1 region.
+ With the new CH4 and solar linelists, it was easier to
+ identify the missing H2O lines.
+
+2008-08-02   GCT
+ Re-fitted the solar linelist over the 5800-6200 cm-1 region,
+ after adding a dozen additional solar lines.
+
+2008-08-01   GCT
+ Removed the 1133 HITRAN2004 CH4 lines covering 5880-6160 cm-1
+ and replaced them with the linelist of Frankenberg et al.
+ This produced superior spectral fits with a smaller airmass
+ dependence than previously.
+
+2008-07-28   GCT
+ Removed 3388 HCOOH lines covering 1060.96 - 1062.35 cm-1 from gct.101
+ Replaced these with the July 2007 HITRAN update consisting of
+ 56433 lines covering 10.0 - 100.0 and 940-1245 cm-1. These new
+ lines were put into atm.101 since they are a proper linelist.
+
+2008-07-25   GCT
+ Motivated by the H2O-dependence seen in the CO2 retrievals,
+ Skye Aaron and I went through the 5750-6400 and 7750-8050 cm-1
+ regions using 87 deg Darwin spectra from the db_wet_dry.grl
+ runlog and identified ~700 missing H2O lines, for which we
+ created new empirical lines with E"=1111.1111.  These lines
+ are denoted by "toon fudge" in the linelist.  Also modified
+ hundreds of existing lines from Toth's 2003 SISAM linelist in
+ order to improve fits to the Darwin ground-based FTS spectra.
+
+ Linda Brown subsequently pointed out the Mikhailenko et al [2007]
+ paper, whose Supplemental Material contains a H2O linelist for
+ the 5914-6154 cm-1 region. Nearly all Mikhailenko's lines having
+ S>1.0E-27, were already in our linelist.  Mikhailenko's linelist
+ has several dwawbacks (e.g. gaps in the spectral coverage, no
+ width information), but does have the virtue of having the E".
+ So we replaced the 1111.1111 with the true E" in these ~30 cases.
+ We ignored the Mikhailenko lines with S<1.0E-27 since these were
+ generally not discernable in the ground-based Darwin FTS spectra.
+
+2008-06-24   GCT
+ I noticed bad fits (+ve residuals) to the particular CH4 manifold
+ around 1236 cm-1 in MkIV balloon spectra below 25 km tangent altitude,
+ but with good fits above and good fits to other CH4 manifolds in this
+ region. So I decreased the withs of these two lines from
+ 61 1235.953482 3.937E-21 3.205E-03.0510.0676  814.64810.65-.001901  2  111F2  8  12F1  1  652302029
+ 61 1236.008516 6.565E-21 3.207E-03.0520.0676  814.64620.65-.001902  2  111A2  3  12A1  1  652302029
+to
+ 61 1235.953482 3.937E-21 3.205E-03.0410.0676  814.64810.65-.001901  2  111F2  8  12F1  1  652302029
+ 61 1236.008516 6.565E-21 3.207E-03.0420.0676  814.64620.65-.001902  2  111A2  3  12A1  1  652302029
+ which improved the fits.  The new widths are much more similar to
+ those of adjacent CH4 lines.
+
+2008-06-22   GCT
+ I reorganized the way that the C2H6 lines are distributed between
+ the atm and gct linelists. Now atm.101 contains all the lines up to
+ 961 cm-1.  gct.101 contains the pseudolines between 1350 and 1496 cm-1
+ and all the lines covering the 2953-3018 cm-1 region. The latter are
+ a bit of a hodge-podge, consistent of lines from 3 origins:
+ - a quantum-mechanically-derived linelist for the PQ3-branch
+   at 2976 cm-1 which was included in HITRAN2004
+ - linelists kludged by Linda Brown 20 years ago for ATMOS
+   covering the 9 strongest PQ-branches from 2973-3001 cm-1
+   These were in HITRAN2000 but not in HITRAN2004
+ - a linelist kludged by Geoff Toon for the 2953-2973 and
+   3001-3018 cm-1 regions containing weaker PQ-branches
+
+2008-06-20   GCT
+ Generated fake HNO3 linelists to cover the nu1 band centered
+ at 3551 cm-1 and the 2nu3 band centered at 2645 cm-1, both of
+ which are missing from HITRAN.  I did this by 
+ exploiting the similarity of the nu1 and nu2 bands. I first
+ generated the following list of the positions of the manifolds
+ in the nu1 and nu2 bands
+ 
+ j   f_nu1   f_nu2   f_2nu3
+-51 3529.17  1686.26    0.00
+-50 3529.61  1686.75    0.00
+-49 3530.03  1687.22    0.00
+-48 3530.45  1687.71    0.00
+-47 3530.89  1688.20    0.00
+-46 3531.31  1688.68    0.00
+-45 3531.74  1689.15    0.00
+-44 3532.16  1689.63    0.00
+-43 3532.58  1690.12    0.00
+-42 3533.01  1690.60    0.00
+-41 3533.43  1691.06    0.00
+-40 3533.86  1691.55    0.00
+-39 3534.30  1692.02    0.00
+-38 3534.72  1692.49    0.00
+-37 3535.14  1692.97    0.00
+-36 3535.57  1693.43    0.00
+-35 3535.99  1693.90    0.00
+-34 3536.42  1694.36    0.00
+-33 3536.84  1694.83    0.00
+-32 3537.26  1695.29    0.00
+-31 3537.69  1695.76    0.00
+-30 3538.11  1696.21    0.00
+-29 3538.54  1696.66    0.00
+-28 3538.97  1697.12    0.00
+-27 3539.39  1697.59    0.00
+-26 3539.81  1698.03    0.00
+-25 3540.225 1698.48    0.00
+-24 3540.65  1698.95 2634.52
+-23 3541.07  1699.39 2634.99
+-22 3541.50  1699.84 2635.46
+-21 3541.92  1700.29 2635.89
+-20 3542.34  1700.73 2636.35
+-19 3542.76  1701.18 2636.80
+-18 3543.17  1701.62 2637.255
+-17 3543.58  1702.06 2637.70
+-16 3544.00  1702.51 2638.155
+-15 3544.40  1702.94 2638.60
+-14 3544.82  1703.38 2639.04
+-13 3545.26  1703.81 2639.495
+-12 3545.68  1704.24 2639.93
+-11 3546.11  1704.69 2640.375
+-10 3546.52  1705.11 2640.81
+ -9 3546.94  1705.54 2641.24
+ -8 3547.38  1705.97 2641.675
+ -7 3547.80  1706.39 2642.11
+ -6 3548.22  1706.82 2642.53
+ -5 3548.65  1707.25 2642.96
+ -4 3549.07  1707.68 2643.38
+ -3 3549.49  1708.10 2643.80
+ -2 3549.91  1708.52 2644.22
+ -1 3550.33  1708.96 2644.65
+  0 3550.74  1709.40 2645.07
+  1 3551.16  1709.82 2645.49
+  2 3551.58  1710.23 2645.90
+  3 3551.99  1710.64 2646.31
+  4 3552.41  1711.04 2646.71
+  5 3552.83  1711.45 2647.12
+  6 3553.24  1711.85 2647.53
+  7 3553.66  1712.25 2647.93
+  8 3554.08  1712.65 2648.33
+  9 3554.50  1713.06 2648.725
+ 10 3554.91  1713.46 2649.125
+ 11 3555.32  1713.87 2649.52
+ 12 3555.73  1714.28 2649.91
+ 13 3556.14  1714.67 2650.30
+ 14 3556.55  1715.07 2650.69
+ 15 3556.96  1715.47 2651.075
+ 16 3557.39  1715.87 2651.46
+ 17 3557.79  1716.26 2651.85
+ 18 3558.24  1716.65 2652.23
+ 19 3558.64  1717.04 2652.61
+ 20 3559.04  1717.43 2653.01
+ 21 3559.44  1717.82 2653.38
+ 22 3559.89  1718.21 2653.77
+ 23 3560.29  1718.60 2654.175
+ 24 3560.72  1718.98    0.00
+ 25 3561.13  1719.37    0.00
+ 26 3561.55  1719.75    0.00
+ 27 3561.98  1720.12    0.00
+ 28 3562.38  1720.51    0.00
+ 29 3562.78  1720.89    0.00
+ 30 3563.20  1721.27    0.00
+ 31 3563.61  1721.63    0.00
+ 32 3564.02  1722.01    0.00
+ 33 3564.43  1722.39    0.00
+ 34 3564.84  1722.76    0.00
+ 35 3565.25  1723.12    0.00
+ 36 3565.66  1723.49    0.00
+ 37 3566.07  1723.86    0.00
+ 38 3566.48  1724.23    0.00
+ 39 3566.89  1724.58    0.00
+ 40 3567.31  1724.94    0.00
+ 41 3567.72  1725.30    0.00
+ 42 3568.12  1725.65    0.00
+ 43 3568.53  1726.01    0.00
+ 44 3568.94  1726.37    0.00
+ 45 3569.35  1726.72    0.00
+ 46 3569.76  1727.07    0.00
+ 47 3570.17  1727.41    0.00
+ 48 3570.57  1727.77    0.00
+ 49 3570.97  1728.11    0.00
+ 50 3571.37  1728.46    0.00
+ 51 3571.78  1728.81    0.00
+ 52 3572.18  1729.16    0.00
+ 53 3572.58  1729.50    0.00
+ 54 3572.99  1729.84    0.00
+
+I then wrote a fortran program (linelist/f77/hno3.f) that fitted a
+polynomial to the nu1 and 2 nu3 frequencies as functions of the nu2
+manifold frequencies, .e.g.
+
+ f_nu1-3550.7 = a0+a1*(f_nu2-1709.5)+a2*(f_nu2-1709.5)^2+a3*(f_nu2-1709.5)^3
+
+It turned out that a 4'th order polynomial produced a fit with a
+rms deviation of 0.014 cm-1. Higher order polynomials failed to
+improve significantly upon this.
+
+The coefficients of the chosen polynomial were
+a0 = 0.162455291
+a1 = 1.00235796
+a2 = 0.00362555636
+a3 = 2.84212583E-05
+
+Note that the a1 coefficient is very close to 1.0, indicating
+that the average spacing of the manifolds is very similar in
+the nu1 and nu2 bands.
+
+I then used the polynomial to transform the frequencies of
+the nu2 HNO3 linelist into a nu1 linelist. At the same time,
+I scaled the strengths by a factor 0.20.  I then had to do
+some massaging because the nu1 manifolds were wider than their
+nu2 counterparts and because the nu1 Q-branch is relatively
+stronger and has a different shape. This involved moving
+individual HNO3 lines which were producing bumps in the
+residuals to nearby frequencies where there were dips in
+the residuals.
+
+Also kludged a HNO3 linelist for the nu1+nu9 Q-branch
+at 4006.5 cm-1.  These 3 linelists were put into a single
+file hno3_sup.101 and put onto the mark4sun website with
+the other pseudo-linelists. These linese were also merged
+into gct_20080621.101.
+
+This is all described in more detail (and with figures)
+in the PowerPoint presentation "HNO3 Spectroscopy Evaluation"
+that I gave at the 2008 ACE Meeting in York, UK.
+http://mark4sun/report/HNO3_Spectroscopy_Evaluation.pdf
+
+
+2008-06-19   GCT
+ wrote a program to coalesce redundant lines (i.e. lines having
+ the same frequency, E", width). This allowed me to reduce the
+ HNO3 linelist (the July 2006 HITRAN update) from 373039 lines
+ to 279941 lines.
+
+2008-05-24   GCT
+Added a dozen new H2O lines in the 6180-6350 cm-1 region,
+and also modified (strengths, widths, shifts) many more
+existing lines, based on fits to pa_h2o.grl which contains
+some high-h2o Park Falls spectra.  This was to try to remove
+the H2O dependence in the co2_6220/co2_6339 ratio.
+
+Also added 40 solar lines to this interval, and refitted
+it completely using the adjust_solar_linelist program
+after adding one of the low airmass Izana spectra to the
+kp_solar_dc.grl runlog.
+
+Added 54 new solar lines to the 7750 - 8031 cm-1 region
+and refitted it completely using adjust_solar_linelist.
+
+2008-04-28   GCT
+  Did a complete replacement of all 129741 HNO3 lines covering
+    0 to  43 cm-1
+  410 -  500 cm-1
+  545 -  678 cm-1
+  722 -  960 cm-1
+ 1098 - 1389 cm-1
+ 1650 - 1770 cm-1
+
+with 373039 lines of the July 2006 HITRAN update
+covering almost the same regions but with 3x more lines.
+    0 to  84 cm-1
+  357 -  500 cm-1
+  545 -  678 cm-1
+  722 -  964 cm-1
+ 1098 - 1389 cm-1
+ 1650 - 1770 cm-1
+
+
+2008-04-27   GCT
+  Added the following O2 line
+ 72 7885.771673 7.178E-29 4.472E-10.0570.0546    7.03330.84-.002804 
+  It is only 1% deep even at 84 deg SZA, but is occurs in a window
+  region immediately to the right of the Q-branch so its absense
+  is noticeable. I guess that it got chopped by the HITRAN minumum
+  strength criterion.
+
+2008-04-08   GCT
+  Removed all 5444 lines of H2O2 covering 0-100 cm-1
+  and 1001-1500 cm-1.
+  
+  Replaced them with 100781 lines from HITRAN04 covering 0-1500 cm-1
+  having the same widths. I don't fully understand why there are 20x
+  more H2O2 lines in the new linelist than the old one.
+  And yes, I remembered to change the gas # from 25 to 23.
+  This doesn't not significantly affect the MkIV H2O2 retrievals.
+
+2008-04-07   GCT
+  Removed all 7723 lines of HOCl covering
+   1174-1310.2 cm-1
+   3400-3800 cm-1
+  These lines all have widths of 0.06 cm-1
+  
+  Replaced them with 16276 lines from HITRAN04 covering
+     1- 392 cm-1
+  1178-1320 cm-1
+  3400-3800 cm-1
+  having widths of 0.10 cm-1
+  The new lines are weaker than the old ones too.
+  The net result for MkIV HOCl retrievals is to 
+  increase the retrieved HOCl amount by a factor 1.6.
+
+2008-04-05   GCT
+   Left-shifted by -0.012 cm-1 all the lines of the
+          1 0 0 11       0 0 0 01
+   transition of the 6'th isotopolog of CO2.
+   These cover the interval 3557.485 to 3641.06 cm-1.
+
+2008-04-04   GCT
+   The lines of the first isotopolog of CO2 having the quantum
+   assignment "3 0 0 01   0 1 1 01" are very poorly fitted.
+   In fact, I cannot see any lines in the MkIV balloon spectra,
+   even though the calculation shows that they should be easily
+   discernable (up to 10% deep). This particular band is causing
+   the largest remaining residuals in my fits to MkIV balloon
+   spectra in the 3500 cm-1 region.
+   
+   This band is really strange. The strongest line in the P-branch
+   happens at P45, whereas the strongest R-branch line is R31. The
+   R31 line (1.12E-24) is 34x stronger than the P45 line (3.29E-26).
+   After consulting with Bob Toth and Linda Brown, I decided to
+   divide the strengths of all the R-branch lines by 10 (yes, ten!).
+
+2008-04-03   GCT
+   Also had to left-shift the 1co2 lines of the transition
+             1 2 2 12       0 2 2 01
+   by 1-2 mK
+
+2008-04-02   GCT
+  More large residuals in the 3524-3775 cm-1 region, this time from the 
+     111121 011011
+     111121 011011
+   transitions of 4co2 centered at 3591 cm-1. This is the hot-band.
+   Fixed these by hand by left-shifting the lines by 5-10 mK.
+
+2008-03-31   GCT
+   Noticed large residuals (up to 40%) in the 3470 to 3550 cm-1
+   region in MkIV balloon spectra at ~30 km tangent altitude.
+   These residuals were all associated with the 2co2 hot-band
+   centered at 3505 cm-1, and designated by the quantum numbers
+      0 1 1 12    0 1 1 0
+   The original quantum mechanical calculation had large position errors
+   especially for the high-J lines. Somebody had already gone through
+   the linelist correcting them, starting from the band center where
+   the errors were relatively small and the attibution of the correct
+   frequency was easy.  But at some point this person gave up (perhaps
+   the shifts became too large or the strengths too weak to correctly
+   attribute a frequency. So the uncorrected large-J transitions were
+   still completely misplaced (by up to 3 cm-1) causing the observed
+   residuals in the balloon spectra.
+
+   So basically I went through the balloon residuals, systematically
+   matching spikes to dips of roughly the same size. This greatly
+   improved the residuals (by more than a factor 2).
+
+
+2007-12-14:   GCT
+ Changed the following O3 line from
+ 31  988.158900 1.481E-22 5.335E+00.0763.1027 1294.27420.720.000000      1 0 1          1 0 0 19
+to 
+ 31  988.155200 1.200E-22 5.335E+00.0763.1027 1294.27420.720.000000      1 0 1          1 0 0 19
+
+ 31 2761.410400 5.640E-23 8.233E-02.0749.1017  243.03330.730.000000          1 1 1          0 0 0 22
+to
+ 31 2761.408400 5.640E-23 8.233E-02.0749.1017  243.03330.730.000000          1 1 1          0 0 0 22
+
+to preven large residuals in fits to MkIV balloon spectra.
+
+
+2007-11-11:   GCT
+ Changed the following O3 line from
+ 31 2124.365500 1.529E-22 2.036E+00.0709.0795  905.27870.80-.003000      1 0 1      0 0 0 36
+to
+ 31 2124.363500 9.829E-22 2.036E+00.0709.0795  905.27870.80-.003000      1 0 1      0 0 0 36
+This fixed a huge (20%) dip in the 20 km residuals
+
+Also, added the following fake O3 lines to fix dips (up to 15%) in the 28 km residuals
+ 31 2066.188500 7.510E-23 1.800E+00.0785.0954 1017.87070.710.000000      1 1 1      0 1 0 15
+ 31 2090.814700 1.862E-22 8.651E-02.0653.0805 1224.94200.76-.003000      1 0 1      0 0 0 50
+ 31 2131.108900 8.846E-23 5.714E-02.0753.0790  888.91080.730.000000      2 0 0      0 0 0 22
+
+2007-11-05:   GCT
+ Updated the DC and DI solar linelists over the 5950-6500 and 12800-13350 cm-1
+ regions at the request of Andre Butz & Christian Frankenberger. This was 
+ mainly just a matter of running adjust_solar_linelist over these regions
+ to improve the DI linelist.  A couple of missing lines were added to both
+ linelists.
+
+2007-11-02:   GCT
+ Noticed that the two main bands of the 4co2 (726) in the 3500-3800 cm-1
+ region were frequency shifted by ~15 mK, causing large residuals
+ in fits to MkIV balloon spectra. Replaced these 1216 lines (which
+ came from HITRAN_2004) with 1551 lines from Toth's just-for-geoff-sep07
+ linelist.  I did not perfom an entire replacement because Toth's
+ linelist has problems in the 2330 cm-1 region.
+
+2007-09-17:   GCT
+ Replaced the most of the C2H6 lines with the latest HITRAN update.
+ This was slightly tricky because some of the existing C2H6 lines
+ were in the atm.101 linelist, and others were in gct.101.
+ Wrote a document "Ethane Spectroscopy 2950-3022 cm-1"
+ describing the recent improvements in the C2H6 linelist.
+
+2007-09-16:   GCT
+  Moved the O3 line at 
+O3       3 1  2986.954600 2.106E-23  799.5910 .0701 .0917 .85  -.008   0  0 0 41
+  to
+O3       3 1  2986.936500 2.106E-23  799.5910 .0701 .0917 .85  -.008   0  0 0 41
+based on fits to MkIV balloon spectra.
+
+The following ozone line seemed too strong and there was a missing O3 line
+immediately to its left
+O3       3 1  2998.238500 8.144E-23  580.7642 .0711 .0948 .79  -.008   0  0 0 34
+
+So I split this line into two lines:
+O3       3 1  2998.190500 1.000E-23  580.7642 .0711 .0948 .79  -.008   0  0 0 34
+O3       3 1  2998.238500 7.144E-23  580.7642 .0711 .0948 .79  -.008   0  0 0 34
+which greatly improved fits to MkIV balloon spectra.
+
+
+2007-09-15:   GCT
+ Added the nu2+nu3 bands of the 628 and 728 CO2 centered at 2982 and
+ 2992 cm-1 respectively. I stripped these 273 lines from Toth's
+ sept-07 linelist since they were missing from HITRAN and are needed
+ for analysis of Mars spectra. 
+
+2007-07-11:   GCT
+ Replace Toth's 2003 vintage N2O linelist containing 40868 lines over the
+ 0 7796 cm-1 with the HITRAN 2006 update containing 47843 lines (including
+ the previously missing R1 line at 1167.289 cm-1). The HITRAN N2O linelist 
+ did not contain any lines for the nu_3 bands of the 6, 7 and 8'th isotopologs,
+ so I added these additional ~400 lines back from the old Toth linelist.
+
+2007-06-18:   GCT
+ When fitting the high sun MkIV balloon spectra, I noticed that some of
+ the solar lines were a bit rough. So I refitted the 2300 - 2400 cm-1
+ region using the ATMOS spectra. I added a few lines and deleted a few.
+
+2007-06-18:   GCT
+  While fitting high altitude ACE spectra in the 2300 cm-1 region of the
+  nu_3 CO2 band, I noticed that the lines of the nu1-->nu1+nu3 hot-band
+  of the 17O CO2 isotopolog were all shifted by typically 10 to 30 mK.
+
+  This problem was not apparent in the HITRAN2004 linelist so I
+  switched all the (non-Toth) CO2 lines below 4400 cm-1 with the
+  latest HITRAN parameters. This greatly improved the fits.
+
+2006-12-28:   GCT
+While fitting Park Falls spectra acquired on a warm and humid day,
+I obtained anti-symmetrical residuals at the following lines.
+ 11 4853.119000 2.400E-25 7.738E-07.0585.3350  744.0637 .53-.012000  6  1 8 1 7    8 0 8     TOTH03
+ 11 4881.384540 3.603E-25 9.060E-07.0450.2660  920.1684 .49-.012000  6  1 9 1 8    9 0 9     TOTH03
+ 11 4908.047700 5.406E-26 1.044E-06.0375.2440 1114.5322 .45-.012000  6  110 1 9   10 010     TOTH03
+ 11 4910.568160 6.535E-26 1.181E-06.0617.2730 1327.1100 .41-.012000  6  110 3 8   11 011     TOTH03
+ 11 4914.691720 1.654E-25 1.063E-06.0370.2430 1114.5499 .45-.012000  6  110 2 9   10 110     TOTH03
+These residuals were dominating the summertime fits to park Falls spectra.
+I realised that these lines all had pressure shifts of zero,
+which means that the lines were too weak to measure their shifts
+in the laboratory spectra. So I assigned them all shifts of
+12 mK/atm, which improved the spectral fits considerably.
+
+Also reduced the strength of the following h2o line:
+ 11 4831.686010 1.319E-24 1.822E-07.0930.4310   95.1759 .77 .001000  6  1 3 2 2    2 1 1     TOTH03
+from 1.319 to 1.200, where the latter is the measured value
+This greatly improved the spectral residuals around the line.
+
+Reduced the strength of the following line by a factor 2.8 to bring
+it into agreement with lab (and atmospheric measurements)
+ 11 5706.105730 1.130E-26 1.245E-06.0200.1310 1789.0428 .49-.013000  6  1 9 9 0    8 8 1     TOTH03
+
+2006-12-02:   GCT
+
+2006-12-02:   GCT
+Found that the following 7 H2O lines have ABHW=0
+ 1 1 4589.85488  8  8  0   7  3  5  1.53E-09  816.69423 .0000 .300  .00000
+ 1 1 4946.48260  4  1  4   5  2  3  3.00E-07 2053.96866 .0000 .400  .00000
+ 0 0 6590.76500  0  0  0   0  0  0  1.03E-06     .00000 .0000 .000  .00000
+ 1 1 6710.52653  3  2  1   4  1  4  1.65E-06 1821.59680 .0000 .004  .00000
+ 0 0 6835.65583  0  0  0   0  0  0  1.27E-06     .00000 .0000 .400  .00000
+ 0 0 6969.93140  0  0  0   0  0  0  6.42E-07     .00000 .0000 .400  .00000
+ 0 0 7293.37590  0  0  0   0  0  0  7.55E-06     .00000 .0000 .400  .00000
+
+I asked Bob Toth about this.  He said that he couldn't measure the
+widths of these lines so he set them to zero.  I changed them to:
+ 1 1 4589.85488  8  8  0   7  3  5  1.53E-09  816.69423 .0600 .300  .00000
+ 1 1 4946.48260  4  1  4   5  2  3  3.00E-07 2053.96866 .0800 .400  .00000
+ 0 0 6590.76500  0  0  0   0  0  0  1.03E-06  555.00000 .0800 .400  .00000
+ 1 1 6710.52653  3  2  1   4  1  4  1.65E-06 1821.59680 .0800 .400  .00000
+ 0 0 6835.65583  0  0  0   0  0  0  1.27E-06  555.00000 .0800 .400  .00000
+ 0 0 6969.93140  0  0  0   0  0  0  6.42E-07  555.00000 .0800 .400  .00000
+ 0 0 7293.37590  0  0  0   0  0  0  7.55E-06  555.00000 .0800 .400  .00000
+
+Also reduced the strength of the following h2o line:
+ 11 4831.686010 1.319E-24 1.822E-07.0930.4310   95.1759 .77 .001000  6  1 3 2 2    2 1 1     TOTH03
+from 1.319 to 1.200, where the latter is the measured lab value
+This greatly improved the spectral residuals around the line.
+
+Reduced the strength of the folowing line by a factor 2.8 to bring
+it into agreement with lab (and atmospheric measurements)
+ 11 5706.105730 1.130E-26 1.245E-06.0200.1310 1789.0428 .49-.013000  6  1 9 9 0    8 8 1     TOTH03
+
+2006-12-01:   GCT
+   Discovered that the CH4 line at 4576.668 cm-1 had a -ve
+   strength (-4.910E-25). Removed the -ve sign.
+
+2006-11-30:   GCT
+   While fitting ground-based Park Falls spectra, I discovered
+   that the HDO line at 5044.22 cm-1 is 3x too strong. So I
+   reduced its strength from the calculated value (3.655E-24) to
+   the measured value (1.218E-24) in Toth's 2003 SISAM linelist.
+
+2006-11-22:   GCT
+   Received yet another new CO2 linelist from Toth (co2-toth-nov22-06).
+   containing 27344 lines in the 4400-7000 cm-1 interval.  
+
+2006-11-17:   GCT
+   Received yet another new CO2 linelist from Toth (co2-toth-nov17-06).
+   containing 27345 lines in the 4400-7000 cm-1 interval.  
+
+2006-11-14:   GCT
+   Merged f142b.h92 (containing 40000 lines covering 870-1270 cm-1
+   interval at 0.01 cm-1 spacing) into the gct.101 linelist. Not sure
+   about the absolute accuracy of these lines (they were derived
+   without any proper partition function information), but they
+   nicely fit out the HCFC-142b absorption in the contaminated in
+   1992 balloon flight high-sun spectra, which I use in deriving
+   the mid-IR solar linelist.
+
+2006-11-10:   GCT
+   Received yet another new CO2 linelist from Toth (co2-toth-nov10-06).
+   containing 27353 lines in the 4400-7000 cm-1 interval.  
+
+2006-11-09:   GCT
+   Received a new CO2 linelist from Bob Toth (co2_toth_mid-nov06)
+   containing 27353 lines in the 4400-7000 cm-1 interval.  
+
+2006-11-08:   GCT
+   Received a new CO2 linelist from Bob Toth (co2_toth_nov06) containing
+   27341 lines in the 4400-7000 cm-1 interval.   This contains
+   additional bands of the 828 isotope and the first ever lines of
+   the 9'th (838) isotope. This required changes to isotopologs.dat
+  
+   This replaced the 22213 lines covering 4400-7000 cm-1
+
+2006-11-07:   GCT
+   Received a new CO2 linelist from Bob Toth (co2_toth_sept06) containing
+   22706 lines in the 4000-7000 cm-1 interval.  On Linda's advice, it
+   replaced the 14269 lines covering 4400-7000 cm-1 with 22213 lines from
+   Bob's new linelist. So the 4000-4400 cm-1 interval remains unchanged.
+
+2006-10-17:   GCT
+   Replaced the ATMOS SO2 linelist containing 26225 lines in 5 bands
+   covering the 0 to 2526 cm-1 interval, with the HITRAN2004 SO2 linelist
+   caontaining 38853 lines in 6 bands covering the 0 to 4093 cm-1 interval.
+
+2006-05-18:   GCT
+   Adopted a new CO2 linelist from Bob Toth covering the 4500-6989 cm-1
+   region. The main difference from his previous linelist is that he
+   reduced the strengths of the weak 31101-00001 band centered at
+   4938.3535 cm-1 by a factor 6. There are also minor changes to the
+   strength (up to 5%) and positions (up to 0.0005 cm-1) of the stronger
+   lines.
+
+2006-04-20:   AK
+   Added pseudo-linelists for the mid-ir N2 and O2 collision induced
+   absorption bands to the fcia and scia linelists. Previously, these
+   were part of the cia.h92 linelist, which is now obsolete.
+   Also renamed the linelists to include the date (fcia_20060420.101,
+   scia_20060420.101).
+
+   All added parameters are consistent with the new version of gfit,
+   in which the cia is calculated by number_density^2*line_strength*
+   line_shape (in contrast to the old version of gfit, where
+   number_desity*line_strength*line_shape*pressure was used).
+   For this conversion it was necessary to fit an exponential
+   function to the linear temperature dependence of (T/T_hitran),
+   which originates from the rotational partition function.
+
+   This fit has an accuracy of 2% in the 190-295 K temperature range.
+   The additions to both linelists consist of 3 parts:
+
+   O2 fundamental band: based on the empirical model
+   by Thibault et al., AO, 1997. Unit conversion was
+   performed using modified routines by F. Mills,
+   which had been used before to derive the original
+   cia linelists. Separation in fcia and scia was done
+   by assuming a temperature independent effectiveness
+   of O2-O2 collisions = 0.94 * effectiveness of O2-N2
+   collisions as suggested by Orlando et al., JGR, 1991.
+   The new linelist has been extrapolated to zero line
+   strengths at 2*FWHM from the maximum absorption
+   towards lower wavenumbers and 2.5*FWHM towards
+   higher wavenumbers. This covers the range from
+   1275-1905 cm-1, giving a total of 631 pseudo-lines.
+
+   N2 fundamental band: based on the empirical model
+   by Lafferty et al., AO, 1996. Unit conversion was
+   performed using modified routines by F. Mills,
+   which had been used before to derive the original
+   cia linelists. Lafferty et al. give their empirical
+   model for N2-N2 collisions and a temperature dependent
+   conversion factor for N2-O2 collisions, which have
+   been used to derive scia and fcia, respectively. For
+   the latter, an exponential has been fitted to the
+   product of (T/T_hitran) and the N2-O2 conversion factor,
+   the accuracy of which is 0.3% between 190-295 K.
+   The new linelist has been extrapolated to zero line
+   strengths at 2*FWHM from the maximum absorption
+   towards lower wavenumbers and 2.5*FWHM towards
+   higher wavenumbers. This covers the range from
+   2030-2705 cm-1, giving a total of 676 pseudo-lines.
+
+   N2 1st overtone band: based on Shapiro and Gush,
+   Can. J. Phys, 1966. P. Wennberg digitized the
+   absorption from their Fig. 8, which was converted to
+   pseudoline-strengths assuming similar ground state
+   energies as for the fundamental band. Shapiro and
+   Gush give the absorption for N2-N2 collisions.
+   Separation to scia and fcia was done assuming
+   an effectiveness of N2-O2 collisions
+   = 0.92 * effectiveness of N2-N2 collisions as
+   suggested by Menoux et al., AO, 1993 for the
+   fundamental N2 band, however, no possible
+   temperature dependence has been taken into
+   account. The new linelist covers a range of
+   4330-4930 cm-1 with 601 pseudo-lines.
+
+   The linelists for the fundamental bands have been
+   tested on the 1997 Fairbanks balloon flight. The
+   agreement is better than 1% in comparison to
+   the analysis using the old linelists with the old
+   version of gfit. The linelist for the N2 overtone
+   band has been tested on the 96 Ft. Sumner balloon
+   flight, the results agree well with work previously
+   done by P. Wennberg on this balloon flight.
+ 
+
+2006-03-10:   AK
+   Removed the O3 lines from the gct.101 linelist.
+   These were from Alain Barbe and were introduced
+   in Jan 2001 to represent the nu1+nu3 bands of the
+   686 and 668 isotopes.
+
+2006-03-09:   AK
+   Replaced o3 (all isotopes) in atm.101 with o3 from
+   Hitran04 between 0 and 4100 cm-1. Results from MkIV
+   balloon spectra are generally 1% lower than the
+   previous values.
+
+   Also included ch3oh from Hitran04 (range 0-1408 cm-1)
+   and ch3oh from the ch3oh_2790_2925.lrb linelist.
+
+2006-03-06:  GCT
+  Replaced Bob Toth's old CO2 linelist with a new one
+  covering the 4400-6989 cm-1. The new linelist
+  contains 14241 lines versus 11521 for the old one. 
+  In this new linelist, Rebecca W has averaged
+  the new widths with the old values in a 70-30 ratio
+  to minimize the airmass dependence of CO2 in the 6228
+  ans 6348 cm-1 CO2 bands. This is because Toth's old
+  linelist produced a -ve airmass dependence whereas
+  the new one produed a +ve airmass dependent.
+
+2006-03-06:  GCT
+ Replaced the Goldman O2 lines covering 7664-8064 cm-1
+ with those from Newman et al., which was collated by
+ Rebecca W, whose notes follow.
+
+ For 16O16O (isotope 1):
+ The linelist contains the Orr-Ewing PGOPHER model fractional strengths
+ (Newman et al, 2000), multiplied by an integrated band intensity of
+ 3.21E-24 cm / molec.  According to Newman et al, 3.21E-24 cm / molec
+ is the band strength for the 16O16O isotope alone.  Therefore, the
+ strength has not been scaled by isotopic abundance.
+ 
+ The air-broadened halfwidths which appeared in atm.h92.new
+ (from Yang et al, 2005) have been scaled by 1.015.
+ 
+ The temperature-dependence coefficient which appeared in atm.h92.new
+ (from Yang et al, 2005) has been scaled by 1.10.  This brings it into
+ better agreement with the value of -0.85 reported in Newman et al (2000).
+ 
+ For 16O18O (isotope 2):
+ The Orr-Ewing PGOPHER model strengths (Orr-Ewing, personal communication)
+ were divided by the sum of the strengths to calculate fractional intensity.
+ Line strength was calculated from
+ 
+ fractional intensity x ( 3.21E-24 cm / molec ) x 0.00399141 / 0.995262
+ 
+ where 3.21E-24 cm / molec is the integrated band intensity
+ (Newman et al, 2000) for 16O16O.
+
+ The air-broadened halfwidths which appeared in atm.h92.new
+ (from Yang et al, 2005) have been scaled by 1.015.
+ 
+ The temperature-dependence coefficient which appeared in atm.h92.new
+ (from Yang et al, 2005) has been scaled by 1.10.  This brings it into
+ better agreement with the value of -0.85 reported in Newman et al (2000).
+
+ More details are given in:
+ http://www.gps.caltech.edu/~rebeccaw/work_archive/Summary_O2_1.27um_Band_Work.pdf
+
+
+2006-03-06:  GCT
+  Merged the gct & mars_dust linelists.
+  The result is gct_20060306.101
+ 
+2006-02-20:  GCT
+ Added 4 new psuedo linelists to gct.101
+ 1) CH3CHO (1000-1900 and 2600-2900 cm-1)
+ 2) PAN (760-870, 1110-1340, and 1700-1780 cm-1)
+ 3) CH3CN (870 and 1650 cm-1)
+ 4) C2H6 (1350 and 1496 cm-1)
+ These were generated by Armin Kleinboehl based mostly
+ on PNNL lab spectra. For a more detailed history see
+ http://mark4sun.jpl.nasa.gov/science/pseudo.html
+ 
+ Note: HITRAN_2004 contains C2H6 lines for the nu_12 (822 cm-1), nu_1
+ (2954 cm-1), and nu_10 (2985) bands, but not the nu_6 (1379 cm-1)
+
+
+2005-12-27:  GCT
+ Extended the new CIA linelists to cover the A-band
+ by making use of Figure 7 of the paper "Line-Mixing
+ and collision-indiced absorption by O2 in the A-band"
+ by H.Tran, C. Boulet, and J.-M.Hartmann.  Since no
+ lab spectra were available, I simply fitted the two
+ curves in the paper.This allows the super-Lorentzian
+ lineshape code to be completely eliminated from abscoh.f
+ 
+2005-12-14:  GCT
+ Was trying to improve spectral fits in the 5600-5800 cm-1
+ region where we fit cell HCl.
+ Added a weak H2O line at 5779.79 cm-1 to atm.101
+ Also added 15 weak solar lines to solar_dc.101.
+
+2005-10-10:  GCT
+ Replaced the CH4 linelist between 5800 and 6185 cm-1
+ with the version with the doctored widths created by
+ Rebecca Washenfelder , and described in her 2003
+ paper. This reduces the apparent diurnal variation
+ of CH4 from 6% to 2% in the P-branch.
+
+2005-09-15:  GCT
+ Noticed that the CH4 lines at 1028.05 and 1275.83 cm-1
+ had abhw=0. Fixed this by copying the HITRAN_2004 values.
+ These lines are very weak with large E", so there won't
+ be any discernable difference in atmospheric spectra
+ resulting from this change.
+
+2005-09-13:  GCT
+ Generated the two pseudo-linelists: scia.101 and fcia.101
+ These represent the collision induced absorption (CIA) in
+ the 7900 and 9400 cm-1 bands.
+ scia represents the self-CIA (O2-O2 collisions)
+ fcia represents the foreign-CIA (O2-N2 collisions)
+ Since these absorptions have different strengths and
+ slightly different wavelength dependences, it's necessary
+ to have separate linelists for the two processes if you
+ want the ability to properly fit spectra with arbitrary
+ O2 vmr (e.g. the Smith & Newnham laboratory spectra).
+ 
+These new linelists are fundamentally different from the
+previous CIA linelists used by GFIT. The new strengths
+are in units of cm-1/(molec2/cm5) and must therefore be
+multiplied by the number density squared and the path
+length to convert them into an equivalent width.
+
+For more detail, here's an excerpt from my 20050720
+email to Vanessa & Rebecca.
+
+Finally some good news about the 1.27 micron O2 continuum
+absorption.  With help from Paul, I have finally figured out
+how to represent the continuum absorption in a fashion that
+gives consistent results to atmospheric and lab spectra,
+acquired over widely different temperatures (199-295K) and O2
+vmrs (0.21-0.75). As a bonus, the spectral fits are better too.
+
+First let's recap the theory.  The O2 absorption can be
+represented by
+    Total Absorption = a.[O2].[O2] + b.[O2].[N2] + c.[O2]
+where
+ a represents the cross-section for O2-O2 collisions
+ b represents the cross-section for O2-N2 collisions
+ c represents the discrete line absorption.
+I will assume that the third term, representing the discrete
+absorption lines, is correctly handled by the Goldman linelist,
+so that it need not be considered further here.
+
+If [O2] = VO2.D (i.e. vmr * number_density) then
+Collision Induced Absorption (CIA)
+                  CIA = D^2.(a.VO2^2+b*VN2.VO2)
+
+If there are no other gases present, VO2+VN2=1, and so
+                  CIA = D^2.(a.VO2^2+b.VO2.(1-VO2))
+                  CIA = D^2.((a-b).VO2^2+b.VO2)
+
+Note that the first term that is quadratic in VO2 and that the
+second term that is linear in VO2. Well, to cut a long
+story short, I now believe that Smith and Newnham [2000]
+denoted the former ((a-b).VO2^2) as "binary" absorption and
+the latter (b.VO2) as "monomer" absorption. Don't ask why
+they did this -- I think that S&N were very confused when
+they wrote their paper.  But this interpretation makes
+sense because all the S&N spectra were at constant
+pressure and so they could only unambiguously derive the
+VO2-dependence of their absorption coefficients. Figure 4b
+of S&N shows that the monomer absorption peaks around 7890
+cm-1 and that the binary absorption peaks around 8010 cm-1.
+
+If you now look at figure 6 in Mate et al [1999] you will
+see that their O2-O2 absorption cross section peaks at
+7900 cm-1, but with a long tail to higher frequencies.
+Their O2-N2 absorption is narrower, more symmetrical,
+with a peak at 7890 cm-1. If you now mentally subtract
+these two curves, the difference peaks around 8000 cm-1.
+This is completely consistent with S&N [2000].
+
+So now it becomes clear how to parameterize the continuum
+absorption. Instead of monomer and binary linelists, we
+need Foreign-Collision Induced Absorption (FCIA) and
+Self-Collision Induced Absorption (SCIA) linelists.
+These look just like the upper and lower curves in fig 6
+of Mate et al.[1999].
+
+So the new version of GFIT will read the linelists
+fcia.101
+scia.101
+and compute
+   CIA = D^2.[S_scia*Vx^2 + S_fcia*Vx*(1-VX)]
+
+Note that in abscoh.f, the quantity SX=D*S*Vx is already
+calculated the same way that that it would for any normal
+spectral line.  The statements
+   if(scia) SX=SX*D*Vx
+   if(fcia) SX=SX*D*(1-Vx)
+then apply the additional density & vmr dependences for the
+lines from the CIA linelists.
+
+I could have simplified this by defining an air-collision
+induced absorption
+  S_acia = 0.21*S_scia + 0.79*S_fcia
+so that the CIA in air could have been represented with
+a single linelist (instead of two). But this would have
+prevented me fitting the laboratory spectra with enriched O2.
+(I think that it is important to fit all available lab spectra)
+So how well does this new linelist/approach work?
+I can now fit all 7 S&N lab spectra with a VF_0o2 that
+varies from 0.98 to 1.01 (see Table 1). The previous
+linelist produced results that varied from 1.9-2.3,
+and the linelist before that from 1.85-5.3.
+
+As previously, the VF_O2 obtained by fitting the discrete
+lines in the S&N spectra are also close to 1.0. [Note that
+the strengths of the discrete o2 lines have been multipled
+by 0.89 for the latest analyses. VF_o2 values must therefore
+be multiplied by 0.89 to make them comparable with earlier
+results]
+
+Table 1:  Information pertaining to fits of S&N spectra
+ 7885.00 340.00  10 2 1  cl  ct  xs  xo   : o2 0o2
+   Spectrum            RMS/Cl   AM_o2      VF_o2             VF_0o2
+ o2_ral_127_295_21     0.0394    --     1.0186 1.1E-02    1.0010 3.5E-02
+ o2_ral_127_229_21     0.0355    --     1.0124 7.1E-03    1.0078 1.5E-02
+ o2_ral_127_228_50     0.0689    --     1.0096 6.8E-03    0.9760 1.0E-02
+ o2_ral_127_229_75     0.0783    --     1.0101 6.1E-03    1.0081 7.4E-03
+ o2_ral_127_199_21     0.0433    --     1.0115 7.9E-03    1.0043 1.4E-02
+ o2_ral_127_199_50     0.0607    --     1.0024 5.4E-03    0.9876 6.4E-03
+ o2_ral_127_198_75     0.0789    --     1.0166 5.6E-03    1.0132 5.4E-03
+
+The spectral fits to the 7 S&N spectra are attached. Note that S&N
+measured at only one pressure (~1 atm) and that (strangely) no spectra
+enriched in O2 were measured at room temperature. The enriched spectra
+were measured only at 199K and 229K.
+
+I next fitted a selection of Park Falls spectra from July 21 2004
+and Dec 22 2004, using the exact same linelists and gfit version.
+All fits were made using Voigt lineshape (i.e. no super-lorentzian).
+Results are summarized below.  The increase in VF_02 with airmass on
+20040721 is likely due to neglect of super-Lorentzian far line wings.
+Difference in VF_02 between 20040721 (28C) and 20041222 (-23C) is due
+to neglect of H2O dilution.
+
+Table 2:  Information from fits to selected Park Falls spectra
+ 7885.00 240.00  10 1 1  cl  ct  fs  so     : o2 0o2 h2o
+   Spectrum            RMS/Cl   AM_o2      VF_o2             VF_0o2
+ pa20040721saaaaa.049  0.4220   1.298   0.9942 1.3E-02    1.1791 1.3E-02
+ pa20040721saaaaa.125  0.5000   2.252   0.9970 1.5E-02    1.1179 1.5E-02
+ pa20040721saaaaa.182  0.7298   6.974   1.0018 2.2E-02    1.0685 2.2E-02
+ pa20040721saaaaa.185  0.7418   7.444   1.0064 2.2E-02    1.0649 2.2E-02
+ pa20041222saaaaa.021  0.3436   7.498   1.0141 1.0E-02    1.0686 1.0E-02
+ pa20041222saaaaa.022  0.3405   7.155   1.0154 1.0E-02    1.0698 1.0E-02
+
+The inverse airmass dependence of the VF_0o2 in the Park Falls
+data is likely due to concavity of the continuum in the 7900 cm-1
+region. This has a bigger fractional impact when the airmass is
+small than when large. I have plotted the 0o2 slant column versus
+the airmass (attached). It is perfectly linear, but doesn't go
+through the origin. The offset represents the apparent additional
+0o2 slant column due to the continuum curvature.
+
+In summary, I think that we now have an excellent parameterization
+of the O2 CIA in the 1.27 micron band.  Unfortunately, I doubt that
+it will have any discernable effect on the VF_O2 retrieved from the
+discrete lines. But at least we don't have to worry again about the
+O2 CIA for the forseeable future :)
+
+
+2005-09-12:  GCT
+   I was fitting the 9400 cm-1 region to check that the
+ scia and fcia pseudo-linelists were doing a good job for
+ the O2 band there, and I noticed that several strong H2O
+ lines were missing. For example, the line at 9310.58 cm-1
+ is 60% deep in the pa20040721.185 spectrum. The line at
+ 9392.50 cm-1 is 45% deep.  I was surprised to find these
+ lines missing from HITRAN 2004 because most of the other
+ H2O lines in the vicinity (many of which are much weaker)
+ are fitted nicely. So I created 54 new H2O lines in the
+ 9150-9640 cm-1 region. These are indicated by "Toon fudge
+ 2005" in the comment field.
+    I also noticed several H2O lines in the calculated
+ spectrum of which there was no absolutely no trace in
+ the measured spectrum. For these lines I multiplied
+ their strengths by 1.0E-10.
+
+2005-09-10:  GCT
+ Extended the O2 CIA linelists to cover the 9400 cm-1 band in
+ addition to the 7885 cm-1 band. Although there are no plans
+ to use this band for O2 retrieval, it is 13% deep at 83deg
+ zenith angle and will therefore influence measurements of
+ aerosol extinction if not correctly accounted for. The new
+ CIA pseudo-linlists represent the O2 absorption to better
+ than 1% in atmospheric spectra (28C and -23C). But it
+ gives lousy fits to the Smith and Newnham lab data,
+ which are at much larger O2 vmrs (50% and 75%) and
+ much lower temperatures (199K and 230K). Why didn't
+ S&N do a 21% 296K measurement?  That would have been
+ simple and useful.
+
+ And while I was at it, I added pressure shifts (-0.019 cm-1)
+ to all the co2 lines of the band at 9500 cm-1.  They were all zero.
+
+
+2005-07-14:   AK
+Changed ABHW and TD for the two H2O lines at 1462.3652 and
+1464.9051 cm-1 because of a reanalysis by Bob Toth (2005). Reads now:
+
+ 11 1462.365210 2.219E-23 2.667E-01.0391.2590 2414.7234 .05 .005350  2  113 211   13 310     TOTH05 
+ 11 1464.905060 8.754E-20 2.350E-02.0971.4760  212.1564 .87-.005130  2  1 2 1 2    3 2 1     TOTH05 
+
+
+2005-07-13:   AK
+Modified 11 CH4 lines in the frequency region 1462-1464.4 cm-1
+according 7 to lab measurements taken at Kitt Peak.
+The modifications give better fits to the atmospheric spectra
+when retrieving CH3CN. The changes are given as underlined
+quantities in the following table:
+
+Tag Frequency  Orig. Freq. Strength    ABHW  SBHW     E"      TD  p-Shift
+-------------------------------------------------------------------------
+61 1462.637828             4.609E-23  .0640 .0796  293.16460 .73 -.002250
+                                            ----- 		
+61 1462.675847             1.240E-22  .0640 .0816  293.12650 .73 -.002250
+                                            -----			
+61 1462.729158 1462.730658 6.542E-25  .0640 .0776 1597.63660 .73 -.002250
+   -----------			     			      
+61 1462.811719 1462.812719 8.719E-25  .0640 .0776 1599.28410 .73 -.002250
+   -----------                          		      
+61 1462.971170             3.938E-24  .0640 .0756  293.17870 .73 -.002251
+                                            -----			
+61 1463.026761 1463.026861 9.790E-23  .0689 .0850  293.12300 .73 -.002251
+   -----------                              -----			
+61 1463.211085 1463.213085 9.218E-25  .0610 .0776 1596.72600 .73 -.002251
+   -----------			     			      
+61 1463.289965 1463.288965 6.105E-25  .0610 .0776 1830.03660 .73 -.002251
+   -----------			     			      
+61 1463.380979             5.499E-23  .0700 .0876  293.17010 .90 -.000251
+                                      ----- -----            --- --------	
+61 1464.180011             4.611E-24  .0490 .0540 1592.35970 .63 -.002253
+                                            -----			
+61 1464.190087             4.609E-24  .0490 .0540 1592.35930 .63 -.002253
+                                            -----
+
+
+2005-05-32:
+Noticed a missing H2O line at 7975.6 cm-1 while fitting
+the Park Falls high-airmass spectra. I don't know how
+this happened: I had obtained nice fits previously.
+I guess that I must have somehow inadvertantly deleted it.
+
+So I put it back. Plus I noticed several additional
+missing H2O and solar lines in the 7700-7770 and the
+8000-8055 cm-1 regions (I was fitting a wider O2 window
+than normal to better understand the continuum absorption
+and the high-J strengths of the OP and SR branches).
+
+Anyway, I ended up with 26 additional H2O lines, and 17
+additional solar lines.
+
+
+2005-05-20:  GCT
+While fitting high airmass summertime Park Falls
+spectrum pa040722xxx.185, I noticed several missing
+lines. Since these lines were not present in a winter
+spectrum (pa041222xxx.021) at the same airmass, they
+must be H2O or HDO.
+
+The strongest of these missing lines were 15% deep in
+the measured spectrum (7750-8050 cm-1), and up to 5%
+deep in the 6000 cm-1 region. So I made up H2O lines
+for all the dips that were >3% in depth.  For each
+missing line, I assumed a E"=999.999 and manually
+adjusted the strengths, positions and widths to get
+the best fit.
+
+In total, there were 91 such lines covering the
+7762 to 8008 cm-1 region, and 32 more in the 6220
+and 6340 cm-1 CO2 bands.  These additional lines
+are denoted in the linelist by "Toon 2005 fudge"
+in the comment field.
+
+Additionally, I modified >100 of Toth's H2O/HDO lines,
+mainly changing the assumed pressure shifts, but also
+some widths and strengths. I only changed the Toth
+lines in cases where the problem couldn't be fixed
+by the addition of a new line.
+
+After that, I re-fitted the solar linelist over the
+5800-6400 and 7750-8050 cm-1 regions, picking up more
+than 100 additional solar lines that previously were
+too weak to be confident (in the absense of a good H2O
+linelist) that they were truly solar.
+
+During the course of this, I noticed a slight inconsistency
+between the positions of the gas (CO2) and the solar lines
+in the Kitt Peak spectra (810509R0.004 and 810509R0.005)
+that I have been using to refine the solar linelist in the
+5800-6400 cm-1 region. I "fixed" this by over-riding the
+calculated Earth-Sun doppler shift, although this really
+has no justification. The stretch was 0.4 ppm.
+
+Finally, I also did one more iteration on the solar
+linelist in the 4490-4780 cm-1 region, which improved
+the widths of some of the lines.
+
+
+2005-05-08:
+when fitting Park Falls spectra, I noticed a regular
+progression of missing lines in the 1.27 um O2 band.
+The strengths of these lines varied with airmass
+(i.e. nit solar) and was the same in summer (27C)
+and winter (-23C), so they are not H2O.
+
+My guess is that they are 1617 O2, so I generated a
+list of lines under this assumption.
+
+ 73 7892.016623 1.508E-28 2.404E-10.0370.0399  000.00000.73-.004332
+ 73 7909.896623 1.008E-28 2.404E-10.0370.0399  100.00000.73-.004332
+ 73 7926.663623 1.558E-28 2.404E-10.0370.0399  200.00000.73-.004332
+ 73 7943.345623 1.608E-28 2.404E-10.0370.0399  300.00000.73-.004332
+ 73 7959.845623 1.708E-28 2.404E-10.0370.0399  400.00000.73-.004332
+ 73 7976.173623 1.688E-28 2.404E-10.0370.0399  500.00000.73-.004332
+ 73 7992.317623 1.508E-28 2.404E-10.0370.0399  600.00000.73-.004332
+ 73 8008.285623 1.408E-28 2.404E-10.0370.0399  700.00040.73-.004332
+
+
+2005-05-02:   AK
+Changed air broadened width and its temperature dependence in CH4 line
+ 61 1463.380979 5.499E-23 7.482E-06.0560.0776  293.17010.73-.002251
+to
+ 61 1463.380979 5.499E-23 7.482E-06.0680.0776  293.17010.93-.002251
+to get a better fit near the CH3CN line at 1463.3 cm-1.
+
+
+2005-04-29:   AK
+Replaced existing linelist for HCN with linelist
+for HCN from hitran04 for all frequencies. Hitran04
+contains an additional band around 2000 cm-1,
+updated frequencies and linestrengths
+for the lines already present in atm.h92.new,
+gives many additional lines in existing bands
+and also lines for the HCN isotopomers above 500 cm-1.       
+
+
+2005-04-28:   AK
+Replaced existing linelist for CH3Cl with linelist
+for CH3Cl from hitran04 for all frequencies.
+The two linelists for CH3Cl were essentially identical
+in the 700 cm-1 and 3000 cm-1 wavenumber regions but
+hitran04 contains additional bands around 1400 cm-1.
+
+
+2005-03-27:
+While fitting PFS Mars spectra, I noticed that most
+of the 627 CO2 lines of the 2nu_1 band centered at
+2775 cm-1 were missing, presumably due to a minimum
+strength threshold.  This left only 5 lines of the
+P-branch (P14-18) and 11 lines of the R-branch (R11-21).
+
+So I kludged a 627 2nu1 linelist using the 628 linelist
+centered at 2757 cm-1 as a template. I generated scale
+factors for the strengths (0.066), ground-state energies
+(1.038), and a polynomial fit to the frequencies.
+ W_627  = W_628
+ S_627  = S_628 * 0.066
+ E"_627 = E"_628 * 1.0283
+ F_627  = F_628 + 18.610 + 0.022485*(F_628-2766)
+                      -3.30168E-04*(F_628-2766)**2
+where S_627 and S_628 are the strengths of the 627
+and 628 CO2 lines with the same quantum assignments.
+This worked well - the predicted 627 line positions agreed
+with those already in the linelist to within 0.003 cm-1.
+which is plenty good enough for the 1.5 cm-1 resolution PFS.
+The new linelist has 82 additional lines.
+
+2005-01-27:
+Updated the solar linelist to close the gap in the 13600-14300 cm-1
+region. Also took the opportunity to correct several minor
+problems (e.g. very narrow lines, lines with -ve strength)
+identifed by Frank Hase during translation to SFIT format.
+
+2005-01-23:
+I was fitting the solar linelist in the 13600-14300 cm-1 gap using
+the Kitt Peak spectra, and I saw that most of the H2O lines were
+left-shifted. I realized that the atm.h92 linelist has no pressure-
+shifts for these lines whereas HITRAN04 does. So I decide to replace
+the 13893 H2O lines for v>7973.1 cm-1 with the 20242 HITRAN04 ones.
+This does not replace any of Toth's H2O lines covering 500-7973 cm-1.
+Fortunately, the HITRAN04 does not contain any HDO lines in the
+v>7974cm-1 region, so I didn't have to worry about HDO having 
+different gas id numbers under HITRAN and ATM. 
+
+This produced a marked improvement in the 13600-13700 cm-1 region.
+The rms fit for the 790401 spectrum fell from 0.71% to 0.44%, and
+that spectrum is very dry.
+
+2005-01-12:
+Realized that many of the Toth 2002 lines were assigned an ID of 99,
+which is Bob's way of saying that he doesn't know what they are.
+Unfortunately this prevented them being stripped out when I replaced
+Bob's 2002 with the 2003 linelist. So I used the editor to delete
+62 duplicated H2O lines in the 5123-7809 cm-1 region.
+The atm.h92 now has a size of 986222.
+
+2004-09-20:
+Replaced all 36876 H2O and HDO lines in the 500-7973.06 cm-1 region
+with Toth's latest linelist containing 36938 lines. So we now have
+62 additional lines.
+
+2004-08-07
+Halved the strengths of these two H2O lines (based on fits
+to the KP solar  spectra).
+ 1111965.996000 1.207E-24 8.242E-09.0892.4370  399.4570 .59 .000000 28  1 6 1 5    5 1 4   435 31112
+ 1111966.002000 9.600E-25 6.933E-08.0644.3841  931.2370 .68 .000000 30  1 6 4 2    7 4 3   062 0 016
+
+
+2004-08-07
+Moved the following H2O lines:
+
+ 12 8838.480000 3.090E-24 7.248E-06.0919.0000   78.98900.640.000000 18  1 3 1 3    2 1 2   000 0 0 0
+to
+ 12 8838.720000 3.090E-24 7.248E-06.0919.0000   78.98900.640.000000 18  1 3 1 3    2 1 2   000 0 0 0
+
+ 12 8833.640000 2.090E-24 6.830E-06.0952.0000   42.02400.640.000000 18  1 2 1 1    1 1 0   000 0 0 0
+to
+ 12 8831.460000 2.090E-24 6.830E-06.0952.0000   42.02400.640.000000 18  1 2 1 1    1 1 0   000 0 0 0
+
+1 Aug 2003
+Replaced all the existing 9201 CO2 lines in the 4000-6988 cm-1
+region with a new linelist (hi.linda.co2.rev5) from Bob Toth
+The new linelist contains 11642 lines in this region.  So
+there are now a total of 63243 CO2 lines in the new list.
+
+29 July 2003
+Made some improvements to the solar linelist, broadening
+and shifting some of the lines in the 4650-4700 cm-1 and
+6200-6400 cm-1 regions.
+
+15 May 2003
+Linda provided a new CH4 linelist that covers the 4820-5500 cm-1
+and 6180-9994 cm-1 regions, which are missing from the current
+linelist. It is based on Linda's Kitt Peak measurements and was
+described in her presentation "CH4 in the NIR" at the 58'th
+Symposium on Molecular Spectroscopy, Columbus, Ohio, 2002
+
+The linelist is quick and dirty: many of the E" are 326cm-1, and the
+widths are mostly 0.09 and 0.00, which I changed to 0.06 and 0.08.
+
+I merged this linelist with the existing CH4 linelist. A few duplicated
+lines had to be deleted: 7 in the 4820-5000 cm-1 region and 5 in
+the 6180-6184 cm-1 rgion. The new list contains 225325 lines.
+
+
+02 Feb 2003
+ Added a single CH4 line to atm.h92:
+61 4038.747100 9.380E-24 0.000E+00.0580.0794  470.8000 .75-.008000 25  1 462 9 9 2
+  Noticed that this line was missing while fitting MkIV balloon spectra.
+  Linda said that this was one of 3 that were "lost" when the HITRAN
+  CH4 lines were replaced by Linda's new list (see Jan 16, 2001).
+
+22 Jan 2003
+ Rebecca stripped out all of the H2O and HDO lines between
+ 5000 cm-1 and 7973 cm-1 and replaced them with Bob Toth's
+ new H2O linelist. This generally improved fits in the broad NIR
+ windows of CH4 (6000 cm-1), CO2 (6300 cm-1) and O2 (7900 cm-1).
+ But there are some exceptions to this.
+
+14 Jan 2003
+ Deleted 64 of the O2 CIA lines from 8825-8888 cm-1 arising
+ from the 9400 cm-1 O2 band. These lines overlapped the O2 CIA
+ absorption from the 7995 cm-1 O2 band, causing discontinuities
+ in the total O2 CIA absorption. Removing these lines reduced
+ these discontinuities. This change will not affect fits to the
+ 1.27 micron O2 band since these fits typically extend only to
+ 8005 cm-1.
+
+13 Dec 2002
+  Rebecca and I fitted the 5710-6200 cm-1 region of ground-based
+atmospheric spectra, and noticed some large residuals.
+
+After some investigation we realized that these large residuals
+were due to H2O:
+1) Lines that are missing from the SISAM3 linelist
+   received from Bob Toth in Sept 2001.
+2) Lines in Toth's list, but which have widths =0
+3) Extra lines in Toth's list that don't correspond to any
+   absorption in the atmospheric spectrum or with any line in HITRAN.
+
+We know that these residuals are due to H2O because the lines
+are in the HITRAN_2000 linelist.  The strongest of these missing
+H2O lines centered at 5985.73426 cm-1 is 50% deep in our spectra.
+
+To fix this problem we:
+1) Copied the 23 missing lines from the HITRAN2K list
+2) Set the lines with zero width to the values from HITRAN2K
+3) Deleted the 2 extra lines (5813.03127, 5976.31722 cm-1).
+
+We also noticed that the strengths of Toth's lines (f < 6001.5 cm-1)
+were inconsistent with those in the Hitran linelist, by about 28%.
+The resulted in poor spectral fits because all the Toth H2O lines
+would cause -ve residuals while all the non-Toth H2O lines caused
++ve residuals. So we assumed that Toth's strengths are right (of
+course) and scaled that hitran strengths by 1.28. This was performed
+not by changing the linelist, but by means of the following statement
+inserted into abscog.f
+c Fudge:  Scale all non-Toth H2O lines to be consistent in strength.
+          if(kgas.eq.1) then
+              if(index(rotate,'Toth').le.0)  stren=stren*1.28
+          endif
+
+
+30 June 2002
+  Re-made the linelists of the 02 and N2 continuum absorptions at
+  a 1 cm-1 pseudo-line spacing instead of 5 cm-1. This involved
+  resampling the linelists generated by Frank Mills at 1550 amd
+  2350 cm-1. The higher frequency O2 momomer and binary absorptions
+  were easier to change since they are generated from analytical
+  expressions for their line strengths and E".
+  This increases the number of lines in both gct.h92 and cia.h92.
+
+13 June 2002
+  Added 21 pseudo-lines of CH3SH (Methyl Mercaptan) to GCT.H92
+  to represent the Q-branch at 2945 cm-1.
+
+04 June 2002
+  Added 38808 lines of HO2 to atm.h92 from hitran2k.par.
+  HO2 lines were completely absent from the previous version
+  of atm.h92. Changed the gas number from 33 (HITRAN) to 22 (ATM)
+
+31 May 2002
+  Added 2886 lines of PH3 to ATM.H92 from HITRAN 2K.
+  Changed the gas number from 28 (HITRAN) to 55 (ATM).
+
+ 3 Mar 2002
+  Created a new linelist named cia.h92 which contains only
+  the lines that have a pressure-squared absorption behavior.
+  Subroutine abscog.f now searches for the string "cia" in the
+  linelist name and, if found, the line strength gets multiplied
+  by the pressure (in atm).
+
+  Previously, abscog did this extra pressure scaling
+  for O2 and N2 lines for which the isotope number is 0.
+  But this caused a problem in the 1.27 micron O2 band
+  where the continuum absorption has two components: one
+  proportional to presure and one to pressure-squared.
+
+  This changes actually simplifies the subroutine abscog.f
+  The lines
+        if(kiso.eq.0) then  !  O2 and N2 Collision Induced Absorption (CIA)
+            if(kgas.eq.7 .or. kgas.eq.41) sx=sx*p(i)
+        endif
+  are replaced by
+        if(cia) sx=sx*p(i)
+
+  This change also and makes it more general, making it easier
+  to include continumm absorptions of other gases that vary as
+  pressure or pressure-squared. If the isotope number is 0
+  the doppler width is set to the pseudoline spacing.
+  If the linelist name contains "cia", scale by Pressure.
+
+  As part of this change, all the O2 and N2 lines were removed
+  from gct.h92. The magnetic dipole lines were added to atm.h92,
+  and the CIA lines to cia.h92.  The new monomer pseudo-lines
+  o2_7885_mon.h92 were added back to gct.h92 and the new binary
+  O2 lines (o2_7885_mon.h92) to cia.h92
+
+15 Nov 2001  GCT
+  Replaced the 331 O2 lines of the 7664-8064 cm-1 region with
+  a new strength calculation performed by Aaron Goldman. The
+  new linelist certainly improves the low-J strengths compared
+  with HITRAN or Lafferty [1998], but the fits to the higher
+  J lines we not as good as previously. Overall, the fits were
+  not quite as good as the previous "doctored" linelist (HITRAN,
+  but with the poorly-fitted low-J line strengths replaced with
+  the measured values from Newman et al., 2000). Note that
+  Zhonghua Yang used the doctored linelist in his paper
+ "Atmospheric CO2...." [GRL, 2002].  I actually hesitated
+  before putting Aaron's linelist into atm.h92, but finally
+  decided to do so since this was more defensible than the
+  previous "doctored" linelist.
+  Here's the text of Aarons email describing the new linelist:
+
+From goldman@acd.ucar.edu Wed Nov  7 17:06:00 2001
+Subject: 1.27mic o2 replacement
+To: Robert_Gamache@uml.edu (Robert Gamache)
+Cc: toon@mark4sun.jpl.nasa.gov, goldman@acd.ucar.edu
+
+Dear Bob, Geoff,
+Enclosed below is a replacement hitran file I prepared for the
+o2 1.27mic region.  It is made from the hitran2000 file(not the
+2001 web update) in which main isotope lines (id1,id2=7,1) were
+replaced, in their intensity only, with the intensity values
+from our 1994/1995 mentioned on our previous emails. The total
+S-normalization has been adjusted to those of the hitran2000
+(for the 7,1 lines). The 7,2 lines were retained from the hitran.
+To use it- one just needs to replace the corresponding hitran section
+with the new file.
+I expect that this set will produce significant improvement to the 1.27mic
+spectral fitting we discussed in San Diego and the subsequent emails.
+If this works out in the right direction, I can further improve our
+1995/95 work in several ways. That work was done exatly for the
+purpose of dealing with such intensity effects,and I have actually
+reported about it in a couple of spectroscopy meetings at the time,
+incuding ATMOS and ASA.
+I am very curious to hear how this will come out.
+
+
+30 Oct 2001 GCT
+  Removed the 60790 CO2 lines from ATM.H92 and replaced them
+  with the 60802 CO2 lines from HITRAN2K. The latter seem to
+  produce better spectral fits in the 4800 cm-1 region.
+  This increases the size of ATM.H92 to 924294 lines. 
+
+ 4 Sep 2001 GCT
+  The previous atm.h92 only contained Toth's new linelist up to
+  2820 cm-1. So I replaced all of the H2O and HDO lines between
+  500 and 6001.5 cm-1 with Bob Toth's SISAM linelist. This 
+  actually contains fewer lines than previously. The total 
+  number of H2O & HDO lines now totals 50840 as compared with
+  52335 previously.
+
+29 July 2001 GCT
+  Added 12978 C2H4 lines to atm.h92 from the HITRAN_2K (Yes,
+  I remembered to change the gas number from 38 to 39).
+  atm.h92 now has 925777 lines.
+
+  Also added H2O lines between 9999.0 and 22000 vm-1 from
+  HITRAN_2K linelist in order to be able to fit the O2 A-band
+  The atm.h92 size is now 912799.
+
+20 July 2001 GCT
+  Added the O2 A-band lines to atm.h92 (from HITRAN)
+  Also added the H2S lines (from HITRAN).
+
+ 3 July 2001 GCT
+   Got a new O2 linelist from HITRAN/UPDATES which is based on
+   the measurements of Lafferty et al.[1998]. Unfortunately,
+   these authors measured < half the O2 lines in the band,
+   and for the lines that they didn't measure, the HITRAN_96
+   linelist seems to have been used, but with the strengths
+   scaled by 0.865. Since the old HITRAN linelist has some
+   serious problems for the low-J lines, these problems are
+   still present in the new linelist.
+   To fix the worst of these problems, I took information from
+   Newman et al.[2000] and hand-edited it into the linelist
+   for cases where the residuls to fits to atmospheric Kitt
+   Peak data looked bad. In almost every case, the use of the
+   Newman et al data improved the fits, suggesting that the
+   it is better than that of Lafferty et al.  or the old HITRAN
+   data. It is a real pity that the Newman data is not available
+   in HITRAN format.  This new O2 linelist was merged into atm.h92.
+
+16 May 2001   GCT
+   Noticed that the O2 lines in the atm.h92 all had sbhw=0.0
+   which caused a problem in abscog.f because it calculated
+     pbhw = abhw*(1-vmr) + sbhw*vmr
+   Replaced them with the O2 linelist from HITRAN2K, for which
+   sbhw is non-zero and different from the abhw. Also that new
+   O2 linelist has the strengths correctly normalized (the old
+   linelist produced O2 vmrs of ~0.40).
+   To prevent this from ever happening again, Included the IF-statement
+            if(sbhw.le.0.0) sbhw=abhw  
+   The new O2 list is larger (6289 lines) than the old (1619 lines)
+   because it also includes O2 lines from the A-band at 140000 cm-1.
+
+27 Feb 2001   GCT
+   Merged the O2 CIA linelists
+         o2_cia_7895.h92
+         o2_cia_9410.h92
+   into gct.h92, increasing its size to 254370.
+
+16 Jan 2001    GCT
+   Removed the 103930 CH4 lines from atm.h92 and replaced them
+   with a new linelist (hi.ch4.total.air.2000) from Linda Brown
+   containing 211465 lines which should eventually be incorporated
+   into HITRAN. This new linelist is based on the work of Brown
+   et al. JQSRT [2003].
+
+   Also merged gct.h92 with Alain Barbe's linelist of the nu1+nu3
+   bands of the 668 and 686 O3 isotopomers (o3_nu1+nu3_668+686_ab.h92;
+   4435 lines) to create a new gct.h92 linelist of 254145 lines.
+
+
+08 Nov 2000
+   Created a new ClNO3 pseudo-linelist based on the laboratory
+   measurements of Birk et al. extending from 690 to 1330 cm-1.
+   I then deleted the very weak lines from the intervals
+   880-965, 1005-1090 and 1130-1215 cm-1
+   leaving the following 4 intervals:
+        690-880
+        965-1005
+       1090-1130
+       1215-1330
+
+   Removed the old ClNO3 linelsit (comprising 16240 lines extending
+   from 740 to 1790 cm-1 in including Bell's linelist in the 780 cm-1
+   region).
+
+   Saved the old lines from 1680 to 1740 (which were not covered by
+   Birk's measurements) and appended them to the new Birk pseudo-lines.
+
+   This created a new clno3 pseudo-linelist extending from 690 to
+   1740 (with gaps where the ClNO3 absorption is small). Note that
+   the 1330-1340 cm-1 region, which was previously covered by
+   Ballard's cross-section, is no longer represented in the new list.
+
+   Merged the new ClNO3 linelist with strip.out to create a new
+   gct.h92 linelist containing 249,710 lines, up from 225,909
+   previously.
+
+30 Oct 2000
+   Removed the old OCS linelist from atm.h92 and replaced it with
+   Aaron Goldman's new list which will soon appear in HITRAN_2000.
+   Aaron's new list has a 5'th OCS isotopomer, and additional bands
+   including hot bands.
+
+ 1 Aug 2000
+   Moved the HCOOH linelist (3388 lines covering 1060.96-1161.25 cm-1)
+   from sup.h92 to gct.h92.
+
+   Moved 162 O2 magnetic dipole lines (covering 1432-1677 cm-1)
+   from sup.h92 to gct.h92, uniting them with the O2 CIA pseudolines.
+
+   This means that we no longer have to use the sup.h92 linelist for
+   routine processing of MkIV spectra.
+
+31 July 2000
+   Merged the linelists cocl2_35_35.nu5.h92 and cocl2_35_37.nu5.h92
+   to form cocl2_nu5.h92 containing 84278 lines.
+
+   Stripped the old COCl2 linelist out of sup.h92. The resulting
+   sup.h92 now only contains 31814 lines, half its original size.
+
+   Deleted the old COCl2 nu5 lines, leaving only the nu1 lines.
+   Merged these old nu1 lines with cocl2_nu5.h92 to form cocl2.h92
+
+   Merged cocl2.h92 with gct.h92. This almost doubles the size of
+   the gct.h92 linelist to 222359 lines.
+  
+Version 1.6.2     20 Jul 2000    GCT
+   Made some minor corrections to the linelists, based on spectral
+   fits to the MkIV spectra in the 2499-2660 cm-1 region.
+   The following 25 duplicated CH4 lines, were deleted.
+
+ 61 2499.062000 1.020E-23 4.313E-07.0580.0800  376.73000.75-.006000  4  1 7 7A2 1  8 8A1 1 352 0 019
+ 61 2509.152400 1.400E-23 4.451E-07.0610.0830  293.15400.75-.006000  4  1 6 6A1 1  7 7A2 1 352 0 019
+ 61 2510.265900 3.890E-24 2.060E-07.0640.0850  293.12300.75-.006000  4  1 6 6F2 1  7 7F1 1 342 0 019
+ 61 2521.451100 3.710E-24 1.581E-07.0640.0830  219.93700.75-.006000  4  1 5 5F1 1  6 6F2 2 342 0 019
+ 61 2532.852100 7.220E-24 2.668E-07.0660.0850  157.12800.75-.006000  4  1 4 4F1 1  5 5F2 1 342 0 019
+ 61 2533.075100 9.440E-24 3.488E-07.0660.0850  157.13900.75-.006000  4  1 4 4F2 1  5 5F1 2 342 0 019
+ 61 2533.095600 1.360E-23 5.025E-07.0660.0850  157.12400.75-.006000  4  1 4 4F2 1  5 5F1 1 352 0 019
+ 61 2565.449300 2.290E-23 5.401E-06.0520.0810  815.08900.75-.006000  4  11212A1 1 1212A2 1 352 0 019
+ 61 2571.237000 1.830E-23 4.248E-06.0540.0760  690.04900.75-.006000  4  11111F2 2 1111F1 3 352 0 019
+ 61 2573.886800 1.570E-23 6.848E-06.0530.0730  575.27200.75-.006000  4  11010E  1 1010E  2 352 0 019
+ 61 2574.494100 1.970E-23 2.864E-06.0540.0750  575.28500.75-.006000  4  11010F1 2 1010F2 3 352 0 019
+ 61 2575.734600 4.640E-23 2.691E-06.0580.0820  470.83100.75-.006000  4  1 9 9A2 1  9 9A1 1 352 0 019
+ 61 2576.469300 2.230E-23 2.155E-06.0580.0790  470.85500.75-.006000  4  1 9 9F2 1  9 9F1 3 352 0 019
+ 61 2577.106000 2.390E-23 2.309E-06.0580.0790  470.86500.75-.006000  4  1 9 9F1 2  9 9F2 2 352 0 019
+ 61 2577.897000 3.410E-23 1.976E-06.0580.0820  470.87300.75-.006000  4  1 9 9A1 1  9 9A2 1 352 0 019
+ 61 2579.996600 1.990E-23 1.359E-06.0580.0780  376.82600.75-.006000  4  1 8 8F1 1  8 8F2 2 352 0 019
+ 61 2580.971400 1.000E-23 5.152E-07.0640.0850  293.16400.75-.006000  4  1 7 7F1 1  7 7F2 2 352 0 019
+ 61 2581.442700 1.360E-23 2.102E-06.0569.0780  293.17000.75-.006000  4  1 7 7E  1  7 7E  1 352 0 019
+ 61 2582.386500 3.470E-23 8.664E-07.0610.0820  219.92000.75-.006000  4  1 6 6A1 1  6 6A2 1 352 0 019
+ 61 2582.905300 9.900E-24 4.119E-07.0640.0830  219.93700.75-.006000  4  1 6 6F1 1  6 6F2 2 342 0 019
+ 61 2584.261000 1.070E-23 3.875E-07.0660.0850  157.12800.75-.006000  4  1 5 5F1 1  5 5F2 1 352 0 019
+ 61 2584.506500 8.910E-24 9.681E-07.0612.0840  157.13700.75-.006000  4  1 5 5E  1  5 5E  1 342 0 019
+ 61 2585.444300 2.680E-23 9.194E-07.0660.0830  104.77500.75-.006000  4  1 4 4F2 1  4 4F1 1 352 0 019
+ 61 2646.255000 1.370E-23 4.846E-07.0640.0820  157.13900.75-.006000  4  1 6 6F2 1  5 5F1 2 352 0 019
+ 61 2655.847600 1.480E-23 3.594E-07.0610.0820  219.94500.75-.006000  4  1 7 7A2 1  6 6A1 1 352 0 019
+
+There are probably even more, but I could only see the ones that
+stood out of the noise in the MkIV residuals.
+
+   Two additional N2 CIA lines were created at 2635.0 and 2640.0 cm-1
+   to smooth out the wing of the N2 CIA band, which was previously
+   decreasing to zero at 2630 cm-1 too abruptly, according to
+   MkIV tropospheric limb spectra.
+
+Version 1.4.10     22 May 2000    GCT
+   Merged the O3 line list of Alain Barbe, covering the 4537-4700
+   cm-1 region with 3544 lines, with atm.h92
+
+   changed the frequencies of the following 4CO2 lines in the
+   4900-4920 cm-1 region
+24 4897.352934   4897.292934  -60
+24 4898.419740   4898.358740  -61
+24 4899.479817   4899.424817  -55
+24 4900.533159   4900.488159  -45
+24 4901.579755   4901.541755  -38
+24 4902.619598   4902.588598  -31
+24 4903.652678   4903.621678  -31)
+24 4904.678989   4904.648989  -30)
+24 4905.698521   4905.668521  -29
+24 4906.711267   4906.686267  -25
+24 4907.717218   4907.693218  -24)
+24 4908.716368   4908.689368  -27
+24 4909.708708   4909.682708  -26
+24 4910.694231   4910.670231  -24
+24 4911.672930   4911.648930  -24
+24 4912.644797   4912.622797  -22
+24 4913.609826   4913.590826  -19)
+24 4914.568009   4914.551009  -17)
+24 4915.519340   4915.505340  -14
+24 4916.463812   4916.451812  -12
+24 4917.401418   4917.391418  -10
+24 4918.332153   4918.323153   -9
+24 4919.256009   4919.249009   -7
+24 4920.172981   4920.166981   -6
+24 4921.083062   4921.078062   -5
+24 4921.986246   4921.983246   -3
+24 4922.882529   4922.879529   -3
+24 4923.771904   4923.771904    0)
+24 4924.654366   4924.656366   +2
+24 4925.529908   4925.531908   +2
+24 4926.399527   4926.401527   +2
+24 4927.260217   4927.264217   +4)
+24 4928.114973   4928.121973   +7)
+24 4928.962790   4928.969790   +7
+24 4929.803664   4929.810664   +7)
+24 4930.637589   4930.645589   +7
+24 4931.464561   4931.472561   +8
+24 4932.284577   4932.293577   +9
+24 4933.097631   4933.107131   +9.5
+24 4933.903720   4933.913720  +10
+-------------------------------------
+22 4888.164360   4888.158360   -6
+22 4889.691273   4889.685273   -6
+22 4891.190926   4891.184926   -6
+22 4892.663289   4892.657789   -5.5
+22 4894.108329   4894.103829   -4.5
+22 4895.526012   4895.522512   -3.5
+22 4896.916299   4896.913799   -2.5
+22 4898.279152   4898.277152   -2
+22 4899.614530   4899.613530   -1
+22 4900.922388   4900.922088   -0
+22 4902.202682   4902.203182   +0.5
+22 4903.455363   4903.456863   +1.5
+22 4904.680381   4904.682381   +2
+22 4905.877683   4905.879683   +2  
+22 4907.047215   4907.049715   +2.5
+22 4908.188920   4908.191420   +2.5
+22 4909.302739   4909.304739   +2
+22 4910.388611   4910.389611   +1
+22 4911.446471   4911.446471  +0
+22 4912.476253   4912.474253   -2
+22 4913.477891   4913.472891   -5
+22 4914.451312   4914.442312   -9
+22 4915.396445   4915.385445  -11
+22 4916.313213   4916.300213  -13
+22 4917.201540   4917.185040  -16.5
+22 4918.061346   4918.038346  -23
+22 4918.892548   4918.862548  -30
+22 4919.695061   4919.660061  -35
+22 4920.468800   4920.428800  -40
+22 4921.213673   4921.168673  -45
+-----------------------------------
+ 24 3652.705813  24 3652.724813  +19
+ 24 3653.711085  24 3653.730085  +19
+ 24 3654.711217  24 3654.730217 (+19)
+ 24 3655.706184  24 3655.724184  +18
+ 24 3656.695963  24 3656.713963  +18
+ 24 3657.680532  24 3657.698532  +18
+ 24 3658.659869  24 3658.677369  +17.5
+ 24 3659.633951  24 3659.650951  +17
+ 24 3660.602759  24 3660.619759  +17
+ 24 3661.566270  24 3661.582770  +16.5
+ 24 3662.524465  24 3662.540465  +16
+ 24 3663.477323  24 3663.493323  +16
+ 24 3664.424826  24 3664.440326  +15.5
+ 24 3665.366955  24 3665.381955  +15
+ 24 3666.303691  24 3666.318691  +15
+ 24 3667.235016  24 3667.249516  +14.5
+ 24 3668.160913  24 3668.174913 (+14)
+ 24 3669.081364  24 3669.095364 (+14)
+ 24 3669.996354  24 3670.010854  +14.5
+ 24 3670.905865  24 3670.919365  +13.5
+ 24 3671.809883  24 3671.823383  +13.5
+ 24 3672.708393  24 3672.721893  +13.5
+ 24 3673.601379  24 3673.614879  +13.5
+ 24 3674.488827  24 3674.501827  +13
+ 24 3675.370724  24 3675.383724  +13
+ 24 3676.247056  24 3676.259556  +12.5
+ 24 3677.117811  24 3677.130311  +12.5
+ 24 3677.982975  24 3677.995475  +12.5
+ 24 3678.842538  24 3678.854538  +12
+ 24 3679.696488  24 3679.708488  +12
+ 24 3680.544814  24 3680.556314  +11.5
+ 24 3681.387505  24 3681.399005  +11.5
+ 24 3682.224551  24 3682.236051  +11.5
+ 24 3683.055943  24 3683.067443  +11.5
+ 24 3683.881672  24 3683.892672  +11
+ 24 3684.701728  24 3684.712728 (+11)
+ 24 3685.516105  24 3685.527105  +11
+ 24 3686.324794  24 3686.335794  +11
+ 24 3687.127787  24 3687.138787  +11
+ 24 3687.925079  24 3687.936079  +11
+ 24 3688.716663  24 3688.727163 (+10.5)
+ 24 3689.502532  24 3689.513032  +10.5
+ 24 3690.282683  24 3690.293183 (+10.5)
+ 24 3691.057109  24 3691.067109  +10
+ 24 3691.825806  24 3691.835306   +9.5
+ 24 3692.588771  24 3692.598271  (+9.5)
+ 24 3694.097490  24 3694.107490  +10
+ 24 3694.843237  24 3694.853237  +10
+ 24 3695.583241  24 3695.593741  +10.5
+ 24 3696.317500  24 3696.327500  +10
+ 24 3697.046012  24 3697.056012  +10
+ 24 3697.768776  24 3697.778776  +10
+ 24 3698.485793  24 3698.496293  +10.5
+ 24 3699.197063  24 3699.207563  +10.5
+ 24 3699.902586  24 3699.913086  +10.5
+ 24 3700.602364  24 3700.612864  +10.5
+ 24 3701.296397  24 3701.306897  +10.5
+ 24 3701.984689  24 3701.995689  +11
+ 24 3702.667242  24 3702.678242  +11
+ 24 3703.344058  24 3703.355058  +11
+ 24 3704.015142  24 3704.026642  +11.5
+ 24 3704.680497  24 3704.691997  +11.5
+ 24 3705.340128  24 3705.351628  +11.5
+ 24 3705.994039  24 3706.006039  +12
+ 24 3706.642237  24 3706.654237 (+12)
+ 24 3707.284726  24 3707.296726 (+12)
+ 24 3707.921513  24 3707.933513  +12
+ 24 3708.552605  24 3708.564605  +12
+ 24 3709.178009  24 3709.190009 (+12)
+ 24 3709.797733  24 3709.810733  +13
+ 24 3710.411785  24 3710.425285  +13.5
+ 24 3711.020173  24 3711.033673  +13.5
+ 24 3711.622907  24 3711.63690  (+14)
+ 24 3712.219996  24 3712.232996 (+14)
+ 24 3712.811450  24 3712.825950  +14.5
+ 24 3713.397280  24 3713.411780  +14.5
+ 24 3713.977496  24 3713.995496  +15
+ 24 3714.552111  24 3714.567111  +15
+ 24 3715.121135  24 3715.136135 (+15)
+ 24 3715.684582  24 3715.699582  +15
+ 24 3716.242464  24 3716.257964  +15.5
+ 24 3716.794794  24 3716.810794 (+16)
+ 24 3717.341586  24 3717.357586  +16
+ 24 3717.882855  24 3717.899355  +16.5
+ 24 3718.418615  24 3718.435615 (+17)
+ 24 3718.948881  24 3718.965881 (+17)
+ 24 3719.473669  24 3719.490669  +17
+ 24 3719.992994  24 3720.009994 (+17)
+
+
+Version 1.4.2      4 Jan 2000    GCT
+   Updated the gct.h92 linelist with a new ClNO3 linelist, which was
+   actually generated in May 1999 from Ballard's cross sections, but
+   was not integrated into the gct.h92 linelist until now due to
+   uncertainties in how best to merge the psuedolines with the
+   quantum mechanical linelist of Bell that we like to use for 
+   the 780 cm-1 Q-branches. The new ClNO3 linelist has the
+   following improvements in comparison to the old one:
+   - The 1280 cm-1 and 1670 cm-2 bands are included
+   - The pseudolines for the 780 cm-1 band now extend to 840 cm-1
+     (previously 830 cm-1) which reduces the size of the discontinuity
+     when the pseudolines end.
+   - The discontinuities at 775 and 785 cm-1 (due to the switch from
+     the pseudolines to the linelist of Bell) have been eliminated.
+     This was done by adopting pseudolines of constant strength of
+     3.250E-21 across the 777 to 781 cm-1 region where Bell's linelist
+     is now used.
+
+Version 1.4.0     15 Dec 1999    GCT
+   Merged the o2_cia.h92  and  n2_cia.h92 linelists with  gct.h92.
+   Updated abscof.f with the new size (116605).
+
+Version 1.0.0     1  Nov 1999    GCT
+  Four major changes have been made to the linelist atm.h92
+    1) The CH3D lines in the 2039-3188 region have been replaced with
+       the prediction of Nikitin et al. (from the file hi.remerged)
+    2) The CH4 lines (all isotopes) have been replaced with a prediction
+       of Hilico et al., which have been massaged by L.R.Brown to better
+       fit laboratory spectra in the 3354-4938 cm-1 region (from the
+       file hi.ch4.2000).
+    3) The N2O line list has been completely replaced by the prediction
+       of Toth over the 527 - 7796 cm-1 region (from the file n2o_toth.h92,
+       40417 lines).
+   and Varanasi which is 9% stronger and extends from 750-812 cm-1 as
+   compared with 770-810 for the old stuff from NCAR ? This required
+   that ABSCOF.F be changed to reflect the larger size of GCT.H92
+
+Version 9.8.1    31  May 1997    GCT
+   Included the following code in abscof.f to overwrite the PBHW of NO2 with
+   the air-broadened expression from Dana et al. (JSQRT 57, 445-457, 1997).
+        if(molno.eq.10) then  ! Set NO2 widths to Dana (JQSRT 57, 445-457, 1997)
+           tdpbhw=.75
+           read(rotate,'(15x,i2)')nprime2
+           pbhw=0.001*( 84.1 - .753*nprime2 + .0059*nprime2**2 )
+        endif
+   After performing test run to evaluate the magnitude of the effect,
+   this code was then commented out. However, it is left in place in case
+    we ever decide to activate it in the future.
+
+Version 9.6.7     4  Mar 1997    GCT
+   Changed GCT.H92 so that Bell's ClNO3 linelist is only used over
+   the 775 - 785 cm-1 region, whereas previously Bell's list was
+   used out to 797.7 cm-1. The reason for this change was to prevent
+   the discontinuity in the ClNO3 absorption coefficients (where we
+   switch from Bell to Ballard) from falling inside the CCl4 window
+   (787.5 - 805.5 cm-1). This change reduces the number of lines
+   in GCT.h92 to 104139, and ABSCOF.F was changed accordingly.
+
+Version 9.6.4    20  Nov 1996  GCT
+   Hardwired the TDPBHW=0.75 for NO2. Previously, the 2900 cm-1 band
+   was set to 0.5, which HMP thought was way off.
+
+   Also, if E"=-1 in the linelist, it is now set to 999, instead of 222.
+   This produces much better NO2 fits in the 2891 cm-1 region.
+   This reverses the action taken in version 9.4.2.
+
+Version 9.5.0    18  Jun 1996  GCT
+   For pseudo line-lists (ISO=0) ABSCOF now sets the 1/e Doppler half-width
+   equal to 2/3 of the line spacing, which reduces the "ripple" to 2%. This
+   allows the actual Doppler widths to be used in "molparam.dat" so that
+   gases (e.g. ClNO3) which have merged proper and pseudo-line lists can
+   be correctly handled. ESMOS benchmark now takes 43-44 s.
+
+Version 9.4.4     3  Jun 1996  GCT
+      Introduced a curvature correction for N2O5 , and introduced the new
+   linelist into gct.h92, and updated the length in ABSCOF.F
+
+Version 9.4.3    21  May 1996  GCT
+   Increased the size of the GCT.H92 linelist to 114861 after adding
+   additional CHF2Cl lines in the 1080 to 1335 cm-1 region.
+
+Version 9.4.2    18  May 1996  GCT
+   Changed the statement in ABSCOF.F from
+        if(eprime.lt.0.0) eprime=999.     ! CH4 lines with E"=-1 are common
+   to
+        if(eprime.lt.0.0) eprime=222.     ! CH4 lines with E"=-1 are common
+   The latter gives a much better fit to the 2966 cm-1 CH3Cl region.
+
+Version 9.3.6    21  Mar 1996  GCT
+    Changed variables STREN, SOPI & TNU from REAL*4 to REAL*8 in order
+    to avoid floating point exceptions (underflow) when reading linelists
+    (e.g. HITRAN92) containing strengths less than 1.E-39.
+    Increased all file/path names to 80 characters for compatibility with FWI.
+
+Version 9.3.5     7  Mar 1996  GCT
+    In order to allow me to do Aaron Goldman's NDSC exercise.
+      - disabled pressure shifts 
+      - if E"=-1 then E"=0 (instead of E"=999cm-1)
+      - increased width of line search from
+              nuoff= 5.D0*dsqrt(grid*nc*p(1))
+        to
+              nuoff=10.D0*dsqrt(grid*nc*p(1))
+

@@ -1,0 +1,25 @@
+ 21 18
+ GFIT                     Version 5.28        2020-04-24   GCT  
+ GSETUP                   Version 4.70        2020-06-29   GCT
+938151d4a86e6c17b19bfc7a9b43ac47  /home/jlaugh/GGG/ggg-my-devel/config/data_part.lst
+b2e976c6a7b471f8a3e381261b09048a  /home/jlaugh/GGG/ggg-my-devel/apriori/gfit_ap.gnd
+af52ead7942098d0635c96847c368583  /home/jlaugh/GGG/ggg-my-devel/runlogs/gnd/pa_ggg_benchmark.grl
+890935e1a57e041d3097a3a6674778c9  /home/jlaugh/GGG/ggg-my-devel/levels/ap_51_level_0_to_70km.gnd
+                                  /home/jlaugh/GGG/ggg-my-devel/models/gnd/
+                                  /home/jlaugh/GGG/ggg-my-devel/vmrs/gnd/
+37344f65985aa3424ede4f56106d70cb  pa_ggg_benchmark.mav
+5d6bc4a301bdb9d47341bf27adef4af6  pa_ggg_benchmark.ray
+b6ecd749a6ec0c72530bec31475f4f25  /home/jlaugh/GGG/ggg-my-devel/isotopologs/isotopologs.dat
+3d9853a3a7135c29e0d57707579ab9f6  /home/jlaugh/GGG/ggg-my-devel/windows/gnd/tccon.gnd
+580572bd6b6b05ab437ed3447be4d8a9  telluric_linelists.md5
+893b127f4833ed5d9904ba989fcbb2ab  /home/jlaugh/GGG/ggg-my-devel/linelist/solar_merged.108
+                                  /home/jlaugh/GGG/ggg-my-devel/ak/j_h2o_6392.pa_ggg_benchmark
+                                  /home/jlaugh/GGG/ggg-my-devel/spt/z
+                                  h2o_6392.pa_ggg_benchmark.col
+                                  (1x,a20,1x,i2,1x,f5.3,1x,f5.1,1x,f4.1,1x,f5.2,1x,f5.2,1x,f6.4,1x,f6.4,f8.3,15(0pf7.3,1pe11.4,0pf10.5,1pe8.1))
+ 6392.45   3.10  15 1 1 0  ncbf=2  fs  sg     sf=1.016 : h2o  hdo
+  Spectrum            Nit  CL    CT    CC   FS    SG    ZO   RMS/CL   Zpres AM_h2o OVC_h2o      VSF_h2o VSF_h2o_error AM_hdo OVC_hdo      VSF_hdo VSF_hdo_error
+ pa20040721saaaaa.043  5 0.240  -0.1  0.0 -0.01 -0.07 0.0000 0.1083   0.461  1.302 1.3291E+23   0.97560 5.6E-03  1.302 1.1455E+23   0.93446 3.9E-02
+ pa20040721saaaaa.119  6 0.233  -0.0  0.0  0.01 -0.12 0.0000 0.1275   0.467  2.265 9.2990E+22   1.17310 6.0E-03  2.265 7.9608E+22   1.20426 3.8E-02
+ pa20041222saaaaa.019  5 0.343  -0.2  0.0  0.11 -0.04 0.0000 0.0967   0.472  7.778 6.6534E+21   1.00576 1.2E-02  7.785 4.4416E+21   0.86520 1.2E-01
+ pa20041222saaaaa.020  5 0.344  -0.1  0.0 -0.06 -0.03 0.0000 0.0945   0.470  7.397 6.6566E+21   0.99509 1.2E-02  7.403 4.4438E+21   0.90682 1.2E-01

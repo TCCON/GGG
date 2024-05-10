@@ -1,0 +1,213 @@
+#!/bin/bash
+
+#
+# Shell script to download NCEP data for TCCON data processing
+#
+# Dependencies: bash, wget
+#
+# Version 3.4 (2011-02-09)
+#
+# written by Dietrich Feist, Max Planck Institute for Biogeochemistry, Jena Germany
+#
+# License
+#
+# This software is free to use and modify for all members of the TCCON community
+# (everyone who is licensed to use the GGG software). If you make changes or find
+# bugs, please inform the author so everybody in the TCCON community can profit.
+#
+# Contact
+#
+# Dietrich Feist <dfeist@bgc-jena.mpg.de>
+#
+
+USAGE="Usage: $(basename $0) [OPTIONS]\n
+\n
+Options:\n
+\t -S LAT : southern latitude limit (90S to 90N, default: 90S)\n
+\t -N LAT : northern latitude limit (90S to 90N, default: 90N)\n
+\t -W LON : western longitude limit (0-360E | 0-360W, default: 0E)\n
+\t -E LON : eastern longitude limit (0-360E | 0-360W, default: 360E)\n
+\t -f DATE : from-date (format: YYYYMMDD, default: same as to-date)\n
+\t -t DATE : to-date (format: YYYYMMDD, default: last available date)\n
+\t -s STRING : site identifier (default: 'NONE')\n
+\t -n NUM : site latitude [decimal degrees north] for mod_maker input file (default: none)\n
+\t -e NUM : site longitude [decimal degrees east] for mod_maker input file (default: none)\n
+\t -p PATH : optional path for output files (default: none)\n
+\t -v : enable verbose output\n
+\t -h : show this help screen\n"
+
+# set verbosity
+wget_flags="-q"
+verbose=""
+
+# Set default latitude longitude window
+SOUTH=90S
+NORTH=90N
+WEST=0E
+EAST=360E
+
+# Set default site
+SITE="NONE"
+
+# parse command line arguments
+while getopts S:N:W:E:f:t:s:n:e:p:hv OPT; do
+    case "$OPT" in
+	h)	echo -e ${USAGE}
+		exit 0
+		;;
+	S)	SOUTH=${OPTARG}
+		;;
+	N)	NORTH=${OPTARG}
+		;;
+	W)	WEST=${OPTARG}
+		;;
+	E)	EAST=${OPTARG}
+		;;
+	f)	FROM_DATE=${OPTARG}
+		;;
+	t)	TO_DATE=${OPTARG}
+		;;
+	s)	SITE="${OPTARG}"
+		;;
+	n)	SITE_LAT="${OPTARG}"
+		;;
+	e)	SITE_LON="${OPTARG}"
+		;;
+	p)	OUTPATH="${OPTARG}/"
+		;;
+	v)	wget_flags=""
+        verbose="true"
+		;;
+	\?)	# getopts issues an error message
+		echo -e $USAGE >&2
+		exit 1
+		;;
+    esac
+done
+
+# define necessary URLs
+search_url="http://www.esrl.noaa.gov/psd/cgi-bin/db_search/DBSearch.pl"
+form_url="http://www.esrl.noaa.gov/psd/cgi-bin/DataAccess.pl"
+request_url="http://www.esrl.noaa.gov/psd/cgi-bin/GrADS.pl"
+ftp_url="ftp://ftp.cdc.noaa.gov/Public/www"
+
+# set standard level parameters
+std_plvl="&dim0=level&dim1=time&level+units=millibar&level=1000.00&level=925.00&level=850.00&level=700.00&level=600.00&level=500.00&level=400.00&level=300.00&level=250.00&level=200.00&level=150.00&level=100.00&level=70.00&level=50.00&level=30.00&level=20.00&level=10.00"
+
+# Output mod_maker file format
+if [ -n "${SITE_LAT}" -a -n "${SITE_LON}" ]; then
+	echo -e "${SITE}\t; Site abbreviation"
+	echo -e "${SITE_LAT} ${SITE_LON}\t; Latitude/Longitude"
+fi
+
+for par in AT GH SH
+do
+	# set variable-dependent parameters
+	case $par in
+		AT)
+			dataset="NCEP+Reanalysis+Pressure+Level"
+			variable="Air+Temperature"
+			levels=${std_plvl}
+			;;
+		GH)
+			dataset="NCEP+Reanalysis+Pressure+Level"
+			variable="Geopotential+Height"
+			levels=${std_plvl}
+			;;
+		SH)
+			dataset="NCEP+Reanalysis+Pressure+Level"
+			variable="Specific+Humidity"
+			levels=${std_plvl}
+			;;
+	esac
+
+	# Find today's request form URI (some parameters change on each request)
+	search_html=$(wget ${wget_flags} -O - "${search_url}?Dataset=${dataset}&Variable=${variable}")
+
+	tmp1=${search_html##*'href="/psd/cgi-bin/DataAccess.pl?'}
+	tmp2=${tmp1%%'"'*}
+	form_uri="${form_url}?${tmp2}"
+    if [ -n "${verbose}" ]; then
+        echo "DEBUG: form_uri=${form_uri}" >&2
+    fi
+
+	# Extract last date for which data is available
+	tmp1=${search_html#*<td>1948/1/1</td>*<td>}
+	tmp2=${tmp1%% *}
+	tmp3=${tmp2#*/}
+	year_max=${tmp2%%/*}
+	mon_max=${tmp3%%/*}
+	day_max=${tmp3##*/}
+	date_max=$(printf "%4d%0.2d%0.2d" $year_max $mon_max $day_max)
+    if [ -n "${verbose}" ]; then
+        echo "DEBUG: date_max=${date_max}" >&2
+    fi
+
+	# Extract value for "DB_did"
+	tmp1=${form_uri#*DB_did=}
+	DB_did=${tmp1%%&*}
+    if [ -n "${verbose}" ]; then
+        echo "DEBUG: DB_did=${DB_did}" >&2
+    fi
+
+	# Extract value for "DB_vid"
+	tmp1=${form_uri#*DB_vid=}
+	DB_vid=${tmp1%%&*}
+    if [ -n "${verbose}" ]; then
+        echo "DEBUG: DB_vid=${DB_vid}" >&2
+    fi
+
+	# Extract value for "DB_tid"
+	tmp1=${form_uri#*DB_tid=}
+	DB_tid=${tmp1%%&*}
+    if [ -n "${verbose}" ]; then
+        echo "DEBUG: DB_tid=${DB_tid}" >&2
+    fi
+
+	# Download request form and extract current value for "file" (changes daily)
+	form_html=$(wget ${wget_flags} -O - "${form_uri}")
+	tmp1=${form_html#*<input*name=file*value='"'}
+	tmp2=${tmp1%%'"'*}
+	file=$(echo $tmp2 | sed -e s"/%/%25/"g -e s"/ /+/"g -e s"/\//%2F/"g) # URI encoding
+
+	# set time parameters
+	TO_DATE=${TO_DATE:-${date_max}}
+	FROM_DATE=${FROM_DATE:-${TO_DATE}}
+
+    # force base 10 (10#) calculations to avoid ambiguities with octal numbers
+	let "year_begin = 10#${FROM_DATE:0:4}"
+    let "mon_begin = 10#${FROM_DATE:4:2}"
+	let "day_begin = 10#${FROM_DATE:6:2}"
+	hour_begin=00+Z
+	let "year_end = 10#${TO_DATE:0:4}"
+	let "mon_end = 10#${TO_DATE:4:2}"
+	let "day_end = 10#${TO_DATE:6:2}"
+	hour_end=18+Z
+
+	# Build URI for download request (generates FTP file)
+	months=(NONE Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec)
+
+	request_uri="${request_url}?dataset=${dataset}&DB_did=${DB_did}&file=${file}&DB_vid=${DB_vid}&DB_tid=${DB_tid}&lat-begin=${SOUTH}&lat-end=${NORTH}&lon-begin=${WEST}&lon-end=${EAST}&year_begin=${year_begin}&mon_begin=${months[${mon_begin}]}&day_begin=${day_begin}&hour_begin=${hour_begin}&year_end=${year_end}&mon_end=${months[${mon_end}]}&day_end=${day_end}&hour_end=${hour_end}&X=lon&Y=lat&output=file${levels}"
+
+	# Retrieve output from download request
+	request_out=$(wget ${wget_flags} -O - ${request_uri} | grep ${ftp_url})
+
+	# Extract NetCDF file name from output
+	tmp1=${request_out##*href=ftp://ftp.cdc.noaa.gov/Public/www/}
+	tmp2=${tmp1%%.nc*}
+	if [ -z "${tmp2}" ]; then
+		echo "Error: request did not return a valid data file name" >&2
+		exit 2
+	fi
+	ncfile="${ftp_url}/$tmp2.nc"
+
+	# Download data file
+	outfile="NCEP_${SITE}_${SOUTH}_${NORTH}_${WEST}_${EAST}_${FROM_DATE}_${TO_DATE}_6hourly_${par}.nc"
+	if wget ${wget_flags} -O ${outfile} ${ncfile}; then
+		echo ${outfile}
+	else
+		echo "${outfile} failed" >&2
+		exit 3
+	fi
+
+done

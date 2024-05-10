@@ -1,0 +1,61 @@
+
+08/20/2021 04:21:15 PM New write_netcdf log session
+[INFO]: Running write_netcdf.py (Version 1.0; 2019-11-15; SR)
+[INFO]: tccon_netcdf repository HEAD: e1a644a
+[INFO]: Python executable used: /home/jlaugh/anaconda3/envs/ggg-tccon-default/bin/python
+[INFO]: GGGPATH=/home/jlaugh/GGG/ggg-my-devel
+[INFO]: cwd=/home/jlaugh/GGG/ggg-my-devel/install/current_results
+[INFO]: Will use /home/jlaugh/GGG/ggg-my-devel/src/tccon_netcdf/write_tccon_netcdf/release_flags.json for release flags.
+[INFO]: netCDF file format: NETCDF4_CLASSIC
+[INFO]: Input file: pa_ggg_benchmark.tav
+[INFO]: Will use /home/jlaugh/GGG/ggg-my-devel/src/tccon_netcdf/write_tccon_netcdf/tccon_gases.json for tccon gases.
+[INFO]: The runlog contains: 4 InGaAs spectra; 4 Si spectra;
+[INFO]: Reading MAV file ...
+[INFO]: Reading input files:
+[INFO]: 	- /home/jlaugh/GGG/ggg-my-devel/tccon/pa_oof_header.dat
+[INFO]: 	- /home/jlaugh/GGG/ggg-my-devel/tccon/pa_qc.dat
+[INFO]: 	- pa_ggg_benchmark.vav.ada.aia.daily_error.out
+[INFO]: 	- /home/jlaugh/GGG/ggg-my-devel/lse/gnd/pa_ggg_benchmark.lse
+[INFO]: 	- pa_ggg_benchmark.vav
+[INFO]: 	- pa_ggg_benchmark.vav.ada
+[INFO]: 	- pa_ggg_benchmark.vav.ada.aia
+[INFO]: 	- extract_pth.out
+[INFO]: 	- pa_ggg_benchmark.vsw
+[INFO]: 	- pa_ggg_benchmark.vsw.ada
+[INFO]: Check spectrum array consistency ...
+[INFO]: Writing pa20040721_20041222.private.nc ...
+[INFO]: The output of "hg summary" from the GGG repository:
+ parent: 1668:1b28c4a15433 tip
+ Updated in situ correction for N2O after rerunning Lamont data with LSE correction on
+branch: default
+commit: 84 modified, 26 deleted, 1091 unknown
+update: (current)
+phases: 1 draft
+
+[INFO]: Creating dimensions and coordinate variables
+[INFO]: Creating variables
+[INFO]: 	- Averaging kernels
+[INFO]: 	- Prior and cell variables
+[INFO]: 	- Checksums
+[INFO]: 	- Code versions
+[INFO]: 	- Flags
+[INFO]: 	- Spectrum file names
+[INFO]: 	- Auxiliary variables
+[INFO]: 	- extract_pth
+[INFO]: 	- .vsw and vsw.ada
+[INFO]: 	- averaged variables
+[INFO]: 	- .lse
+[INFO]: 	- ADCF
+[INFO]: 	- AICF
+[INFO]: Writing prior data ...
+[INFO]: Finished writing prior data
+[INFO]: Writing scaled aia data and determining qc flags
+[INFO]: Summary of automatic QC flags:
+[INFO]:   #  Parameter              N_flag      %
+[INFO]:   9  solzen                    2     50.000
+[INFO]:      TOTAL                     2     50.000
+[INFO]: Writing .col and .cbf data:
+[INFO]: Will use /home/jlaugh/GGG/ggg-my-devel/src/tccon_netcdf/write_tccon_netcdf/missing_data.json for missing data.
+[INFO]: Reading manual flags from /home/jlaugh/GGG/ggg-my-devel/tccon/pa_manual_flagging.dat
+[INFO]: Finished writing pa20040721_20041222.private.nc 12.20 MB
+[INFO]: Finished write_netcdf log session at 08/20/2021 04:22:36 PM

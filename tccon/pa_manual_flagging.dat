@@ -1,0 +1,29 @@
+28 3
+File specifies time periods that should be manually flagged in the
+.oof and .private.nc files:
+   Time1    first date to flag in YYYYMMDD format
+   Time2    last date to flag (inclusive) in YYYYMMDD format
+   Flag     value to assign to the flag column/variable for this time period
+
+If this file is present in $GGGPATH/tccon as "xx_manual_flagging.dat" (where
+"xx" is the site ID) then any spectra in one of the date ranges listed below
+will have the value in the "flag" column of the .oof file and the "flag" 
+variable of the .private.nc file set to the value given in the flag colum 
+below. 
+
+The following values are accepted flag values:
+
+* 1 = poor ILS
+* 2 = poor tracking
+* 3 = incorrect surface pressure
+* 9 = other
+
+4 through 8 are reserved for future meaning. In the .oof, .oof.csv, and
+.private.nc files, these flag values will be multiplied by 1000 and added
+to the automatic QC flag. That is, for a time block set to manual flag = 1,
+spectra with an automatic flag of 0 would end up with a flag of 1000, and
+spectra with an automatic flag of 22 would end up with a flag of 1022.
+
+format:(2(1x,i4,2i2),1x,i2)
+ Time1    Time2    Flag   Comments (write_netcdf reads after the "!")
+ 20040701 20040801 9  ! Test for benchmark

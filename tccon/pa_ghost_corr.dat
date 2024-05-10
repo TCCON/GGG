@@ -1,0 +1,7 @@
+5 5 2
+The numbers above reflect the number of header lines, the number of gases for which ghost corrections are available, and the number of rows.
+The table below lists the additive correction empirically derived to reduce the effect of laser sampling ghosts for each molecule.
+This correction is applied to the .vav.ada.aia file for every day including the end day.
+EndY EndD xco2Corr xco2Error xco2scale xch4Corr xch4Error xch4scale xn2oCorr xn2oError xn2oscale xcoCorr xcoError xcoScale xh2oCorr xh2oError xh2oScale
+2011 177  0.00     0.00      1E-6      0.00     0.00      1E-6      0.00     0.00      1E-9      0.00    0.00     1E-9     0.00     0.00      1E-3
+2011 277  0.00     0.00      1E-6      0.00     0.00      1E-6      0.00     0.00      1E-9      0.00    0.00     1E-9     0.00     0.00      1E-3

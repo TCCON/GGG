@@ -1,0 +1,10 @@
+# The original .hgignore patterns
+# .*\.o$
+# .*~$
+# .*\..*\.swp$
+
+**/*.o
+**/*~
+**/*.swp
+
+src/tccon_netcdf/

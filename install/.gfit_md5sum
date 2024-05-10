@@ -1,0 +1,48 @@
+#!/bin/bash
+
+osname=`uname -s`
+filename=$1
+if [ -n "$filename" ]; then
+    if [ -e $filename ]; then
+	if [ $osname == "Linux" ]
+	then
+		if [[ $filename == *"telluric_linelists.md5" ]]
+		then
+		  #telluric_linelists.md5 contains a list of md5sums and their paths, 
+		  #so we only want to know whether the md5sums are the same
+                  md5sum=`awk '{print $1}' $filename | md5sum | awk '{print $1}'`
+                  echo "$md5sum  $filename"
+		else
+		  #Nothing to do
+		  md5sum $filename
+		fi
+	
+	elif [ $osname == "Darwin" ]
+	then
+		#convert the output from md5
+		md5=`md5 $1`
+		if [[ $filename == *"telluric_linelists.md5" ]]
+		then
+		  #telluric_linelists.md5 contains a list of md5sums and their paths, 
+		  #so we only want to know whether the md5sums are the same
+                  md5sum=`awk '{print $1}' $filename | md5`
+		  echo "$md5sum  $filename"
+		else
+		  md5sum=`echo $md5 | awk '{print $4}'`
+		  echo "$md5sum  $filename"
+		fi
+	
+        elif [ $osname == "SunOS" ]
+        then
+                #convert the output from md5
+                md5=`digest -a md5 -v $1`
+                md5sum=`echo $md5 | awk '{print $4}'`
+                echo "$md5sum  $filename"
+
+	fi
+    else
+	echo "00000000000000000000000000000000  "$filename
+    fi
+else
+	echo "00000000000000000000000000000000  -"
+fi
