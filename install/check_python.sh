@@ -20,7 +20,7 @@ mydir=$(cd `dirname $0` && pwd)
 if [ ! -z $GGG_USE_MICROMAMBA ] && [ $GGG_USE_MICROMAMBA -gt 0 ]; then
   which micromamba > /dev/null
   mm_found=$?
-  if [ $mm_found == 0 ] || [ $GGG_USE_MICROMAMBA == 2]; then
+  if [ $mm_found == 0 ] || [ $GGG_USE_MICROMAMBA == 2 ]; then
     echo "CONDACMD='micromamba --yes'" > $mydir/.init_conda
     echo "CREATECMD='env create'" >> $mydir/.init_conda
     echo "UPDATECMD='update'" >> $mydir/.init_conda
