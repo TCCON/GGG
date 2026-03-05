@@ -130,23 +130,25 @@ c     & memday,        ! Memory of day to control reset of run number
      & lf,lb,         ! Indices in the input string
      & nil,           ! number of input lines (spectra or slices)
      & nbad,          ! # bad slices/spectra excluded by SIA/SIS criterion
-     & ia             ! General loop index
-     
+     & ia,            ! General loop index
+     & indexa,        ! General loop index
+     & do_nonlin(2)   ! Per-channel flags set to 0 to skip nonlinearity correction, >0 otherwise
+
       real*4 
      & frsp,          ! Fraction of spectral domain without optical energy
      & pinv,          ! Peak INterferogram Value
      & stlimavg,      ! Limit for suntracker intensity (average)
      & stlimstd,      ! Limit for suntracker intensity (standard deviation)
      & ylimits(mch,2),! Limits of allowed igram values (Min/Max,Master/Slave)
-     & xcorlim(mdtc)  ! Minimum value of the ZPD cross-correlation
-
+     & xcorlim(mdtc), ! Minimum value of the ZPD cross-correlation
+     & nonlin_coef(8) ! Coefficients for the nonlinearity correction, 4 per channel
       real*8
      & frzpda,         ! Fractional size of ZPD artifact (dip) in smoothed igram
      & sivcfreq(mdtc), ! SIV-correction frequencies (cm-1)
      & pco_thresh(mdtc) ! SIV-correction frequencies (cm-1)
 
       character
-     & infile*100,   ! Name of program input file
+     & infile*128,   ! Name of program input file
      & inpath*128,    ! Directory path to OPUS-format input slices/files
      & outpath*128,   ! Directory path for output spectrum files
      & igrmpath*128,  ! Directory path for output interferogram files
@@ -335,7 +337,8 @@ c  Parse the top section of the input file containing general parameters.
      & igrmode,igrmpath,phmode,phpath,chan1,chan2,flimit,pattern,
      & srcindic,dtcigrm,dtcspec,outfmt,delimit,minmax,stlimstd,
      & stlimavg,ylimits,xcorlim,timecorr,mscan,fftlim,sivcfreq,
-     & lsemode,pco_len,pco_thresh,proclim,verbose,run_start)
+     & lsemode,pco_len,pco_thresh,proclim,do_nonlin,nonlin_coef,
+     & verbose,run_start)
 
 c  Initialize the memory of date to force reset of the run number.
       iyyywas=-1
@@ -587,6 +590,24 @@ c                     write(*,*) ' Calling get_igram_data...'
      &               runsta(iscan),runend(iscan),verbose,
      &               msl,mip,mch,nptvec,bpdata,ichan,nip,buf_igram)
 
+                  if(do_nonlin(ichan).gt.0) then
+                    write(*,*)
+     & 'Applying nonlinearity correction to channel ', ichan,
+     & 'with coefficients', nonlin_coef
+                    do indexa=1,nip
+                      buf_igram(indexa)=buf_igram(indexa)+
+     &                nonlin_coef((ichan-1)*4 + 1)*buf_igram(indexa)+
+     &                nonlin_coef((ichan-1)*4 + 2)*buf_igram(indexa)**2+
+     &                nonlin_coef((ichan-1)*4 + 3)*buf_igram(indexa)**3+
+     &                nonlin_coef((ichan-1)*4 + 4)*buf_igram(indexa)**4
+                    enddo
+                  elseif(ichan.eq.1) then
+                    write(*,*) 
+     & 'NOT applying nonlinearity correction to channel ', ichan,
+     & ', do_nonlin =', do_nonlin
+                  endif
+
+
 c  Following 5 lines from JFB email of 2018-07-11 (counter --> nip)
                      if(nip.eq.(2*tpx) .and. nsubstr.eq.5) then
                         write(*,*)'SINGLE-SLICE MULTI-SCAN SLICE-I2S
@@ -613,7 +634,7 @@ c   Is Ymin below MIN_thresh?
                         write(*,*)'Scan rejected. Ymin < MIN_thresh',
      &                  catyear,catmonth,catday,runno+scancnt-1,iscan
                         write(*,*)'ichan,Ymin,MIN_thresh =',
-     &                  ichan,ylimits(ichan,1),ylimits(ichan,2)
+     &                  ichan,ymin,ylimits(ichan,1)
 c                        runsta(iscan)=-101
                         errnum=+111
                      endif
@@ -698,7 +719,8 @@ c  If enabled, save separated interferograms in the requested format.
      &                  DTCstr,INSstr,sivcfreq(ichan),pco_len(ichan),
      &                  pco_thresh(ichan),izpd,sivcflag,dclevel,
      &                  fvsi_calc,zpa,frzpda,shbar,sherr,lsemode(ichan),
-     &                  fpilha,infovec,tla_ext,fpsfname,errnum)
+     &                  fpilha,infovec,do_nonlin,nonlin_coef,
+     &                  tla_ext,fpsfname,errnum)
                      endif
                   endif
 
@@ -721,8 +743,8 @@ c   Save SIV-corrected interferogram, if requested
      &               Tstart,i4head,r8head,DTCstr,INSstr,sivcfreq(ichan),
      &               pco_len(ichan),pco_thresh(ichan),izpd,sivcflag,
      &               dclevel,fvsi_calc,zpa,frzpda,shbar,sherr,
-     &               lsemode(ichan),fpilha,infovec,tla_ext,
-     &               fpsfname,errnum)
+     &               lsemode(ichan),fpilha,infovec,do_nonlin,
+     &               nonlin_coef,tla_ext,fpsfname,errnum)
                   endif
 
 c  Perform Fourier transform and save data in the requested format.
@@ -756,8 +778,8 @@ c  Save spectrum to file
      &               nlong,nshort,Tstart,i4head,r8head,DTCstr,INSstr,
      &               sivcfreq(ichan),pco_len(ichan),pco_thresh(ichan),
      &               izpd,sivcflag,dclevel,fvsi_calc,zpa,frzpda,
-     &               shbar,sherr,lsemode(ichan),fpilha,infovec,tla_ext,
-     &               fpsfname,errnum)
+     &               shbar,sherr,lsemode(ichan),fpilha,infovec,
+     &               do_nonlin,nonlin_coef,tla_ext,fpsfname,errnum)
                   endif     !  (errnum.eq.0).and.(proclim.ge.4)
                enddo      ! ichan=chan1,chan2
                if(errnum.eq.0) scancnt=scancnt+1

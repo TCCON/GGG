@@ -12,6 +12,16 @@
                 "@type": "Organization",
                 "name": "Jet Propulsion Laboratory, California Institute of Technology"
             }
+        },
+        {
+            "@type": "Person",
+            "givenName": "Joshua L.",
+            "familyName": "Laughner",
+            "email": "josh.laughner@jpl.nasa.gov",
+            "affiliation": {
+                "@type": "Organization",
+                "name": "Jet Propulsion Laboratory, California Institute of Technology"
+            }
         }
     ]
 }

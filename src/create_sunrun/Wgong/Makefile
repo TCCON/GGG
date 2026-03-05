@@ -9,9 +9,10 @@ COMN = $(GGGPATH)/src/comn
 
 SOURCES := \
  $(TSRC)/$(TARGET).f90 \
- $(TSRC)/read_DA8_press.f \
- $(TSRC)/Read_Oscar_log.f90 \
+ $(TSRC)/pressure_calibration.f90 \
+ $(TSRC)/julian.f90 \
  $(COMN)/read_opus_header.f \
+ $(COMN)/read_mkiv_header.f \
  $(COMN)/getopusparval.f \
  $(COMN)/getendian.f \
  $(COMN)/gindfile.f \
@@ -21,6 +22,7 @@ SOURCES := \
  $(COMN)/fbc.f \
  $(COMN)/rbyte.f \
  $(COMN)/get_ggg_environment.f \
+ $(COMN)/substr.f \
  $(COMN)/write_sunrun.f
 
 OBJECTSF := $(patsubst %.f, %.o, $(filter %.f, $(SOURCES)))

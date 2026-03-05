@@ -1230,6 +1230,17 @@ c               i4head(i_p2k)=0
 c DW 20130708
             endif
 
+c DG 20240702:
+c Fix bad P2L for firmware version 2.485: Set P2L = PKL
+            call test_opus_prm(luns,ipinstr,'VSN',iendian,paramtyp)
+            if(paramtyp.eq.typ_string) then
+               call get_opus_string(luns,ipinstr,'VSN',typ_string,5,
+     &         iendian,path,verbose,1,errnum,strlen,cval)
+               if(index(cval, '2.485').gt.0)
+     &            i4head(i_p2l) = i4head(i_pkl)
+            endif
+c DG 20240702 end
+
 c The following is a pseudo-sanity check to see if the intensity
 c is sufficient to rule out a 'noise' run.
             if(i4head(i_srccode).eq.src_off) then
@@ -1249,7 +1260,8 @@ c           write(*,*)'ssm,ssp=',i4head(i_ssm),i4head(i_ssp)
             endif
 
             if(INSstr.eq.'EM27SUN'.or.INSstr.eq.'EM27/SUN'
-     &         .and.em27flag.gt.0) then
+     &        .or.INSstr.eq.'EM27/SUN MIR'
+     &        .or.INSstr.eq.'...'.and.em27flag.gt.0)then
                write(*,*)'EM27SUN detected!  Assuming APT=0.6mm'
                r8head(i_aptval)=0.6
                write(*,*)'Assuming SRC=sun'

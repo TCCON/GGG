@@ -1,3 +1,4 @@
+#!/bin/bash
 usage () {
     echo "$0 [ -y | --yes ]"
     echo " The -y or --yes flag will automatically answer 'y' to any interactive question."
@@ -56,9 +57,7 @@ if [ ! -f $initfile ]; then
 else
     source $initfile
     if [ -z $NO_CONDA_ACTIVATE ] || [ $NO_CONDA_ACTIVATE == 0 ]; then
-        echo "Activating $GGGPATH/install/.condaenv"
         $CONDACMD activate "$GGGPATH/install/.condaenv"
-        echo $CONDA_PREFIX
     fi
 fi
 

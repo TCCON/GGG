@@ -78,7 +78,7 @@ c    gasindex(sagindex(jvmr))=jvmr
      & i10,
      & istat,jvmr,kvmr,nvmr,lunr_iso,
      & mcell,jcell,lncell,gas_in_cell(lncell)
-      parameter (kspeci=230,kvmr=80,lunr_iso=57,mcell=8)
+      parameter (kspeci=230,kvmr=84,lunr_iso=57,mcell=8)
 
       integer*4 gasindex(kspeci),sagindex(kvmr),
      & nlhead,ncol_iso,ip_h2o,

@@ -4,7 +4,7 @@
      & pco_leni,pco_threshi,
      & izpd,sivcflag,dclevel,fvsi_calc,zpa,frzpda,
      & shbar,sherr,lsemode,fpilha,snr,
-     & infovec,tlalevel,fpsfname,errnum)
+     & infovec,do_nonlin,nl_coef,tlalevel,fpsfname,errnum)
 c
 c  Input:
 c    path      C*(*)  Path to OPUS output file
@@ -29,6 +29,9 @@ c    i4head(mi4)I*4   Vector holding the I*4 header items
 c    r8head(mr8)R*8   Vector holding the R*8 header items
 c    izpd      I*4    Point index of zero path difference
 c    infovec(mif)R*8  Information produced by real-time algorithm
+c    do_nonlin(2)I*4  Per-channel flags for whether nonlinearity correction was applied
+c    nl_coef(8)R*4    Array of the nonlinearity coefficients (4 per channel)
+c                     from the input file
 c    tlalevel  I*4    Level of non-Bruker header items (three-letter acronyms)
 c
 c  Input/Output:
@@ -55,6 +58,7 @@ c
      & lsemode,    ! Laser sampling error type
      & pco_leni,
      & izpd,       ! Subroutine input argument (see above)
+     & do_nonlin(2),! Subroutine input argument (see above)
      & tlalevel,   ! Subroutine input argument (see above)
      & errnum,     ! Subroutine input/output argument (see above)
      & iend,       ! Endianness of computer
@@ -80,14 +84,16 @@ c
      & second,     ! Time of the first data point in this scan
      & millisec,   ! Time of the first data point in this scan
      & imxy,       ! Index of maximum Y value
-     & imny        ! Index of minimum Y value
+     & imny,       ! Index of minimum Y value
+     & nci         ! Index for iterating over nonlinearity coefficients
 
       real*4
      & buffer(mip), ! Subroutine input argument (see above)
      & snr,
      & shbar,       ! LSE
      & sherr,       ! LSU
-     & fpilha       ! LSF
+     & fpilha,      ! LSF
+     & nl_coef(8)   ! Subroutine input argument (see above)
 
       real*8
      & progver,     ! Subroutine input argument (see above)
@@ -116,7 +122,8 @@ c
      & path*(*),    ! Subroutine input argument (see above)
      & stringa*128, ! String used to format header items
      & DTCstr*(*),  ! Detector description
-     & INSstr*(*)   ! Detector description
+     & INSstr*(*),  ! Detector description
+     & NLstr*3      ! Nonlinearity coefficient description
 
       logical*4
 c     & filexist,   ! Keeps track of file existence
@@ -556,6 +563,22 @@ c In the OPUS format, the point indices are 0-based, hence "izpd-1"
      &         pointr,header)
                call pk_r8_opus('SNR',dble(snr),iend,mhl,errnum,
      &         pointr,header)
+c
+c Nonlinearity flag (whether correction was applied or not) and the
+c coefficients. If the flag is zero, write the coefficients as zero too.
+               call pk_i4_opus('NCF',do_nonlin(ichan),iend,mhl,
+     &         errnum,pointr,header)
+               do nci=1,4
+                  write(NLstr,'(a2,i1)') 'NC', nci
+                  if (do_nonlin(ichan).gt.0) then
+                     call pk_r8_opus(NLstr,
+     &                               dble(nl_coef((ichan-1)*4 + nci)),
+     &                               iend,mhl,errnum,pointr,header)
+                  else
+                     call pk_r8_opus(NLstr,dble(0.0),
+     &                               iend,mhl,errnum,pointr,header)
+                  endif
+               enddo
             endif
             call end_opus_prm(mhl,errnum,pointr,header)
             length=(pointr-bytstart)/4

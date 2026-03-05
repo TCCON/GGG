@@ -1,4 +1,4 @@
-      subroutine fm(lun_ak,slit,nhw,
+      subroutine fm(lunw_jac,slit,nhw,
      & ifcsp,ifmsp,iptg,ipcl,ipfs,ipsg,ipzo,ipcf,
      & ldec,spts,spxv,
      & vac,splos,nlev,ncp,rdec,
@@ -8,7 +8,7 @@
 c  Forward Model: Computes a calculated spectrum and its matrix of partial differentials
 c
 c Inputs:
-c   LUN_AK              I*4  Logical Unit Number for writing to AK file
+c   LUNW_JAC            I*4  Logical Unit Number for writing Jacobians to file
 c   SLIT(NII)           R*4  Pre-computed ILS (oversampled by LDEC wrt SPVAC)
 c   NII                 I*4  Size of ILS vector
 c   IFCSP               I*4  Index of First Calculated Spectral Point
@@ -125,7 +125,7 @@ c  used in the computation of averaging kernels and in GFIT2.
       integer ncp,jcp,nmp,ntg,jtg,nfp,nhw,ldec,kk,
 c     & jj,
      & ifcsp,ifmsp,iptg,ipcl,ipfs,ipsg,ipzo,ipcf,ncbf,jbf,
-     & lun_ak,jmp,nlev,ilev,nexpl,nexpr,noff,idum
+     & lunw_jac,jmp,nlev,ilev,nexpl,nexpr,noff,idum
 
       real*8 rdec,xfs,xsg,xx,fx,rdum
       real*4 slit(1+2*nhw*ldec),cx(nfp),vac(ncp,nlev,0:ntg),splos(nlev),
@@ -290,7 +290,7 @@ c  Compute ZO PD
 c      if (ipzo.gt.0) call vmov(cont_level,0,pd(1,ipzo),1,nmp)  ! ipzo: ZOFF PD's
 
 c  Compute target gas PD's
-      if(lun_ak.gt.1) write(lun_ak,*) nmp,ntg,nfp
+      if(lunw_jac.gt.0) write(lunw_jac,*) nmp,ntg,nfp,nlev-ncell
       do jtg=1,ntg
          call vmul(spxv(1,ntg+1),1,spxv(1,jtg),1,spxv(1,ntg+2),1,ncp)
          call regrid2(ifcsp,ncp,spxv(1,ntg+2),nhw,slit,ldec,
@@ -299,12 +299,12 @@ c  Compute target gas PD's
          if(nexpr.ne.0) write(*,*)'Warning: FM: NEXPR=',nexpr
          call vmul(pd(1,jtg),1,cont,1,pd(1,jtg),1,nmp)
          call vmov(zero,0,pd(nmp+1,jtg),1,nfp)           ! zero unused part of PD array
-         if(lun_ak.gt.0) write(lun_ak,*) (pd(jmp,jtg),jmp=1,nmp)
+         if(lunw_jac.gt.0) write(lunw_jac,*) (pd(jmp,jtg),jmp=1,nmp)
       end do
 
 c  Calculate & Write single level partial differentials = v . df/dv
-      if(lun_ak.gt.0) then
-         if(lun_ak.gt.1)write(lun_ak,*)nmp,nlev-ncell
+      if(lunw_jac.gt.0) then
+c         if(lunw_jac.gt.1)write(lunw_jac,*)nmp,nlev-ncell
 
          do ilev=ncell+1,nlev
             do jtg=1,min0(ntg,1)   !  only do the first target gas
@@ -317,12 +317,14 @@ c  Calculate & Write single level partial differentials = v . df/dv
                call vmul(slpd(1,ilev),1,cont,1,slpd(1,ilev),1,nmp)
                call vmul(slpd(1,ilev),1,ckm2cm*splos(ilev),0,
      &         slpd(1,ilev),1,nmp)
-               if(lun_ak.gt.1) write(lun_ak,*)(slpd(jmp,ilev),jmp=1,nmp)
+c               if(lunw_jac.gt.1) then
+               write(lunw_jac,*)(slpd(jmp,ilev),jmp=1,nmp)
+c               endif
             end do
          end do
-      endif   ! lun_ak.gt.0
+      endif   ! lunw_jac.gt.0
 
-c  Compute FS PDs, then convert to Stretch PDs
+c  Compute Frequency Shift PDs, then convert to Stretch PDs
       if(ipfs.gt.0) then
          call lagrange_differentiate(nmp,calcul,pd(1,ipfs))
          do jmp=1,nmp
@@ -334,7 +336,7 @@ c  Zero the last NFP elements of each column of the PD Array (a priori).
 c  If the parameter is not fitted, zero out the whole column.
       do kk=ntg+1,nfp
          call vmov(zero,0,pd(nmp+1,kk),1,nfp)       ! Zero last NFP elements
-         if(lun_ak.gt.0) write(lun_ak,*) (pd(jmp,kk),jmp=1,nmp)   ! CL, CT, CC, FS, ZO Jacobians
+         if(lunw_jac.gt.0) write(lunw_jac,*) (pd(jmp,kk),jmp=1,nmp)   ! CL, CT, CC, FS, ZO Jacobians
       end do
       return
       end

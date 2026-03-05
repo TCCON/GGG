@@ -7,6 +7,7 @@ COMN = $(GGGPATH)/src/comn
 
 SOURCES := \
   $(TSRC)/$(TARGET).f \
+  $(TSRC)/correct_pressure.f90 \
   $(COMN)/read_opus_header.f \
   $(COMN)/getopusparval.f \
   $(COMN)/getendian.f \

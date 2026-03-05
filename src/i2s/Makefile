@@ -1,5 +1,7 @@
 include $(GGGPATH)/install/.compiler_ggg
 
+CFLAGS := $(CFLAGS) -cpp
+
 TARGET=i2s
 
 TSRC = $(GGGPATH)/src/$(TARGET)
@@ -51,7 +53,7 @@ OBJECTS := $(patsubst %.f, %.o, $(SOURCES))
 
 #  Link the object files to create the executable
 $(TARGET) : $(OBJECTS)
-	$(FC) $(LDFLAGS) -o $(GGGPATH)/bin/$@ $^
+	$(FC) $(LDFLAGS) -cpp -o $(GGGPATH)/bin/$@ $^
 
 clean:
 	rm -f $(OBJECTS) $(TARGET)

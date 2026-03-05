@@ -215,6 +215,10 @@ c      write(*,*) krow_day,gaa_headarr(krow_day)
          read(ssss,*) parname(krow_qc),flag(krow_qc),scale(krow_qc),
      &   fmt(krow_qc),unit(krow_qc),vmin(krow_qc),vmax(krow_qc)
          rsc(krow_qc)=scale(krow_qc)
+
+         write(*,*) 'parname = ', parname(krow_qc)
+         write(*,*) 'vmin = ', vmin(krow_qc)
+         write(*,*) 'vmax = ', vmax(krow_qc)
       end do
       close(lunr_qc)
 

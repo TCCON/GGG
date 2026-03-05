@@ -60,7 +60,7 @@ c  Read the entire contents of the .mav file
          call read_mav_aux(lun_mav,nlhead,nlev,nspeci,z,t,p,d,vmr,
      & oblat,vmrfile,modfile,head)
 c        write(*,*)modfile(:lnbc(modfile))
-         ldot=index(modfile,'.')
+         ldot=index(modfile,'.',.true.)
          outfile=runlabmav(1:2)//modfile(ldot-20:ldot-10)//'.map'
 c The outfile will be in the form: pa20040721.map
 c         write(*,*)outfile
@@ -165,7 +165,7 @@ c         write(*,*)string1
 
 c Write new .map file
          open(lun_out,file=outfile,status='unknown')
-         write(lun_out,'(1x,i2,1x,i2)')11,12
+         write(lun_out,'(1x,i2,1x,i2)')11,13
          write(lun_out,'(1x,a)')outfile(:lnbc(outfile))
          write(lun_out,'(a)')mav_version
          write(lun_out,'(a)')version

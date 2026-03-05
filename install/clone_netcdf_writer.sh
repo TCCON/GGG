@@ -10,9 +10,7 @@ for arg in $@; do
 done
 
 srcdir="$GGGPATH/src/tccon_netcdf"
-srcremote="https://bitbucket.org/rocheseb/tccon_netcdf"
-#srcremote="https://jlaughner@bitbucket.org/jlaughner/tccon_netcdf.git"
-#last_commit_for_ggg="c87fcf7"
+srcremote="https://github.com/TCCON/py_tccon_netcdf.git"
 
 
 printf "\n======== GETTING TCCON_NETCDF ========\n\n"
@@ -40,8 +38,8 @@ else
 fi
 
 cd $srcdir
-last_commit_for_ggg="42ed12d"
-git checkout master >/dev/null 2>/dev/null
+last_commit_for_ggg="e8200a2f"
+git checkout main >/dev/null 2>/dev/null
 git rev-parse --verify "ggg" &> /dev/null
 if [ $? == 0 ] ; then
         if $always_yes; then
@@ -55,7 +53,7 @@ if [ $? == 0 ] ; then
                         echo "Proceeding ..."
                         ;;
                 *)
-                        echo "Aborting in clone_netcdf_writer.sh; if you did any work in the ggg branch of tccon_netcdf, move it elsewhere and rerun master.sh"
+                        echo "Aborting in clone_netcdf_writer.sh; if you did any work in the ggg branch of tccon_netcdf, move it elsewhere and rerun run_install_main.sh"
                         exit 1
                         ;;
 
@@ -65,7 +63,7 @@ git branch -d ggg 2>/dev/null
 echo "Creating ggg branch"
 git checkout -b ggg
 git reset --hard a803c94
-git pull $srcremote master
+git pull $srcremote main
 git reset --hard $last_commit_for_ggg
 git_head=$(git show --oneline -s | awk '{print $1}')
 echo "The ggg branch HEAD is now at $git_head"

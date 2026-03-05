@@ -24,7 +24,7 @@ c  Writes one line to the already-opened .col file.
      &   wlimit(dble(1.E+06*xsg),'f5.2'),           ! S-G
      &   wlimit(dble(xzo),'f6.4'),
      &   wlimit(dble(100*abs(rmsocl)),'f6.4'), 
-     &   wlimit(dble(zmin),'f8.3'),
+     &   wlimit(dble(zmin),'f10.5'),
      &  (wlimit(dble((oloscol(jtg)+.01)/(overcol(jtg)+.01)),'f7.3'),
      &   overcol(jtg),wlimit(dble(cx(jtg)),'f10.5'),ex(jtg),jtg=1,ktg)
 
@@ -39,7 +39,7 @@ c  Writes one line to the already-opened .col file.
      &   wlimit(dble(1.E+06*xsg),'f5.2'),           ! S-G
      &   wlimit(dble(xzo),'f6.4'),
      &   wlimit(dble(100*abs(rmsocl)),'f6.4'), 
-     &   wlimit(dble(zmin),'f8.3'),
+     &   wlimit(dble(zmin),'f10.5'),
      &  (wlimit(dble((oloscol(jtg)+.01)/(overcol(jtg)+.01)),'f7.3'),
      &   overcol(jtg),wlimit(dble(cx(jtg)),'f10.5'),ex(jtg),jtg=1,ktg)
       endif

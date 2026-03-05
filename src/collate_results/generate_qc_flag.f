@@ -99,7 +99,7 @@ c         if(index(header_string,'runlogs').gt.0) rlgfile=header_string(:80)
          cl_arr(i)=cl
 
 c get the date from the filename
-         read(specname_col,'(a2,i8,a)'), cdum, date(i), cdum
+         read(specname_col,'(a2,i8,a)') cdum, date(i), cdum
 
 c converged retrievals
          if (nit .lt. mit) qc(i)=qc(i)+1. 

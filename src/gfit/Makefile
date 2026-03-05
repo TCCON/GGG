@@ -19,6 +19,7 @@ SOURCES := \
   $(TSRC)/fm.f \
   $(TSRC)/fm3.f \
   $(TSRC)/jetspe.f \
+  $(COMN)/decode_winfo.f \
   $(COMN)/write_spt.f \
   $(COMN)/read_mavfile_body.f \
   $(COMN)/get_ggg_environment.f \

@@ -10,7 +10,7 @@ c
      & lunw_col,lunw_cbf,lunr_iso,lunr_cs,lunr_apx,
      & j,getpid,nch,lcl,isv,lbf,lnblnk,
      & iptg,ipcl,ipfs,ipsg,ipzo,ipcf,lspmax,
-     & istat,lnbc,lp,lw,lc,idum,
+     & istat,lnbc,lp,lc,idum,
      & nmode,           ! Number of vibrational modes
      & nlhead_ggg,      ! number of header lines in .ggg file
      & kgas,kiso,
@@ -39,7 +39,7 @@ c
      & winfile*(mfilepath),  ! name of window list
      & colfile*80,           ! output file containing column amounts
      & colabel*1024,          ! Header labels for .col file
-     & akpath*(mfilepath),   ! output file of averaging kernels
+     & jacpath*(mfilepath),   ! output file for Jacobians
      & sptfile*(mfilepath),  ! output file of ascii spectral fits
      & mavfile*80,           ! file containing T/P & VMR at user-chosen levels
      & rayfile*80,           ! file of slant paths at user-chosen levels
@@ -74,7 +74,7 @@ c
      &   vibfrq(mvmode)! Array of vibrational frequencies
 c
       character
-     &   colfile_format*109,
+     &   colfile_format*110,
      &   ddd*12,
      &   ss(mfp)*4,
      &   cdum*12
@@ -96,12 +96,13 @@ c
 
       lspmax=12
       version=
-     & ' GFIT                     Version 5.28        2020-04-24   GCT '
+     & ' GFIT                     Version 5.31'
+     & //'              2021-01-19   GCT '
       write(6,*)
       write(6,'(a)')version
 
       winfo=':'
-      colabel='Nit  CL    CT    CC   FS    SG    ZO   RMS/CL   Zpres'
+      colabel='Nit  CL    CT    CC   FS    SG    ZO   RMS/CL     Zpres'
       lcl=lnbc(colabel)
       call substr(colabel,cdum,1,nch)
 c     write(*,*)'nch=',nch
@@ -111,8 +112,7 @@ c     write(*,*)'nch=',nch
      &'1x,f5.2,'//  ! SG
      &'1x,f6.4,'//  ! ZO
      &'1x,f6.4,'//  ! RMS/CL
-     &'f8.3,15(0pf7.3,1pe11.4,0pf10.5,1pe8.1))'
-
+     &'f10.5,15(0pf7.3,1pe11.4,0pf10.5,1pe8.1))'
 c     Platform specification:      DG090519
       call get_ggg_environment(gggdir, dl)
 c
@@ -133,14 +133,14 @@ c  Read runlog, model, vmrset & window information from input file (.ggg)
       read(10,'(a)')winfile
       read(10,'(a)')tll_file
       read(10,'(a)')solarll
-      read(10,'(a)')akpath
+      read(10,'(a)')jacpath
       read(10,'(a)')sptfile
       read(10,'(a)')colfile
       do while(winfo(1:1).eq.':')
          read(10,'(a)')winfo
       end do
       close(10)
-      akpath=akpath(:lnbc(akpath))//'_'//colfile(:lnbc(colfile)-4)
+      jacpath=jacpath(:lnbc(jacpath))//colfile(:lnbc(colfile)-4)
 
       if( index(winfo,' sg ').gt.0 .or. index(winfo,' so ').gt.0 .or.
      & index(winfo,' so/').gt.0 ) then
@@ -164,48 +164,9 @@ c  NTG+1 to NTG+NCBF       are the Continuum Basis Functions Coefficients
 c  NTG+NCBF+1              is the FS 
 c  NTG+NCBF+2              is the ZO
 c  
-      iptg=0
-      ipcl=0
-      ipfs=0
-      ipsg=0
-      ipzo=0
-      ipcf=0
-      lc=index(winfo,':')
-      write(*,*) winfo(:lnbc(winfo))
-      call lowercase(winfo)
-      call substr(winfo(lc+1:),pars,mtg,ntg)
-      if(ntg.gt.mtg) then
-         write(*,*)' gfit: Error: NTG > MTG ',ntg,mtg
-         stop 'Increase parameter MTG in gfit.f'
-      endif
-      if(ntg.gt.0) iptg=1
 
-      lw=lnbc(winfo)
-      isv=ntg     !   ISV is index into the State Vector (SV)
-      if(index(winfo(:lc),' ncbf=').gt.0) then
-         lbf = index(winfo(:lc),' ncbf=')
-         read(winfo(lbf+6:),*)ncbf
-      else
-         ncbf=0
-         if(index(winfo(:lc),' cl ').gt.0) ncbf=ncbf+1
-         if(index(winfo(:lc),' ct ').gt.0) ncbf=ncbf+1
-         if(index(winfo(:lc),' cc ').gt.0) ncbf=ncbf+1
-      endif
-      if(ncbf.gt.0) ipcl=isv+1
-      isv=isv+ncbf
-      if(index(winfo(:lc),' fs ').gt.0) then
-         isv=isv+1
-         ipfs=isv
-      endif
-      if(index(winfo(:lc),' sg ').gt.0) then
-         isv=isv+1
-         ipsg=isv
-      endif
-      if(index(winfo(:lc),' zo ').gt.0) then
-         isv=isv+1
-         ipzo=isv
-      endif
-      nfp=isv
+      call decode_winfo(winfo,mfp,
+     & ntg,ncbf,nfp,iptg,ipcl,ipfs,ipsg,ipzo,ipcf,pars)
 
       if(nfp.gt.mfp) then
          write(*,*) 'mfp,nfp=', mfp,nfp
@@ -356,15 +317,17 @@ c This prevents GFIT spending 20 minutes processing and then crashing.
 
       call spectrum_loop(winfo,debug,
      & lunw_col,lunw_cbf,lcl,colabel,colfile_format,lspmax,
-     & rlgfile,akpath,rayfile,mavfile,targmol,tll_file,parfile,
+     & rlgfile,jacpath,rayfile,mavfile,targmol,tll_file,parfile,
      & apx,apu,dplist,iptg,ipcl,ipfs,ipsg,ipzo,ipcf,
      & ntg,ncbf,nfp,speci,nspeci_iso,solarll,pars,sptfile)
 c      write(*,*) ' Exited spectrum loop'
       write(colfile_format(6:7),'(i2.2)') lspmax
 c======================================================================
 c Compute md5sum checksums of input files and write to "check_md5sums_012345.tmp"
+c JLL: changed format from i6.6 to i8.8 since some servers allow longer
+c  PIDs that cannot fit in 6 digits.
       if(dl.eq.'/')then
-         write(csfilename,'(a14,i6.6,a4)') 'check_md5sums_',getpid(),
+         write(csfilename,'(a14,i8.8,a4)') 'check_md5sums_',getpid(),
      &   '.tmp'
 c         istat=system('md5sum '//dplist//' > '//csfilename)
 c         istat=system('md5sum '//apvalerr//' >> '//csfilename)
@@ -432,11 +395,11 @@ c         end do
          write(lunw_col,'(a32,2x,a)')checksum,tll_file(:lnbc(tll_file))
          read(lunr_cs,'(a32,2x,a)')checksum,solarll
          write(lunw_col,'(a32,2x,a)')checksum,solarll(:lnbc(solarll))
-         write(lunw_col,'(34x,a)')akpath(:lnbc(akpath))
+         write(lunw_col,'(34x,a)')jacpath(:lnbc(jacpath))
          write(lunw_col,'(34x,a)')sptfile(:lnbc(sptfile))
          write(lunw_col,'(34x,a)')colfile(:lnbc(colfile))
          write(lunw_col,'(34x,a)')colfile_format(:lnbc(colfile_format))
-         write(lunw_col,'(a)')winfo(:lw)
+         write(lunw_col,'(a)')winfo(:lnbc(winfo))
          close(lunr_cs,status='delete')
       else
 c         call substr(linefiles,linelists,9,nss)
@@ -456,17 +419,17 @@ c         call substr(linefiles,linelists,9,nss)
          write(lunw_col,'(a)') winfile(:lnbc(winfile))
          write(lunw_col,'(a)') tll_file(:lnbc(tll_file))
          write(lunw_col,'(a)') solarll(:lnbc(solarll))
-         write(lunw_col,'(a)') akpath(:lnbc(akpath))
+         write(lunw_col,'(a)') jacpath(:lnbc(jacpath))
          write(lunw_col,'(a)') sptfile(:lnbc(sptfile))
          write(lunw_col,'(a)') colfile(:lnbc(colfile))
          write(lunw_col,'(a)') colfile_format(:lnbc(colfile_format))
-         write(lunw_col,'(a)') winfo(:lw)
+         write(lunw_col,'(a)') winfo(:lnbc(winfo))
       endif
 c
 c Do the real spectral fitting.
       call spectrum_loop(winfo,debug,
      & lunw_col,lunw_cbf,lcl,colabel,colfile_format,lspmax,
-     & rlgfile,akpath,rayfile,mavfile,targmol,tll_file,parfile,
+     & rlgfile,jacpath,rayfile,mavfile,targmol,tll_file,parfile,
      & apx,apu,dplist,iptg,ipcl,ipfs,ipsg,ipzo,ipcf,
      & ntg,ncbf,nfp,speci,nspeci_iso,solarll,pars,sptfile)
 

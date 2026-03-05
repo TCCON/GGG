@@ -1,3 +1,8 @@
+install/.compiler_gggrs.mk
+install/.compiler_gggrs.sh
+install/.mambaenv
+install/.condaenv
+
 # The original .hgignore patterns
 # .*\.o$
 # .*~$

@@ -1,4 +1,4 @@
-#!/bin/bash -l
+#!/bin/bash
 
 always_yes=false
 
@@ -25,6 +25,7 @@ if [ ! -z $GGG_USE_MICROMAMBA ] && [ $GGG_USE_MICROMAMBA -gt 0 ]; then
     echo "CREATECMD='env create'" >> $mydir/.init_conda
     echo "UPDATECMD='update'" >> $mydir/.init_conda
     echo "export PYTHONCMD='micromamba run -p $mydir/.condaenv python'" >> $mydir/.init_conda
+    echo "export PIPCMD='micromamba run -p $mydir/.condaenv pip'" >> $mydir/.init_conda
     echo "export NO_CONDA_ACTIVATE=1" >> $mydir/.init_conda
     exit 0
   else
@@ -84,6 +85,7 @@ else
     echo "CREATECMD='env create'" >> $mydir/.init_conda
     echo "UPDATECMD='env update'" >> $mydir/.init_conda
     echo "export PYTHONCMD=python" >> $mydir/.init_conda
+    echo "export PIPCMD=pip" >> $mydir/.init_conda
     echo "export NO_CONDA_ACTIVATE=0" >> $mydir/.init_conda
 fi
 

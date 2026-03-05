@@ -1,21 +1,22 @@
 
-08/20/2021 04:21:15 PM New write_netcdf log session
-[INFO]: Running write_netcdf.py (Version 1.0; 2019-11-15; SR)
-[INFO]: tccon_netcdf repository HEAD: e1a644a
-[INFO]: Python executable used: /home/jlaugh/anaconda3/envs/ggg-tccon-default/bin/python
-[INFO]: GGGPATH=/home/jlaugh/GGG/ggg-my-devel
-[INFO]: cwd=/home/jlaugh/GGG/ggg-my-devel/install/current_results
-[INFO]: Will use /home/jlaugh/GGG/ggg-my-devel/src/tccon_netcdf/write_tccon_netcdf/release_flags.json for release flags.
+02/27/2026 12:56:31 PM New write_netcdf log session
+[INFO]: Running write_netcdf (Version 1.1.0; 2025-10-22; SR,JL)
+[INFO]: tccon_netcdf repository HEAD: e8200a2
+[INFO]: Python executable used: /oco2-data/tccon-nobak/scratch/jlaugh/ggg2020.1-release/ggg-devel-clean/install/.condaenv/bin/python3.10
+[INFO]: GGGPATH=/oco2-data/tccon-nobak/scratch/jlaugh/ggg2020.1-release/ggg-devel-clean
+[INFO]: cwd=/oco2-data/tccon-nobak/scratch/jlaugh/ggg2020.1-release/ggg-devel-clean/install/current_results
+[INFO]: Will use /oco2-data/tccon-nobak/scratch/jlaugh/ggg2020.1-release/ggg-devel-clean/src/tccon_netcdf/write_tccon_netcdf/release_flags.json for release flags.
 [INFO]: netCDF file format: NETCDF4_CLASSIC
 [INFO]: Input file: pa_ggg_benchmark.tav
-[INFO]: Will use /home/jlaugh/GGG/ggg-my-devel/src/tccon_netcdf/write_tccon_netcdf/tccon_gases.json for tccon gases.
+[INFO]: Will use /oco2-data/tccon-nobak/scratch/jlaugh/ggg2020.1-release/ggg-devel-clean/src/tccon_netcdf/write_tccon_netcdf/tccon_gases.json for tccon gases.
 [INFO]: The runlog contains: 4 InGaAs spectra; 4 Si spectra;
+[INFO]: Will use /oco2-data/tccon-nobak/scratch/jlaugh/ggg2020.1-release/ggg-devel-clean/src/tccon_netcdf/write_tccon_netcdf/site_info.json for site info.
 [INFO]: Reading MAV file ...
 [INFO]: Reading input files:
-[INFO]: 	- /home/jlaugh/GGG/ggg-my-devel/tccon/pa_oof_header.dat
-[INFO]: 	- /home/jlaugh/GGG/ggg-my-devel/tccon/pa_qc.dat
+[INFO]: 	- /oco2-data/tccon-nobak/scratch/jlaugh/ggg2020.1-release/ggg-devel-clean/tccon/pa_oof_header.dat
+[INFO]: 	- /oco2-data/tccon-nobak/scratch/jlaugh/ggg2020.1-release/ggg-devel-clean/tccon/pa_qc.dat
 [INFO]: 	- pa_ggg_benchmark.vav.ada.aia.daily_error.out
-[INFO]: 	- /home/jlaugh/GGG/ggg-my-devel/lse/gnd/pa_ggg_benchmark.lse
+[INFO]: 	- /oco2-data/tccon-nobak/scratch/jlaugh/ggg2020.1-release/ggg-devel-clean/lse/gnd/pa_ggg_benchmark.lse
 [INFO]: 	- pa_ggg_benchmark.vav
 [INFO]: 	- pa_ggg_benchmark.vav.ada
 [INFO]: 	- pa_ggg_benchmark.vav.ada.aia
@@ -25,14 +26,14 @@
 [INFO]: Check spectrum array consistency ...
 [INFO]: Writing pa20040721_20041222.private.nc ...
 [INFO]: The output of "hg summary" from the GGG repository:
- parent: 1668:1b28c4a15433 tip
- Updated in situ correction for N2O after rerunning Lamont data with LSE correction on
+ parent: 1749:1864dabab22f tip
+ Removed a second merge note I had left around
 branch: default
-commit: 84 modified, 26 deleted, 1091 unknown
+commit: 4 modified, 1 deleted, 356 unknown
 update: (current)
-phases: 1 draft
 
 [INFO]: Creating dimensions and coordinate variables
+[INFO]: Will use /oco2-data/tccon-nobak/scratch/jlaugh/ggg2020.1-release/ggg-devel-clean/src/tccon_netcdf/write_tccon_netcdf/ak_tables.nc for ak tables.
 [INFO]: Creating variables
 [INFO]: 	- Averaging kernels
 [INFO]: 	- Prior and cell variables
@@ -47,6 +48,7 @@ phases: 1 draft
 [INFO]: 	- .lse
 [INFO]: 	- ADCF
 [INFO]: 	- AICF
+[INFO]: Computing prior index ...
 [INFO]: Writing prior data ...
 [INFO]: Finished writing prior data
 [INFO]: Writing scaled aia data and determining qc flags
@@ -55,7 +57,945 @@ phases: 1 draft
 [INFO]:   9  solzen                    2     50.000
 [INFO]:      TOTAL                     2     50.000
 [INFO]: Writing .col and .cbf data:
-[INFO]: Will use /home/jlaugh/GGG/ggg-my-devel/src/tccon_netcdf/write_tccon_netcdf/missing_data.json for missing data.
-[INFO]: Reading manual flags from /home/jlaugh/GGG/ggg-my-devel/tccon/pa_manual_flagging.dat
-[INFO]: Finished writing pa20040721_20041222.private.nc 12.20 MB
-[INFO]: Finished write_netcdf log session at 08/20/2021 04:22:36 PM
+[INFO]: Will use /oco2-data/tccon-nobak/scratch/jlaugh/ggg2020.1-release/ggg-devel-clean/src/tccon_netcdf/write_tccon_netcdf/missing_data.json for missing data.
+[INFO]: The existing prior indices appear correct, not recalculating
+[INFO]: Will use /oco2-data/tccon-nobak/scratch/jlaugh/ggg2020.1-release/ggg-devel-clean/src/tccon_netcdf/write_tccon_netcdf/ak_tables.nc for ak tables.
+[DEBUG]: Setting ak_xco2 units to "1"
+[DEBUG]: Setting ak_xwco2 units to "1"
+[DEBUG]: Setting ak_xlco2 units to "1"
+[DEBUG]: Setting ak_xch4 units to "1"
+[DEBUG]: Setting ak_xhf units to "1"
+[DEBUG]: Setting ak_xo2 units to "1"
+[DEBUG]: Setting ak_xn2o units to "1"
+[DEBUG]: Setting ak_xco units to "1"
+[DEBUG]: Setting ak_xh2o units to "1"
+[DEBUG]: Setting ak_xhdo units to "1"
+[DEBUG]: Setting prior_1h2o units to "1"
+[DEBUG]: Setting cell_1h2o units to "1"
+[DEBUG]: Setting prior_2h2o units to "1"
+[DEBUG]: Setting cell_2h2o units to "1"
+[DEBUG]: Setting prior_3h2o units to "1"
+[DEBUG]: Setting cell_3h2o units to "1"
+[DEBUG]: Setting prior_1co2 units to "1"
+[DEBUG]: Setting cell_1co2 units to "1"
+[DEBUG]: Setting prior_2co2 units to "1"
+[DEBUG]: Setting cell_2co2 units to "1"
+[DEBUG]: Setting prior_3co2 units to "1"
+[DEBUG]: Setting cell_3co2 units to "1"
+[DEBUG]: Setting prior_4co2 units to "1"
+[DEBUG]: Setting cell_4co2 units to "1"
+[DEBUG]: Setting prior_5co2 units to "1"
+[DEBUG]: Setting cell_5co2 units to "1"
+[DEBUG]: Setting prior_6co2 units to "1"
+[DEBUG]: Setting cell_6co2 units to "1"
+[DEBUG]: Setting prior_7co2 units to "1"
+[DEBUG]: Setting cell_7co2 units to "1"
+[DEBUG]: Setting prior_8co2 units to "1"
+[DEBUG]: Setting cell_8co2 units to "1"
+[DEBUG]: Setting prior_9co2 units to "1"
+[DEBUG]: Setting cell_9co2 units to "1"
+[DEBUG]: Setting prior_10co2 units to "1"
+[DEBUG]: Setting cell_10co2 units to "1"
+[DEBUG]: Setting prior_11co2 units to "1"
+[DEBUG]: Setting cell_11co2 units to "1"
+[DEBUG]: Setting prior_12co2 units to "1"
+[DEBUG]: Setting cell_12co2 units to "1"
+[DEBUG]: Setting prior_1o3 units to "1"
+[DEBUG]: Setting cell_1o3 units to "1"
+[DEBUG]: Setting prior_2o3 units to "1"
+[DEBUG]: Setting cell_2o3 units to "1"
+[DEBUG]: Setting prior_3o3 units to "1"
+[DEBUG]: Setting cell_3o3 units to "1"
+[DEBUG]: Setting prior_4o3 units to "1"
+[DEBUG]: Setting cell_4o3 units to "1"
+[DEBUG]: Setting prior_5o3 units to "1"
+[DEBUG]: Setting cell_5o3 units to "1"
+[DEBUG]: Setting prior_1n2o units to "1"
+[DEBUG]: Setting cell_1n2o units to "1"
+[DEBUG]: Setting prior_2n2o units to "1"
+[DEBUG]: Setting cell_2n2o units to "1"
+[DEBUG]: Setting prior_3n2o units to "1"
+[DEBUG]: Setting cell_3n2o units to "1"
+[DEBUG]: Setting prior_4n2o units to "1"
+[DEBUG]: Setting cell_4n2o units to "1"
+[DEBUG]: Setting prior_5n2o units to "1"
+[DEBUG]: Setting cell_5n2o units to "1"
+[DEBUG]: Setting prior_6n2o units to "1"
+[DEBUG]: Setting cell_6n2o units to "1"
+[DEBUG]: Setting prior_7n2o units to "1"
+[DEBUG]: Setting cell_7n2o units to "1"
+[DEBUG]: Setting prior_8n2o units to "1"
+[DEBUG]: Setting cell_8n2o units to "1"
+[DEBUG]: Setting prior_1co units to "1"
+[DEBUG]: Setting cell_1co units to "1"
+[DEBUG]: Setting prior_2co units to "1"
+[DEBUG]: Setting cell_2co units to "1"
+[DEBUG]: Setting prior_3co units to "1"
+[DEBUG]: Setting cell_3co units to "1"
+[DEBUG]: Setting prior_4co units to "1"
+[DEBUG]: Setting cell_4co units to "1"
+[DEBUG]: Setting prior_5co units to "1"
+[DEBUG]: Setting cell_5co units to "1"
+[DEBUG]: Setting prior_6co units to "1"
+[DEBUG]: Setting cell_6co units to "1"
+[DEBUG]: Setting prior_1ch4 units to "1"
+[DEBUG]: Setting cell_1ch4 units to "1"
+[DEBUG]: Setting prior_2ch4 units to "1"
+[DEBUG]: Setting cell_2ch4 units to "1"
+[DEBUG]: Setting prior_3ch4 units to "1"
+[DEBUG]: Setting cell_3ch4 units to "1"
+[DEBUG]: Setting prior_4ch4 units to "1"
+[DEBUG]: Setting cell_4ch4 units to "1"
+[DEBUG]: Setting prior_0o2 units to "1"
+[DEBUG]: Setting cell_0o2 units to "1"
+[DEBUG]: Setting prior_1o2 units to "1"
+[DEBUG]: Setting cell_1o2 units to "1"
+[DEBUG]: Setting prior_2o2 units to "1"
+[DEBUG]: Setting cell_2o2 units to "1"
+[DEBUG]: Setting prior_3o2 units to "1"
+[DEBUG]: Setting cell_3o2 units to "1"
+[DEBUG]: Setting prior_1no units to "1"
+[DEBUG]: Setting cell_1no units to "1"
+[DEBUG]: Setting prior_2no units to "1"
+[DEBUG]: Setting cell_2no units to "1"
+[DEBUG]: Setting prior_3no units to "1"
+[DEBUG]: Setting cell_3no units to "1"
+[DEBUG]: Setting prior_1so2 units to "1"
+[DEBUG]: Setting cell_1so2 units to "1"
+[DEBUG]: Setting prior_2so2 units to "1"
+[DEBUG]: Setting cell_2so2 units to "1"
+[DEBUG]: Setting prior_3so2 units to "1"
+[DEBUG]: Setting cell_3so2 units to "1"
+[DEBUG]: Setting prior_1no2 units to "1"
+[DEBUG]: Setting cell_1no2 units to "1"
+[DEBUG]: Setting prior_2no2 units to "1"
+[DEBUG]: Setting cell_2no2 units to "1"
+[DEBUG]: Setting prior_1nh3 units to "1"
+[DEBUG]: Setting cell_1nh3 units to "1"
+[DEBUG]: Setting prior_2nh3 units to "1"
+[DEBUG]: Setting cell_2nh3 units to "1"
+[DEBUG]: Setting prior_3nh3 units to "1"
+[DEBUG]: Setting cell_3nh3 units to "1"
+[DEBUG]: Setting prior_4nh3 units to "1"
+[DEBUG]: Setting cell_4nh3 units to "1"
+[DEBUG]: Setting prior_5nh3 units to "1"
+[DEBUG]: Setting cell_5nh3 units to "1"
+[DEBUG]: Setting prior_6nh3 units to "1"
+[DEBUG]: Setting cell_6nh3 units to "1"
+[DEBUG]: Setting prior_7nh3 units to "1"
+[DEBUG]: Setting cell_7nh3 units to "1"
+[DEBUG]: Setting prior_0hno3 units to "1"
+[DEBUG]: Setting cell_0hno3 units to "1"
+[DEBUG]: Setting prior_1hno3 units to "1"
+[DEBUG]: Setting cell_1hno3 units to "1"
+[DEBUG]: Setting prior_2hno3 units to "1"
+[DEBUG]: Setting cell_2hno3 units to "1"
+[DEBUG]: Setting prior_1oh units to "1"
+[DEBUG]: Setting cell_1oh units to "1"
+[DEBUG]: Setting prior_2oh units to "1"
+[DEBUG]: Setting cell_2oh units to "1"
+[DEBUG]: Setting prior_3oh units to "1"
+[DEBUG]: Setting cell_3oh units to "1"
+[DEBUG]: Setting prior_1hf units to "1"
+[DEBUG]: Setting cell_1hf units to "1"
+[DEBUG]: Setting prior_2hf units to "1"
+[DEBUG]: Setting cell_2hf units to "1"
+[DEBUG]: Setting prior_1hcl units to "1"
+[DEBUG]: Setting cell_1hcl units to "1"
+[DEBUG]: Setting prior_2hcl units to "1"
+[DEBUG]: Setting cell_2hcl units to "1"
+[DEBUG]: Setting prior_3hcl units to "1"
+[DEBUG]: Setting cell_3hcl units to "1"
+[DEBUG]: Setting prior_4hcl units to "1"
+[DEBUG]: Setting cell_4hcl units to "1"
+[DEBUG]: Setting prior_1hbr units to "1"
+[DEBUG]: Setting cell_1hbr units to "1"
+[DEBUG]: Setting prior_2hbr units to "1"
+[DEBUG]: Setting cell_2hbr units to "1"
+[DEBUG]: Setting prior_3hbr units to "1"
+[DEBUG]: Setting cell_3hbr units to "1"
+[DEBUG]: Setting prior_4hbr units to "1"
+[DEBUG]: Setting cell_4hbr units to "1"
+[DEBUG]: Setting prior_1hi units to "1"
+[DEBUG]: Setting cell_1hi units to "1"
+[DEBUG]: Setting prior_2hi units to "1"
+[DEBUG]: Setting cell_2hi units to "1"
+[DEBUG]: Setting prior_1clo units to "1"
+[DEBUG]: Setting cell_1clo units to "1"
+[DEBUG]: Setting prior_2clo units to "1"
+[DEBUG]: Setting cell_2clo units to "1"
+[DEBUG]: Setting prior_1ocs units to "1"
+[DEBUG]: Setting cell_1ocs units to "1"
+[DEBUG]: Setting prior_2ocs units to "1"
+[DEBUG]: Setting cell_2ocs units to "1"
+[DEBUG]: Setting prior_3ocs units to "1"
+[DEBUG]: Setting cell_3ocs units to "1"
+[DEBUG]: Setting prior_4ocs units to "1"
+[DEBUG]: Setting cell_4ocs units to "1"
+[DEBUG]: Setting prior_5ocs units to "1"
+[DEBUG]: Setting cell_5ocs units to "1"
+[DEBUG]: Setting prior_6ocs units to "1"
+[DEBUG]: Setting cell_6ocs units to "1"
+[DEBUG]: Setting prior_1h2co units to "1"
+[DEBUG]: Setting cell_1h2co units to "1"
+[DEBUG]: Setting prior_2h2co units to "1"
+[DEBUG]: Setting cell_2h2co units to "1"
+[DEBUG]: Setting prior_3h2co units to "1"
+[DEBUG]: Setting cell_3h2co units to "1"
+[DEBUG]: Setting prior_1hocl units to "1"
+[DEBUG]: Setting cell_1hocl units to "1"
+[DEBUG]: Setting prior_2hocl units to "1"
+[DEBUG]: Setting cell_2hocl units to "1"
+[DEBUG]: Setting prior_1ho2 units to "1"
+[DEBUG]: Setting cell_1ho2 units to "1"
+[DEBUG]: Setting prior_1h2o2 units to "1"
+[DEBUG]: Setting cell_1h2o2 units to "1"
+[DEBUG]: Setting prior_1hono units to "1"
+[DEBUG]: Setting cell_1hono units to "1"
+[DEBUG]: Setting prior_1ho2no2 units to "1"
+[DEBUG]: Setting cell_1ho2no2 units to "1"
+[DEBUG]: Setting prior_0n2o5 units to "1"
+[DEBUG]: Setting cell_0n2o5 units to "1"
+[DEBUG]: Setting prior_1n2o5 units to "1"
+[DEBUG]: Setting cell_1n2o5 units to "1"
+[DEBUG]: Setting prior_0clno3 units to "1"
+[DEBUG]: Setting cell_0clno3 units to "1"
+[DEBUG]: Setting prior_1clno3 units to "1"
+[DEBUG]: Setting cell_1clno3 units to "1"
+[DEBUG]: Setting prior_2clno3 units to "1"
+[DEBUG]: Setting cell_2clno3 units to "1"
+[DEBUG]: Setting prior_1hcn units to "1"
+[DEBUG]: Setting cell_1hcn units to "1"
+[DEBUG]: Setting prior_2hcn units to "1"
+[DEBUG]: Setting cell_2hcn units to "1"
+[DEBUG]: Setting prior_3hcn units to "1"
+[DEBUG]: Setting cell_3hcn units to "1"
+[DEBUG]: Setting prior_1ch3f units to "1"
+[DEBUG]: Setting cell_1ch3f units to "1"
+[DEBUG]: Setting prior_1ch3cl units to "1"
+[DEBUG]: Setting cell_1ch3cl units to "1"
+[DEBUG]: Setting prior_2ch3cl units to "1"
+[DEBUG]: Setting cell_2ch3cl units to "1"
+[DEBUG]: Setting prior_0cf4 units to "1"
+[DEBUG]: Setting cell_0cf4 units to "1"
+[DEBUG]: Setting prior_1cf4 units to "1"
+[DEBUG]: Setting cell_1cf4 units to "1"
+[DEBUG]: Setting prior_0ccl2f2 units to "1"
+[DEBUG]: Setting cell_0ccl2f2 units to "1"
+[DEBUG]: Setting prior_1ccl2f2 units to "1"
+[DEBUG]: Setting cell_1ccl2f2 units to "1"
+[DEBUG]: Setting prior_0ccl3f units to "1"
+[DEBUG]: Setting cell_0ccl3f units to "1"
+[DEBUG]: Setting prior_1ccl3f units to "1"
+[DEBUG]: Setting cell_1ccl3f units to "1"
+[DEBUG]: Setting prior_1ch3ccl3 units to "1"
+[DEBUG]: Setting cell_1ch3ccl3 units to "1"
+[DEBUG]: Setting prior_0ccl4 units to "1"
+[DEBUG]: Setting cell_0ccl4 units to "1"
+[DEBUG]: Setting prior_1ccl4 units to "1"
+[DEBUG]: Setting cell_1ccl4 units to "1"
+[DEBUG]: Setting prior_1cof2 units to "1"
+[DEBUG]: Setting cell_1cof2 units to "1"
+[DEBUG]: Setting prior_2cof2 units to "1"
+[DEBUG]: Setting cell_2cof2 units to "1"
+[DEBUG]: Setting prior_1cofcl units to "1"
+[DEBUG]: Setting cell_1cofcl units to "1"
+[DEBUG]: Setting prior_2cofcl units to "1"
+[DEBUG]: Setting cell_2cofcl units to "1"
+[DEBUG]: Setting prior_0c2h6 units to "1"
+[DEBUG]: Setting cell_0c2h6 units to "1"
+[DEBUG]: Setting prior_1c2h6 units to "1"
+[DEBUG]: Setting cell_1c2h6 units to "1"
+[DEBUG]: Setting prior_2c2h6 units to "1"
+[DEBUG]: Setting cell_2c2h6 units to "1"
+[DEBUG]: Setting prior_1c2h4 units to "1"
+[DEBUG]: Setting cell_1c2h4 units to "1"
+[DEBUG]: Setting prior_2c2h4 units to "1"
+[DEBUG]: Setting cell_2c2h4 units to "1"
+[DEBUG]: Setting prior_1c2h2 units to "1"
+[DEBUG]: Setting cell_1c2h2 units to "1"
+[DEBUG]: Setting prior_2c2h2 units to "1"
+[DEBUG]: Setting cell_2c2h2 units to "1"
+[DEBUG]: Setting prior_3c2h2 units to "1"
+[DEBUG]: Setting cell_3c2h2 units to "1"
+[DEBUG]: Setting prior_0n2 units to "1"
+[DEBUG]: Setting cell_0n2 units to "1"
+[DEBUG]: Setting prior_1n2 units to "1"
+[DEBUG]: Setting cell_1n2 units to "1"
+[DEBUG]: Setting prior_2n2 units to "1"
+[DEBUG]: Setting cell_2n2 units to "1"
+[DEBUG]: Setting prior_0chclf2 units to "1"
+[DEBUG]: Setting cell_0chclf2 units to "1"
+[DEBUG]: Setting prior_1chclf2 units to "1"
+[DEBUG]: Setting cell_1chclf2 units to "1"
+[DEBUG]: Setting prior_1cocl2 units to "1"
+[DEBUG]: Setting cell_1cocl2 units to "1"
+[DEBUG]: Setting prior_2cocl2 units to "1"
+[DEBUG]: Setting cell_2cocl2 units to "1"
+[DEBUG]: Setting prior_3cocl2 units to "1"
+[DEBUG]: Setting cell_3cocl2 units to "1"
+[DEBUG]: Setting prior_1ch3br units to "1"
+[DEBUG]: Setting cell_1ch3br units to "1"
+[DEBUG]: Setting prior_2ch3br units to "1"
+[DEBUG]: Setting cell_2ch3br units to "1"
+[DEBUG]: Setting prior_1ch3i units to "1"
+[DEBUG]: Setting cell_1ch3i units to "1"
+[DEBUG]: Setting prior_1hcooh units to "1"
+[DEBUG]: Setting cell_1hcooh units to "1"
+[DEBUG]: Setting prior_1h2s units to "1"
+[DEBUG]: Setting cell_1h2s units to "1"
+[DEBUG]: Setting prior_2h2s units to "1"
+[DEBUG]: Setting cell_2h2s units to "1"
+[DEBUG]: Setting prior_3h2s units to "1"
+[DEBUG]: Setting cell_3h2s units to "1"
+[DEBUG]: Setting prior_1chcl2f units to "1"
+[DEBUG]: Setting cell_1chcl2f units to "1"
+[DEBUG]: Setting prior_1hdo units to "1"
+[DEBUG]: Setting cell_1hdo units to "1"
+[DEBUG]: Setting prior_2hdo units to "1"
+[DEBUG]: Setting cell_2hdo units to "1"
+[DEBUG]: Setting prior_3hdo units to "1"
+[DEBUG]: Setting cell_3hdo units to "1"
+[DEBUG]: Setting prior_0sf6 units to "1"
+[DEBUG]: Setting cell_0sf6 units to "1"
+[DEBUG]: Setting prior_1sf6 units to "1"
+[DEBUG]: Setting cell_1sf6 units to "1"
+[DEBUG]: Setting prior_0f113 units to "1"
+[DEBUG]: Setting cell_0f113 units to "1"
+[DEBUG]: Setting prior_1f113 units to "1"
+[DEBUG]: Setting cell_1f113 units to "1"
+[DEBUG]: Setting prior_1clcn units to "1"
+[DEBUG]: Setting cell_1clcn units to "1"
+[DEBUG]: Setting prior_0f142b units to "1"
+[DEBUG]: Setting cell_0f142b units to "1"
+[DEBUG]: Setting prior_0dust_m units to "1"
+[DEBUG]: Setting cell_0dust_m units to "1"
+[DEBUG]: Setting prior_1ph3 units to "1"
+[DEBUG]: Setting cell_1ph3 units to "1"
+[DEBUG]: Setting prior_0ch3oh units to "1"
+[DEBUG]: Setting cell_0ch3oh units to "1"
+[DEBUG]: Setting prior_1ch3oh units to "1"
+[DEBUG]: Setting cell_1ch3oh units to "1"
+[DEBUG]: Setting prior_0ch3sh units to "1"
+[DEBUG]: Setting cell_0ch3sh units to "1"
+[DEBUG]: Setting prior_0ch3cho units to "1"
+[DEBUG]: Setting cell_0ch3cho units to "1"
+[DEBUG]: Setting prior_0ch3cn units to "1"
+[DEBUG]: Setting cell_0ch3cn units to "1"
+[DEBUG]: Setting prior_1ch3cn units to "1"
+[DEBUG]: Setting cell_1ch3cn units to "1"
+[DEBUG]: Setting prior_0pan units to "1"
+[DEBUG]: Setting cell_0pan units to "1"
+[DEBUG]: Setting prior_0nf3 units to "1"
+[DEBUG]: Setting cell_0nf3 units to "1"
+[DEBUG]: Setting prior_0cloocl units to "1"
+[DEBUG]: Setting cell_0cloocl units to "1"
+[DEBUG]: Setting prior_0clclo2 units to "1"
+[DEBUG]: Setting cell_0clclo2 units to "1"
+[DEBUG]: Setting prior_0cloclo units to "1"
+[DEBUG]: Setting cell_0cloclo units to "1"
+[DEBUG]: Setting prior_0chf3 units to "1"
+[DEBUG]: Setting cell_0chf3 units to "1"
+[DEBUG]: Setting prior_0f141b units to "1"
+[DEBUG]: Setting cell_0f141b units to "1"
+[DEBUG]: Setting prior_0ch3cooh units to "1"
+[DEBUG]: Setting cell_0ch3cooh units to "1"
+[DEBUG]: Setting prior_0cirrus6 units to "1"
+[DEBUG]: Setting cell_0cirrus6 units to "1"
+[DEBUG]: Setting prior_0cirrus15 units to "1"
+[DEBUG]: Setting cell_0cirrus15 units to "1"
+[DEBUG]: Setting prior_0c3h8 units to "1"
+[DEBUG]: Setting cell_0c3h8 units to "1"
+[DEBUG]: Setting prior_1c3h8 units to "1"
+[DEBUG]: Setting cell_1c3h8 units to "1"
+[DEBUG]: Setting prior_1d2o units to "1"
+[DEBUG]: Setting cell_1d2o units to "1"
+[DEBUG]: Setting prior_2d2o units to "1"
+[DEBUG]: Setting cell_2d2o units to "1"
+[DEBUG]: Setting prior_3d2o units to "1"
+[DEBUG]: Setting cell_3d2o units to "1"
+[DEBUG]: Setting prior_0sa_venus units to "1"
+[DEBUG]: Setting cell_0sa_venus units to "1"
+[DEBUG]: Setting prior_0c6h6 units to "1"
+[DEBUG]: Setting cell_0c6h6 units to "1"
+[DEBUG]: Setting prior_1c6h6 units to "1"
+[DEBUG]: Setting cell_1c6h6 units to "1"
+[DEBUG]: Setting prior_0c3h6 units to "1"
+[DEBUG]: Setting cell_0c3h6 units to "1"
+[DEBUG]: Setting prior_1c3h6 units to "1"
+[DEBUG]: Setting cell_1c3h6 units to "1"
+[DEBUG]: Setting prior_0ch3coch3 units to "1"
+[DEBUG]: Setting cell_0ch3coch3 units to "1"
+[DEBUG]: Setting prior_0cfh2cf3 units to "1"
+[DEBUG]: Setting cell_0cfh2cf3 units to "1"
+[DEBUG]: Setting prior_0n-c4h10 units to "1"
+[DEBUG]: Setting cell_0n-c4h10 units to "1"
+[DEBUG]: Setting prior_0c5h8 units to "1"
+[DEBUG]: Setting cell_0c5h8 units to "1"
+[DEBUG]: Setting prior_1luft units to "1"
+[DEBUG]: Setting cell_1luft units to "1"
+[DEBUG]: Setting h2o_dmf_out units to "1"
+[DEBUG]: Setting h2o_dmf_mod units to "1"
+[DEBUG]: Setting vsw_luft_6146 units to "1"
+[DEBUG]: Setting vsw_sf_luft_6146 units to "1"
+[DEBUG]: Setting vsw_ada_xluft_6146 units to "1"
+[DEBUG]: Setting vsw_luft_6146_error units to "1"
+[DEBUG]: Setting vsw_ada_xluft_6146_error units to "1"
+[DEBUG]: Setting vsw_hf_4038 units to "1"
+[DEBUG]: Setting vsw_sf_hf_4038 units to "1"
+[DEBUG]: Setting vsw_ada_xhf_4038 units to "1"
+[DEBUG]: Setting vsw_hf_4038_error units to "1"
+[DEBUG]: Setting vsw_ada_xhf_4038_error units to "1"
+[DEBUG]: Setting vsw_h2o_4565 units to "1"
+[DEBUG]: Setting vsw_sf_h2o_4565 units to "1"
+[DEBUG]: Setting vsw_ada_xh2o_4565 units to "1"
+[DEBUG]: Setting vsw_h2o_4565_error units to "1"
+[DEBUG]: Setting vsw_ada_xh2o_4565_error units to "1"
+[DEBUG]: Setting vsw_h2o_4570 units to "1"
+[DEBUG]: Setting vsw_sf_h2o_4570 units to "1"
+[DEBUG]: Setting vsw_ada_xh2o_4570 units to "1"
+[DEBUG]: Setting vsw_h2o_4570_error units to "1"
+[DEBUG]: Setting vsw_ada_xh2o_4570_error units to "1"
+[DEBUG]: Setting vsw_h2o_4571 units to "1"
+[DEBUG]: Setting vsw_sf_h2o_4571 units to "1"
+[DEBUG]: Setting vsw_ada_xh2o_4571 units to "1"
+[DEBUG]: Setting vsw_h2o_4571_error units to "1"
+[DEBUG]: Setting vsw_ada_xh2o_4571_error units to "1"
+[DEBUG]: Setting vsw_h2o_4576 units to "1"
+[DEBUG]: Setting vsw_sf_h2o_4576 units to "1"
+[DEBUG]: Setting vsw_ada_xh2o_4576 units to "1"
+[DEBUG]: Setting vsw_h2o_4576_error units to "1"
+[DEBUG]: Setting vsw_ada_xh2o_4576_error units to "1"
+[DEBUG]: Setting vsw_h2o_4598 units to "1"
+[DEBUG]: Setting vsw_sf_h2o_4598 units to "1"
+[DEBUG]: Setting vsw_ada_xh2o_4598 units to "1"
+[DEBUG]: Setting vsw_h2o_4598_error units to "1"
+[DEBUG]: Setting vsw_ada_xh2o_4598_error units to "1"
+[DEBUG]: Setting vsw_h2o_4611 units to "1"
+[DEBUG]: Setting vsw_sf_h2o_4611 units to "1"
+[DEBUG]: Setting vsw_ada_xh2o_4611 units to "1"
+[DEBUG]: Setting vsw_h2o_4611_error units to "1"
+[DEBUG]: Setting vsw_ada_xh2o_4611_error units to "1"
+[DEBUG]: Setting vsw_h2o_4622 units to "1"
+[DEBUG]: Setting vsw_sf_h2o_4622 units to "1"
+[DEBUG]: Setting vsw_ada_xh2o_4622 units to "1"
+[DEBUG]: Setting vsw_h2o_4622_error units to "1"
+[DEBUG]: Setting vsw_ada_xh2o_4622_error units to "1"
+[DEBUG]: Setting vsw_h2o_4631 units to "1"
+[DEBUG]: Setting vsw_sf_h2o_4631 units to "1"
+[DEBUG]: Setting vsw_ada_xh2o_4631 units to "1"
+[DEBUG]: Setting vsw_h2o_4631_error units to "1"
+[DEBUG]: Setting vsw_ada_xh2o_4631_error units to "1"
+[DEBUG]: Setting vsw_h2o_4699 units to "1"
+[DEBUG]: Setting vsw_sf_h2o_4699 units to "1"
+[DEBUG]: Setting vsw_ada_xh2o_4699 units to "1"
+[DEBUG]: Setting vsw_h2o_4699_error units to "1"
+[DEBUG]: Setting vsw_ada_xh2o_4699_error units to "1"
+[DEBUG]: Setting vsw_h2o_4734 units to "1"
+[DEBUG]: Setting vsw_sf_h2o_4734 units to "1"
+[DEBUG]: Setting vsw_ada_xh2o_4734 units to "1"
+[DEBUG]: Setting vsw_h2o_4734_error units to "1"
+[DEBUG]: Setting vsw_ada_xh2o_4734_error units to "1"
+[DEBUG]: Setting vsw_h2o_4761 units to "1"
+[DEBUG]: Setting vsw_sf_h2o_4761 units to "1"
+[DEBUG]: Setting vsw_ada_xh2o_4761 units to "1"
+[DEBUG]: Setting vsw_h2o_4761_error units to "1"
+[DEBUG]: Setting vsw_ada_xh2o_4761_error units to "1"
+[DEBUG]: Setting vsw_h2o_6076 units to "1"
+[DEBUG]: Setting vsw_sf_h2o_6076 units to "1"
+[DEBUG]: Setting vsw_ada_xh2o_6076 units to "1"
+[DEBUG]: Setting vsw_h2o_6076_error units to "1"
+[DEBUG]: Setting vsw_ada_xh2o_6076_error units to "1"
+[DEBUG]: Setting vsw_h2o_6099 units to "1"
+[DEBUG]: Setting vsw_sf_h2o_6099 units to "1"
+[DEBUG]: Setting vsw_ada_xh2o_6099 units to "1"
+[DEBUG]: Setting vsw_h2o_6099_error units to "1"
+[DEBUG]: Setting vsw_ada_xh2o_6099_error units to "1"
+[DEBUG]: Setting vsw_h2o_6125 units to "1"
+[DEBUG]: Setting vsw_sf_h2o_6125 units to "1"
+[DEBUG]: Setting vsw_ada_xh2o_6125 units to "1"
+[DEBUG]: Setting vsw_h2o_6125_error units to "1"
+[DEBUG]: Setting vsw_ada_xh2o_6125_error units to "1"
+[DEBUG]: Setting vsw_h2o_6177 units to "1"
+[DEBUG]: Setting vsw_sf_h2o_6177 units to "1"
+[DEBUG]: Setting vsw_ada_xh2o_6177 units to "1"
+[DEBUG]: Setting vsw_h2o_6177_error units to "1"
+[DEBUG]: Setting vsw_ada_xh2o_6177_error units to "1"
+[DEBUG]: Setting vsw_h2o_6255 units to "1"
+[DEBUG]: Setting vsw_sf_h2o_6255 units to "1"
+[DEBUG]: Setting vsw_ada_xh2o_6255 units to "1"
+[DEBUG]: Setting vsw_h2o_6255_error units to "1"
+[DEBUG]: Setting vsw_ada_xh2o_6255_error units to "1"
+[DEBUG]: Setting vsw_h2o_6301 units to "1"
+[DEBUG]: Setting vsw_sf_h2o_6301 units to "1"
+[DEBUG]: Setting vsw_ada_xh2o_6301 units to "1"
+[DEBUG]: Setting vsw_h2o_6301_error units to "1"
+[DEBUG]: Setting vsw_ada_xh2o_6301_error units to "1"
+[DEBUG]: Setting vsw_h2o_6392 units to "1"
+[DEBUG]: Setting vsw_sf_h2o_6392 units to "1"
+[DEBUG]: Setting vsw_ada_xh2o_6392 units to "1"
+[DEBUG]: Setting vsw_h2o_6392_error units to "1"
+[DEBUG]: Setting vsw_ada_xh2o_6392_error units to "1"
+[DEBUG]: Setting vsw_h2o_6401 units to "1"
+[DEBUG]: Setting vsw_sf_h2o_6401 units to "1"
+[DEBUG]: Setting vsw_ada_xh2o_6401 units to "1"
+[DEBUG]: Setting vsw_h2o_6401_error units to "1"
+[DEBUG]: Setting vsw_ada_xh2o_6401_error units to "1"
+[DEBUG]: Setting vsw_h2o_6469 units to "1"
+[DEBUG]: Setting vsw_sf_h2o_6469 units to "1"
+[DEBUG]: Setting vsw_ada_xh2o_6469 units to "1"
+[DEBUG]: Setting vsw_h2o_6469_error units to "1"
+[DEBUG]: Setting vsw_ada_xh2o_6469_error units to "1"
+[DEBUG]: Setting vsw_th2o_4054 units to "1"
+[DEBUG]: Setting vsw_sf_th2o_4054 units to "1"
+[DEBUG]: Setting vsw_ada_xth2o_4054 units to "1"
+[DEBUG]: Setting vsw_th2o_4054_error units to "1"
+[DEBUG]: Setting vsw_ada_xth2o_4054_error units to "1"
+[DEBUG]: Setting vsw_th2o_4255 units to "1"
+[DEBUG]: Setting vsw_sf_th2o_4255 units to "1"
+[DEBUG]: Setting vsw_ada_xth2o_4255 units to "1"
+[DEBUG]: Setting vsw_th2o_4255_error units to "1"
+[DEBUG]: Setting vsw_ada_xth2o_4255_error units to "1"
+[DEBUG]: Setting vsw_th2o_4325 units to "1"
+[DEBUG]: Setting vsw_sf_th2o_4325 units to "1"
+[DEBUG]: Setting vsw_ada_xth2o_4325 units to "1"
+[DEBUG]: Setting vsw_th2o_4325_error units to "1"
+[DEBUG]: Setting vsw_ada_xth2o_4325_error units to "1"
+[DEBUG]: Setting vsw_th2o_4493 units to "1"
+[DEBUG]: Setting vsw_sf_th2o_4493 units to "1"
+[DEBUG]: Setting vsw_ada_xth2o_4493 units to "1"
+[DEBUG]: Setting vsw_th2o_4493_error units to "1"
+[DEBUG]: Setting vsw_ada_xth2o_4493_error units to "1"
+[DEBUG]: Setting vsw_th2o_4516 units to "1"
+[DEBUG]: Setting vsw_sf_th2o_4516 units to "1"
+[DEBUG]: Setting vsw_ada_xth2o_4516 units to "1"
+[DEBUG]: Setting vsw_th2o_4516_error units to "1"
+[DEBUG]: Setting vsw_ada_xth2o_4516_error units to "1"
+[DEBUG]: Setting vsw_th2o_4524 units to "1"
+[DEBUG]: Setting vsw_sf_th2o_4524 units to "1"
+[DEBUG]: Setting vsw_ada_xth2o_4524 units to "1"
+[DEBUG]: Setting vsw_th2o_4524_error units to "1"
+[DEBUG]: Setting vsw_ada_xth2o_4524_error units to "1"
+[DEBUG]: Setting vsw_th2o_4633 units to "1"
+[DEBUG]: Setting vsw_sf_th2o_4633 units to "1"
+[DEBUG]: Setting vsw_ada_xth2o_4633 units to "1"
+[DEBUG]: Setting vsw_th2o_4633_error units to "1"
+[DEBUG]: Setting vsw_ada_xth2o_4633_error units to "1"
+[DEBUG]: Setting vsw_hdo_4054 units to "1"
+[DEBUG]: Setting vsw_sf_hdo_4054 units to "1"
+[DEBUG]: Setting vsw_ada_xhdo_4054 units to "1"
+[DEBUG]: Setting vsw_hdo_4054_error units to "1"
+[DEBUG]: Setting vsw_ada_xhdo_4054_error units to "1"
+[DEBUG]: Setting vsw_hdo_4067 units to "1"
+[DEBUG]: Setting vsw_sf_hdo_4067 units to "1"
+[DEBUG]: Setting vsw_ada_xhdo_4067 units to "1"
+[DEBUG]: Setting vsw_hdo_4067_error units to "1"
+[DEBUG]: Setting vsw_ada_xhdo_4067_error units to "1"
+[DEBUG]: Setting vsw_hdo_4116 units to "1"
+[DEBUG]: Setting vsw_sf_hdo_4116 units to "1"
+[DEBUG]: Setting vsw_ada_xhdo_4116 units to "1"
+[DEBUG]: Setting vsw_hdo_4116_error units to "1"
+[DEBUG]: Setting vsw_ada_xhdo_4116_error units to "1"
+[DEBUG]: Setting vsw_hdo_4212 units to "1"
+[DEBUG]: Setting vsw_sf_hdo_4212 units to "1"
+[DEBUG]: Setting vsw_ada_xhdo_4212 units to "1"
+[DEBUG]: Setting vsw_hdo_4212_error units to "1"
+[DEBUG]: Setting vsw_ada_xhdo_4212_error units to "1"
+[DEBUG]: Setting vsw_hdo_4232 units to "1"
+[DEBUG]: Setting vsw_sf_hdo_4232 units to "1"
+[DEBUG]: Setting vsw_ada_xhdo_4232 units to "1"
+[DEBUG]: Setting vsw_hdo_4232_error units to "1"
+[DEBUG]: Setting vsw_ada_xhdo_4232_error units to "1"
+[DEBUG]: Setting vsw_hdo_6330 units to "1"
+[DEBUG]: Setting vsw_sf_hdo_6330 units to "1"
+[DEBUG]: Setting vsw_ada_xhdo_6330 units to "1"
+[DEBUG]: Setting vsw_hdo_6330_error units to "1"
+[DEBUG]: Setting vsw_ada_xhdo_6330_error units to "1"
+[DEBUG]: Setting vsw_hdo_6377 units to "1"
+[DEBUG]: Setting vsw_sf_hdo_6377 units to "1"
+[DEBUG]: Setting vsw_ada_xhdo_6377 units to "1"
+[DEBUG]: Setting vsw_hdo_6377_error units to "1"
+[DEBUG]: Setting vsw_ada_xhdo_6377_error units to "1"
+[DEBUG]: Setting vsw_hdo_6458 units to "1"
+[DEBUG]: Setting vsw_sf_hdo_6458 units to "1"
+[DEBUG]: Setting vsw_ada_xhdo_6458 units to "1"
+[DEBUG]: Setting vsw_hdo_6458_error units to "1"
+[DEBUG]: Setting vsw_ada_xhdo_6458_error units to "1"
+[DEBUG]: Setting vsw_co_4290 units to "1"
+[DEBUG]: Setting vsw_sf_co_4290 units to "1"
+[DEBUG]: Setting vsw_ada_xco_4290 units to "1"
+[DEBUG]: Setting vsw_co_4290_error units to "1"
+[DEBUG]: Setting vsw_ada_xco_4290_error units to "1"
+[DEBUG]: Setting vsw_n2o_4395 units to "1"
+[DEBUG]: Setting vsw_sf_n2o_4395 units to "1"
+[DEBUG]: Setting vsw_ada_xn2o_4395 units to "1"
+[DEBUG]: Setting vsw_n2o_4395_error units to "1"
+[DEBUG]: Setting vsw_ada_xn2o_4395_error units to "1"
+[DEBUG]: Setting vsw_n2o_4430 units to "1"
+[DEBUG]: Setting vsw_sf_n2o_4430 units to "1"
+[DEBUG]: Setting vsw_ada_xn2o_4430 units to "1"
+[DEBUG]: Setting vsw_n2o_4430_error units to "1"
+[DEBUG]: Setting vsw_ada_xn2o_4430_error units to "1"
+[DEBUG]: Setting vsw_n2o_4719 units to "1"
+[DEBUG]: Setting vsw_sf_n2o_4719 units to "1"
+[DEBUG]: Setting vsw_ada_xn2o_4719 units to "1"
+[DEBUG]: Setting vsw_n2o_4719_error units to "1"
+[DEBUG]: Setting vsw_ada_xn2o_4719_error units to "1"
+[DEBUG]: Setting vsw_ch4_5938 units to "1"
+[DEBUG]: Setting vsw_sf_ch4_5938 units to "1"
+[DEBUG]: Setting vsw_ada_xch4_5938 units to "1"
+[DEBUG]: Setting vsw_ch4_5938_error units to "1"
+[DEBUG]: Setting vsw_ada_xch4_5938_error units to "1"
+[DEBUG]: Setting vsw_ch4_6002 units to "1"
+[DEBUG]: Setting vsw_sf_ch4_6002 units to "1"
+[DEBUG]: Setting vsw_ada_xch4_6002 units to "1"
+[DEBUG]: Setting vsw_ch4_6002_error units to "1"
+[DEBUG]: Setting vsw_ada_xch4_6002_error units to "1"
+[DEBUG]: Setting vsw_ch4_6076 units to "1"
+[DEBUG]: Setting vsw_sf_ch4_6076 units to "1"
+[DEBUG]: Setting vsw_ada_xch4_6076 units to "1"
+[DEBUG]: Setting vsw_ch4_6076_error units to "1"
+[DEBUG]: Setting vsw_ada_xch4_6076_error units to "1"
+[DEBUG]: Setting vsw_lco2_4852 units to "1"
+[DEBUG]: Setting vsw_sf_lco2_4852 units to "1"
+[DEBUG]: Setting vsw_ada_xlco2_4852 units to "1"
+[DEBUG]: Setting vsw_lco2_4852_error units to "1"
+[DEBUG]: Setting vsw_ada_xlco2_4852_error units to "1"
+[DEBUG]: Setting vsw_zco2_4852 units to "1"
+[DEBUG]: Setting vsw_sf_zco2_4852 units to "1"
+[DEBUG]: Setting vsw_ada_xzco2_4852 units to "1"
+[DEBUG]: Setting vsw_zco2_4852_error units to "1"
+[DEBUG]: Setting vsw_ada_xzco2_4852_error units to "1"
+[DEBUG]: Setting vsw_zco2_4852a units to "1"
+[DEBUG]: Setting vsw_sf_zco2_4852a units to "1"
+[DEBUG]: Setting vsw_ada_xzco2_4852a units to "1"
+[DEBUG]: Setting vsw_zco2_4852a_error units to "1"
+[DEBUG]: Setting vsw_ada_xzco2_4852a_error units to "1"
+[DEBUG]: Setting vsw_fco2_6154 units to "1"
+[DEBUG]: Setting vsw_sf_fco2_6154 units to "1"
+[DEBUG]: Setting vsw_ada_xfco2_6154 units to "1"
+[DEBUG]: Setting vsw_fco2_6154_error units to "1"
+[DEBUG]: Setting vsw_ada_xfco2_6154_error units to "1"
+[DEBUG]: Setting vsw_wco2_6073 units to "1"
+[DEBUG]: Setting vsw_sf_wco2_6073 units to "1"
+[DEBUG]: Setting vsw_ada_xwco2_6073 units to "1"
+[DEBUG]: Setting vsw_wco2_6073_error units to "1"
+[DEBUG]: Setting vsw_ada_xwco2_6073_error units to "1"
+[DEBUG]: Setting vsw_co2_6220 units to "1"
+[DEBUG]: Setting vsw_sf_co2_6220 units to "1"
+[DEBUG]: Setting vsw_ada_xco2_6220 units to "1"
+[DEBUG]: Setting vsw_co2_6220_error units to "1"
+[DEBUG]: Setting vsw_ada_xco2_6220_error units to "1"
+[DEBUG]: Setting vsw_co2_6339 units to "1"
+[DEBUG]: Setting vsw_sf_co2_6339 units to "1"
+[DEBUG]: Setting vsw_ada_xco2_6339 units to "1"
+[DEBUG]: Setting vsw_co2_6339_error units to "1"
+[DEBUG]: Setting vsw_ada_xco2_6339_error units to "1"
+[DEBUG]: Setting vsw_o2_7885 units to "1"
+[DEBUG]: Setting vsw_sf_o2_7885 units to "1"
+[DEBUG]: Setting vsw_ada_xo2_7885 units to "1"
+[DEBUG]: Setting vsw_o2_7885_error units to "1"
+[DEBUG]: Setting vsw_ada_xo2_7885_error units to "1"
+[DEBUG]: Setting vsw_hcl_5625 units to "1"
+[DEBUG]: Setting vsw_sf_hcl_5625 units to "1"
+[DEBUG]: Setting vsw_ada_xhcl_5625 units to "1"
+[DEBUG]: Setting vsw_hcl_5625_error units to "1"
+[DEBUG]: Setting vsw_ada_xhcl_5625_error units to "1"
+[DEBUG]: Setting vsw_hcl_5687 units to "1"
+[DEBUG]: Setting vsw_sf_hcl_5687 units to "1"
+[DEBUG]: Setting vsw_ada_xhcl_5687 units to "1"
+[DEBUG]: Setting vsw_hcl_5687_error units to "1"
+[DEBUG]: Setting vsw_ada_xhcl_5687_error units to "1"
+[DEBUG]: Setting vsw_hcl_5702 units to "1"
+[DEBUG]: Setting vsw_sf_hcl_5702 units to "1"
+[DEBUG]: Setting vsw_ada_xhcl_5702 units to "1"
+[DEBUG]: Setting vsw_hcl_5702_error units to "1"
+[DEBUG]: Setting vsw_ada_xhcl_5702_error units to "1"
+[DEBUG]: Setting vsw_hcl_5735 units to "1"
+[DEBUG]: Setting vsw_sf_hcl_5735 units to "1"
+[DEBUG]: Setting vsw_ada_xhcl_5735 units to "1"
+[DEBUG]: Setting vsw_hcl_5735_error units to "1"
+[DEBUG]: Setting vsw_ada_xhcl_5735_error units to "1"
+[DEBUG]: Setting vsw_hcl_5739 units to "1"
+[DEBUG]: Setting vsw_sf_hcl_5739 units to "1"
+[DEBUG]: Setting vsw_ada_xhcl_5739 units to "1"
+[DEBUG]: Setting vsw_hcl_5739_error units to "1"
+[DEBUG]: Setting vsw_ada_xhcl_5739_error units to "1"
+[DEBUG]: Setting xluft units to "1"
+[DEBUG]: Setting ada_xluft units to "1"
+[DEBUG]: Setting xluft_error units to "1"
+[DEBUG]: Setting ada_xluft_error units to "1"
+[DEBUG]: Setting ada_xhf units to "1"
+[DEBUG]: Setting ada_xhf_error units to "1"
+[DEBUG]: Setting ada_xh2o units to "1"
+[DEBUG]: Setting ada_xh2o_error units to "1"
+[DEBUG]: Setting ada_xth2o units to "1"
+[DEBUG]: Setting ada_xth2o_error units to "1"
+[DEBUG]: Setting ada_xhdo units to "1"
+[DEBUG]: Setting ada_xhdo_error units to "1"
+[DEBUG]: Setting ada_xco units to "1"
+[DEBUG]: Setting ada_xco_error units to "1"
+[DEBUG]: Setting ada_xn2o units to "1"
+[DEBUG]: Setting ada_xn2o_error units to "1"
+[DEBUG]: Setting ada_xch4 units to "1"
+[DEBUG]: Setting ada_xch4_error units to "1"
+[DEBUG]: Setting ada_xlco2 units to "1"
+[DEBUG]: Setting ada_xlco2_error units to "1"
+[DEBUG]: Setting ada_xzco2 units to "1"
+[DEBUG]: Setting ada_xzco2_error units to "1"
+[DEBUG]: Setting ada_xfco2 units to "1"
+[DEBUG]: Setting ada_xfco2_error units to "1"
+[DEBUG]: Setting ada_xwco2 units to "1"
+[DEBUG]: Setting ada_xwco2_error units to "1"
+[DEBUG]: Setting ada_xco2 units to "1"
+[DEBUG]: Setting ada_xco2_error units to "1"
+[DEBUG]: Setting ada_xo2 units to "1"
+[DEBUG]: Setting ada_xo2_error units to "1"
+[DEBUG]: Setting ada_xhcl units to "1"
+[DEBUG]: Setting ada_xhcl_error units to "1"
+[DEBUG]: Setting hf_4038_cfampocl units to "1"
+[DEBUG]: Setting h2o_4565_cfampocl units to "1"
+[DEBUG]: Setting h2o_4570_cfampocl units to "1"
+[DEBUG]: Setting h2o_4571_cfampocl units to "1"
+[DEBUG]: Setting h2o_4576_cfampocl units to "1"
+[DEBUG]: Setting h2o_4598_cfampocl units to "1"
+[DEBUG]: Setting h2o_4611_cfampocl units to "1"
+[DEBUG]: Setting h2o_4622_cfampocl units to "1"
+[DEBUG]: Setting h2o_4631_cfampocl units to "1"
+[DEBUG]: Setting h2o_4699_cfampocl units to "1"
+[DEBUG]: Setting h2o_4734_cfampocl units to "1"
+[DEBUG]: Setting h2o_4761_cfampocl units to "1"
+[DEBUG]: Setting h2o_6076_cfampocl units to "1"
+[DEBUG]: Setting h2o_6099_cfampocl units to "1"
+[DEBUG]: Setting h2o_6125_cfampocl units to "1"
+[DEBUG]: Setting h2o_6177_cfampocl units to "1"
+[DEBUG]: Setting h2o_6255_cfampocl units to "1"
+[DEBUG]: Setting h2o_6301_cfampocl units to "1"
+[DEBUG]: Setting h2o_6392_cfampocl units to "1"
+[DEBUG]: Setting h2o_6401_cfampocl units to "1"
+[DEBUG]: Setting h2o_6469_cfampocl units to "1"
+[DEBUG]: Setting th2o_4054_cfampocl units to "1"
+[DEBUG]: Setting th2o_4255_cfampocl units to "1"
+[DEBUG]: Setting th2o_4325_cfampocl units to "1"
+[DEBUG]: Setting th2o_4493_cfampocl units to "1"
+[DEBUG]: Setting th2o_4516_cfampocl units to "1"
+[DEBUG]: Setting th2o_4524_cfampocl units to "1"
+[DEBUG]: Setting th2o_4633_cfampocl units to "1"
+[DEBUG]: Setting hdo_4054_cfampocl units to "1"
+[DEBUG]: Setting hdo_4067_cfampocl units to "1"
+[DEBUG]: Setting hdo_4116_cfampocl units to "1"
+[DEBUG]: Setting hdo_4212_cfampocl units to "1"
+[DEBUG]: Setting hdo_4232_cfampocl units to "1"
+[DEBUG]: Setting hdo_6330_cfampocl units to "1"
+[DEBUG]: Setting hdo_6377_cfampocl units to "1"
+[DEBUG]: Setting hdo_6458_cfampocl units to "1"
+[DEBUG]: Setting co_4290_cfampocl units to "1"
+[DEBUG]: Setting n2o_4395_cfampocl units to "1"
+[DEBUG]: Setting n2o_4430_cfampocl units to "1"
+[DEBUG]: Setting n2o_4719_cfampocl units to "1"
+[DEBUG]: Setting ch4_5938_cfampocl units to "1"
+[DEBUG]: Setting ch4_6002_cfampocl units to "1"
+[DEBUG]: Setting ch4_6076_cfampocl units to "1"
+[DEBUG]: Setting lco2_4852_cfampocl units to "1"
+[DEBUG]: Setting zco2_4852_cfampocl units to "1"
+[DEBUG]: Setting zco2_4852a_cfampocl units to "1"
+[DEBUG]: Setting fco2_6154_cfampocl units to "1"
+[DEBUG]: Setting wco2_6073_cfampocl units to "1"
+[DEBUG]: Setting co2_6220_cfampocl units to "1"
+[DEBUG]: Setting co2_6339_cfampocl units to "1"
+[DEBUG]: Setting o2_7885_cfampocl units to "1"
+[DEBUG]: Setting hcl_5625_cfampocl units to "1"
+[DEBUG]: Setting hcl_5687_cfampocl units to "1"
+[DEBUG]: Setting hcl_5702_cfampocl units to "1"
+[DEBUG]: Setting hcl_5735_cfampocl units to "1"
+[DEBUG]: Setting hcl_5739_cfampocl units to "1"
+[DEBUG]: Setting luft_6146_cfampocl units to "1"
+[INFO]: Adding long_units attributes to prior VMR profile variables
+[INFO]: Corrected prior_tropopause_altitude units
+[DEBUG]: Updated note on prior_1h2o to use simpler drying equation
+[DEBUG]: Updated note on prior_2h2o to use simpler drying equation
+[DEBUG]: Updated note on prior_3h2o to use simpler drying equation
+[DEBUG]: Updated note on prior_1co2 to use simpler drying equation
+[DEBUG]: Updated note on prior_2co2 to use simpler drying equation
+[DEBUG]: Updated note on prior_3co2 to use simpler drying equation
+[DEBUG]: Updated note on prior_4co2 to use simpler drying equation
+[DEBUG]: Updated note on prior_5co2 to use simpler drying equation
+[DEBUG]: Updated note on prior_6co2 to use simpler drying equation
+[DEBUG]: Updated note on prior_7co2 to use simpler drying equation
+[DEBUG]: Updated note on prior_8co2 to use simpler drying equation
+[DEBUG]: Updated note on prior_9co2 to use simpler drying equation
+[DEBUG]: Updated note on prior_10co2 to use simpler drying equation
+[DEBUG]: Updated note on prior_11co2 to use simpler drying equation
+[DEBUG]: Updated note on prior_12co2 to use simpler drying equation
+[DEBUG]: Updated note on prior_1o3 to use simpler drying equation
+[DEBUG]: Updated note on prior_2o3 to use simpler drying equation
+[DEBUG]: Updated note on prior_3o3 to use simpler drying equation
+[DEBUG]: Updated note on prior_4o3 to use simpler drying equation
+[DEBUG]: Updated note on prior_5o3 to use simpler drying equation
+[DEBUG]: Updated note on prior_1n2o to use simpler drying equation
+[DEBUG]: Updated note on prior_2n2o to use simpler drying equation
+[DEBUG]: Updated note on prior_3n2o to use simpler drying equation
+[DEBUG]: Updated note on prior_4n2o to use simpler drying equation
+[DEBUG]: Updated note on prior_5n2o to use simpler drying equation
+[DEBUG]: Updated note on prior_6n2o to use simpler drying equation
+[DEBUG]: Updated note on prior_7n2o to use simpler drying equation
+[DEBUG]: Updated note on prior_8n2o to use simpler drying equation
+[DEBUG]: Updated note on prior_1co to use simpler drying equation
+[DEBUG]: Updated note on prior_2co to use simpler drying equation
+[DEBUG]: Updated note on prior_3co to use simpler drying equation
+[DEBUG]: Updated note on prior_4co to use simpler drying equation
+[DEBUG]: Updated note on prior_5co to use simpler drying equation
+[DEBUG]: Updated note on prior_6co to use simpler drying equation
+[DEBUG]: Updated note on prior_1ch4 to use simpler drying equation
+[DEBUG]: Updated note on prior_2ch4 to use simpler drying equation
+[DEBUG]: Updated note on prior_3ch4 to use simpler drying equation
+[DEBUG]: Updated note on prior_4ch4 to use simpler drying equation
+[DEBUG]: Updated note on prior_0o2 to use simpler drying equation
+[DEBUG]: Updated note on prior_1o2 to use simpler drying equation
+[DEBUG]: Updated note on prior_2o2 to use simpler drying equation
+[DEBUG]: Updated note on prior_3o2 to use simpler drying equation
+[DEBUG]: Updated note on prior_1no to use simpler drying equation
+[DEBUG]: Updated note on prior_2no to use simpler drying equation
+[DEBUG]: Updated note on prior_3no to use simpler drying equation
+[DEBUG]: Updated note on prior_1so2 to use simpler drying equation
+[DEBUG]: Updated note on prior_2so2 to use simpler drying equation
+[DEBUG]: Updated note on prior_3so2 to use simpler drying equation
+[DEBUG]: Updated note on prior_1no2 to use simpler drying equation
+[DEBUG]: Updated note on prior_2no2 to use simpler drying equation
+[DEBUG]: Updated note on prior_1nh3 to use simpler drying equation
+[DEBUG]: Updated note on prior_2nh3 to use simpler drying equation
+[DEBUG]: Updated note on prior_3nh3 to use simpler drying equation
+[DEBUG]: Updated note on prior_4nh3 to use simpler drying equation
+[DEBUG]: Updated note on prior_5nh3 to use simpler drying equation
+[DEBUG]: Updated note on prior_6nh3 to use simpler drying equation
+[DEBUG]: Updated note on prior_7nh3 to use simpler drying equation
+[DEBUG]: Updated note on prior_0hno3 to use simpler drying equation
+[DEBUG]: Updated note on prior_1hno3 to use simpler drying equation
+[DEBUG]: Updated note on prior_2hno3 to use simpler drying equation
+[DEBUG]: Updated note on prior_1oh to use simpler drying equation
+[DEBUG]: Updated note on prior_2oh to use simpler drying equation
+[DEBUG]: Updated note on prior_3oh to use simpler drying equation
+[DEBUG]: Updated note on prior_1hf to use simpler drying equation
+[DEBUG]: Updated note on prior_2hf to use simpler drying equation
+[DEBUG]: Updated note on prior_1hcl to use simpler drying equation
+[DEBUG]: Updated note on prior_2hcl to use simpler drying equation
+[DEBUG]: Updated note on prior_3hcl to use simpler drying equation
+[DEBUG]: Updated note on prior_4hcl to use simpler drying equation
+[DEBUG]: Updated note on prior_1hbr to use simpler drying equation
+[DEBUG]: Updated note on prior_2hbr to use simpler drying equation
+[DEBUG]: Updated note on prior_3hbr to use simpler drying equation
+[DEBUG]: Updated note on prior_4hbr to use simpler drying equation
+[DEBUG]: Updated note on prior_1hi to use simpler drying equation
+[DEBUG]: Updated note on prior_2hi to use simpler drying equation
+[DEBUG]: Updated note on prior_1clo to use simpler drying equation
+[DEBUG]: Updated note on prior_2clo to use simpler drying equation
+[DEBUG]: Updated note on prior_1ocs to use simpler drying equation
+[DEBUG]: Updated note on prior_2ocs to use simpler drying equation
+[DEBUG]: Updated note on prior_3ocs to use simpler drying equation
+[DEBUG]: Updated note on prior_4ocs to use simpler drying equation
+[DEBUG]: Updated note on prior_5ocs to use simpler drying equation
+[DEBUG]: Updated note on prior_6ocs to use simpler drying equation
+[DEBUG]: Updated note on prior_1h2co to use simpler drying equation
+[DEBUG]: Updated note on prior_2h2co to use simpler drying equation
+[DEBUG]: Updated note on prior_3h2co to use simpler drying equation
+[DEBUG]: Updated note on prior_1hocl to use simpler drying equation
+[DEBUG]: Updated note on prior_2hocl to use simpler drying equation
+[DEBUG]: Updated note on prior_1ho2 to use simpler drying equation
+[DEBUG]: Updated note on prior_1h2o2 to use simpler drying equation
+[DEBUG]: Updated note on prior_1hono to use simpler drying equation
+[DEBUG]: Updated note on prior_1ho2no2 to use simpler drying equation
+[DEBUG]: Updated note on prior_0n2o5 to use simpler drying equation
+[DEBUG]: Updated note on prior_1n2o5 to use simpler drying equation
+[DEBUG]: Updated note on prior_0clno3 to use simpler drying equation
+[DEBUG]: Updated note on prior_1clno3 to use simpler drying equation
+[DEBUG]: Updated note on prior_2clno3 to use simpler drying equation
+[DEBUG]: Updated note on prior_1hcn to use simpler drying equation
+[DEBUG]: Updated note on prior_2hcn to use simpler drying equation
+[DEBUG]: Updated note on prior_3hcn to use simpler drying equation
+[DEBUG]: Updated note on prior_1ch3f to use simpler drying equation
+[DEBUG]: Updated note on prior_1ch3cl to use simpler drying equation
+[DEBUG]: Updated note on prior_2ch3cl to use simpler drying equation
+[DEBUG]: Updated note on prior_0cf4 to use simpler drying equation
+[DEBUG]: Updated note on prior_1cf4 to use simpler drying equation
+[DEBUG]: Updated note on prior_0ccl2f2 to use simpler drying equation
+[DEBUG]: Updated note on prior_1ccl2f2 to use simpler drying equation
+[DEBUG]: Updated note on prior_0ccl3f to use simpler drying equation
+[DEBUG]: Updated note on prior_1ccl3f to use simpler drying equation
+[DEBUG]: Updated note on prior_1ch3ccl3 to use simpler drying equation
+[DEBUG]: Updated note on prior_0ccl4 to use simpler drying equation
+[DEBUG]: Updated note on prior_1ccl4 to use simpler drying equation
+[DEBUG]: Updated note on prior_1cof2 to use simpler drying equation
+[DEBUG]: Updated note on prior_2cof2 to use simpler drying equation
+[DEBUG]: Updated note on prior_1cofcl to use simpler drying equation
+[DEBUG]: Updated note on prior_2cofcl to use simpler drying equation
+[DEBUG]: Updated note on prior_0c2h6 to use simpler drying equation
+[DEBUG]: Updated note on prior_1c2h6 to use simpler drying equation
+[DEBUG]: Updated note on prior_2c2h6 to use simpler drying equation
+[DEBUG]: Updated note on prior_1c2h4 to use simpler drying equation
+[DEBUG]: Updated note on prior_2c2h4 to use simpler drying equation
+[DEBUG]: Updated note on prior_1c2h2 to use simpler drying equation
+[DEBUG]: Updated note on prior_2c2h2 to use simpler drying equation
+[DEBUG]: Updated note on prior_3c2h2 to use simpler drying equation
+[DEBUG]: Updated note on prior_0n2 to use simpler drying equation
+[DEBUG]: Updated note on prior_1n2 to use simpler drying equation
+[DEBUG]: Updated note on prior_2n2 to use simpler drying equation
+[DEBUG]: Updated note on prior_0chclf2 to use simpler drying equation
+[DEBUG]: Updated note on prior_1chclf2 to use simpler drying equation
+[DEBUG]: Updated note on prior_1cocl2 to use simpler drying equation
+[DEBUG]: Updated note on prior_2cocl2 to use simpler drying equation
+[DEBUG]: Updated note on prior_3cocl2 to use simpler drying equation
+[DEBUG]: Updated note on prior_1ch3br to use simpler drying equation
+[DEBUG]: Updated note on prior_2ch3br to use simpler drying equation
+[DEBUG]: Updated note on prior_1ch3i to use simpler drying equation
+[DEBUG]: Updated note on prior_1hcooh to use simpler drying equation
+[DEBUG]: Updated note on prior_1h2s to use simpler drying equation
+[DEBUG]: Updated note on prior_2h2s to use simpler drying equation
+[DEBUG]: Updated note on prior_3h2s to use simpler drying equation
+[DEBUG]: Updated note on prior_1chcl2f to use simpler drying equation
+[DEBUG]: Updated note on prior_1hdo to use simpler drying equation
+[DEBUG]: Updated note on prior_2hdo to use simpler drying equation
+[DEBUG]: Updated note on prior_3hdo to use simpler drying equation
+[DEBUG]: Updated note on prior_0sf6 to use simpler drying equation
+[DEBUG]: Updated note on prior_1sf6 to use simpler drying equation
+[DEBUG]: Updated note on prior_0f113 to use simpler drying equation
+[DEBUG]: Updated note on prior_1f113 to use simpler drying equation
+[DEBUG]: Updated note on prior_1clcn to use simpler drying equation
+[DEBUG]: Updated note on prior_0f142b to use simpler drying equation
+[DEBUG]: Updated note on prior_1ph3 to use simpler drying equation
+[DEBUG]: Updated note on prior_0ch3oh to use simpler drying equation
+[DEBUG]: Updated note on prior_1ch3oh to use simpler drying equation
+[DEBUG]: Updated note on prior_0ch3sh to use simpler drying equation
+[DEBUG]: Updated note on prior_0ch3cho to use simpler drying equation
+[DEBUG]: Updated note on prior_0ch3cn to use simpler drying equation
+[DEBUG]: Updated note on prior_1ch3cn to use simpler drying equation
+[DEBUG]: Updated note on prior_0pan to use simpler drying equation
+[DEBUG]: Updated note on prior_0nf3 to use simpler drying equation
+[DEBUG]: Updated note on prior_0cloocl to use simpler drying equation
+[DEBUG]: Updated note on prior_0clclo2 to use simpler drying equation
+[DEBUG]: Updated note on prior_0cloclo to use simpler drying equation
+[DEBUG]: Updated note on prior_0chf3 to use simpler drying equation
+[DEBUG]: Updated note on prior_0f141b to use simpler drying equation
+[DEBUG]: Updated note on prior_0ch3cooh to use simpler drying equation
+[DEBUG]: Updated note on prior_0cirrus6 to use simpler drying equation
+[DEBUG]: Updated note on prior_0cirrus15 to use simpler drying equation
+[DEBUG]: Updated note on prior_0c3h8 to use simpler drying equation
+[DEBUG]: Updated note on prior_1c3h8 to use simpler drying equation
+[DEBUG]: Updated note on prior_1d2o to use simpler drying equation
+[DEBUG]: Updated note on prior_2d2o to use simpler drying equation
+[DEBUG]: Updated note on prior_3d2o to use simpler drying equation
+[DEBUG]: Updated note on prior_0c6h6 to use simpler drying equation
+[DEBUG]: Updated note on prior_1c6h6 to use simpler drying equation
+[DEBUG]: Updated note on prior_0c3h6 to use simpler drying equation
+[DEBUG]: Updated note on prior_1c3h6 to use simpler drying equation
+[DEBUG]: Updated note on prior_0ch3coch3 to use simpler drying equation
+[DEBUG]: Updated note on prior_0cfh2cf3 to use simpler drying equation
+[DEBUG]: Updated note on prior_0c5h8 to use simpler drying equation
+[DEBUG]: Updated note on prior_1luft to use simpler drying equation
+[INFO]: Updated notes on 179 prior variable(s) to use the simpler drying equation.
+[INFO]: Daily error dimension present, assuming the daily error variables have already been written
+[INFO]: Computing effective vertical path (takes ~0.1 s per day, be patient)
+[INFO]: Effective vertical path calculation complete
+[INFO]: Reading manual flags from /oco2-data/tccon-nobak/scratch/jlaugh/ggg2020.1-release/ggg-devel-clean/tccon/pa_manual_flagging.dat
+[INFO]: 	- From 20040701 to 20040801: manual flag=9; name='other'; comment='Test for benchmark'
+[INFO]: Finished writing pa20040721_20041222.private.nc 12.60 MB
+[INFO]: Finished write_netcdf log session at 02/27/2026 12:59:52 PM

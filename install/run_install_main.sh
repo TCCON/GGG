@@ -55,13 +55,18 @@ if [ ! $GGGPATH/install == `pwd` ] ; then
    fi
 fi
 
-$GGGPATH/linelist/download_linelists.py
+if [[ ! -d $GGGPATH/.hg ]]; then
+   $GGGPATH/linelist/download_linelists.py
 
-if [[ $? != 0 ]]; then
-  echo "An error occurred downloading the linelists (see the previous lines)."
-  echo "Correct this error and rerun master.sh. Quitting install."
-  exit
+   if [[ $? != 0 ]]; then
+      echo "An error occurred downloading the linelists (see the previous lines)."
+      echo "Correct this error and rerun master.sh. Quitting install."
+      exit
+   fi
+else
+   echo "Detected Mercurial repo; assuming linelists are tracked, not running download script."
 fi
+
 
 ok=`echo $nprocessors | grep -q "^[0-9]*$" && echo "OK" || echo "Not OK"`
 if [ "$ok" != "OK" ] ; then
@@ -71,20 +76,20 @@ fi
 echo " You've selected $nprocessors processors."
 
 if $install_py; then
-    chmod u+x pymaster.sh
-    ./pymaster.sh $pyargs
+    chmod u+x run_pyinstall.sh
+    ./run_pyinstall.sh $pyargs
 else
     echo "Not cloning/installing python components"
 fi
 
 if [ $? != 0 ]; then
-    echo "ERROR: Problem cloning netcdf_writer. ABORTING master.sh"
+    echo "ERROR: Problem cloning netcdf_writer. ABORTING $0"
     exit 1
 fi
 
 ./compile_ggg.sh $nprocessors
 echo " ********************************** "
-./i2s_master.sh
+./run_i2s_test.sh
 echo " ********************************** "
 
 echo " Creating data_part.lst if it doesn't already exist"
@@ -214,6 +219,10 @@ if [ ! -e ../src/idl/mod_maker.input ]; then
    echo "Change your site abbreviation, lat/lon and filenames as appropriate." >> ../src/idl/mod_maker.input
 fi
 echo " Finished copying menus..."
+# Check to ensure that the jac directory exists; if not, make it
+if [ ! -d ../jac ]; then
+    mkdir ../jac
+fi 
 # Check to ensure that the ak directory exists; if not, make it
 if [ ! -d ../ak ]; then
     mkdir ../ak

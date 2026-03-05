@@ -30,7 +30,7 @@ c     & dmf(nspeci_iso),
      & wmf(nspeci_iso,nlev_ray),
      & zero
 
-      character header_string_mav*2248,header_vec_mav(mspeci+4)*10,
+      character header_string_mav*2500,header_vec_mav(mspeci+4)*10,
      & sss*8,col1*1,
      & shortname(mspeci)*9,parfile*(*)
 

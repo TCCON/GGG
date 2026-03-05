@@ -30,6 +30,8 @@ c  4) Another thought: It might be more convenient to
 c  implement the averaging kernel calculation inside GFIT,
 c  rather than as a stand-alone program. This is because
 c  all the a priori information is already there.
+c  This is true for single windows, but this wouldn't help
+c  when computing the average kernel over multiple windows.
 c  I hesitated doing this in the past because it requires
 c  an extra array of dimension (MMP+MFP,MLEV) to hold
 c  the single-level PDs, which are currently written out
@@ -47,9 +49,9 @@ c  equation
 c     A.x=B
 c
 c  On input, matrix A(NMP,NFP) contains the PD's of all retrieved
-c  quantities as a function of frequency.  The NFP retrieved
+c  quantities as a function of wavenumber index.  The NFP retrieved
 c  parameters include the VSF of the various target gases and
-c  CL, CT, FS, SG, ZO, (but not channel fringes).
+c  CL, CT, CC, ... FS, SG, ZO, (but not channel fringes).
 c
 c  On input, matrix B(NMP,NLEV) contains the single-level PDs of the
 c  first target gas. So these represent the effect on the calculated
@@ -77,156 +79,155 @@ c  computed with and without the a priori constraints.
       implicit none
       include "../gfit/ggg_int_params.f"
       
-      integer*4 lunr_pd,lunr_col,lunw_wtf,lunw_aks,lunw_akall,
-     & mmp,nmp,imp,mfp,j,ap_flag,
-     & ntg,itg,nlev,ilev,jlev,nfp,fbc,fnbc,lnbc,lf,i,ispec,nlhead,idum
-      parameter (lunr_pd=12,lunr_col=13,lunw_wtf=14,lunw_aks=15,
-     & lunw_akall=16,mmp=32000,mfp=16)
-      integer*4 krank,ip(mfp),nit
+      integer*4 lunr_jac,lunw_aks,lunw_akall,
+     & mmp,nmp,imp,mfp,j,ap_flag,lj,lrt,ls,lak,
+     & ntg,jtg,nlev,ilev,jlev,nfp,lnbc,ispec,idum
+      parameter (lunr_jac=12,lunw_aks=15,
+     & lunw_akall=16,mmp=90000,mfp=24)
+      integer*4 krank,ip(mfp)
       real*4 a(mmp+mfp,mfp),b(mmp+mfp,mlev),work(mfp),rnorm(mlev),
      & tau,psc(mlev),z(mlev),pres(mlev),ps_atm,pwas,tsc,
-     & cl,tilt,cc,fqshift,
-     & sg,zlo,rmsoclpc,zmin,airmass,sza,
+     & rmsocl,zmin,sza,airmass,
      & ak1,ak2,ak,akwas,tak,tb
-      character colfile*128,filename*128,akpath*128,spectrum*80,
-     & version*60,winfo*128,col_fmt*128
+      character jacfile*512,akpath*150,specname*128,
+     & version*60,winfo*128,gggdir*128,dl*1
 
       idum=mfilepath ! Avoid compiler warning (unused parameter)
-      idum=mauxcol ! Avoid compiler warning (unused parameter)
-      idum=mcolvav ! Avoid compiler warning (unused parameter)
-      idum=mgas    ! Avoid compiler warning (unused parameter)
-      idum=mlev    ! Avoid compiler warning (unused parameter)
-      idum=mrow_qc ! Avoid compiler warning (unused parameter)
-      idum=mspeci  ! Avoid compiler warning (unused parameter)
-      idum=mvmode  ! Avoid compiler warning (unused parameter)
-      idum=ncell   ! Avoid compiler warning (unused parameter)
-      idum=nchar   ! Avoid compiler warning (unused parameter)
+      idum=mauxcol   ! Avoid compiler warning (unused parameter)
+      idum=mcolvav   ! Avoid compiler warning (unused parameter)
+      idum=mgas      ! Avoid compiler warning (unused parameter)
+      idum=mlev      ! Avoid compiler warning (unused parameter)
+      idum=mrow_qc   ! Avoid compiler warning (unused parameter)
+      idum=mspeci    ! Avoid compiler warning (unused parameter)
+      idum=mvmode    ! Avoid compiler warning (unused parameter)
+      idum=ncell     ! Avoid compiler warning (unused parameter)
+      idum=nchar     ! Avoid compiler warning (unused parameter)
 
-      version=' avg_ker   Version 1.41     2018-12-20   GCT'
+      version=' avg_ker   Version 2.11-alpha     2021-02-19   GCT'
       write(*,*) version
       tau=1.e-7
       ap_flag=1   ! Include a priori constraints
       ap_flag=0   ! Ignore a priori constraints
 
-c  Open .col file and read header.
+      call get_ggg_environment(gggdir, dl)
+      lrt=lnbc(gggdir)     !Length of gggdir
+
+c  Open .jac file and read header.
       if (iargc() == 0) then
-         write(*,*)'Enter name of relevent .col file'
-         read(*,'(a)') colfile
+         write(*,*)'Enter name of relevent .jac file'
+         read(*,'(a)') jacfile
       elseif (iargc() == 1) then
-         call getarg(1, colfile)
+         call getarg(1, jacfile)
       else
-         stop 'Usage: $gggpath/bin/avg_ker colfile'
+         stop 'Usage: $gggpath/bin/avg_ker jacfile'
       endif
-      open(lunr_col,file=colfile,status='old')
-      read(lunr_col,*) nlhead
-      do i=2,nlhead-5
-         read(lunr_col,'(34x,a)') akpath
-      end do
-      read(lunr_col,*)
-      read(lunr_col,*)
-      read(lunr_col,'(34x,a)') col_fmt
-      read(lunr_col,'(a)') winfo
-      read(lunr_col,*) 
+      lj=lnbc(jacfile)
+c  JLL 2021-03-04: I'm deliberately keeping this different from
+c  Geoff's code - his assumes that the .jac files are always in
+c  $GGGPATH/jac, mine will allow it to be anywhere.
+      open(lunr_jac,file=jacfile,status='old')
+      read(lunr_jac,'(a)')
+      read(lunr_jac,'(a)') winfo
 
-      write(*,*)'   Spectrum Path/Name              '//
-     &'         Ps     P-averaged_AK   C-averaged_AK'
+      write(*,*)'   Spectrum Path/Name            '//
+     &' Ps       P-averaged_AK   C-averaged_AK'
 
-      open(lunw_akall,file=colfile(:lnbc(colfile)-3)//'akall',
-     & status='unknown')
-      write(lunw_akall,*) 2,7
-      write(lunw_akall,*)' ispec zmin airmass sza  z ak p'
+      akpath=gggdir(:lrt)//'ak'//dl//'k'//char(48+ap_flag)
+     &//jacfile(2:lj)
+      lak=lnbc(akpath)
+      open(lunw_akall,file=akpath(:lak)//'.all',status='unknown')
+      write(lunw_akall,*) 3,6
+      write(lunw_akall,*) version
+      write(lunw_akall,*)' ispec zmin sza airmass z ak p'
 
 c  Main loop over spectra.
       do ispec=1,99999
-         read(lunr_col,col_fmt,end=99) spectrum,nit,cl,tilt,cc,fqshift,
-     &    sg,zlo,rmsoclpc,zmin,airmass
-          sza=acos(1.03/airmass-0.03)*180/3.14159
-         filename=akpath(:lnbc(akpath))//'_'//spectrum(fnbc(spectrum):)
-         lf=fbc(filename)-1
 c
+c  Loop over different windows of same gas.
 c  Read total column partial differentials of first target gas.
-         open (lunr_pd, file=filename(:lf), status='old')
-         read(lunr_pd,*)nmp,ntg,nfp
+         read(lunr_jac,'(a)',end=99)specname
+         ls=lnbc(specname)
+         write(*,*)'ls,specname = ',ls, specname(:ls)
+         read(lunr_jac,*,end=99)zmin,sza,rmsocl,airmass
+         write(*,*)'zmin,sza,rmsocl,airmass = ',zmin,sza,rmsocl,airmass
+         read(lunr_jac,*)nmp,ntg,nfp,nlev
+         write(*,*)'nmp,ntg,nfp = ',nmp,ntg,nfp
+         if(nmp.gt.mmp) stop 'increase parameter MMP'
+         if(nfp.gt.mfp)  stop 'increase parameter MFP'
+         if(nlev.gt.mlev) stop 'increase parameter MLEV'
 
-c  Check that hard-wired array bounds won't be exceeded.
-         if(nmp.gt.mmp) then
-            write(*,*)'NMP, MMP = ',nmp,mmp
-            stop 'increase parameter MMP'
-         endif
-
-         if(nfp.gt.mfp) then
-            write(*,*)'NFP, MFP = ',nfp,mfp
-            stop 'increase parameter MFP'
-         endif
-
-         do itg=1,ntg
-            read(lunr_pd,*) (a(imp,itg),imp=1,nmp)
+c  Read column Jacobians of target gases into A
+c  Set A to zero for elements A(nmp+1,jtg) and beyond.
+         do jtg=1,ntg
+            read(lunr_jac,*) (a(imp,jtg),imp=1,nmp)
+            call vmov(0.0,0,a(nmp+1,jtg),1,nfp)
          end do
-c
+
 c  Read single-level partial differentials of first target gas.
-         read(lunr_pd,*)nmp,nlev
-         if(nmp.gt.mmp) stop 'increase MMP'
-         if(nlev.gt.mlev) stop 'increase MLEV'
+c  Set b to zero for elements above b(nmp,*)
          do ilev=1,nlev
-            read(lunr_pd,*) (b(imp,ilev),imp=1,nmp) ! Single-Level PDs of First Target gas
+            read(lunr_jac,*) (b(imp,ilev),imp=1,nmp) ! Single-Level PDs of 1st Target gas
             call vmov(0.0,0,b(nmp+1,ilev),1,nfp)
          end do
 c
 c  Read continuum (and FS, SG, ZO) PDs
          do j=ntg+1,nfp
-            read(lunr_pd,*) (a(imp,j),imp=1,nmp)
+            read(lunr_jac,*) (a(imp,j),imp=1,nmp)
             call vmov(0.0,0,a(nmp+1,j),1,nfp)
          enddo
 
 c  Read other parameters, including a priori constraint
-         read(lunr_pd,*) (psc(ilev),ilev=1,nlev)   ! partial slant columns
-         read(lunr_pd,*) ps_atm                    ! surface pressure (atm)
-         read(lunr_pd,*) (z(ilev),ilev=1,nlev)     ! altitudes of levels
-         read(lunr_pd,*) (pres(ilev),ilev=1,nlev)  ! pressures of levels
-         if(ap_flag.ge.1) then  ! Augment A and B matrices with NFP extra rows
-            read(lunr_pd,*) (a(nmp+j,j),j=1,nfp)      ! ynoise/apu(j)
-            read(lunr_pd,*) (b(nmp+j,1),j=1,nfp)      ! (ax(j)-cx(j))*ynoise/apu(j)
+         read(lunr_jac,*) (psc(ilev),ilev=1,nlev)   ! partial slant columns
+         read(lunr_jac,*) ps_atm                    ! surface pressure (atm)
+         read(lunr_jac,*) (z(ilev),ilev=1,nlev)     ! altitudes of levels
+         read(lunr_jac,*) (pres(ilev),ilev=1,nlev)  ! pressures of levels
+
+c  Augment A and B matrices with NFP extra rows, even if we're not going
+c  to use them (ap_flag=0) to maintain sync with the .jac file.
+         read(lunr_jac,*) (a(nmp+j,j),j=1,nfp)      ! ynoise/apu(j)
+         read(lunr_jac,*) (b(nmp+j,1),j=1,nfp)      ! (ax(j)-cx(j))*ynoise/apu(j)
 
 c  Copy (ax(j)-cx(j))*ynoise/apu(j) from b(nmp+j,1) to b(nmp+j,ilev),j=1,nfp, ilev=1,nlev
-            do ilev=2,nlev
-               call vmov(b(nmp+1,1),1,b(nmp+1,ilev),1,nfp)
-            end do
-         endif
-         close(lunr_pd)
+         do ilev=2,nlev
+            call vmov(b(nmp+1,1),1,b(nmp+1,ilev),1,nfp)
+         end do
 
 c  Sum partial slant columns (psc) to yield total slant column (tsc)
          call vdot(psc,1,1.0,0,tsc,nlev)          ! total slant column
 c
 c  Write out the PD's in a form that can be easily plotted (e.g. xyplot)
 c  This is for trouble-shooting/illustrative purposes only.
-         if (index(winfo,' wtf ').gt.0) then
-            open(lunw_wtf,file=filename(:lf)//'.wtf', status='unknown')
-            write(lunw_wtf,*)2,1+nfp+nlev
-            write(lunw_wtf,'(a4,999(9x,a1,i2.2))')
-     &      ' i  ',
-     &      ('C',j,j=1,nfp-ntg),
-     &      ('T',itg,itg=1,ntg),
-     &      ('S',ilev,ilev=0,nlev-1)
-            do imp=1,nmp
-               write(lunw_wtf,'(i5,999(1pe12.4))') imp,
-     &         (a(imp,itg),itg=ntg+1,nfp),  ! CL, CT, CC, FS, ZO
-     &         (a(imp,itg),itg=1,ntg),
-     &         (b(imp,ilev),ilev=1,nlev)
-            end do
-            close(lunw_wtf)
-         endif
+c        if (index(winfo,' wtf ').gt.0) then
+c           open(lunw_wtf,file=filename(:lf)//'.wtf', status='unknown')
+c           write(lunw_wtf,*)2,1+nfp+nlev
+c           write(lunw_wtf,'(a4,999(9x,a1,i2.2))')
+c    &      ' i  ',
+c    &      ('C',j,j=1,nfp-ntg),
+c    &      ('T',itg,itg=1,ntg),
+c    &      ('S',ilev,ilev=0,nlev-1)
+c           do imp=1,nmp
+c              write(lunw_wtf,'(i5,999(1pe12.4))') imp,
+c    &         (a(imp,itg),itg=ntg+1,nfp),  ! CL, CT, CC, FS, ZO
+c    &         (a(imp,itg),itg=1,ntg),
+c    &         (b(imp,ilev),ilev=1,nlev)
+c           end do
+c           close(lunw_wtf)
+c        endif
 
 c  Solve equation A.x=b  for multiple RHS, representing different levels.
 c  A contains the Jacobians for the target gas columns, CL, FS, ZO, etc
 c  b contains the single-level Jacobians of the first target gas.
 c  A is MMPxNFP, x is NFPxNLEV, b is MMPxNLEV
+c  x is returned inside b, the original contents of which are destroyed.
+c  A is also destroyed.
          call shfti(a,mmp+mfp,nmp+nfp*ap_flag,nfp,b,mmp+mfp,nlev,tau,
      &   krank,rnorm,work,ip)
          if(krank.lt.nfp) write(*,*)' Rank Deficiency: ',krank,nfp
 c
 c  Write out the Averaging Kernels.
 c  Also, calculate the pressure- and density-weighted kernels.
-         open(lunw_aks,file=filename(:lf)//'.aks', status='unknown')
+         open(lunw_aks,file=akpath(:lak)//'_'//specname(:ls),
+     &   status='unknown')
          write(lunw_aks,*)3,3
          write(lunw_aks,*) version
          write(lunw_aks,*)  'Altitude_(km)   AK   Pressure_(atm)'
@@ -243,8 +244,8 @@ c  Also, calculate the pressure- and density-weighted kernels.
          do jlev=ilev,nlev
             tb=tb+b(1,jlev)
             ak=b(1,jlev)*tsc/psc(jlev)
-            write(lunw_aks,'(f5.1,f9.4,1pe10.3)') z(jlev),ak,pres(jlev)
-            write(lunw_akall,*) ispec,zmin,airmass,sza,z(jlev),ak,
+            write(lunw_aks,'(f6.2,f9.4,1pe10.3)') z(jlev),ak,pres(jlev)
+            write(lunw_akall,*) ispec,zmin,sza,airmass,z(jlev),ak,
      &      pres(jlev)
             tak=tak+0.5*(ak+akwas)*(pwas-pres(jlev))
             akwas=ak
@@ -252,13 +253,14 @@ c  Also, calculate the pressure- and density-weighted kernels.
          end do
          close(lunw_aks)
 c         write(*,'(a,f9.6)')filename(:lf),tak/pres(1)
-         write(*,'(a,4f15.5)')filename(:lf),ps_atm,tak/ps_atm,tb
+         write(*,'(a24,4f15.5)')specname(:ls),ps_atm,tak/ps_atm,tb
       end do ! ispec=1,999999
       write(*,*) 'Warning: Loop limit exceeded'
-99    close(lunr_col)
+99    close(lunr_jac)
       close(lunw_akall)
-      write(*,*)'Number of Measured Points =',nmp
-      write(*,*)'Number of Target Gases    =',ntg
-      write(*,*)'Number of Model Levels    =',nlev
+      write(*,*)'Number of Measured Points   =',nmp
+      write(*,*)'Number of Target Gases      =',ntg
+      write(*,*)'Number of Fitted Parameters =',nfp
+      write(*,*)'Number of Model Levels      =',nlev
       stop
       end

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Necessary to use conda commands inside this script, even though this was already 
-# done in master.sh. This will set CONDACMD to either "conda" or "micromamba"
+# done in run_pyinstall.sh. This will set CONDACMD to either "conda" or "micromamba"
 source "$GGGPATH/install/.init_conda"
 
 

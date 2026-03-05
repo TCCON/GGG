@@ -1,6 +1,6 @@
       subroutine spectrum_loop(winfo,debug,
      & lunw_col,lunw_cbf,lcl,colabel,colfile_format,lspmax,
-     & runlog,akpath,rayfile,mavfile,targmol,tll_file,
+     & runlog,jacpath,rayfile,mavfile,targmol,tll_file,
      & parfile,
      & apx,apu,dplist,iptg,ipcl,ipfs,ipsg,ipzo,ipcf,
      & ntg,ncbf,nfp,
@@ -119,7 +119,7 @@ c                         in memory are obsolete (=1) or not (=0).
      & mspt,ispec,
      & freq_flag,       ! =1  presents spectral fits in solar rest frame. 
 c                       ! =0  presents spectral fits in atmosphere rest frame.
-     & lunw_ak,
+     & lunw_jac,
      & lun_sts,         ! Solar Transmittance Spectrum
      & lnbc,
      & nspeci_iso,jspeci,
@@ -151,7 +151,7 @@ c                       ! =0  presents spectral fits in atmosphere rest frame.
      & mslpd=10*mmp,
      & mspxv=14*mcp)
 
-      parameter (lun_sts=24,lun_rlg=25,lunw_ak=26,
+      parameter (lun_sts=24,lun_rlg=25,lunw_jac=26,
      & lunr_ray=27,lunr_mav=28,lunw_spt=29)
 
       integer*4
@@ -247,13 +247,14 @@ c     & fovcf,
      & aipl,             ! Airmass-Independent Path Length (km)
      & lasf,             ! laser frequency (e.g. 15798.03 cm-1)
      & wavtkr,           ! suntracker operating frequency (e.g. 9900 cm-1)
-     & opd               ! Optical path difference (cm) of interferogram
+     & opd,              ! Optical path difference (cm) of interferogram
+     & airmass           ! Computed if writing AKs
 
       character winfo*(*),specname_rl*(nchar),pars(ntg)*(*),
      & data_fmt_read_rl*256,
      & col_labels_rl*320,
 c     & ss(nfp)*4,
-     & sptfile*(*),akpath*(*),specpath*(mfilepath),
+     & sptfile*(*),jacpath*(*),specpath*(mfilepath),
      & sptpath*(mfilepath),header*256,rayfile_format*256,
      & solarll*(*),specname_mav*(nchar),
      & path_n2_cia_fundamental*128, path_h2o_n2_cia_fundamental*128,
@@ -387,7 +388,11 @@ c      read(lun_rlg,*,err=888) nlhead,ncol
 c      do i=2,nlhead
 c         read(lun_rlg,*)
 c      end do
-c888   continue  !  Continue to support old format runlogs
+c888   continue  !  continue to support old format runlogs
+      if( index(winfo,' ak ') .gt. 0) open(lunw_jac,
+     & file=jacpath(:lnbc(jacpath)),status='unknown')
+      write(lunw_jac,'(a)') 'Created by GFIT'
+      write(lunw_jac,'(a)') winfo(:lnbc(winfo))
       nspectra=0
       if(debug) write(*,*)' Main loop...',nspectra,mspectra
       do ispec=1,mspectra         !  Main fitting loop over spectra
@@ -1056,10 +1061,12 @@ c            if(debug .and. nit.eq.mit+1) stop 'nit=mit+1'
 c  Output PD's (weighting functions), for subsequent use
 c  in deriving averaging kernels.
             if( index(winfo,' ak ') .gt. 0) then
-               open(lunw_ak,file=akpath(:lnbc(akpath))//'_'//
-     &         specname_rl,status='unknown')
                if(debug)write(*,*)'Calling fm.....spxv(1,0)=',spxv(1)
-               call fm(lunw_ak,slit,nhw,
+               write(lunw_jac,'(a)') specname_rl
+               airmass=(oloscol(1)+.01)/(overcol(1)+.01)
+               write(lunw_jac,*)sngl(zmin),sngl(asza),sngl(rmsocl),
+     &          sngl(airmass)
+               call fm(lunw_jac,slit,nhw,
      &         ifcsp,ifmsp,iptg,ipcl,ipfs,ipsg,ipzo,ipcf,
      &         ldec,spts,spxv,
      &         vac,splos,nlev_mav,ncp,rdec,
@@ -1069,15 +1076,14 @@ c  in deriving averaging kernels.
 c               ynoise=2.5*cont_level*corrld/sngl(0.1d0+snr)
                ynoise=cont_level*corrld/sngl(0.1d0+snr) ! GCT 2020-01-11
 c  Skip levels representing the cells, so start ilev at ncell+1.
-               write(lunw_ak,*)(splos(ilev)*cp(ilev),ilev=ncell+1,
+               write(lunw_jac,*)(splos(ilev)*cp(ilev),ilev=ncell+1,
      &         nlev_ray)
-               write(lunw_ak,*) pout/1013.25
-               write(lunw_ak,*)(z(ilev),ilev=ncell+1,nlev_ray)
-               write(lunw_ak,*)(p(ilev),ilev=ncell+1,nlev_ray)
-               write(lunw_ak,*)(ynoise/apru(ifp),ifp=1,nfp)
-               write(lunw_ak,*)((aprx(ifp)-cx(ifp))*ynoise/apru(ifp),
+               write(lunw_jac,*) sngl(pout/1013.25)
+               write(lunw_jac,*)(z(ilev),ilev=ncell+1,nlev_ray)
+               write(lunw_jac,*)(p(ilev),ilev=ncell+1,nlev_ray)
+               write(lunw_jac,*)(ynoise/apru(ifp),ifp=1,nfp)
+               write(lunw_jac,*)((aprx(ifp)-cx(ifp))*ynoise/apru(ifp),
      &         ifp=1,nfp)
-               close(lunw_ak)
             endif
 
 c            if(rmsocl.le.0.0) rmsocl=0.000001
@@ -1102,6 +1108,7 @@ c     &      (wlimit(dble(abs(100*rmsocl)),'f6.4')/100+.0001)
          nspectra=nspectra+1
       end do   !  ispec=1,mspectra     Main fitting loop over spectra
 
+      close(lunw_jac)
       if(ncall.eq.0) then  ! Pre-secreening
          write(*,*) '# of spectra to be fitted = ',nspectra
          nspectra0=nspectra
