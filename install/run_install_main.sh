@@ -28,6 +28,9 @@ for arg in $@; do
             always_yes=true
             pyargs="$pyargs --yes"
             ;;
+        --allow-env-mismatch)
+            pyargs="$pyargs $arg"
+            ;;
         --no-py)
             install_py=false
             ;;
