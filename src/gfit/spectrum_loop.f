@@ -158,9 +158,10 @@ c                       ! =0  presents spectral fits in atmosphere rest frame.
      & speci(ntg),
      & targmol(nspeci_iso)
 
+      real*4, allocatable, dimension(:) :: vac
+
       real*4
      & cfamp,cfperiod,cfphase,
-     & vac(mva),
      & ssnmp(mmp),
      & slit(mii),cx(nfp),ex(nfp),
      & obsrvd(mmp),calcul(mmp),cont(mmp),
@@ -270,6 +271,8 @@ c     & ss(nfp)*4,
       save ispec,ncall,nspectra0
       data ispec/0/
       data ncall/0/
+
+      allocate(vac(mva))
 
       rdum=big      ! Prevent compiler warning (unused variable)
       idum=mauxcol  ! Prevent compiler warning (unused variable)
@@ -1131,6 +1134,9 @@ c         write(*,*)' Average % RMS fit =',100*avgrms/avgcl
       close(lunr_ray)
       close(lunr_mav)
       ncall=ncall+1
+
+      if(allocated(vac)) deallocate(vac)
+
       return
       end
 
