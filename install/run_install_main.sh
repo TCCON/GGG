@@ -5,8 +5,15 @@ usage() {
     echo "  -y | --yes : Assume user enters YES for all prompts."
     echo "               WARNING: this effectively disables the"
     echo "               GGGPATH check."
-    echo "  --no-py : Do not reinstall the Python packages needed, "
+    echo "  --no-py : Do not reinstall the Python packages needed,"
     echo "            only recompile/retest GGG."
+    echo " --allow-env-mismatch:  allows the installation to continue"
+    echo "                        even if the  checksum of the environment.yml"
+    echo "                        file does not match the last time this script"
+    echo "                        was run. This will not identify manual changes"
+    echo "                        to the environment, only changes across"
+    echo "                        GGG versions."
+    echo ""
 }
 
 

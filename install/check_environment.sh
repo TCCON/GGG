@@ -19,6 +19,7 @@ if [[ -e "$GGGPATH/install/.condaenv" ]]; then
             read -p "Environment checksum did not match. Okay to delete and recreate $GGGPATH/install/.condaenv/? [yn]" answer
             case $answer in
                 [yY])
+                    echo "Removing $GGGPATH/install/.condaenv/"
                     rm -rf $GGGPATH/install/.condaenv/
                     ;;
                 *)
