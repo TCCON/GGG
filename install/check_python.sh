@@ -43,7 +43,7 @@ To install Anaconda3, you may use the install_conda.sh script or
 manually install/download. If you already have Anaconda installed 
 but it is not being detected, visit
 
-https://tccon-wiki.caltech.edu/Main/RunningGGG2020#Python_47Anaconda
+https://tccon-wiki.caltech.edu/Main/InstallingPython
 
 for advice to debug this problem.
 
