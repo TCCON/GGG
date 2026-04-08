@@ -53,7 +53,7 @@ chmod u+x check_python.sh
 ./check_python.sh $pyargs
 pyexit=$?
 if [ $pyexit != 0 ] ; then
-    echo "Could not configure GGG to use Anaconda3, aborting."
+    echo "Could not configure Python for GGG to use, aborting."
     exit 1
 fi
 

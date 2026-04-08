@@ -22,4 +22,4 @@ fi
 # --no-deps: do not install dependencies with pip. They should all
 #            be managed by the conda environment.
 $PIPCMD install --no-deps --isolated --editable .
-$PYTHONCMD copy_scripts.py --env-prefix "${GGGPATH}/install/.condaenv/" "${GGGPATH}/bin/"
+$PYTHONCMD copy_scripts.py --env-prefix "${ENVDIR}" "${GGGPATH}/bin/"
