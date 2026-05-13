@@ -8,11 +8,12 @@ usage () {
     echo " was run. This will not identify manual changes to the environment, only changes "
     echo " across GGG versions."
     echo ""
-    echo " This script also respects the environmental variable GGG_USE_MICROMAMBA."
+    echo " This script also respects the environmental variables GGG_USE_MICROMAMBA and GGG_USE_PIP."
     echo " If GGG_USE_MICROMAMBA=1, then the netCDF installer will be configured to use"
     echo " micromamba instead of conda *if* it is found on your path. To force the use"
     echo " of micromamba even if it does not appear to be on your path, set GGG_USE_MICROMAMBA=2"
-    echo " instead."
+    echo " instead. If GGG_USE_PIP=1, then this will use standard Python virtual environments."
+    echo " See https://tccon-wiki.caltech.edu/Main/InstallingPython for more information."
 }
 always_yes=false
 enforce_env_match=true

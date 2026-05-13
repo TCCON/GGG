@@ -38,7 +38,7 @@ else
 fi
 
 cd $srcdir
-last_commit_for_ggg="c8cce41"
+last_commit_for_ggg="e0b371d"
 git checkout main >/dev/null 2>/dev/null
 git rev-parse --verify "ggg" &> /dev/null
 if [ $? == 0 ] ; then
