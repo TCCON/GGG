@@ -1,6 +1,9 @@
 [
   {
-    "download_url": "https://data.caltech.edu/records/kfvxb-2e522/files/ggg2020.terrestrial.voigt.tgz",
+    "download_urls": [
+        "https://data.caltech.edu/records/kfvxb-2e522/files/ggg2020.terrestrial.voigt.tgz",
+        "https://caltech2.osn.mghpcc.org/caltechdata-public/kfvxb-2e522/ggg2020.terrestrial.voigt.tgz"
+    ],
     "output_name": "ggg2020.terrestrial.voigt.tgz",
     "contents": [
       {"file": "atm.161", "md5": "900f41f6a691e796d077cd3b58622876"},
@@ -10,7 +13,10 @@
     ]
   },
   {
-    "download_url": "https://data.caltech.edu/records/58bfv-27g69/files/ggg2020.terrestrial.nonvoigt.tgz",
+    "download_urls": [
+        "https://data.caltech.edu/records/58bfv-27g69/files/ggg2020.terrestrial.nonvoigt.tgz",
+        "https://caltech2.osn.mghpcc.org/caltechdata-public/58bfv-27g69/ggg2020.terrestrial.nonvoigt.tgz"
+    ],
     "output_name": "ggg2020.terrestrial.nonvoigt.tgz",
     "contents": [
       {"file": "addlmflag_official.161", "md5": "f65cc5024ca9200354a41dd5be48efd4"},
@@ -39,7 +45,10 @@
     ]
   },
   {
-    "download_url": "https://data.caltech.edu/records/jba2m-w2t72/files/solar_merged.108.gz",
+    "download_urls": [
+        "https://data.caltech.edu/records/jba2m-w2t72/files/solar_merged.108.gz",
+        "https://caltech2.osn.mghpcc.org/caltechdata-public/jba2m-w2t72/solar_merged.108.gz"
+    ],
     "output_name": "solar_merged.108.gz",
     "contents": [
       {"file": "solar_merged.108", "md5": "893b127f4833ed5d9904ba989fcbb2ab"}

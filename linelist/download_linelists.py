@@ -14,8 +14,16 @@ import sys
 import tarfile
 from textwrap import fill
 from urllib import request
+try:
+    # requests is more reliable than urllib, but it is not part of the stdlib.
+    # See if we're running with it installed, if so, we'll default to using it.
+    import requests
+except ImportError:
+    USE_REQUESTS = False
+else:
+    USE_REQUESTS = True
 
-MY_DIR = os.path.dirname(__file__)
+MY_DIR = os.path.dirname(os.path.abspath(__file__))
 # Read ~1 MB at a time to avoid eating too much memory
 CHUNK_SIZE = 1000000
 LINELIST_INFO_FILE = '.linelist_info.json'
@@ -72,7 +80,7 @@ def driver(always_delete=False, always_backup=False):
         raise RuntimeError('Some linelists failed MD5 checksum validation ({}), please try again. If the problem persists, open a GitHub issue at https://github.com/TCCON/GGG/issues'.format(
             failed_str,
         ))
-        
+
 def gunzip(file):
     outfile = re.sub(r'\.gz$', '', file)
     with gzip.open(file) as g, open(outfile, 'wb') as o:
@@ -102,10 +110,17 @@ def wget(url, outfile, use_external=False, extra_args=tuple()):
         wget_args = ('wget', '--quiet', '--output-document', outfile) + tuple(extra_args) + (url,)
         print('(Calling "', ' '.join(wget_args), '")') 
         call(wget_args)
+    elif USE_REQUESTS:
+        print('(Using requests.)')
+        r = requests.get(url, stream=True)
+        r.raise_for_status()
+        with open(outfile, 'wb') as f:
+            for chunk in r.iter_content(CHUNK_SIZE):
+                f.write(chunk)
     else:
         print('(Using URL retrieve.)')
         request.urlretrieve(url, outfile)
-        
+
 
 def cleanup(to_delete, to_del_no_backup, auto_delete=False, auto_backup=True):
     nbak = len(to_delete)
@@ -115,14 +130,14 @@ def cleanup(to_delete, to_del_no_backup, auto_delete=False, auto_backup=True):
         print('{} files are old versions of linelists and will be removed'.format(ndel))
         for file in to_del_no_backup:
             print(' - {}'.format(file))
-            
+
         if auto_delete or user_yn('Remove these {} files now?'.format(ndel)):
             for file in to_del_no_backup:
                 os.remove(file)
                 print('Removed {}'.format(file))
         else:
             print(fill('Keeping these files for now; note that installation will FAIL if a new version of one or more of these files is required.'))
-                
+
 
     if nbak > 0:
         print('{} files are not present in the list of new files:'.format(nbak))
@@ -134,7 +149,7 @@ def cleanup(to_delete, to_del_no_backup, auto_delete=False, auto_backup=True):
             with tarfile.open(backup_name, 'x:gz') as tar:
                 for file in to_delete:
                     tar.add(file)
-        
+
         if auto_delete or user_yn('Remove these {} files now?'.format(nbak)):
             for file in to_delete:
                 os.remove(file)
@@ -143,8 +158,8 @@ def cleanup(to_delete, to_del_no_backup, auto_delete=False, auto_backup=True):
             print('Keeping these files for now.')
 
     # TODO: remove empty directories (probably needs to use os.walk to handle subdirectories)
-            
-        
+
+
 
 def user_yn(prompt, default=None, allow_quit=True):
     add_help = False
@@ -170,7 +185,7 @@ def user_yn(prompt, default=None, allow_quit=True):
             return False
 
         add_help = True        
-        
+
 
 def check_files(all_downloads, prev_linelists):
     # Four possibilities:
@@ -202,14 +217,14 @@ def check_files(all_downloads, prev_linelists):
             if basename.startswith(('.', 'backup')):
                 # Ignore hidden files and backups we've made at any directory level
                 continue
-        
+
             if fullname in always_keep:
                 # Ignore this file and the list of files to download
                 continue
 
             new_checksum = compute_md5(fullname)
             is_old_file = any(fullname == os.path.relpath(p['file']) and new_checksum == p['md5'] for p in prev_linelists)
-            
+
             if fullname not in listed_files or new_checksum != listed_files[fullname]['md5']:
                 if is_old_file:
                     to_del_no_backup.append(fullname)
@@ -217,7 +232,7 @@ def check_files(all_downloads, prev_linelists):
                     to_delete.append(fullname)
             else:
                 already_present[listed_files[fullname]['index']].append(fullname)
-            
+
     return to_delete, to_del_no_backup, already_present
 
 
@@ -242,14 +257,23 @@ def check_one_download(download, already_present):
         )
 
 def do_one_download(download, needed):
-    print('Downloading', download['download_url'])
-    wget(
-        download['download_url'],
-        download['output_name'],
-        download.get('call_wget', False),
-        download.get('extra_wget_args', tuple())
-    )
-    
+    i_last_url = len(download['download_urls']) - 1
+    for i_url, url in enumerate(download['download_urls']):
+        print('Downloading', url)
+        try:
+            wget(
+                url,
+                download['output_name'],
+                download.get('call_wget', False),
+                download.get('extra_wget_args', tuple())
+            )
+        except Exception as e:
+            print(f'Error occurred while downloading from {url}:\n  {e}\nTrying next URL')
+            if i_url == i_last_url:
+                raise RuntimeError(f'All URLs for {download["output_name"]} returned an error. Downloading linelists failed.')
+        else:
+            break
+
     expected_files = [c['file'] for c in needed]
 
     print('Extracting', download['output_name'])
@@ -266,7 +290,7 @@ def do_one_download(download, needed):
     else:
         raise RuntimeError('Unknown file extension on {}'.format(download['output_name']))
     os.remove(download['output_name'])
-    
+
     checksums_failed = []
     for check in needed:
         is_ok = check_md5(check['file'], check['md5'])
