@@ -11,14 +11,18 @@ some of these changes were already included in the GitHub repo.
 
 ### Installation
 
-- Now supports use of `conda` or `micromamba` to manage the Python environment.
-- The Python environment will now be written to `$GGGPATH/install/.condaenv`, rather than a named
-  environment in the central conda directory. This simplifies managing multiple GGG installations.
+- Now supports use of `conda`, `micromamba`, or `pip` to manage the Python environment.
+    - Note that `conda` or `micromamba` are preferred; `pip` is intended only for cases
+      where those are not available.
+- The Python environment will now be written to `$GGGPATH/install/.condaenv` or `$GGGPATH/install/.venv`,
+  rather than a named environment in the central conda directory. This simplifies managing multiple GGG
+  installations.
 - `check_python.sh` no longer uses a login bash shell.
 - The netCDF writer is now cloned from the TCCON GitHub organization.
 - `master.sh` renamed to `runme_install_main.sh`, `pymaster.sh` to `run_pyinstall.sh`, and `i2s_master.sh` to `run_i2s_test.sh` to move away from "master" terminology.
 - `.mod` and `.vmr` files used in the benchmark have been updated to include the new information about GEOS versions in the header.
-
+- `download_linelists.py` modified to handle updates to caltechData, which stores the linelists.
+    - It will now use `requests` if available and has multiple URLs from which to obtain the linelists.
 
 ### Interferogram processing
 
@@ -34,12 +38,18 @@ some of these changes were already included in the GitHub repo.
 
 ### L2 setup
 
-- Updated `create_sunrun_from_Wgong`.
-- Updated `create_sunrun_from_darwin_ifs2` to include pressure correction.
+- Added an option to `utils/python/list_mod_vmr_links` to make links for the alternate
+  priors before 1 Apr 2024.
 - Added an option to `gsetup` to create a run directory with EM27 post processing.
 - Modified `gsetup` to use a new Rust version of `collate_results` if the `GGG_RS_POSTPROC`
   environmental variable is set to `1`.
+- Also modified `gsetup` to allow setting up the `post_processing.sh` script with EM27/SUN
+  specific options (primarily for `collate_results`).
 - Updated the benchmark `.vmr` files to include the newly required `CO_SOURCE` header entry.
+- Updated the example InSb windows files to add an `fco2` window (for channel fringes) and
+  remove some mid-IR CO windows.
+- Updated `create_sunrun_from_Wgong`.
+- Updated `create_sunrun_from_darwin_ifs2` to include pressure correction.
 
 
 ### L2 retrieval
@@ -66,7 +76,7 @@ some of these changes were already included in the GitHub repo.
 - Added a bug fix from Jacob Hedelius and Aaron Meyer in `write_aux` to handle paths with periods other than
   at the file extension
 - Added various file path length increases requested by Jacob Hedelius and Aaron Meyer
-- Updated `xch4` and `zmin` precision in the default `pa_qc.dat` file.
+- Updated `xch4`, `zmin`, `fovi`, and `pout` precision in the default `pa_qc.dat` file.
 - netCDF files will now be created in the "2020.C" format by default, see https://tccon-wiki.caltech.edu/Main/GGG2020DataChanges#File_format_GGG2020.C
   for a list of the changes.
     - TCCON sites will upload this 2020.C format file to Caltech, and conversion to 2020.1.A format will happen
