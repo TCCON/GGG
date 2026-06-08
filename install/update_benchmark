@@ -1,5 +1,9 @@
 #!/bin/bash
-cd benchmark_results
-for f in *; do
-    cp -fv ../current_results/$f .
-done
+cd $(dirname $0)
+printf "\nRemoving existing benchmark files\n"
+rm -v ./benchmark_results/*
+
+printf "\n\nCopying new benchmark files\n"
+
+cp -v ./current_results/*.{cbf,col,out,log,nc,nts,rpt,sh} ./benchmark_results/
+cp -v ./current_results/pa_ggg_benchmark.* ./benchmark_results/

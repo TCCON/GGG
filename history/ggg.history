@@ -1,9 +1,46 @@
  GGG Code Updates.
 
+I2S - 2024-03-18  JLL
+ Nonlinearity coefficients are now an input in the I2S file top
+ and are written to the spectrum headers.
+
+COLLATE_RESULTS  Version 2.10b  2023-12-20  JLL GCT
+ Tried various fixes to collate_results to address a bug where
+ the wrong zmin value is written for blocks of single-detector
+ data in dual-detector runlogs. The issue at Lamont was resolved,
+ but other issues at other sites later cropped up, leading to a
+ TCCON-specific version of collate_results.
+
+COLLATE_RESULTS (patch) - 2022-11-30  JLL
+GSETUP (patch)
+ Modified collate_results to take a command line argument to switch
+ the max_delta_t for EM27s, and modified GSETUP to include that argument
+ for EM27s. Note that this will likely be unnecessary in the future with
+ the Rust version, collate_tccon_results.
+
+I2S (patch) - 2022-06-02  JLL
+ Fixed a warning message to report the Ymin value instead of
+ both thresholds.
+
 LICENSE - 2021-10-27
  After dicussions with JPL and Caltech, the license for GGG
  has been changed from a custom one to the standard Apache 2.0
  license.
+
+GSETUP (patch) - 2021-06-25 JLL
+GFIT (patch)
+AVG_KER (patch)
+CONCAT_JAC - Version 1.0
+ Implements a new way to write AKs, where detailed Jacobians
+ are output by GFIT for each window, which are then concatenated
+ by CONCAT_JAC to create files per gas, which AVG_KER then uses.
+ This is not exactly identical to Geoff's implementation, as I
+ tried to keep a bit more flexibility about where these files
+ are written, but some more work to make them fully configurable
+ is needed.
+
+EXTRACT_PTH (patch) - 2021-06-25 JLL
+ Now includes spectrum name in output.
 
 APPLY_AIRMASS_CORRECTION    Version 1.38  2020-12-16  GCT JLL
  apply_airmass_correction now reads g and p parameters from the

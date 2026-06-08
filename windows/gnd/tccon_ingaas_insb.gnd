@@ -1,5 +1,5 @@
 2 2
- Center   Width MIT A I F  Parameters_to_ fit  Bias      Gases_to_fit
+ Center   Width MIT A I F  Parameters to fit  Bias       Gases_to_fit
  6146.90   1.60   0 1 1 0                     sf=1.000 : luft
  4038.95   0.32  15 1 1 0  ncbf=2  fs  so     sf=1.000 : hf  h2o
  4565.20   2.50  15 1 1 0  ncbf=2  fs  sg     sf=1.006 : h2o  co2 ch4
@@ -129,10 +129,10 @@
  2813.00  26.80  15 1 1 0  ncbf=3  fs  sg     :  n2o  hdo  h2o  ch4  co2  o3  hcl  h2co
  3344.40   2.48  15 1 1 0  ncbf=2  fs  sg     :  n2o  1h2o  h2o  co2  hcn
  3372.70   2.20  15 1 1 0  ncbf=2  fs  sg     :  n2o  1h2o  h2o  co2  hdo
- 2057.35   2.82  15 1 1 0  cl  ct  fs  sg  zo :  co  o3   co2  h2o  ocs
-:2057.84   0.28  15 1 1 0  cl  ct  fs  so     :  co  o3   co2  ocs
- 2069.75   1.02  15 1 1 0  cl  ct  fs  sg     :  co  co2  o3   ocs  h2o
-:2069.65   0.55  15 1 1 0  cl  ct  fs  so     :  co  o3   ocs
+: 2057.35   2.82  15 1 1 0  cl  ct  fs  sg  zo :  co  o3   co2  h2o  ocs
+::2057.84   0.28  15 1 1 0  cl  ct  fs  so     :  co  o3   co2  ocs
+: 2069.75   1.02  15 1 1 0  cl  ct  fs  sg     :  co  co2  o3   ocs  h2o
+::2069.65   0.55  15 1 1 0  cl  ct  fs  so     :  co  o3   ocs
  2111.55   1.10  15 1 1 0  cl  ct  fs  sg     :  co  o3   co2  h2o
 :2158.25   1.80  15 1 1 0  cl  ct  fs  so     :  co  h2o  n2o  o3   co2
  2160.00   6.00  15 1 1 0  cl  ct  fs  sg     :  co  h2o  o3   n2o

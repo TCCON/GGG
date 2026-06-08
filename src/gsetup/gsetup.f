@@ -134,7 +134,7 @@ c     & lm,lv,
       parameter (nlhead_ggg=18)  ! Number of header lines in .ggg file.
       parameter (mwin=800)       ! Max number of windows
 
-      logical*4 newmod,newvmr,newmod_exist,newvmr_exist
+      logical*4 newmod,newvmr,newmod_exist,newvmr_exist,is_em27
 
       integer*4
      & igas_in_cell(ncell),kcell
@@ -412,8 +412,18 @@ c  choose which list of windows to analyze
 
 c  Choose model type
       write(6,9914)
- 9914 format(' Std TCCON processing: 3-hourly model & VMR (y/n) ?',$)
+ 9914 format(' Std TCCON processing: 3-hourly model & VMR (y/n/e) ?',$)
       read(lunr_stdin,'(a)')modtype
+
+      if(modtype.eq.'e' .or. modtype.eq.'E') then
+c  Standard EM27 processing, uses most of the same behavior as standard
+c  TCCON, but with a few changes to support more frequent spectra (i.e.
+c  in collate_results)
+         is_em27 = .true.
+         modtype = 'y'
+      else
+         is_em27 = .false.
+      endif
 
       if(modtype.eq.'y' .or. modtype.eq.'Y' ) then
          if (levels(:lnbc(levels)).ne.'ap_51_level_0_to_70km.gnd') stop
@@ -497,8 +507,8 @@ c         write(lunw_ggg,'(a)')      ! llsize
             write(lunw_ggg,'(a)')
          endif
 
-c  write location of $gggpath/ak/jxxxxx files (Jacobians)
-         write(lunw_ggg,'(a)') gggdir(:lrt)//'ak'//dl//'j'
+c  write location of $gggpath/jac/j_xxxxx files (Jacobians)
+         write(lunw_ggg,'(a)') gggdir(:lrt)//'jac'//dl//'j_'
 
 c  write location of spectral fits
          write(lunw_ggg,'(a)') gggdir(:lrt)//'spt'//dl//'z'
@@ -1077,7 +1087,7 @@ c 99   close(lunr_rlg)
 
 c  Code to generate post_processing.sh batch file and associated inputs.
 
-      call write_postprocessfile(ext,rlgfile,modtype)
+      call write_postprocessfile(ext,rlgfile,modtype,is_em27)
 
 c      do ih=1,100
 c        write(84,*) ih, dhp*ih, histop(ih)

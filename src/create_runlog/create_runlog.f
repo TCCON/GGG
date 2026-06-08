@@ -30,7 +30,7 @@ c
      & lse,lsu,lsf,dip,mvd,r8was,r8year,r8ydiff
 c
       character spfmt*2, logfile*40,
-     & outfile*(mfilepath),path*(mpath),dplist*(mfilepath),
+     & outfile*(mfilepath),path*(mfilepath),dplist*(mfilepath),
      & lsefile*(mfilepath)
 
       character

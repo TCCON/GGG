@@ -7,6 +7,7 @@ COMN = $(GGGPATH)/src/comn
 
 SOURCES := \
   $(TSRC)/$(TARGET).f \
+  $(TSRC)/correct_pressure.f90 \
   $(COMN)/read_opus_header.f \
   $(COMN)/getopusparval.f \
   $(COMN)/getendian.f \
@@ -21,9 +22,13 @@ SOURCES := \
   $(COMN)/get_ggg_environment.f
 
 OBJECTS := $(patsubst %.f, %.o, $(SOURCES))
+OBJECTS := $(patsubst %.f90, %.o, $(OBJECTS))
 
 #  Compile the .f files that are newer than the corresponding .o files
 .f.o:
+	$(FC)  $(CFLAGS) -o $@ $<
+
+%.o: %.f90
 	$(FC)  $(CFLAGS) -o $@ $<
 
 #  Link the object files to create the executable

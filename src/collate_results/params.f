@@ -3,9 +3,9 @@
      & gfit_version*80,
      & gsetup_version*80,
      & col_string*500,
-     & csformat*128,
+     & csformat*160,
      & cdum*24,
      & specname_col*57,
-     & tabel*128,
+     & tabel*160,
      & colfile*80
 c    & windows(mcol)*10     !use when int params are defined

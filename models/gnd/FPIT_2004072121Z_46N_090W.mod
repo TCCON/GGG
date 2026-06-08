@@ -1,8 +1,11 @@
-7  11
+10  11
 6378.137  6.0000e-05  45.945 9.810    0.541 1013.250  139.103
 Pressure  Temperature     Height     MMW        H2O      RH         SLP        TROPPB        TROPPV      TROPPT       TROPT       SZA
 9.493e+02    301.175      0.474    28.6418    3.034e-02  56.5    1.001e+03    1.391e+02    1.391e+02    1.391e+02    206.380     43.513
 mod_maker.py   2019-06-20   SR/JL
+GEOS source : Met3d : fpit (GEOS v5.12.4) : GEOS.fpit.asm.inst3_3d_asm_Nv.GEOS5124.20040721_2100.V01.nc4 : ea9a5eefce5bf97b009146f0206bbe01
+GEOS source : Met2d : fpit (GEOS v5.12.4) : GEOS.fpit.asm.inst3_2d_asm_Nx.GEOS5124.20040721_2100.V01.nc4 : 3c79b01c9926ffefc8fd2e42d12d431e
+GEOS source : Chm3d : fpit (GEOS v5.12.4) : GEOS.fpit.asm.inst3_3d_chm_Nv.GEOS5124.20040721_2100.V01.nc4 : 135769e68d4da5487c3ca0175f274076
   mbar         Kelvin         km       g/mole        DMF          %       K.m+2/kg/s     Kelvin     degrees      kg/kg       mol/mol     
 Pressure     Temperature    Height       MMW         H2O          RH         EPV           PT         EqL         O3           CO        
 9.422e+02        300.153      0.541    28.6671     2.789e-02      71.8    -1.278e-07     305.306     -7.074    7.582e-08    1.394e-07    

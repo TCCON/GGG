@@ -1,4 +1,4 @@
-      subroutine write_postprocessfile(ext,rlgfile,modtype)
+      subroutine write_postprocessfile(ext,rlgfile,modtype,is_em27)
 c
 c write the post-processing file based on geometry 'ext'
 c
@@ -12,8 +12,11 @@ c
      &  gggdir*(mpath),    !root directory
      &  dl*1,              !delimiter (='/' Unix, ='\' DOS)
      &  modtype*4,         !which model type (FPIT or NCEP)
-     &  usetccon*1         !"y" if modtype=FPIT, "n" otherwise
+     &  usetccon*1,        !"y" if modtype=FPIT, "n" otherwise
+     &  crarg*4,           !extra argument for collate_results in em27 mode
+     &  rs_env*1           !GGG_RS_POSTPROC env var value
 
+      logical is_em27, use_rs
       integer*4 lunw_pp, lrt, lr, lnbc, idum
       parameter (lunw_pp=76)  ! for post_processing.sh/post_processing.bat
 
@@ -38,25 +41,49 @@ c
          ppfilename = 'post_processing.sh'
       endif
 
+c Figure out if we will write out the file using Rust programs
+c where available or not
+      call getenv('GGG_RS_POSTPROC', rs_env)
+      use_rs = .not. (rs_env.eq.' ' .or. rs_env.eq.'0')
+
+c TCCON and EM27-specific settings
       if (modtype .eq. 'FPIT') then
         usetccon = 'y'
       else
         usetccon = 'n'
       endif
 
+      if (is_em27) then
+        crarg = 'em27'
+      else
+        crarg = '    '
+      endif
+
       open(lunw_pp,file=ppfilename,status='unknown')
 
 c     'gnd' geometry
       if (ext(1:3).eq.'gnd') then
-         write(lunw_pp,'(a)')
-     &   gggdir(:lrt)//'bin'//dl//'collate_results t'
+         if (use_rs .and. usetccon.eq.'y') then
+            write(lunw_pp,'(a)')
+     &    gggdir(:lrt)//'bin'//dl//'collate_tccon_results t'//' '//crarg
 
-         write(lunw_pp,'(a)')
-     &   gggdir(:lrt)//'bin'//dl//'collate_results v'
+            write(lunw_pp,'(a)')
+     &    gggdir(:lrt)//'bin'//dl//'collate_tccon_results v'//' '//crarg
+         else
+            write(lunw_pp,'(a)')
+     &      gggdir(:lrt)//'bin'//dl//'collate_results t'//' '//crarg
+
+            write(lunw_pp,'(a)')
+     &      gggdir(:lrt)//'bin'//dl//'collate_results v'//' '//crarg
+         endif
 
            write(lunw_pp,'(a)')gggdir(:lrt)//'bin'//dl//
      &     'average_results '//
      &     rlgfile(:lr-3)//'tsw'
+
+           write(lunw_pp,'(a)')gggdir(:lrt)//'bin'//dl//
+     &     'average_results '//
+     &     rlgfile(:lr-3)//'vsw'
 
 c This order can differ for standard TCCON processing vs. other
 c processing. In TCCON, we airmass correct the individual windows
@@ -64,10 +91,6 @@ c since GGG2020, then average the window xgas values. Other ground
 c processing will still by default use the old way. But in both
 c cases we still average the .vsw file; in TCCON this is just to
 c retain the average column values in the output private files.
-           write(lunw_pp,'(a)')gggdir(:lrt)//'bin'//dl//
-     &     'average_results '//
-     &     rlgfile(:lr-3)//'vsw'
-
       if( usetccon .eq. 'n' ) then
 
            write(lunw_pp,'(a)')

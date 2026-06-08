@@ -2,7 +2,8 @@
      & outpath,igrmode,igrmpath,phmode,phpath,dtc1,dtc2,flimit,pattern,
      & srcindic,dtcigrm,dtcspec,outfmt,delimit,minmax,stlimstd,stlimavg,
      & ylimits,xcorlim,timecorr,mscan,fftlim,sivcfreq,lsemode,
-     & pco_len,pco_thresh,proclim,verbose,run_start)
+     & pco_len,pco_thresh,proclim,do_nonlin,nonlin_coef,
+     & verbose,run_start)
 c
 c  Input:
 c    luni           I*4    Logical Unit Number for the parameter input file
@@ -40,6 +41,8 @@ c    fftlim(mdtc)   I*4    Maximum log-base-2 of the FFT size for each detector
 c    sivcfreq(mdtc) R*8    SIV correction frequency
 c    pco_thresh(mdtc) R*8  Amplitude threshold for phase correction
 c    proclim        I*4    Maximum processing stage performed by the program
+c    do_nonlin(2)   I*4    Per-channel flags to activate nonlinearity correction, >0 = do correction
+c    nonlin_coef(8) R*4    Array of nonlinear correction coefficients
 c    verbose        I*4    Level of verbosity for displayed messages
 c    run_start      I*4    Starting run number
 c
@@ -63,6 +66,7 @@ c
      & proclim,      ! Subroutine output argument (see above)
      & verbose,      ! Subroutine output argument (see above)
      & run_start,    ! Subroutine output argument (see above)
+     & do_nonlin(2), ! Subroutine output argument (see above)
      & idtc,         ! General loop index
      & lnbc          ! Integer function Last Non-Blank Character in string
 
@@ -71,8 +75,8 @@ c
      & stlimstd,     ! suntracker relative stdev limit
      & stlimavg,     ! Suntracker avg intemsity limit
      & ylimits(2,2), ! Interferogram amplitude thresholds
-     & xcorlim(mdtc) ! Subroutine output argument (see above)
-
+     & xcorlim(mdtc),! Subroutine output argument (see above)
+     & nonlin_coef(8) ! Subroutine output argument (see above)
       real*8
      & sivcfreq(mdtc), ! SIV Correction Frequency (cm-1)
      & pco_thresh(mdtc)  ! SIV Correction Frequency (cm-1)
@@ -592,6 +596,38 @@ c  Read maximum level of processing.
             write(*,'(2a,i0)')'Error in input file: ',
      &      'invalid maximum level of processing of ',proclim
             errnum=-2
+         endif
+      endif
+c
+c  Read nonlinearity flag and coefficients
+      call read_input_line(luni,errnum,inpstat,inpstr)
+      if((errnum.eq.0).and.(inpstat.ne.0)) then
+         write(*,'(a)')
+     & 'Error in input file: no nonlinearity correction specified'
+         errnum=-2
+      elseif(errnum.eq.0) then
+c  This uses idtc as the index simply to avoid defining an
+c  extra index - it's not actually a loop over detectors,
+c  just coefficients.
+         read(inpstr,*,iostat=inpstat) do_nonlin(1),
+     & (nonlin_coef(idtc),idtc=1,4)
+c
+c  For now, we only support nonlinearity corrections to channel
+c  1. But these arrays are ready to handle two detectors if
+c  needed in the future.
+         do_nonlin(2) = 0
+         do idtc=5,8
+            nonlin_coef(idtc) = 0.0
+         enddo
+
+         if(inpstat.ne.0) then
+            write(*,'(2a)')
+     &      'Error in input file: format error in ',
+     &      'nonlinearity specification'
+            errnum=-2
+         elseif(do_nonlin(1).lt.0) then
+            write(*,'(2a,i4)')'Error in input file:',
+     &      'do_nonlin flag cannot be < 0, got: ', do_nonlin
          endif
       endif
 c

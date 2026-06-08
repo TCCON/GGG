@@ -6,7 +6,9 @@ import os
 import sys
 
 _me = os.path.join('$GGGPATH', 'utils', 'python', os.path.basename(__file__))
-_ftp_root = 'ftp://ccycle.gps.caltech.edu/ginput-std-sites/tarballs'
+_std_ftp_root = 'ftp://ccycle.gps.caltech.edu/ginput-std-sites/tarballs'
+_altco_ftp_root = 'ftp://ccycle.gps.caltech.edu/ginput-std-sites/tarballs-alt-geosit'
+_altco_end_date = dt.datetime(2024,4,1)
 _help_epilog = '''The links will be printed to stdout, you may redirect this into a file 
 to use with wget -i. For example, to download the files for Caltech for
 January 2018, use the command:
@@ -24,19 +26,23 @@ ccycle FTP username and password, please see:
 https://tccon-wiki.caltech.edu/Software/GGGNext_Beta_Test/GGGNext_installation_notes#Obtaining_.mod_and_.vmr_files
 '''.format(me=_me)
 
-def make_ftp_link_list(site, start_date, end_date):
+def make_ftp_link_list(site, start_date, end_date, alt_co=False):
     curr_date = start_date
     links = []
     while curr_date < end_date:
+        if alt_co and curr_date < _altco_end_date:
+            ftp_root = _altco_ftp_root
+        else:
+            ftp_root = _std_ftp_root
         tar_file = '{site}_ggg_inputs_{ymd}.tgz'.format(site=site, ymd=curr_date.strftime('%Y%m%d'))
-        links.append('/'.join([_ftp_root, site, tar_file]))
+        links.append('/'.join([ftp_root, site, tar_file]))
         curr_date += dt.timedelta(days=1)
 
     return links
 
 
-def write_links_to_screen(site, start_date, end_date):
-    links = make_ftp_link_list(site=site, start_date=start_date, end_date=end_date)
+def write_links_to_screen(site, start_date, end_date, alt_co=False):
+    links = make_ftp_link_list(site=site, start_date=start_date, end_date=end_date, alt_co=alt_co)
     print('\n'.join(links))
 
 
@@ -56,6 +62,9 @@ def add_std_cl_args(parser):
             print(msg, file=sys.stderr)
             sys.exit(1)
 
+    parser.add_argument('--alt-co', action='store_true', help='Set this to create links to files with the alternate (GEOS IT-based) '
+                                                              'CO profiles for dates before 1 Apr 2024. Has no effect for dates on or '
+                                                              'after 1 Apr 2024.')
     parser.add_argument('site', type=parse_site, help='The two letter abbreviation of the site you wish to download data for')
     parser.add_argument('start_date', type=lambda x: parse_date(x, 'start_date'),
                         help='The first date to download data for, in YYYYMMDD format.')

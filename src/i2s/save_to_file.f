@@ -3,7 +3,7 @@
      & minfreq,maxfreq,delimit,minmax,nlong,nshort,time,
      & i4head,r8head,DTCstr,INSstr,sivcfreq,pco_leni,pco_threshi,
      & izpd,sivcflag,dclevel,fvsi_calc,zpa,frzpda,shbar,sherr,lsemode,
-     & fpilha,infovec,tlalevel,fpsfname,errnum)
+     & fpilha,infovec,do_nonlin,nl_coef,tlalevel,fpsfname,errnum)
 c
 c  Input:
 c    datype       I*4    Data type (1=interferogram, 2=spectrum)
@@ -36,7 +36,10 @@ c    izpd         I*4    Point index of zero path difference
 c    sivcflag     I*4    
 c    dclevel      R*8    
 c    zpa          R*8    ZPD interferogram amplitude (phase-corrected)
-c    infovec(mif) R*8   Information produced by real-time algorithm
+c    infovec(mif) R*8    Information produced by real-time algorithm
+c    do_nonlin(2) I*4    Per-channel flag for whether nonlinearity correction was applied
+c    nl_coef(8)   R*4    Array of the nonlinearity coefficients (4 per channel)
+c                        from the input file
 c    tlalevel     I*4    Level of non-Bruker header items (three-letter acronyms)
 c
 c  Input/Output:
@@ -64,6 +67,7 @@ c
      & sivcflag,    !
      & lsemode,     ! Laser sampling error type
      & pco_leni,    !
+     & do_nonlin(2),! Subroutine input argument (see above)
      & tlalevel,    ! Subroutine input argument (see above)
      & errnum,      ! Subroutine input/output argument (see above)
      & chanloc,     ! Local copy of 'channel' avoids ftnchek warnings
@@ -75,7 +79,8 @@ c
      & compute_snr,snr,
      & shbar,       ! Laser sampling error (LSE)
      & sherr,       ! Laser sampling error uncertainty (LSU)
-     & fpilha       ! Fraction of power in lower half of alias
+     & fpilha,      ! Fraction of power in lower half of alias
+     & nl_coef(8)   ! Suboutine input argument (see above)
 
       real*8
      & dclevel,     ! DC interferogram signal level at ZPD
@@ -209,7 +214,7 @@ c           write(*,*)' save_opus: minind, maxind=',minind,maxind
      &      pco_leni,pco_threshi,izpd,
      &      sivcflag,dclevel,fvsi_calc,zpa,frzpda,
      &      shbar,sherr,lsemode,fpilha,snr,
-     &      infovec,tlalevel,fpsfname,errnum)
+     &      infovec,do_nonlin,nl_coef,tlalevel,fpsfname,errnum)
             write(*,*)' saved_opus: '
          endif    ! outfmt.eq.1
       endif

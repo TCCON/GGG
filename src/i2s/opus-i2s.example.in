@@ -215,7 +215,21 @@ ab
 
 4
 
-: Parameter #27 controls the verbosity of the program.
+: Parameter #27 allows the application of a nonlinearity correction.
+: It consists of 5 values:
+:   FLAG  C1  C2  C3  C4
+:    I4   R4  R4  R4  R4
+: Set FLAG = 0 to disable the nonlinearity correction, 1 to enable it.
+: C1 through C4 set the multiplicative coefficients for the correction.
+: For an intensity I, the correction will be:
+:   C1*I + C2*I^2 + C3*I^3 + C4*I^4
+: Typically, C1 will be 0 and only C2 through C4 will be set to values
+: determined by the nonlin5 program (https://github.com/TCCON/nonlin5).
+: The example coefficients here are for Sodankyla in 2017.
+
+0  0.0  0.00138  0.00302  0.0166
+
+: Parameter #28 controls the verbosity of the program.
 : Currently the following levels are defined:
 :   1 = display program name and error messages
 :   2 = adds display of warnings
@@ -225,7 +239,7 @@ ab
 
 3
 
-:  Parameter #28 is the run number (the file name extension)
+:  Parameter #29 is the run number (the file name extension)
 :  of the first scan.  Normally this is 1. This only applies
 :  for slice-ipp.  It is ignored for opus-i2s which has the
 :  run numbers at the bottom of the file alongside each

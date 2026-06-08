@@ -92,6 +92,8 @@ c the runlogs directory)
      &       $)
           read(*,*) modtype
       else
+c TODO: have modtype set whether or not the spectrum name is written
+c to the output file
           call getarg(2, modtype)
       end if
 c -------------------------------------------------------------

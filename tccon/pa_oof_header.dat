@@ -1,9 +1,9 @@
 --------------------------------------------------------------------------
 
-Carbon Dioxide Dry Column-Averaged Mixing Ratios from Park Falls
-Wisconsin, 2004 - 2008
+Carbon Dioxide Dry Column-Averaged Mixing Ratios from Park Falls,
+Wisconsin, USA
 
-Version: 2009-02-18
+Version: 2021-08-25
 
 --------------------------------------------------------------------------
 CONTENTS
@@ -15,8 +15,6 @@ CONTENTS
 5. Update notes
 6. Introduction
 7. General Comments on data
-8. References
-
 
 --------------------------------------------------------------------------
 1. DATA SOURCE AND CONTACTS
@@ -24,19 +22,17 @@ CONTENTS
 California Institute of Technology
 
 Correspondence concerning these data should be directed to:
-Paul Wennberg, Rebecca Washenfelder, Gretchen Aleks, and Geoffrey Toon
+Paul Wennberg, Coleen Roehl, and Geoffrey Toon
 
-Email: wennberg@gps.caltech.edu, rebecca.washenfelder@noaa.gov
-gka@gps.caltech.edu, geoffrey.c.toon@jpl.nasa.gov
+Email: wennberg@caltech.edu, coleen@caltech.edu, geoffrey.c.toon@jpl.nasa.gov
 
-Paul Wennberg and Gretchen Aleks
-Division of Engineering and Applied Science
+Paul Wennberg and Coleen Roehl
 California Institute of Technology
-MC 150-21
+MC 131-24
 1200 E. California Blvd.
 Pasadena, CA 91125
 
-Funded by NASA grants NAG5-12247 and NNG05-GD07G.
+Financial support for operations is provided by NASA.
 
 --------------------------------------------------------------------------
 2. USE OF DATA
@@ -53,8 +49,8 @@ conclusion depends on the data, co-authorship may be appropriate.
 This should be discussed at an early stage in the work.  Manuscripts
 using the data should be sent to the authors for review before they
 are submitted for publication, so we can insure that the quality and
-limitations of the data are accurately represented.
-
+limitations of the data are accurately represented. Please see this page
+for more details: https://tccon-wiki.caltech.edu/Main/DataUseGuidelines
 
 --------------------------------------------------------------------------
 3. RECIPROCITY
@@ -69,7 +65,6 @@ additional information necessary for other scientists to repeat the work
 and to run modified versions.  Model availability includes collaborative
 support for new users of the models.
 
-
 --------------------------------------------------------------------------
 4. WARNINGS
 
@@ -78,88 +73,60 @@ possible.  However, we reserve the right to make corrections to the data.
 We are not responsible for results and conclusions based on use of these
 data without regard to this warning.
 
-
 --------------------------------------------------------------------------
 5. UPDATE NOTES
 
 None.
-
 
 --------------------------------------------------------------------------
 6. INTRODUCTION
 
 Column-average Dry Mole Fractions (DMF) reported in this file were
 acquired using a Fourier Transform Spectrometer (FTS) located at the
-Wisconsin Tall Tower site (45.945 deg N, 90.273 deg W, 442 m above
+Wisconsin Tall Tower (WLEF) site (45.945 deg N, 90.273 deg W, 442 m above
 sea level).  Direct solar spectra were acquired in the near-infrared
 spectral region.  These spectra were used to retrieve column abundances
-of CO2 and O2.
+of CO2, CH4, CO, H2O, HDO, O2, and other atmospheric gases.
 
-A description of the observatory, location, spectral retrievals
-and calibration procedure are given in
+More information about the TCCON network can be found on the TCCON wiki:
 
-Washenfelder, R.A., G.C. Toon, J-F. Blavier, Z. Yang, N.T. Allen
-P.O. Wennberg, S.A. Vay, D.M. Matross, and B.C. Daube, 2006, Carbon
-dioxide column abundances at the Wisconsin Tall Tower site, Journal of
-Geophysical Research, 2006, 111, doi:10.1029/2006JD007154.
+   https://tccon-wiki.caltech.edu
 
-Since then, the calibration procedure has evolved. An airmass-correction
-is performed for XCO2 which accounts for the fact that due to spectroscopic
-inadequacies, XCO2 at all sites is SZA-dependent. This procedure is described in
-https://tccon-wiki.caltech.edu/Air_Mass_Correction_Take_II
+about the Park Fall FTS container specifically can be found at:
 
---------------------------------------------------------------------------
-7. GENERAL COMMENTS ON THE DATA
+   https://tccon-wiki.caltech.edu/Main/ParkFalls
 
-Dry column-average CO2 DMF has been calculated according to
+(For a username and password to the tccon-wiki, please email coleen@caltech.edu.)
 
-CO2 DMF = 0.2095 x column CO2 / column O2.
-
-Column CO2 is retrieved for two CO2 bands centered at 6228 cm-1 and
-6348 cm-1.  Column O2 is retrieved from the electronic band centered at
-7882 cm-1.  The average of the two calculated CO2 DMFs is presented here.
-
-The dry column-average CO2 DMF (0.2095 x column CO2 / column O2) is
-affected by three main sources of error:
-
-1. Measurement precision
-The standard deviation of column CO2 / column O2 during a one hour period
-is better than 0.1% under clear sky conditions and ~0.2% under partly
-cloudy conditions.  Repeatability of the measurement is not a significant
-source of error.
-
-2. Spectroscopic errors
-The retrieved O2 columns were NOT reduced by 2.27% to bring them into
-agreement with the dry surface pressure, as described in Washenfelder et
-al. (2006).  The absolute accuracy of the CO2 retrievals was calibrated
-by comparison to integrated aircraft profiles, resulting in a correction
-of 0.99.  The standard deviation of the fitting residuals is ~0.1%. 
-The aircraft profiles were performed with the sun
-at airmass 1.1 to 2.0 (SZA 25 to 60 deg), and the column-average CO2 DMF is
-now well-calibrated for these values.  However, additional systematic
-errors may be present at higher airmass due to errors in the spectroscopy
-of CO2 and or O2. 
-
-3. Systematic instrumental changes over time
-Retrieved O2 DMF increased by ~0.3% during the observation period reported
-here. We believe that this error affects both the CO2 and O2 retrievals
-similarly, but for now assume that the column CO2 / column O2 ratio may
-also have a systematic error of 0.3% over the observation period.
-
-In summary, the measurement precision of ~0.1% under clear sky and
-~0.2% under partly cloudy conditions does not affect the accuracy of the
-measurements.  However, spectroscopic errors introduce a systematic bias
-which depends on airmass.  We have calibrated the FTS column retrievals
-at airmass 1.1 to 2.0 during Jul to Aug 2004, and expect that the absolute
-accuracy at these airmasses has been maintained within 0.3% throughout
-the subsequent data record.
-
---------------------------------------------------------------------------
-8. REFERENCES
+See also, TCCON papers:
 
 Washenfelder, R.A., G.C. Toon, J-F. Blavier, Z. Yang, N.T. Allen
 P.O. Wennberg, S.A. Vay, D.M. Matross, and B.C. Daube, 2006.  Carbon
 dioxide column abundances at the Wisconsin Tall Tower site, Journal of
 Geophysical Research, 2006, 111, doi:10.1029/2006JD007154.
+
+Wunch, D., Toon, G.C., Blavier, J.-F.L., Washenfelder, R.A., Notholt, J.,
+Connor, B.J., Griffith, D.W.T., Sherlock, V., and Sherlock, V.
+The Total Carbon Column Observing Network, Phil. Trans. R. Soc. A
+May 28, 2011 369 (1943) 2087-2112; doi:10.1098/rsta.2010.0240
+
+Wunch, D., Toon, G. C., Wennberg, P. O., Wofsy, S. C., Stephens, B. B.,
+Fischer, M. L., Uchino, O., Abshire, J. B., Bernath, P., Biraud, S. C.,
+Blavier, J.-F. L., Boone, C., Bowman, K. P., Browell, E. V., Campos, T.,
+Connor, B. J., Daube, B. C., Deutscher, N. M., Diao, M., Elkins, J. W.,
+Gerbig, C., Gottlieb, E., Griffith, D. W. T., Hurst, D. F., Jiménez, R.,
+Keppel-Aleks, G., Kort, E. A., Macatangay, R., Machida, T., Matsueda, H.,
+Moore, F., Morino, I., Park, S., Robinson, J., Roehl, C. M., Sawa, Y.,
+Sherlock, V., Sweeney, C., Tanaka, T., and Zondlo, M. A.: Calibration of
+the Total Carbon Column Observing Network using aircraft profile data,
+Atmos. Meas. Tech., 3, 1351-1362, doi:10.5194/amt-3-1351-2010, 2010.
+
+--------------------------------------------------------------------------
+7. General Comments on data
+
+Due to an error in the surface pressure reading between Oct. 16, 2016 and 
+April 15, 2017, surface pressure values were obtained from the NOAA/ESRL/GML
+group also operating at WLEF (jonathan.kofler@noaa.gov and 
+philip.handley@noaa.gov) and were substituted for the erroneous values.
 
 --------------------------------------------------------------------------

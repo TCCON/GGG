@@ -1,0 +1,108 @@
+7 8 101
+1            ! 1 writes flagged data to output file, 0 stops it
+1            ! 1 writes spectrum name to output file, 0 doesn't
+The table below lists the acceptable range of parameters in the .vav.ada.aia files
+In the event that the data fall out of range, the error flag points
+to the #-value of the variable that was furthest out of range.
+ Variable  Output  Scale  Format   Unit     Vmin     Vmax     Description
+ "year"        1  1.0E+00 "f7.0" "      "   2008.0   2030     Year (e.g. (2009)
+ "day"         1  1.0E+00 "f6.0" "      "   0        367      Day of the year (1-366)
+ "hour"        1  1.0E+00 "f8.3" "      "  -12.0     36.0     Fractional UT Hour
+ "run"         0  1.0E+00 "f6.0" "      "   0        999999   Not output
+ "lat"         1  1.0E+00 "f8.2" "(deg) "   36.0     38.0     Latitude (deg.)
+ "long"        1  1.0E+00 "f9.2" "(deg) "  -96      -98       Longitude (deg.)
+ "zobs"        1  1.0E+00 "f8.3" "(km)  "   0.30     0.35     Geometric Altitude (km)
+ "zmin"        1  1.0E+00 "f9.5" "(km)  "  -0.0     +0.9      Pressure Altitude (km)
+ "solzen"      1  1.0E+00 "f7.2" "(deg) "   0.0      82.0     Solar Zenith Angle (deg)
+ "azim"        1  1.0E+00 "f8.2" "(deg) "  -180      360      Solar Azimuth Angle (deg)
+ "osds"        1  1.0E+00 "f7.3" "(ppm) "  -9        9        Observer-Sun Doppler Stretch (ppm)
+ "opd"         1  1.0E+00 "f7.2" "(cm)  "   40.0     50.0     Optical path Difference (cm)
+ "fovi"        1  1.0E+00 "f7.4" "(rad) "   0.0      0.005    Internal Field Of View (rad)
+ "amal"        0  1.0E+00 "f6.3" "(rad) "   0.0      0.004    Angular Mis-Alignment (rad)
+ "graw"        1  1.0E+00 "f7.4" "(cm-1)"   0.0      0.016    Spectral Point Spacing (cm-1)
+ "tins"        1  1.0E+00 "f6.1" "(C)   "   15.0     42.0     Internal Temperature (C)
+ "pins"        1  1.0E+00 "f7.1" "(mbar)"   0.0      1030.0   Internal Pressure (hPa)
+ "tout"        1  1.0E+00 "f6.1" "(C)   "  -35.      45.      External Temperature (C)
+ "pout"        1  1.0E+00 "f9.3" "(hPa) "   940.     1030.    External  pressure (hPa)
+ "hout"        1  1.0E+00 "f6.1" "(%RH) "   0        110.     External Humidity (%)
+ "sia"         1  1.0E+00 "f7.1" "(AU)  "   0.0      9999.    Solar Intensity (Average)
+ "fvsi"        1  1.0E+02 "f7.3" "(%)   "   0.0      5.       Fractional Variation in Solar Intensity
+ "wspd"        1  1.0E+00 "f6.1" "(m/s) "   0.0      30.0     Wind Speed (m/s)
+ "wdir"        1  1.0E+00 "f6.0" "(deg) "  -180      360.0    Wind Direction (deg.)
+ "xluft"       1  1.0E+00 "f8.4" "      "   0.96     1.04     o2_global_mean_dmf*column_air/column_O2
+ "xluft_error" 1  0.3E+00 "f7.4" "      "   0.0      0.05     one-sigma precision
+ "xhf"         1  1.0E+12 "f7.1" "(ppt) "  -1        500      o2_global_mean_dmf*column_hf/column_o2
+ "xhf_error"   1  0.7E+12 "f7.1" "(ppt) "   0        500      one-sigma precision
+ "xh2o"        1  1.0E+06 "f9.2" "(ppm) "  -1.       15000    o2_global_mean_dmf*column_h2o/column_o2
+ "xh2o_error"  1  0.9E+06 "f8.2" "(ppm) "   0        5000     one-sigma precision
+ "xhdo"        1  1.0E+06 "f9.2" "(ppm) "  -1.       15000    o2_global_mean_dmf*column_hdo/column_o2
+ "xhdo_error"  1  0.6E+06 "f8.2" "(ppm) "   0        5000     one-sigma precision
+ "xth2o"       1  1.0E+06 "f9.2" "(ppm) "  -1.       15000    o2_global_mean_dmf*column_th2o/column_o2
+ "xth2o_error" 1  0.9E+06 "f8.2" "(ppm) "   0        5000     one-sigma precision
+ "xco"         1  1.0E+09 "f7.1" "(ppb) "  -1.       500.     o2_global_mean_dmf*column_co/column_o2
+ "xco_error"   1  0.4E+09 "f7.1" "(ppb) "   0        20.      one-sigma precision
+ "xn2o"        1  1.0E+09 "f8.2" "(ppb) "   100      400      o2_global_mean_dmf*column_n2o/column_o2
+ "xn2o_error"  1  0.3E+09 "f7.2" "(ppb) "   0        50       one-sigma precision
+ "xch4"        1  1.0E+06 "f9.5" "(ppm) "   0        2        o2_global_mean_dmf*column_ch4/column_o2
+ "xch4_error"  1  1.2E+05 "f9.5" "(ppm) "   0        0.1      one-sigma precision
+ "xco2"        1  1.0E+06 "f9.2" "(ppm) "   350      450      o2_global_mean_dmf*column_co2/column_o2
+ "xco2_error"  1  1.3E+05 "f8.2" "(ppm) "   0        10       one-sigma precision
+ "xwco2"       1  1.0E+06 "f9.2" "(ppm) "   350      450      o2_global_mean_dmf*column_wco2/column_o2
+ "xwco2_error" 1  1.3E+05 "f8.2" "(ppm) "   0        20       one-sigma precision
+ "xlco2"       1  1.0E+06 "f9.2" "(ppm) "   350      450      o2_global_mean_dmf*column_lco2/column_o2
+ "xlco2_error" 1  1.3E+05 "f8.2" "(ppm) "   0        20       one-sigma precision
+ "xfco2"       1  1.0E+06 "f9.2" "(ppm) "   0        950      o2_global_mean_dmf*column_fco2/column_o2
+ "xfco2_error" 1  1.3E+05 "f8.2" "(ppm) "   0        500      one-sigma precision
+ "xzco2"       1  1.0E+06 "f9.2" "(ppm) "   0        950      o2_global_mean_dmf*column_zco2/column_o2
+ "xzco2_error" 1  1.3E+05 "f8.2" "(ppm) "   0        500      one-sigma precision
+ "xo2"         1  1.0E+00 "f7.4" "      "   0.20     0.22     o2_global_mean_dmf*column_o2/column_o2=o2_global_mean_dmf
+ "xo2_error"   1  0.3E+00 "f7.4" "      "   0        0.05     one-sigma precision
+ "xhcl"        1  1.0E+09 "f7.1" "(ppb) "   0        5        o2_global_mean_dmf*column_hcl/column_o2
+ "xhcl_error"  1  0.6E+09 "f7.4" "(ppb) "   0        50       one-sigma precision
+ "xao2"        1  1.0E+00 "f7.4" "      "   0.19     0.23     o2_global_mean_dmf*column_ao2/column_o2=o2_global_mean_dmf
+ "xao2_error"  1  1.3E-01 "f7.4" "      "   0        0.05     one-sigma precision
+ "xbo2"        1  1.0E+00 "f7.4" "      "   0.19     0.23     o2_global_mean_dmf*column_bo2/column_o2=o2_global_mean_dmf
+ "xbo2_error"  1  0.1E+00 "f7.4" "      "   0        0.05     one-sigma precision
+"xvfco2"       1  1.0E+06 "f9.2" "(ppm) "   0        950      o2_global_mean_dmf*column_vfco2/column_o2
+"xvfco2_error" 1  1.3E+05 "f8.2" "(ppm) "   0        1e9      one-sigma precision
+ "qcflag"      0  1.0E+00 "f7.1" "      "   2.00     2.00     qcflag
+ "xmco2"       1  1.0E+06 "f8.1" "(ppm) "   350      999999   o2_global_mean_dmf*column_mco2/column_o2
+ "xmco2_error" 1  1.1E+05 "f7.1" "(ppm) "   0        999999   one-sigma precision
+ "xtch4"       1  1.0E+06 "f8.3" "(ppm) "   0        15       o2_global_mean_dmf*column_tch4/column_o2
+ "xtch4_error" 1  1.2E+05 "f7.3" "(ppm) "   0        40       one-sigma precision
+ "xo3"         1  1.0E+09 "f8.3" "(ppb) "  -100      900      o2_global_mean_dmf*column_o3/column_o2
+ "xo3_error"   1  1.2E+08 "f7.3" "(ppb) "   0        900      one-sigma precision
+ "xno"         1  1.0E+09 "f8.3" "(ppb) "  -20       350      o2_global_mean_dmf*column_no/column_o2
+ "xno_error"   1  1.2E+08 "f7.3" "(ppb) "   0        1500     one-sigma precision
+ "xno2"        1  1.0E+09 "f8.3" "(ppb) "  -15       250      o2_global_mean_dmf*column_no2/column_o2
+ "xno2_error"  1  1.2E+08 "f7.3" "(ppb) "   0        20       one-sigma precision
+ "xocs"        1  1.0E+09 "f8.3" "(ppb) "   0        200      o2_global_mean_dmf*column_ocs/column_o2
+ "xocs_error"  1  1.2E+08 "f7.3" "(ppb) "   0        20       one-sigma precision
+ "xh2co"       1  1.0E+09 "f8.3" "(ppb) "  -2        200      o2_global_mean_dmf*column_h2co/column_o2
+ "xh2co_error" 1  1.2E+08 "f7.3" "(ppb) "   0        10       one-sigma precision
+ "xhcn"        1  1.0E+09 "f8.3" "(ppb) "  -2        200      o2_global_mean_dmf*column_hcn/column_o2
+ "xhcn_error"  1  1.2E+08 "f7.3" "(ppb) "   0        20       one-sigma precision
+ "xc2h6"       1  1.0E+12 "f8.3" "(ppt) "  -100      9000     o2_global_mean_dmf*column_c2h6/column_o2
+ "xc2h6_error" 1  1.2E+11 "f7.3" "(ppt) "   0        4000      one-sigma precision
+ "xc2h2"       1  1.0E+09 "f8.3" "(ppb) "  -20       200      o2_global_mean_dmf*column_c2h2/column_o2
+ "xc2h2_error" 1  1.2E+08 "f7.3" "(ppb) "  -10       20       one-sigma precision
+ "xc3h8"       1  1.0E+09 "f8.3" "(ppb) "  -100      9000     o2_global_mean_dmf*column_c3h8/column_o2
+ "xc3h8_error" 1  1.2E+08 "f7.3" "(ppb) "  -10       4000     one-sigma precision
+ "xtco2"       1  1.0E+06 "f9.2" "(ppm) "  -350      999999   o2_global_mean_dmf*column_tco2/column_o2
+ "xtco2_error" 1  1.3E+05 "f8.2" "(ppm) "  -10       999999   one-sigma precision
+ "xn2"         1  1.0E+00 "f8.3" "      "  -10       15       o2_global_mean_dmf*column_n2/column_o2
+ "xn2_error"   1  1.2E-01 "f7.3" "      "   0        100      one-sigma precision
+ "xmco"        1  1.0E+09 "f7.1" "(ppb) "  -200.     500.     o2_global_mean_dmf*column_mco/column_o2
+ "xmco_error"  1  0.3E+09 "f7.1" "(ppb) "   0        10000.   one-sigma precision
+ "xmch4"       1  1.0E+06 "f8.3" "(ppm) "   0        2        o2_global_mean_dmf*column_mch4/column_o2
+ "xmch4_error" 1  1.1E+05 "f7.3" "(ppm) "   0        0.3      one-sigma precision
+ "xmn2o"       1  1.0E+09 "f8.2" "(ppb) "   100      400      o2_global_mean_dmf*column_mn2o/column_o2
+ "xmn2o_error" 1  0.2E+09 "f7.2" "(ppb) "   0        50       one-sigma precision
+ "xmhdo"       1  1.0E+06 "f9.2" "(ppm) "  -1.       15000    o2_global_mean_dmf*column_mhdo/column_o2
+ "xmhdo_error" 1  0.5E+06 "f8.2" "(ppm) "  -1.       99999    one-sigma precision
+ "xmh2o"       1  1.0E+06 "f9.2" "(ppm) "  -1.       15000    o2_global_mean_dmf*column_mh2o/column_o2
+ "xmh2o_error" 1  0.5E+06 "f8.2" "(ppm) "   0        5000     one-sigma precision
+ "xmhcl"       1  1.0E+09 "f7.1" "(ppb) "   0        5        o2_global_mean_dmf*column_mhcl/column_o2
+ "xmhcl_error" 1  0.6E+09 "f7.4" "(ppb) "   0        50       one-sigma precision
+"xmfco2"       1  1.0E+06 "f9.2" "(ppm) "   0        950      o2_global_mean_dmf*column_mfco2/column_o2
+"xmfco2_error" 1  1.3E+05 "f8.2" "(ppm) "   0        500      one-sigma precision
